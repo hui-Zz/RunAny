@@ -172,7 +172,7 @@ return
 iniFileWrite:
 	ini:=true
 	FileAppend,% ";【RunMenuZz】超轻便自由的快速启动应用工具`n;联系：hui0.0713@gmail.com 讨论QQ群：3222783、271105729、493194474`n;by Zz @2016.11.06`n;初次使用请先按一下F1显示菜单`n",%iniFile%
-	FileAppend,% "[key]`nF1`n;【自定义显示菜单热键】参照AutoHotkey按键列表`n;单键如:【``】【F1】【LWin】【RAlt】【AppsKey】`n;组合键如：左A​lt+z:【<!z】左Win+z:【<#z】左Ctrl+``:【<^``】右Shift+/:【>+/】`n`n",%iniFile%
+	FileAppend,% "[key]`nF1`n;【自定义显示菜单热键】参照AutoHotkey按键列表`n;单键如:【``】【F1】【LWin】【RAlt】【AppsKey】`n;组合键如：左Alt+z:【<!z】左Win+z:【<#z】左Ctrl+``:【<^``】右Shift+/:【>+/】`n`n",%iniFile%
 	FileAppend,% "[appPath]`n;【软件安装根目录】`n;已加入系统[运行]路径的目录无需添加,如：C:\Windows的应用`nC:\Program Files\`nC:\Program Files (x86)\`n`n[menuName]`n;【自定义树形启动菜单】`n;如果有多个同名应用，请加上全路径`n;目录前-为1级目录,--为2级以此类推,分隔符亦是如此`n",%iniFile%
 	FileAppend,% "cmd.exe`n-`n-app`n计算器|calc.exe`n--img`n  画图|mspaint.exe`n  ---`n  截图|SnippingTool.exe`n--sys`n  ---media`n     wmplayer.exe`n--佳软`n  StrokesPlus.exe`n  TC|Totalcmd64.exe`n  Everything.exe`n-edit`n  notepad.exe`n  写字板|wordpad.exe`n-`nIE(&E)|C:\Program Files\Internet Explorer\iexplore.exe`n-`n设置|Control.exe`n",%iniFile%
 return
