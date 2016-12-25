@@ -1,9 +1,9 @@
 ﻿/*
 ╔═════════════════════════════════
-║【RunMenuZz】超轻便自由的快速启动应用工具
+║【RunMenuZz v1.5】超轻便自由的快速启动应用工具
 ║ 联系：hui0.0713@gmail.com
 ║ 讨论QQ群：3222783、271105729、493194474
-║ by Zz @2016.11.06
+║ by Zz @2016.12.25
 ╚═════════════════════════════════
 */
 #Persistent			;~让脚本持久运行
@@ -14,6 +14,7 @@ SetBatchLines,-1		;~脚本全速执行(默认10ms)
 SetControlDelay,0		;~控件修改命令自动延时(默认20)
 SetWorkingDir,%A_ScriptDir%	;~脚本当前工作目录
 SplitPath,A_ScriptFullPath,,,,fileNotExt
+;Menu,Tray,Icon,RunMenuZz.ico
 iniFile:=fileNotExt ".ini"
 IfNotExist,%iniFile%
 	gosub,iniFileWrite
@@ -43,7 +44,7 @@ Loop,parse,appPath,`n
 	{
 		Loop,%A_LoopField%\*.exe,0,1
 		{
-			fileName:=RegExReplace(A_LoopFileName,"i)\.exe$","")
+			fileName:=RegExReplace(A_LoopFileName,"iS)\.exe$","")
 			MenuObj[(fileName)]:=A_LoopFileLongPath
 		}
 	}else{
@@ -57,8 +58,8 @@ Loop,parse,menuName,`n
 {
 	if(InStr(A_LoopField,"-")=1){
 		;~;[生成目录树层级结构]
-		menuItem:=RegExReplace(A_LoopField,"^-+")
-		menuLevel:=StrLen(RegExReplace(A_LoopField,"(^-+).*","$1"))
+		menuItem:=RegExReplace(A_LoopField,"S)^-+")
+		menuLevel:=StrLen(RegExReplace(A_LoopField,"S)(^-+).*","$1"))
 		if(menuItem){
 			Menu,%menuItem%,add
 			Menu,% menuRoot[menuLevel],add,%menuItem%,:%menuItem%
@@ -70,21 +71,21 @@ Loop,parse,menuName,`n
 	}else if(InStr(A_LoopField,"|")){
 		;~;[生成有前缀备注的应用]
 		menuDiy:=StrSplit(A_LoopField,"|")
-		appName:=RegExReplace(menuDiy[2],"i)\.exe$")
+		appName:=RegExReplace(menuDiy[2],"iS)\.exe$")
 		if(MenuObj[appName]){
 			MenuObj[menuDiy[1]]:=MenuObj[appName]
 		}else{
 			MenuObj[menuDiy[1]]:=menuDiy[2]
 		}
 		Menu_Add(menuRoot[menuLevel],menuDiy[1])
-	}else if(RegExMatch(A_LoopField,"i)^(\\\\|.:\\).*?\.exe$") && FileExist(A_LoopField)){
+	}else if(RegExMatch(A_LoopField,"iS)^(\\\\|.:\\).*?\.exe$")){
 		;~;[生成完全路径的应用]
 		SplitPath,A_LoopField,fileName,,,nameNotExt
 		MenuObj[nameNotExt]:=A_LoopField
 		Menu_Add(menuRoot[menuLevel],nameNotExt)
 	}else{
 		;[生成已取到的应用]
-		appName:=RegExReplace(A_LoopField,"i)\.exe$")
+		appName:=RegExReplace(A_LoopField,"iS)\.exe$")
 		if(!MenuObj[appName])
 			MenuObj[appName]:=A_LoopField
 		Menu_Add(menuRoot[menuLevel],appName)
@@ -105,15 +106,15 @@ return
 Menu_Add(menuName,menuItem){
 	Menu,%menuName%,add,%menuItem%,MenuRun
 	try {
-		if(RegExMatch(MenuObj[(menuItem)],"i)\.lnk$")){
+		if(RegExMatch(MenuObj[(menuItem)],"iS)\.lnk$")){
 			FileGetShortcut,% MenuObj[menuItem],LnkEXE
 			MsgBox,% LnkEXE
 			Menu,%menuName%,Icon,%menuItem%,%LnkEXE%,0
-		}else if(RegExMatch(MenuObj[(menuItem)],"i)\.ahk$")){
+		}else if(RegExMatch(MenuObj[(menuItem)],"iS)\.ahk$")){
 			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,74
-		}else if(RegExMatch(MenuObj[(menuItem)],"i)\.(bat|cmd)$")){
+		}else if(RegExMatch(MenuObj[(menuItem)],"iS)\.(bat|cmd)$")){
 			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,73
-		}else if(RegExMatch(MenuObj[(menuItem)],"\b(([\w-]+://?|www[.])[^\s()<>]+(?:\([\w\d]+\)|([^[:punct:]\s]|/)))")){
+		}else if(RegExMatch(MenuObj[(menuItem)],"S)\b(([\w-]+://?|www[.])[^\s()<>]+(?:\([\w\d]+\)|([^[:punct:]\s]|/)))")){
 			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,44
 		}else{
 			Menu,%menuName%,Icon,%menuItem%,% MenuObj[(menuItem)],0
@@ -125,7 +126,8 @@ Menu_Add(menuName,menuItem){
 CountTime:
 	global mTime
 	mTime+=1
-	ToolTip,%mTime%,A_ScreenWidth-60,A_ScreenHeight
+	if mTime>2
+		ToolTip,%mTime%,A_ScreenWidth-60,A_ScreenHeight
 	return
 ;~;[显示菜单]
 MenuShow:
@@ -149,12 +151,13 @@ MenuRun:
 ;~;[托盘菜单]
 MenuTray:
 	Menu,Tray,NoStandard
+	Menu,Tray,add,菜单(&Z),MenuShow
 	Menu,Tray,add,重启(&R),Menu_Reload
 	Menu,Tray,add
 	Menu,Tray,add,挂起(&S),Menu_Suspend
 	Menu,Tray,add,暂停(&A),Menu_Pause
 	Menu,Tray,add,退出(&X),Menu_Exit
-	Menu,Tray,Default,重启(&R)
+	Menu,Tray,Default,菜单(&Z)
 	Menu,Tray,Click,1
 return
 Menu_Reload:
