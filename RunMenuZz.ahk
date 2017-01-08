@@ -1,9 +1,9 @@
 ﻿/*
 ╔═════════════════════════════════
-║【RunMenuZz】超轻便自由的快速启动应用工具 v1.6
+║【RunMenuZz】超轻便自由的快速启动应用工具 v1.8
 ║ 联系：hui0.0713@gmail.com
 ║ 讨论QQ群：3222783、271105729、493194474
-║ by Zz @2016.12.29
+║ by Zz @2017.1.8 集成Everything版本
 ╚═════════════════════════════════
 */
 #Persistent			;~让脚本持久运行
@@ -23,20 +23,9 @@ global everyDLL:=A_Is64bitOS ? "Everything64.dll" : "Everything32.dll"
 global mTime:=0
 global MenuObj:=Object()
 menuRoot:=Object()
-menuRoot.Insert("AppMenu")
+menuRoot.Insert("RunMenu")
 menuLevel:=1
 SetTimer,CountTime,500
-
-;~;[设定自定义显示菜单热键]
-IniRead,menuKey,%iniFile%,key
-try{
-	Hotkey,%menuKey%,MenuShow,On
-}catch{
-	MsgBox,1,,[key]`n%menuKey%`t<—热键语法不正确`n`n`n详细请参照AutoHotkey按键列表，需要打开吗？
-	IfMsgBox OK
-		Run,http://ahkcn.sourceforge.net/docs/KeyList.htm
-	return
-}
 
 ;~;[使用everything读取整个系统所有exe]
 IfWinExist ahk_exe Everything.exe
@@ -47,7 +36,7 @@ Else
 StartTick:=A_TickCount  ;若要评估出menu时间
 
 ;~;[读取自定义树形菜单设置]
-Loop, read, RunMenu.ini
+Loop, read, %iniFile%
 {
 	Z_ReadLine=%A_LoopReadLine%
 	if(InStr(Z_ReadLine,"-")=1){
@@ -89,6 +78,7 @@ Loop, read, RunMenu.ini
 if(ini){
 	TrayTip,,RunMenuZz菜单初始化完成,3,1
 	Run,%iniFile%
+	gosub,``
 }
 
 SetTimer,CountTime,Off
@@ -96,6 +86,11 @@ Menu,Tray,Icon,RunMenuZz.ico
 ini=true
 TrayTip,,% A_TickCount-StartTick "毫秒",3,1
 
+return
+
+;~;[设定自定义显示菜单热键]
+`::
+	gosub,MenuShow
 return
 
 ;~;[生成菜单]
@@ -225,8 +220,5 @@ class everything
 ;~;[配置生成]
 iniFileWrite:
 	ini:=true
-	FileAppend,% ";【RunMenuZz】超轻便自由的快速启动应用工具 v1.6`n;联系：hui0.0713@gmail.com 讨论QQ群：3222783、271105729、493194474`n;by Zz @2016.11.06`n;初次使用请先按一下F1显示菜单`n",%iniFile%
-	FileAppend,% "[key]`nF1`n;【自定义显示菜单热键】参照AutoHotkey按键列表`n;单键如:【``】【F1】【LWin】【RAlt】【AppsKey】`n;组合键如：左Alt+z:【<!z】左Win+z:【<#z】左Ctrl+``:【<^``】右Shift+/:【>+/】`n`n",%iniFile%
-	FileAppend,% "[appPath]`n;【软件安装根目录】`n;已加入系统[运行]路径的目录无需添加,如：C:\Windows的应用`nC:\Program Files\`nC:\Program Files (x86)\`n`n[menuName]`n;【自定义树形启动菜单】`n;如果有多个同名应用，请加上全路径`n;目录前-为1级目录,--为2级以此类推,分隔符亦是如此`n`n;1.6版本开始移至RunMenu.ini文件中加快读取",%iniFile%
-	FileAppend,% "cmd.exe`n-`n-app`n计算器|calc.exe`n--img`n  画图|mspaint.exe`n  ---`n  截图|SnippingTool.exe`n--sys`n  ---media`n     wmplayer.exe`n--佳软`n  StrokesPlus.exe`n  TC|Totalcmd64.exe`n  Everything.exe`n-edit`n  notepad.exe`n  写字板|wordpad.exe`n-`nIE(&E)|C:\Program Files\Internet Explorer\iexplore.exe`n-`n设置|Control.exe`n",%A_ScriptDir%\RunMenu.ini
+	FileAppend,% "cmd.exe`n-`n-app`n计算器|calc.exe`n--img`n  画图|mspaint.exe`n  ---`n  截图|SnippingTool.exe`n--sys`n  ---media`n     wmplayer.exe`n--佳软`n  StrokesPlus.exe`n  TC|Totalcmd64.exe`n  Everything.exe`n-edit`n  notepad.exe`n  写字板|wordpad.exe`n-`nIE(&E)|C:\Program Files\Internet Explorer\iexplore.exe`n-`n设置|Control.exe`n",%iniFile%
 return
