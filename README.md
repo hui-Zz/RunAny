@@ -1,4 +1,4 @@
-# 【RunMenuZz】超轻便自由的快速启动应用工具 v1.8 集成Everything自动检索程序
+# 【RunMenuZz】一劳永逸的应用启动菜单工具 v1.8 集成Everything自动检索程序
 
 从此程序随便放目录都能用RunMenu运行了😎
 
