@@ -51,6 +51,8 @@ Loop, read, %iniFile%
 		}else if(menuRoot[menuLevel]){
 			Menu,% menuRoot[menuLevel],Add
 		}
+	}else if(InStr(Z_ReadLine,";")=1){
+		continue
 	}else if(InStr(Z_ReadLine,"|")){
 		;~;[生成有前缀备注的应用]
 		menuDiy:=StrSplit(Z_ReadLine,"|")
