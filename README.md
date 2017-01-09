@@ -40,4 +40,6 @@ RunMenuZz追求就是：<u>**一劳永逸**</u>
 - \`aw就是app下的Wiz
 - \`fw就是file下的WinRAR
 
+(PS:输入\`可以Win+<kbd>\`</kbd>输入)
+---
 建议：hui0.0713@gmail.com 讨论QQ群：3222783、271105729、493194474
