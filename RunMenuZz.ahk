@@ -19,19 +19,26 @@ MenuTray()
 iniFile:=fileNotExt ".ini"
 IfNotExist,%iniFile%
 	gosub,iniFileWrite
+SetTimer,CountTime,300
 global everyDLL:=A_Is64bitOS ? "Everything64.dll" : "Everything32.dll"
 global mTime:=0
 global MenuObj:=Object()
 menuRoot:=Object()
 menuRoot.Insert("RunMenu")
 menuLevel:=1
-SetTimer,CountTime,500
-
+evExist:=true
+while !WinExist("ahk_exe Everything.exe")
+{
+	Sleep,100
+	if(A_Index=30){
+		TrayTip,,先运行Everything才能读取程序路径,3,1
+		evExist:=false
+		break
+	}
+}
 ;~;[使用everything读取整个系统所有exe]
-IfWinExist ahk_exe Everything.exe
+If evExist
 	everythingQuery()
-Else
-	TrayTip,,请先运行Everything,3,1
 
 StartTick:=A_TickCount  ;若要评估出menu时间
 
@@ -51,6 +58,8 @@ Loop, read, %iniFile%
 		}else if(menuRoot[menuLevel]){
 			Menu,% menuRoot[menuLevel],Add
 		}
+	}else if(InStr(Z_ReadLine,";")=1){
+		continue
 	}else if(InStr(Z_ReadLine,"|")){
 		;~;[生成有前缀备注的应用]
 		menuDiy:=StrSplit(Z_ReadLine,"|")
@@ -135,13 +144,16 @@ MenuRun:
 		MsgBox,% "运行路径不正确：" MenuObj[(A_ThisMenuItem)]
 	}
 	return
-
+Menu_Edit:
+	Run,%iniFile%
+	return
 ;~;[托盘菜单]
 MenuTray(){
 	Menu,Tray,NoStandard
 	Menu,Tray,Icon,RunMenuZz.ico
 	Menu,Tray,add,菜单(&Z),MenuShow
 	Menu,Tray,add,重启(&R),Menu_Reload
+	Menu,Tray,add,配置(&E),Menu_Edit
 	Menu,Tray,add
 	Menu,Tray,add,挂起(&S),Menu_Suspend
 	Menu,Tray,add,暂停(&A),Menu_Pause
