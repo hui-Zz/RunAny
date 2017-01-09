@@ -25,7 +25,7 @@ global MenuObj:=Object()
 menuRoot:=Object()
 menuRoot.Insert("RunMenu")
 menuLevel:=1
-SetTimer,CountTime,500
+SetTimer,CountTime,300
 
 ;~;[使用everything读取整个系统所有exe]
 IfWinExist ahk_exe Everything.exe
@@ -137,13 +137,16 @@ MenuRun:
 		MsgBox,% "运行路径不正确：" MenuObj[(A_ThisMenuItem)]
 	}
 	return
-
+Menu_Edit:
+	Run,%iniFile%
+	return
 ;~;[托盘菜单]
 MenuTray(){
 	Menu,Tray,NoStandard
 	Menu,Tray,Icon,RunMenuZz.ico
 	Menu,Tray,add,菜单(&Z),MenuShow
 	Menu,Tray,add,重启(&R),Menu_Reload
+	Menu,Tray,add,配置(&E),Menu_Edit
 	Menu,Tray,add
 	Menu,Tray,add,挂起(&S),Menu_Suspend
 	Menu,Tray,add,暂停(&A),Menu_Pause
