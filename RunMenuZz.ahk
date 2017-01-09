@@ -80,7 +80,7 @@ Loop, read, %iniFile%
 if(ini){
 	TrayTip,,RunMenuZz菜单初始化完成,3,1
 	Run,%iniFile%
-	gosub,``
+	gosub,$``
 }
 
 SetTimer,CountTime,Off
@@ -91,9 +91,41 @@ TrayTip,,% A_TickCount-StartTick "毫秒",3,1
 return
 
 ;~;[设定自定义显示菜单热键]
-`::
-	gosub,MenuShow
+;~ `::
+	;~ gosub,MenuShow
+;~ return
+
+$`::		;{
+if pressesCount > 0 ; ＞0说明SetTimer 已经启动了，按键次数递增  
+{  
+    pressesCount += 1  
+    return  
+}  
+;否则，这是新一系列按键的首次按键。将计数设重置为 1 ，并启动定时器：  
+pressesCount = 1  
+SetTimer, WaitKey, 400 	;在 400 毫秒内等待更多的按键。  
 return
+WaitKey:  
+SetTimer, WaitKey, off
+if pressesCount = 1 		;该键已按过一次。  
+{
+	gosub,MenuShow
+}
+else if pressesCount = 2 ;该键已按过两次。  
+{
+	SendRaw ``
+}
+;~ else if pressesCount > 2  
+;~ {  
+    ;~ Gosub trebleClick  
+;~ }  
+;不论上面哪个动作被触发，将计数复位以备下一系列的按键：  
+pressesCount = 0  
+return
+;~ trebleClick:  
+;~ MsgBox, 检测到三次或更多次点击。  
+;~ return		;}
+
 
 ;~;[生成菜单]
 Menu_Add(menuName,menuItem){
