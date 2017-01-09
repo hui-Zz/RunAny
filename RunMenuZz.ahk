@@ -19,19 +19,26 @@ MenuTray()
 iniFile:=fileNotExt ".ini"
 IfNotExist,%iniFile%
 	gosub,iniFileWrite
+SetTimer,CountTime,300
 global everyDLL:=A_Is64bitOS ? "Everything64.dll" : "Everything32.dll"
 global mTime:=0
 global MenuObj:=Object()
 menuRoot:=Object()
 menuRoot.Insert("RunMenu")
 menuLevel:=1
-SetTimer,CountTime,300
-
+evExist:=true
+while !WinExist("ahk_exe Everything.exe")
+{
+	Sleep,100
+	if(A_Index=30){
+		TrayTip,,先运行Everything才能读取程序路径,3,1
+		evExist:=false
+		break
+	}
+}
 ;~;[使用everything读取整个系统所有exe]
-IfWinExist ahk_exe Everything.exe
+If evExist
 	everythingQuery()
-Else
-	TrayTip,,请先运行Everything,3,1
 
 StartTick:=A_TickCount  ;若要评估出menu时间
 
