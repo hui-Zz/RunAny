@@ -58,7 +58,7 @@ Loop, read, %iniFile%
 		}else if(menuRoot[menuLevel]){
 			Menu,% menuRoot[menuLevel],Add
 		}
-	}else if(InStr(Z_ReadLine,";")=1){
+	}else if(InStr(Z_ReadLine,";")=1 || Z_ReadLine=""){
 		continue
 	}else if(InStr(Z_ReadLine,"|")){
 		;~;[生成有前缀备注的应用]
@@ -113,6 +113,8 @@ Menu_Add(menuName,menuItem){
 			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,73
 		}else if(RegExMatch(item,"S)\b(([\w-]+://?|www[.])[^\s()<>]+(?:\([\w\d]+\)|([^[:punct:]\s]|/)))")){
 			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,44
+		}else if(RegExMatch(item,"iS)^\""?.:\\.*[^.exe]$")){
+			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,246
 		}else{
 			Menu,%menuName%,Icon,%menuItem%,% item,0
 		}
