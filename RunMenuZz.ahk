@@ -1,6 +1,6 @@
 ﻿/*
 ╔═════════════════════════════════
-║【RunMenuZz】超轻便自由的快速启动应用工具 v1.8
+║【RunMenuZz】超轻便自由的快速启动应用工具 v1.9
 ║ 联系：hui0.0713@gmail.com
 ║ 讨论QQ群：3222783、271105729、493194474
 ║ by Zz @2017.1.8 集成Everything版本
@@ -31,7 +31,7 @@ while !WinExist("ahk_exe Everything.exe")
 {
 	Sleep,100
 	if(A_Index=30){
-		TrayTip,,先运行Everything才能读取程序路径,3,1
+		TrayTip,,先运行Everything才能读取程序路径,2,1
 		evExist:=false
 		break
 	}
@@ -41,6 +41,14 @@ If evExist
 	everythingQuery()
 
 StartTick:=A_TickCount  ;若要评估出menu时间
+
+;~;[设定自定义显示菜单热键]
+try{
+	RegRead, menuKey, HKEY_CURRENT_USER, SOFTWARE\RunAny, key
+	Hotkey,%menuKey%,MenuShow,On
+}catch{
+	MsgBox,%menuKey%`t<—热键设置不正确
+}
 
 ;~;[读取自定义树形菜单设置]
 Loop, read, %iniFile%
@@ -87,19 +95,13 @@ Loop, read, %iniFile%
 if(ini){
 	TrayTip,,RunMenuZz菜单初始化完成,3,1
 	Run,%iniFile%
-	gosub,``
 }
 
 SetTimer,CountTime,Off
 Menu,Tray,Icon,RunMenuZz.ico
 ini=true
-TrayTip,,% A_TickCount-StartTick "毫秒",3,1
+TrayTip,,% A_TickCount-StartTick "毫秒",3,17
 
-return
-
-;~;[设定自定义显示菜单热键]
-`::
-	gosub,MenuShow
 return
 
 ;~;[生成菜单]
@@ -113,10 +115,10 @@ Menu_Add(menuName,menuItem){
 			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,72
 		}else if(RegExMatch(item,"iS)\b(([\w-]+://?|www[.])[^\s()<>]+(?:\([\w\d]+\)|([^[:punct:]\s]|/)))")){
 			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,44
-		}else if(RegExMatch(item,"iS)^\""?.:\\.*[^.exe]$")){
+		}else if(RegExMatch(item,"iS)^\""?.:\\.*(\\|"")$")){
 			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,42
 		}else{
-			Menu,%menuName%,Icon,%menuItem%,% item,0
+			Menu,%menuName%,Icon,%menuItem%,% item
 		}
 	} catch e {
 		Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,124
@@ -146,21 +148,61 @@ MenuRun:
 		MsgBox,% "运行路径不正确：" MenuObj[(A_ThisMenuItem)]
 	}
 	return
+;~;[菜单配置]
 Menu_Edit:
 	Run,%iniFile%
 	return
+;~;[设置选项]
+Menu_Set:
+	Gui,Destroy
+	Gui,Margin,30,40
+	Gui,Add,GroupBox,xm-10 y+20 w300 h55,自定义开关热键
+	Gui,Add,Hotkey,xm yp+20 w100 vvzzkey,%menuKey%
+	Gui,Add,Button,xm y+30 w75 GSetOK,确定(&Y)
+	Gui,Add,Button,x+5 w75 GSetCancel,取消(&C)
+	Gui,Show,,RunAny
+	return
+Menu_About:
+	Gui,99:Destroy
+	Gui,99:Margin,20,20
+	Gui,99:Add,Picture,xm Icon1,%A_ScriptName%
+	Gui,99:Font,Bold
+	Gui,99:Add,Text,x+10 yp+10,%applicationname% v2 2017
+	Gui,99:Font
+	Gui,99:Add,Text,y+10, 【RunAny】超轻便自由的快速启动应用工具 v1.9
+	Gui,99:Add,Text,y+10, 默认显示菜单热键为``(Esc键下方的重音符键)
+	Gui,99:Add,Text,y+10
+	Gui,99:Add,Text,y+10, 联系：hui0.0713@gmail.com
+	Gui,99:Add,Text,y+10, 讨论QQ群：3222783、271105729、493194474
+	Gui,99:Add,Text,y+10, by Zz @2017.1.8 集成Everything版本
+	Gui,99:Show,,%applicationname% About
+	hCurs:=DllCall("LoadCursor","UInt",NULL,"Int",32649,"UInt") ;IDC_HAND
+	OnMessage(0x200,"WM_MOUSEMOVE") 
+	return
+SetOK:
+	Gui,Submit
+	zzkey:=vzzkey
+	if(zzkey!=menuKey){
+		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, key, %zzkey%
+		Reload
+	}
+return
+SetCancel:
+	Gui,Destroy
+Return
 ;~;[托盘菜单]
 MenuTray(){
 	Menu,Tray,NoStandard
-	Menu,Tray,Icon,RunMenuZz.ico
-	Menu,Tray,add,菜单(&Z),MenuShow
-	Menu,Tray,add,重启(&R),Menu_Reload
-	Menu,Tray,add,配置(&E),Menu_Edit
+	Menu,Tray,Icon,RunMenu.ico
+	Menu,Tray,add,启动(&Z),MenuShow
+	Menu,Tray,add,菜单(&E),Menu_Edit
+	Menu,Tray,add,设置(&D),Menu_Set
+	Menu,Tray,Add,关于(&A)...,Menu_About
 	Menu,Tray,add
+	Menu,Tray,add,重启(&R),Menu_Reload
 	Menu,Tray,add,挂起(&S),Menu_Suspend
-	Menu,Tray,add,暂停(&A),Menu_Pause
 	Menu,Tray,add,退出(&X),Menu_Exit
-	Menu,Tray,Default,菜单(&Z)
+	Menu,Tray,Default,启动(&Z)
 	Menu,Tray,Click,1
 }
 Menu_Reload:
@@ -169,10 +211,6 @@ return
 Menu_Suspend:
 	Menu,tray,ToggleCheck,挂起(&S)
 	Suspend
-return
-Menu_Pause:
-	Menu,tray,ToggleCheck,暂停(&A)
-	Pause
 return
 Menu_Exit:
 	ExitApp
