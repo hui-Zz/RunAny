@@ -16,24 +16,35 @@ SetBatchLines,-1		;~脚本全速执行
 SetWorkingDir,%A_ScriptDir%	;~脚本当前工作目录
 SplitPath,A_ScriptFullPath,,,,fileNotExt
 MenuTray()
-iniFile:=fileNotExt ".ini"
+RunAny:="RunAny"
+iniFile:=A_ScriptDir "\" fileNotExt ".ini"
 IfNotExist,%iniFile%
 	gosub,iniFileWrite
-SetTimer,CountTime,300
 global everyDLL:=A_Is64bitOS ? "Everything64.dll" : "Everything32.dll"
+IfNotExist,%A_ScriptDir%\%everyDLL%
+	MsgBox,没有找到%A_ScriptDir%\%everyDLL%，将不能识别菜单中程序的路径
 global mTime:=0
 global MenuObj:=Object()
+SetTimer,CountTime,300
 menuRoot:=Object()
-menuRoot.Insert("RunMenu")
+menuRoot.Insert(RunAny)
 menuLevel:=1
 evExist:=true
 while !WinExist("ahk_exe Everything.exe")
 {
 	Sleep,100
-	if(A_Index=30){
-		TrayTip,,先运行Everything才能读取程序路径,2,1
-		evExist:=false
-		break
+	if(A_Index>=30){
+		RegRead, evPath, HKEY_CURRENT_USER, SOFTWARE\RunAny, everythingPath
+		if(evPath && RegExMatch(evPath,"iS)^(\\\\|.:\\).*?\.exe$")){
+			Run,%evPath% -startup
+			Sleep,1000
+			break
+		}else{
+			gosub,Menu_Set
+			MsgBox,16,,请设置正确的Everything安装路径，才能正确读取程序菜单!
+			evExist:=false
+			break
+		}
 	}
 }
 ;~;[使用everything读取整个系统所有exe]
@@ -47,7 +58,8 @@ try{
 	RegRead, menuKey, HKEY_CURRENT_USER, SOFTWARE\RunAny, key
 	Hotkey,%menuKey%,MenuShow,On
 }catch{
-	MsgBox,%menuKey%`t<—热键设置不正确
+	gosub,Menu_Set
+	MsgBox,16,,%menuKey%<=热键设置不正确`n请设置正确热键
 }
 
 ;~;[读取自定义树形菜单设置]
@@ -156,10 +168,17 @@ Menu_Edit:
 Menu_Set:
 	Gui,Destroy
 	Gui,Margin,30,40
-	Gui,Add,GroupBox,xm-10 y+20 w300 h55,自定义开关热键
-	Gui,Add,Hotkey,xm yp+20 w100 vvzzkey,%menuKey%
+	Gui,Add,GroupBox,xm-10 y+20 w350 h55,自定义开关热键
+	Gui,Add,Hotkey,xm yp+20 w100 vvZzkey,%menuKey%
+	
+	RegRead, evPath, HKEY_CURRENT_USER, SOFTWARE\RunAny, everythingPath
+	Gui,Add,GroupBox,xm-10 y+20 w350 h60,Everything安装路径
+	Gui,Add,Button,xm yp+20 w50 GSetPath,选择
+	Gui,Add,Edit,xm+60 yp w250 vvZzpath,%evPath%
+	
 	Gui,Add,Button,xm y+30 w75 GSetOK,确定(&Y)
 	Gui,Add,Button,x+5 w75 GSetCancel,取消(&C)
+	GuiControl,+default,确定(&Y)
 	Gui,Show,,RunAny
 	return
 Menu_About:
@@ -167,7 +186,7 @@ Menu_About:
 	Gui,99:Margin,20,20
 	Gui,99:Add,Picture,xm Icon1,%A_ScriptName%
 	Gui,99:Font,Bold
-	Gui,99:Add,Text,x+10 yp+10,%applicationname% v2 2017
+	Gui,99:Add,Text,x+10 yp+10,%RunAny% v2 2017
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 【RunAny】超轻便自由的快速启动应用工具 v1.9
 	Gui,99:Add,Text,y+10, 默认显示菜单热键为``(Esc键下方的重音符键)
@@ -175,16 +194,22 @@ Menu_About:
 	Gui,99:Add,Text,y+10, 联系：hui0.0713@gmail.com
 	Gui,99:Add,Text,y+10, 讨论QQ群：3222783、271105729、493194474
 	Gui,99:Add,Text,y+10, by Zz @2017.1.8 集成Everything版本
-	Gui,99:Show,,%applicationname% About
+	Gui,99:Show,,关于%RunAny%
 	hCurs:=DllCall("LoadCursor","UInt",NULL,"Int",32649,"UInt") ;IDC_HAND
 	OnMessage(0x200,"WM_MOUSEMOVE") 
 	return
+SetPath:
+	FileSelectFile, evFilePath, 3, Everything.exe, Everything安装路径, Everything (*.exe)
+	GuiControl,, vZzpath, %evFilePath%
+Return
 SetOK:
 	Gui,Submit
-	zzkey:=vzzkey
-	if(zzkey!=menuKey){
-		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, key, %zzkey%
+	if(vZzkey!=menuKey){
+		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, key, %vZzkey%
 		Reload
+	}
+	if(vZzpath!=evPath){
+		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, everythingPath, %vZzpath%
 	}
 return
 SetCancel:
@@ -272,5 +297,9 @@ class everything
 ;~;[配置生成]
 iniFileWrite:
 	ini:=true
+	menuKey:="``"
+	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, key, %menuKey%
+	WinGet, evPath, ProcessPath, ahk_exe Everything.exe
+	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, everythingPath, %evPath%
 	FileAppend,% "cmd.exe`n-`n-app`n计算器|calc.exe`n--img`n  画图|mspaint.exe`n  ---`n  截图|SnippingTool.exe`n--sys`n  ---media`n     wmplayer.exe`n--佳软`n  StrokesPlus.exe`n  TC|Totalcmd64.exe`n  Everything.exe`n-edit`n  notepad.exe`n  写字板|wordpad.exe`n-`nIE(&E)|C:\Program Files\Internet Explorer\iexplore.exe`n-`n设置|Control.exe`n",%iniFile%
 return
