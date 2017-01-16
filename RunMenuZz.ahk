@@ -30,11 +30,11 @@ menuRoot:=Object()
 menuRoot.Insert(RunAny)
 menuLevel:=1
 evExist:=true
+RegRead, evPath, HKEY_CURRENT_USER, SOFTWARE\RunAny, everythingPath
 while !WinExist("ahk_exe Everything.exe")
 {
 	Sleep,100
 	if(A_Index>=30){
-		RegRead, evPath, HKEY_CURRENT_USER, SOFTWARE\RunAny, everythingPath
 		if(evPath && RegExMatch(evPath,"iS)^(\\\\|.:\\).*?\.exe$")){
 			Run,%evPath% -startup
 			Sleep,1000
@@ -48,8 +48,13 @@ while !WinExist("ahk_exe Everything.exe")
 	}
 }
 ;~;[使用everything读取整个系统所有exe]
-If evExist
+If(evExist){
 	everythingQuery()
+	if(!evPath){
+		WinGet, evPath, ProcessPath, ahk_exe Everything.exe
+		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, everythingPath, %evPath%
+	}
+}
 
 StartTick:=A_TickCount  ;若要评估出menu时间
 
@@ -60,6 +65,7 @@ try{
 }catch{
 	gosub,Menu_Set
 	MsgBox,16,,%menuKey%<=热键设置不正确`n请设置正确热键
+	gosub,RunDone
 }
 
 ;~;[读取自定义树形菜单设置]
@@ -109,8 +115,7 @@ if(ini){
 	Run,%iniFile%
 }
 
-SetTimer,CountTime,Off
-Menu,Tray,Icon,RunMenuZz.ico
+gosub,RunDone
 ini=true
 TrayTip,,% A_TickCount-StartTick "毫秒",3,17
 
@@ -139,6 +144,10 @@ Menu_Add(menuName,menuItem){
 CountTime:
 	mTime:=mTime=0 ? 1 : 0
 	Menu,Tray,Icon,% mTime=0 ? "RunMenuZz.ico" : "RunMenu.ico"
+	return
+RunDone:
+	SetTimer,CountTime,Off
+	Menu,Tray,Icon,RunMenuZz.ico
 	return
 ;~;[显示菜单]
 MenuShow:
