@@ -186,7 +186,7 @@ Menu_Edit:
 Menu_Set:
 	Gui,Destroy
 	Gui,Margin,30,40
-	Gui,Add,GroupBox,xm-10 y+20 w350 h55,自定义开关热键
+	Gui,Add,GroupBox,xm-10 y+20 w350 h55,自定义显示热键
 	Gui,Add,Hotkey,xm yp+20 w100 vvZzkey,%menuKey%
 	
 	Gui,Add,GroupBox,xm-10 y+20 w350 h60,Everything安装路径
