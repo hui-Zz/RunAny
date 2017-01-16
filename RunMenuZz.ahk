@@ -17,20 +17,21 @@ SetWorkingDir,%A_ScriptDir%	;~脚本当前工作目录
 SplitPath,A_ScriptFullPath,,,,fileNotExt
 MenuTray()
 RunAny:="RunAny"
-iniFile:=A_ScriptDir "\" fileNotExt ".ini"
-IfNotExist,%iniFile%
-	gosub,iniFileWrite
-global everyDLL:=A_Is64bitOS ? "Everything64.dll" : "Everything32.dll"
-IfNotExist,%A_ScriptDir%\%everyDLL%
-	MsgBox,没有找到%A_ScriptDir%\%everyDLL%，将不能识别菜单中程序的路径
+Gosub,Run_Exist
 global mTime:=0
 global MenuObj:=Object()
 SetTimer,CountTime,300
 menuRoot:=Object()
 menuRoot.Insert(RunAny)
 menuLevel:=1
+
+;~;[初始化菜单显示热键和everything安装路径]
 evExist:=true
 RegRead, evPath, HKEY_CURRENT_USER, SOFTWARE\RunAny, everythingPath
+RegRead, menuKey, HKEY_CURRENT_USER, SOFTWARE\RunAny, key
+;>>默认为重音符`
+if(!menuKey)
+	menuKey:="``"
 while !WinExist("ahk_exe Everything.exe")
 {
 	Sleep,100
@@ -51,8 +52,8 @@ while !WinExist("ahk_exe Everything.exe")
 If(evExist){
 	everythingQuery()
 	if(!evPath){
+		;>>发现Everything已运行则取到路径
 		WinGet, evPath, ProcessPath, ahk_exe Everything.exe
-		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, everythingPath, %evPath%
 	}
 }
 
@@ -60,12 +61,11 @@ StartTick:=A_TickCount  ;若要评估出menu时间
 
 ;~;[设定自定义显示菜单热键]
 try{
-	RegRead, menuKey, HKEY_CURRENT_USER, SOFTWARE\RunAny, key
 	Hotkey,%menuKey%,MenuShow,On
 }catch{
 	gosub,Menu_Set
 	MsgBox,16,,%menuKey%<=热键设置不正确`n请设置正确热键
-	gosub,RunDone
+	gosub,Run_Done
 }
 
 ;~;[读取自定义树形菜单设置]
@@ -115,7 +115,7 @@ if(ini){
 	Run,%iniFile%
 }
 
-gosub,RunDone
+gosub,Run_Done
 ini=true
 TrayTip,,% A_TickCount-StartTick "毫秒",3,17
 
@@ -141,11 +141,20 @@ Menu_Add(menuName,menuItem){
 		Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,124
 	}
 }
+
+Run_Exist:
+	iniFile:=A_ScriptDir "\" fileNotExt ".ini"
+	IfNotExist,%iniFile%
+		gosub,First_Run
+	global everyDLL:=A_Is64bitOS ? "Everything64.dll" : "Everything32.dll"
+	IfNotExist,%A_ScriptDir%\%everyDLL%
+		MsgBox,没有找到%A_ScriptDir%\%everyDLL%，将不能识别菜单中程序的路径
+	return
 CountTime:
 	mTime:=mTime=0 ? 1 : 0
 	Menu,Tray,Icon,% mTime=0 ? "RunMenuZz.ico" : "RunMenu.ico"
 	return
-RunDone:
+Run_Done:
 	SetTimer,CountTime,Off
 	Menu,Tray,Icon,RunMenuZz.ico
 	return
@@ -180,15 +189,15 @@ Menu_Set:
 	Gui,Add,GroupBox,xm-10 y+20 w350 h55,自定义开关热键
 	Gui,Add,Hotkey,xm yp+20 w100 vvZzkey,%menuKey%
 	
-	RegRead, evPath, HKEY_CURRENT_USER, SOFTWARE\RunAny, everythingPath
 	Gui,Add,GroupBox,xm-10 y+20 w350 h60,Everything安装路径
 	Gui,Add,Button,xm yp+20 w50 GSetPath,选择
 	Gui,Add,Edit,xm+60 yp w250 vvZzpath,%evPath%
 	
 	Gui,Add,Button,xm y+30 w75 GSetOK,确定(&Y)
 	Gui,Add,Button,x+5 w75 GSetCancel,取消(&C)
+	Gui,Add,Button,x+5 w75 GSetReSet,重置
 	GuiControl,+default,确定(&Y)
-	Gui,Show,,RunAny
+	Gui,Show,,%RunAny%设置
 	return
 Menu_About:
 	Gui,99:Destroy
@@ -214,15 +223,21 @@ Return
 SetOK:
 	Gui,Submit
 	if(vZzkey!=menuKey){
+		menuKey:=vZzkey
 		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, key, %vZzkey%
 		Reload
 	}
 	if(vZzpath!=evPath){
+		evPath:=vZzpath
 		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, everythingPath, %vZzpath%
 	}
 return
 SetCancel:
 	Gui,Destroy
+Return
+SetReSet:
+	RegDelete, HKEY_CURRENT_USER, SOFTWARE\RunAny
+	Gui,Hide
 Return
 ;~;[托盘菜单]
 MenuTray(){
@@ -303,12 +318,8 @@ class everything
 		return bValue
 	}
 }
-;~;[配置生成]
-iniFileWrite:
+;~;[初次运行]
+First_Run:
 	ini:=true
-	menuKey:="``"
-	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, key, %menuKey%
-	WinGet, evPath, ProcessPath, ahk_exe Everything.exe
-	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, everythingPath, %evPath%
 	FileAppend,% "cmd.exe`n-`n-app`n计算器|calc.exe`n--img`n  画图|mspaint.exe`n  ---`n  截图|SnippingTool.exe`n--sys`n  ---media`n     wmplayer.exe`n--佳软`n  StrokesPlus.exe`n  TC|Totalcmd64.exe`n  Everything.exe`n-edit`n  notepad.exe`n  写字板|wordpad.exe`n-`nIE(&E)|C:\Program Files\Internet Explorer\iexplore.exe`n-`n设置|Control.exe`n",%iniFile%
 return
