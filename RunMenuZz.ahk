@@ -122,23 +122,28 @@ return
 Menu_Add(menuName,menuItem){
 	try {
 		item:=MenuObj[(menuItem)]
+		itemLen:=StrLen(item)
 		Menu,%menuName%,add,%menuItem%,Menu_Run
-		if(RegExMatch(item,"iS)\.ahk$")){
+		if(Ext_Check(item,itemLen,".ahk")){
 			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,74
-		}else if(RegExMatch(item,"iS)\.(bat|cmd)$")){
+		}else if(Ext_Check(item,itemLen,".bat") || Ext_Check(item,itemLen,".cmd")){
 			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,72
-		}else if(RegExMatch(item,"iS)\b(([\w-]+://?|www[.])[^\s()<>]+(?:\([\w\d]+\)|([^[:punct:]\s]|/)))")){
+		}else if(InStr(item,"/")){
 			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,44
-		}else if(RegExMatch(item,"iS)^\""?.:\\.*(\\|"")?$")){
+		}else if(InStr(item,"\")=itemLen){
 			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,42
 		}else{
-			Menu,%menuName%,Icon,%menuItem%,% item
+			Menu,%menuName%,Icon,%menuItem%,%item%
 		}
 	} catch e {
 		Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,124
 	}
 }
-
+Ext_Check(name,len,ext){
+	len_ext:=StrLen(ext)
+	site:=InStr(name,ext,,0,1)
+	return site!=0 && site=len-len_ext+1
+}
 Run_Exist:
 	iniFile:=A_ScriptDir "\" fileNotExt ".ini"
 	IfNotExist,%iniFile%
@@ -310,13 +315,14 @@ TV_Move(moveMode = true){
 	return
 }
 Set_Icon(itemVar){
+	itemLen:=StrLen(itemVar)
 	if(RegExMatch(itemVar,"S)-+[^-]+"))
 		return "Icon6"
-	else if(RegExMatch(itemVar,"iS)\.exe$"))
+	else if(Ext_Check(itemVar,itemLen,".exe"))
 		return "Icon3"
-	else if(RegExMatch(itemVar,"iS)^\""?.:\\.*(\\|"")?$"))
+	else if(InStr(itemVar,"\")=itemLen)
 		return "Icon4"
-	else if(RegExMatch(itemVar,"iS)\b(([\w-]+://?|www[.])[^\s()<>]+(?:\([\w\d]+\)|([^[:punct:]\s]|/)))"))
+	else if(InStr(itemVar,"/"))
 		return "Icon7"
 	else
 		return "Icon1"
