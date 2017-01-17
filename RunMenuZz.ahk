@@ -129,7 +129,7 @@ Menu_Add(menuName,menuItem){
 			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,72
 		}else if(RegExMatch(item,"iS)\b(([\w-]+://?|www[.])[^\s()<>]+(?:\([\w\d]+\)|([^[:punct:]\s]|/)))")){
 			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,44
-		}else if(RegExMatch(item,"iS)^\""?.:\\.*(\\|"")$")){
+		}else if(RegExMatch(item,"iS)^\""?.:\\.*(\\|"")?$")){
 			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,42
 		}else{
 			Menu,%menuName%,Icon,%menuItem%,% item
@@ -186,6 +186,8 @@ Menu_Edit:
 	ImageListID := IL_Create(5)
 	Loop 5
 		IL_Add(ImageListID, "shell32.dll", A_Index)
+	IL_Add(ImageListID, "shell32.dll", 42)
+	IL_Add(ImageListID, "shell32.dll", 44)
 	Gui, Add, TreeView,vRunAnyTV w390 r30 -Readonly hwndHTV gTVClick ImageList%ImageListID%
 	GuiControl, -Redraw, RunAnyTV
 	treeRoot:=Object()
@@ -194,13 +196,12 @@ Menu_Edit:
 		Z_ReadLine=%A_LoopReadLine%
 		if(InStr(Z_ReadLine,"-")=1){
 			;~;[生成目录树层级结构]
-			treeItem:=RegExReplace(Z_ReadLine,"S)^-+")
 			treeLevel:=StrLen(RegExReplace(Z_ReadLine,"S)(^-+).*","$1"))
-			if(treeItem){
+			if(RegExMatch(Z_ReadLine,"S)-+[^-]+")){
 				if(treeLevel=1){
-					treeRoot.Insert(treeLevel,TV_Add(Z_ReadLine,,"Icon4"))
+					treeRoot.Insert(treeLevel,TV_Add(Z_ReadLine,,"Icon6"))
 				}else{
-					treeRoot.Insert(treeLevel,TV_Add(Z_ReadLine,treeRoot[treeLevel-1],"Icon5"))
+					treeRoot.Insert(treeLevel,TV_Add(Z_ReadLine,treeRoot[treeLevel-1],"Icon6"))
 				}
 			}else{
 				treeLevel-=1
@@ -209,22 +210,30 @@ Menu_Edit:
 		}else if(InStr(Z_ReadLine,";")=1 || Z_ReadLine=""){
 			continue
 		}else{
-			TV_Add(Z_ReadLine,treeRoot[treeLevel],"Icon3")
+			TV_Add(Z_ReadLine,treeRoot[treeLevel],Set_Icon(Z_ReadLine))
 		}
 	}
 	GuiControl, +Redraw, RunAnyTV
 	Menu, TVMenu, Add, 编辑`tF2, TVMenuLabel
+	Menu, TVMenu, Add, 添加`tF3, TVMenuLabel
 	Menu, TVMenu, Add, 删除`tDel, TVMenuLabel
-	Menu, TVMenu, Add, 向下`tF5, TVMenuLabel
-	Menu, TVMenu, Add, 向上`tF6, TVMenuLabel
-	Hotkey,F5,TVDown,On
-	Hotkey,PGDN,TVDown,On
-	Hotkey,F6,TVUp,On
-	Hotkey,PGUP,TVUp,On
-	Hotkey,Delete,TVDel,On
-	Gui, Show, , 菜单树管理
+	Menu, TVMenu, Add, 向下`tF5/PgDn, TVMenuLabel
+	Menu, TVMenu, Add, 向上`tF6/PgUp, TVMenuLabel
+	Gui, Show, , %RunAny%菜单树管理
 return
 
+#If WinActive(RunAny "菜单树管理")
+	F3::gosub,TVAdd
+	F5::
+	PGDN::
+		gosub,TVDown
+		return
+	F6::
+	PGUP::
+		gosub,TVUp
+		return
+	Del::gosub,TVDel
+#If
 GuiContextMenu:
 If (A_GuiControl = "RunAnyTV") {
 	ClickedID := A_EventInfo
@@ -238,42 +247,53 @@ GuiSize:
 	GuiControl, Move, RunAnyTV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 return
 GuiClose:
-	Hotkey,F5,TVDown,Off
-	Hotkey,PGDN,TVDown,Off
-	Hotkey,F6,TVUp,Off
-	Hotkey,PGUP,TVUp,Off
-	Hotkey,Delete,TVDel,Off
 	Gui, Destroy
 return
 TVClick:
-	;~ if (A_GuiEvent == "e")
-		;~ ToolTip,编辑完
+	if (A_GuiEvent == "e")
+	{
+		TV_GetText(selVar, A_EventInfo)
+		TV_Modify(A_EventInfo, Set_Icon(selVar))
+	}
 return
 TVMenuLabel:
 	if (A_ThisMenuItem = "编辑`tF2")
 		gosub,TVEdit
+	else if(A_ThisMenuItem = "添加`tF3")
+		gosub,TVAdd
 	else if(A_ThisMenuItem = "删除`tDel")
 		gosub,TVDel
-	else if(A_ThisMenuItem = "向下`tF5")
-		TVMove(true)
-	else if(A_ThisMenuItem = "向上`tF6")
-		TVMove(false)
+	else if(A_ThisMenuItem = "向下`tF5/PgDn")
+		TV_Move(true)
+	else if(A_ThisMenuItem = "向上`tF6/PgUp")
+		TV_Move(false)
+return
+TVAdd:
+	selID:=TV_GetSelection()
+	addID:=TV_Add("",TV_GetParent(selID),selID)
+	SendMessage, 0x110E, 0, addID, , ahk_id %HTV%
 return
 TVEdit:
 	If (A_ThisMenuItemPos = 1)
 		SendMessage, 0x110E, 0, ClickedID, , ahk_id %HTV%
-Return
+return
 TVDown:
-   TVMove(true)
+   TV_Move(true)
 return
 TVUp:
-   TVMove(false)
+   TV_Move(false)
 return
 TVDel:
-	TV_Delete(TV_GetSelection())
+	TV_GetText(selVar, TV_GetSelection())
+	if(RegExMatch(selVar,"S)-+[^-]+"))
+		MsgBox,52,请确认,确定删除选中的【%selVar%】以及它下面的所有子项目？(注意)
+	else
+		MsgBox,52,请确认,确定删除选中的【%selVar%】？
+	IfMsgBox Yes
+		TV_Delete(TV_GetSelection())
 return
 ;[上下移动项目]
-TVMove(moveMode = true){
+TV_Move(moveMode = true){
 	selID:=TV_GetSelection()
 	moveID:=moveMode ? TV_GetNext(selID, "Full") : TV_GetPrev(selID)
 	moveID:=moveID=0 ? TV_GetParent(selID) : moveID
@@ -284,18 +304,33 @@ TVMove(moveMode = true){
 		TV_Modify(moveID, , selVar)
 		TV_Modify(selID, "-select -focus")
 		TV_Modify(moveID, "select vis")
+		TV_Modify(selID, Set_Icon(moveVar))
+		TV_Modify(moveID, Set_Icon(selVar))
 	}
 	return
+}
+Set_Icon(itemVar){
+	if(RegExMatch(itemVar,"S)-+[^-]+"))
+		return "Icon6"
+	else if(RegExMatch(itemVar,"iS)\.exe$"))
+		return "Icon3"
+	else if(RegExMatch(itemVar,"iS)^\""?.:\\.*(\\|"")?$"))
+		return "Icon4"
+	else if(RegExMatch(itemVar,"iS)\b(([\w-]+://?|www[.])[^\s()<>]+(?:\([\w\d]+\)|([^[:punct:]\s]|/)))"))
+		return "Icon7"
+	else
+		return "Icon1"
 }
 ;══════════════════════════════════════════════════════════════════
 ;~;[设置选项]
 Menu_Set:
 	Gui,Destroy
+	Gui,Font,,Microsoft YaHei
 	Gui,Margin,30,40
 	Gui,Add,GroupBox,xm-10 y+20 w350 h55,自定义显示热键
 	Gui,Add,Hotkey,xm yp+20 w100 vvZzkey,%menuKey%
 	
-	Gui,Add,GroupBox,xm-10 y+20 w350 h60,Everything安装路径
+	Gui,Add,GroupBox,xm-10 y+20 w350 h80,Everything安装路径
 	Gui,Add,Button,xm yp+20 w50 GSetPath,选择
 	Gui,Add,Edit,xm+60 yp w250 vvZzpath,%evPath%
 	
@@ -307,12 +342,13 @@ Menu_Set:
 	return
 Menu_About:
 	Gui,99:Destroy
+	Gui,99:Font,,Microsoft YaHei
 	Gui,99:Margin,20,20
 	Gui,99:Add,Picture,xm Icon1,%A_ScriptName%
 	Gui,99:Font,Bold
 	Gui,99:Add,Text,x+10 yp+10,%RunAny% v2 2017
 	Gui,99:Font
-	Gui,99:Add,Text,y+10, 【RunAny】超轻便自由的快速启动应用工具 v1.9
+	Gui,99:Add,Text,y+10, 【RunAny】一劳永逸的快速启动工具 v2.0
 	Gui,99:Add,Text,y+10, 默认显示菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10
 	Gui,99:Add,Text,y+10, 联系：hui0.0713@gmail.com
