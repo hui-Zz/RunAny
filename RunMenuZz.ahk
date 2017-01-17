@@ -1,9 +1,9 @@
 ﻿/*
 ╔═════════════════════════════════
-║【RunMenuZz】超轻便自由的快速启动应用工具 v1.9
+║【RunAny】一劳永逸的快速启动工具 v2.0
 ║ 联系：hui0.0713@gmail.com
 ║ 讨论QQ群：3222783、271105729、493194474
-║ by Zz @2017.1.8 集成Everything版本
+║ by Zz @2017.1.17
 ╚═════════════════════════════════
 */
 #Persistent			;~让脚本持久运行
@@ -24,14 +24,24 @@ SetTimer,CountTime,300
 menuRoot:=Object()
 menuRoot.Insert(RunAny)
 menuLevel:=1
-
-;~;[初始化菜单显示热键和everything安装路径]
-evExist:=true
-RegRead, evPath, HKEY_CURRENT_USER, SOFTWARE\RunAny, everythingPath
+;══════════════════════════════════════════════════════════════════
+;~;[初始化菜单显示热键]
 RegRead, menuKey, HKEY_CURRENT_USER, SOFTWARE\RunAny, key
 ;>>默认为重音符`
 if(!menuKey)
 	menuKey:="``"
+;~;[设定自定义菜单热键]
+try{
+	Hotkey,%menuKey%,Menu_Show,On
+}catch{
+	gosub,Menu_Set
+	MsgBox,16,,%menuKey%<=热键设置不正确`n请设置正确热键
+	gosub,Run_Done
+}
+;══════════════════════════════════════════════════════════════════
+;~;[初始化everything安装路径]
+evExist:=true
+RegRead, evPath, HKEY_CURRENT_USER, SOFTWARE\RunAny, everythingPath
 while !WinExist("ahk_exe Everything.exe")
 {
 	Sleep,100
@@ -56,19 +66,9 @@ If(evExist){
 		WinGet, evPath, ProcessPath, ahk_exe Everything.exe
 	}
 }
-
-StartTick:=A_TickCount  ;若要评估出menu时间
-
-;~;[设定自定义显示菜单热键]
-try{
-	Hotkey,%menuKey%,MenuShow,On
-}catch{
-	gosub,Menu_Set
-	MsgBox,16,,%menuKey%<=热键设置不正确`n请设置正确热键
-	gosub,Run_Done
-}
-
+;══════════════════════════════════════════════════════════════════
 ;~;[读取自定义树形菜单设置]
+StartTick:=A_TickCount	;若要评估出menu时间
 Loop, read, %iniFile%
 {
 	Z_ReadLine=%A_LoopReadLine%
@@ -109,23 +109,20 @@ Loop, read, %iniFile%
 		Menu_Add(menuRoot[menuLevel],appName)
 	}
 }
-
 if(ini){
-	TrayTip,,RunMenuZz菜单初始化完成,3,1
+	TrayTip,,RunAny菜单初始化完成,3,1
 	Run,%iniFile%
 }
-
 gosub,Run_Done
 ini=true
 TrayTip,,% A_TickCount-StartTick "毫秒",3,17
-
 return
-
+;══════════════════════════════════════════════════════════════════
 ;~;[生成菜单]
 Menu_Add(menuName,menuItem){
 	try {
 		item:=MenuObj[(menuItem)]
-		Menu,%menuName%,add,%menuItem%,MenuRun
+		Menu,%menuName%,add,%menuItem%,Menu_Run
 		if(RegExMatch(item,"iS)\.ahk$")){
 			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,74
 		}else if(RegExMatch(item,"iS)\.(bat|cmd)$")){
@@ -159,18 +156,20 @@ Run_Done:
 	Menu,Tray,Icon,RunMenuZz.ico
 	return
 ;~;[显示菜单]
-MenuShow:
+Menu_Show:
 	try{
 		Menu,% menuRoot[1],Show
 	}catch{
-		MsgBox,菜单显示错误，请检查%iniFile%中[menuName]下面的菜单配置
+		gosub,Menu_Edit
+		MsgBox,菜单显示错误，请检查菜单配置
 	}
 	return
 ;~;[菜单运行]
-MenuRun:
-	If GetKeyState("Ctrl")			    ;[按住Ctrl则是进入配置]
+Menu_Run:
+	If GetKeyState("Ctrl")		;[按住Ctrl则是打开应用目录]
 	{
-		MsgBox,1
+		Run,% "explorer.exe /select," MenuObj[(A_ThisMenuItem)]
+		return
 	}
 	try {
 		Run,% MenuObj[(A_ThisMenuItem)]
@@ -178,10 +177,117 @@ MenuRun:
 		MsgBox,% "运行路径不正确：" MenuObj[(A_ThisMenuItem)]
 	}
 	return
+;══════════════════════════════════════════════════════════════════
 ;~;[菜单配置]
 Menu_Edit:
-	Run,%iniFile%
+	Gui, Destroy
+	Gui, +Resize
+	Gui, Font,, Microsoft YaHei
+	ImageListID := IL_Create(5)
+	Loop 5
+		IL_Add(ImageListID, "shell32.dll", A_Index)
+	Gui, Add, TreeView,vRunAnyTV w390 r30 -Readonly hwndHTV gTVClick ImageList%ImageListID%
+	GuiControl, -Redraw, RunAnyTV
+	treeRoot:=Object()
+	Loop, read, %iniFile%
+	{
+		Z_ReadLine=%A_LoopReadLine%
+		if(InStr(Z_ReadLine,"-")=1){
+			;~;[生成目录树层级结构]
+			treeItem:=RegExReplace(Z_ReadLine,"S)^-+")
+			treeLevel:=StrLen(RegExReplace(Z_ReadLine,"S)(^-+).*","$1"))
+			if(treeItem){
+				if(treeLevel=1){
+					treeRoot.Insert(treeLevel,TV_Add(Z_ReadLine,,"Icon4"))
+				}else{
+					treeRoot.Insert(treeLevel,TV_Add(Z_ReadLine,treeRoot[treeLevel-1],"Icon5"))
+				}
+			}else{
+				treeLevel-=1
+				TV_Add(Z_ReadLine,treeRoot[treeLevel])
+			}
+		}else if(InStr(Z_ReadLine,";")=1 || Z_ReadLine=""){
+			continue
+		}else{
+			TV_Add(Z_ReadLine,treeRoot[treeLevel],"Icon3")
+		}
+	}
+	GuiControl, +Redraw, RunAnyTV
+	Menu, TVMenu, Add, 编辑`tF2, TVMenuLabel
+	Menu, TVMenu, Add, 删除`tDel, TVMenuLabel
+	Menu, TVMenu, Add, 向下`tF5, TVMenuLabel
+	Menu, TVMenu, Add, 向上`tF6, TVMenuLabel
+	Hotkey,F5,TVDown,On
+	Hotkey,PGDN,TVDown,On
+	Hotkey,F6,TVUp,On
+	Hotkey,PGUP,TVUp,On
+	Hotkey,Delete,TVDel,On
+	Gui, Show, , 菜单树管理
+return
+
+GuiContextMenu:
+If (A_GuiControl = "RunAnyTV") {
+	ClickedID := A_EventInfo
+	TV_Modify(ClickedID, "Select")
+	Menu, TVMenu, Show
+}
+return
+GuiSize:
+	if A_EventInfo = 1
+		return
+	GuiControl, Move, RunAnyTV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
+return
+GuiClose:
+	Hotkey,F5,TVDown,Off
+	Hotkey,PGDN,TVDown,Off
+	Hotkey,F6,TVUp,Off
+	Hotkey,PGUP,TVUp,Off
+	Hotkey,Delete,TVDel,Off
+	Gui, Destroy
+return
+TVClick:
+	;~ if (A_GuiEvent == "e")
+		;~ ToolTip,编辑完
+return
+TVMenuLabel:
+	if (A_ThisMenuItem = "编辑`tF2")
+		gosub,TVEdit
+	else if(A_ThisMenuItem = "删除`tDel")
+		gosub,TVDel
+	else if(A_ThisMenuItem = "向下`tF5")
+		TVMove(true)
+	else if(A_ThisMenuItem = "向上`tF6")
+		TVMove(false)
+return
+TVEdit:
+	If (A_ThisMenuItemPos = 1)
+		SendMessage, 0x110E, 0, ClickedID, , ahk_id %HTV%
+Return
+TVDown:
+   TVMove(true)
+return
+TVUp:
+   TVMove(false)
+return
+TVDel:
+	TV_Delete(TV_GetSelection())
+return
+;[上下移动项目]
+TVMove(moveMode = true){
+	selID:=TV_GetSelection()
+	moveID:=moveMode ? TV_GetNext(selID, "Full") : TV_GetPrev(selID)
+	moveID:=moveID=0 ? TV_GetParent(selID) : moveID
+	if(moveID!=0){
+		TV_GetText(moveVar, moveID)
+		TV_GetText(selVar, selID)
+		TV_Modify(selID, , moveVar)
+		TV_Modify(moveID, , selVar)
+		TV_Modify(selID, "-select -focus")
+		TV_Modify(moveID, "select vis")
+	}
 	return
+}
+;══════════════════════════════════════════════════════════════════
 ;~;[设置选项]
 Menu_Set:
 	Gui,Destroy
@@ -219,7 +325,7 @@ Menu_About:
 SetPath:
 	FileSelectFile, evFilePath, 3, Everything.exe, Everything安装路径, Everything (*.exe)
 	GuiControl,, vZzpath, %evFilePath%
-Return
+return
 SetOK:
 	Gui,Submit
 	if(vZzkey!=menuKey){
@@ -234,16 +340,17 @@ SetOK:
 return
 SetCancel:
 	Gui,Destroy
-Return
+return
 SetReSet:
 	RegDelete, HKEY_CURRENT_USER, SOFTWARE\RunAny
 	Gui,Hide
-Return
+return
+;══════════════════════════════════════════════════════════════════
 ;~;[托盘菜单]
 MenuTray(){
 	Menu,Tray,NoStandard
 	Menu,Tray,Icon,RunMenu.ico
-	Menu,Tray,add,启动(&Z),MenuShow
+	Menu,Tray,add,启动(&Z),Menu_Show
 	Menu,Tray,add,菜单(&E),Menu_Edit
 	Menu,Tray,add,设置(&D),Menu_Set
 	Menu,Tray,Add,关于(&A)...,Menu_About
@@ -264,6 +371,7 @@ return
 Menu_Exit:
 	ExitApp
 return
+;══════════════════════════════════════════════════════════════════
 ;~;[使用everything搜索所有exe程序]
 everythingQuery(){
 	ev := new everything
@@ -281,17 +389,17 @@ everythingQuery(){
 }
 class everything
 {
-    __New(){
-        this.hModule := DllCall("LoadLibrary", str, everyDLL)
-    }
+	__New(){
+		this.hModule := DllCall("LoadLibrary", str, everyDLL)
+	}
 	__Get(aName){
 	}
 	__Set(aName, aValue){
 	}
 	__Delete(){
-        DllCall("FreeLibrary", "UInt", this.hModule) 
+		DllCall("FreeLibrary", "UInt", this.hModule) 
 		return
-    }
+	}
 	SetSearch(aValue)
 	{
 		this.eSearch := aValue
@@ -318,6 +426,7 @@ class everything
 		return bValue
 	}
 }
+;══════════════════════════════════════════════════════════════════
 ;~;[初次运行]
 First_Run:
 	ini:=true
