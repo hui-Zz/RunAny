@@ -2,7 +2,7 @@
 ╔═════════════════════════════════
 ║【RunAny】一劳永逸的快速启动工具 v2.0
 ║ by Zz 建议：hui0.0713@gmail.com
-║ @2017.1.19 github.com/hui-Zz/RunAny
+║ @2017.1.20 github.com/hui-Zz/RunAny
 ║ 讨论QQ群：3222783、271105729、493194474
 ╚═════════════════════════════════
 */
@@ -17,9 +17,9 @@ SetWorkingDir,%A_ScriptDir%	;~脚本当前工作目录
 SplitPath,A_ScriptFullPath,,,,fileNotExt
 ;~ StartTick:=A_TickCount	;若要评估出menu时间
 RunAny:="RunAny"
+global everyDLL:="Everything64.dll"
 Gosub,Run_Exist
 MenuTray()
-global mTime:=0
 global MenuObj:=Object()
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化菜单显示热键]
@@ -149,7 +149,6 @@ Run_Exist:
 	iniFile:=A_ScriptDir "\" fileNotExt ".ini"
 	IfNotExist,%iniFile%
 		gosub,First_Run
-	global everyDLL:="Everything.dll"
 	IfNotExist,%A_ScriptDir%\%everyDLL%
 		MsgBox,16,,没有找到%A_ScriptDir%\%everyDLL%，将不能识别菜单中程序的路径`n请复制%everyDLL%到目录下`n或在github.com/hui-Zz/RunAny/tree/RunMenu下载不使用Everything的版本
 	global iconDll:="SHELL32.dll"
@@ -176,8 +175,8 @@ Menu_Show:
 	return
 ;~;[菜单运行]
 Menu_Run:
-	any:=MenuObj[(A_ThisMenuItem)]
 	try {
+		any:=MenuObj[(A_ThisMenuItem)]
 		If GetKeyState("Ctrl"){			;[按住Ctrl是打开应用目录]
 			Run,% "explorer.exe /select," any
 		}else If GetKeyState("Shift"){	;[按住Shift则是管理员身份运行]
@@ -186,7 +185,7 @@ Menu_Run:
 			Run,%any%
 		}
 	} catch e {
-		MsgBox,16,,运行路径不正确：%any%
+		MsgBox,16,找不到程序路径,运行路径不正确：%any%
 	}
 	return
 ;══════════════════════════════════════════════════════════════════
@@ -423,7 +422,7 @@ Menu_About:
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10
 	Gui,99:Font,,Consolas
-	Gui,99:Add,Text,y+10, by Zz @2017.1.19 建议：hui0.0713@gmail.com
+	Gui,99:Add,Text,y+10, by Zz @2017.1.20 建议：hui0.0713@gmail.com
 	Gui,99:Font,CBlue Underline
 	Gui,99:Add,Text,y+10 Ggithub, GitHub：https://github.com/hui-Zz/RunAny
 	Gui,99:Font
