@@ -5,6 +5,7 @@
 
 家里和公司电脑还是笔记本都使用同一套配置，云端同步就更是如虎添翼！
 
+
 RunAny追求就是：<u>**一劳永逸**</u>
 ---
 
@@ -37,6 +38,8 @@ RunAny启动软件就跟打字一样高效方便（如<kbd>\`</kbd>为热键）�
 建议：hui0.0713@gmail.com
 
 讨论QQ群：[3222783【AutoHotkey高级群】](https://jq.qq.com/?_wv=1027&k=43uBHer)、[271105729【QZ/VimD/TC/AHK】](https://jq.qq.com/?_wv=1027&k=43u3DuR)、[493194474【软客】](https://jq.qq.com/?_wv=1027&k=43trxF5)
+
+支持RunAny：![支付宝](https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持.jpg)
 
 ---
 
