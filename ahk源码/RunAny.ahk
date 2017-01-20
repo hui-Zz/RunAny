@@ -17,7 +17,7 @@ SetWorkingDir,%A_ScriptDir%	;~脚本当前工作目录
 SplitPath,A_ScriptFullPath,,,,fileNotExt
 ;~ StartTick:=A_TickCount	;若要评估出menu时间
 RunAny:="RunAny"
-global everyDLL:="Everything64.dll"
+global everyDLL:="Everything.dll"
 Gosub,Run_Exist
 MenuTray()
 global MenuObj:=Object()
