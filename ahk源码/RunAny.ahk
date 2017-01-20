@@ -557,16 +557,15 @@ Everything.exe
 	计算器|calc.exe
 	;2级分隔符【--】
 	--
-	--img
-		画图|mspaint.exe
-		;3级分隔符【---】
-		---
-		截图|SnippingTool.exe
-		---media
-			wmplayer.exe
 	--edit
 		notepad.exe
+		;3级分隔符【---】
+		---
 		写字板|wordpad.exe
+	--img
+		画图|mspaint.exe
+		---media
+			wmplayer.exe
 -
 ;此时【-】使下面项目都回归根目录
 C:\
