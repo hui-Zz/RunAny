@@ -21,7 +21,6 @@ Gosub,Run_Exist
 MenuTray()
 global mTime:=0
 global MenuObj:=Object()
-SetTimer,Count_Time,300
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化菜单显示热键]
 RegRead, menuKey, HKEY_CURRENT_USER, SOFTWARE\RunAny, key
@@ -163,12 +162,7 @@ Run_Exist:
 		iconMenu:=2
 	}
 	return
-Count_Time:
-	mTime:=mTime=0 ? 1 : 0
-	Menu,Tray,Icon,%iconDll%,% mTime=0 ? iconAny : iconMenu
-	return
 Run_Done:
-	SetTimer,Count_Time,Off
 	Menu,Tray,Icon,%iconDll%,%iconAny%
 	return
 ;~;[显示菜单]
@@ -468,7 +462,7 @@ return
 ;~;[托盘菜单]
 MenuTray(){
 	Menu,Tray,NoStandard
-	Menu,Tray,Icon,%iconDll%,%iconAny%
+	Menu,Tray,Icon,%iconDll%,%iconMenu%
 	Menu,Tray,add,启动(&Z),Menu_Show
 	Menu,Tray,add,菜单(&E),Menu_Edit
 	Menu,Tray,add,设置(&D),Menu_Set
