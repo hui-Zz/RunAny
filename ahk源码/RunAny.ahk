@@ -149,7 +149,7 @@ Run_Exist:
 	iniFile:=A_ScriptDir "\" fileNotExt ".ini"
 	IfNotExist,%iniFile%
 		gosub,First_Run
-	global everyDLL:=A_Is64bitOS ? "Everything64.dll" : "Everything32.dll"
+	global everyDLL:="Everything.dll"
 	IfNotExist,%A_ScriptDir%\%everyDLL%
 		MsgBox,16,,没有找到%A_ScriptDir%\%everyDLL%，将不能识别菜单中程序的路径`n请复制%everyDLL%到目录下`n或在github.com/hui-Zz/RunAny/tree/RunMenu下载不使用Everything的版本
 	global iconDll:="SHELL32.dll"
