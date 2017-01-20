@@ -1,0 +1,1 @@
+# 某些AHK的版本使用Everything.dll获取程序路径失效，可以尝试用Everything64.dll
