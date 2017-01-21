@@ -39,7 +39,7 @@ RunAny启动软件就跟打字一样高效方便（如<kbd>\`</kbd>为热键）�
 
 讨论QQ群：[3222783【AutoHotkey高级群】](https://jq.qq.com/?_wv=1027&k=43uBHer)、[271105729【QZ/VimD/TC/AHK】](https://jq.qq.com/?_wv=1027&k=43u3DuR)、[493194474【软客】](https://jq.qq.com/?_wv=1027&k=43trxF5)
 
-支持RunAny：![支付宝](https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持.jpg)
+支持RunAny：![支付宝](https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.jpg)
 
 ---
 
