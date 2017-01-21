@@ -17,7 +17,6 @@ SetWorkingDir,%A_ScriptDir%	;~脚本当前工作目录
 SplitPath,A_ScriptFullPath,,,,fileNotExt
 ;~ StartTick:=A_TickCount	;若要评估出menu时间
 RunAny:="RunAny"
-global everyDLL:="Everything.dll"
 Gosub,Run_Exist
 MenuTray()
 global MenuObj:=Object()
@@ -140,6 +139,7 @@ Menu_Add(menuName,menuItem){
 		Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,124
 	}
 }
+;~;[检查后缀名]
 Ext_Check(name,len,ext){
 	len_ext:=StrLen(ext)
 	site:=InStr(name,ext,,0,1)
@@ -149,8 +149,14 @@ Run_Exist:
 	iniFile:=A_ScriptDir "\" fileNotExt ".ini"
 	IfNotExist,%iniFile%
 		gosub,First_Run
+	global everyDLL:="Everything.dll"
+	if(FileExist(A_ScriptDir "\Everything.dll")){
+		everyDLL:=DllCall("LoadLibrary", str, "Everything.dll") ? "Everything.dll" : "Everything64.dll"
+	}else if(FileExist(A_ScriptDir "\Everything64.dll")){
+		everyDLL:=DllCall("LoadLibrary", str, "Everything64.dll") ? "Everything64.dll" : "Everything.dll"
+	}
 	IfNotExist,%A_ScriptDir%\%everyDLL%
-		MsgBox,16,,没有找到%A_ScriptDir%\%everyDLL%，将不能识别菜单中程序的路径`n请复制%everyDLL%到目录下`n或在github.com/hui-Zz/RunAny/tree/RunMenu下载不使用Everything的版本
+		MsgBox,16,,没有找到%everyDLL%，将不能识别菜单中程序的路径`n请复制%everyDLL%到%A_ScriptDir%目录下`n`n或在github.com/hui-Zz/RunAny/tree/RunMenu下载不使用Everything的版本
 	global iconDll:="SHELL32.dll"
 	global iconAny:=190
 	global iconMenu:=195
@@ -413,6 +419,7 @@ Menu_Set:
 	Gui,66:Add,Button,x+5 w75 GSetReSet,重置
 	Gui,66:Show,,%RunAny%设置
 	return
+;~;[关于]
 Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
