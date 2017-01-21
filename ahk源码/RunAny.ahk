@@ -1,6 +1,6 @@
 ﻿/*
 ╔═════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v2.1
+║【RunAny】一劳永逸的快速启动工具 v2.1短语beta
 ║ by Zz 建议：hui0.0713@gmail.com
 ║ @2017.1.21 github.com/hui-Zz/RunAny
 ║ 讨论QQ群：3222783、271105729、493194474
@@ -141,6 +141,14 @@ Menu_Add(menuName,menuItem){
 		Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,124
 	}
 }
+;~;[输出短语]
+Send_Zz(strZz){
+	Candy_Saved:=ClipboardAll
+	Clipboard:=strZz
+	SendInput,^v
+	Sleep,200
+	Clipboard:=Candy_Saved
+}
 ;~;[检查后缀名]
 Ext_Check(name,len,ext){
 	len_ext:=StrLen(ext)
@@ -212,7 +220,11 @@ Menu_Show:
 Menu_Run:
 	try {
 		any:=MenuObj[(A_ThisMenuItem)]
-		If GetKeyState("Ctrl"){			;[按住Ctrl是打开应用目录]
+		anyLen:=StrLen(any)
+		If(InStr(any,";")=anyLen){
+			StringLeft, any, any, anyLen-1
+			Send_Zz(any)	;[输出短语]
+		}else If GetKeyState("Ctrl"){		;[按住Ctrl是打开应用目录]
 			Run,% "explorer.exe /select," any
 		}else If GetKeyState("Shift"){	;[按住Shift则是管理员身份运行]
 			Run,*RunAs %any%
@@ -519,7 +531,7 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAny%】一劳永逸的快速启动工具 v2.1
+	Gui,99:Add,Text,y+10, 【%RunAny%】一劳永逸的快速启动工具 v2.1短语beta
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10
