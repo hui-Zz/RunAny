@@ -1,5 +1,4 @@
-# 【RunAny】一劳永逸的快速启动工具 v2.0
-
+# 【RunAny】一劳永逸的快速启动工具 v2.1
 
 只需配置一个自定义程序菜单，就可以快速启动任何电脑任何路径的程序😎
 
@@ -38,9 +37,17 @@ RunAny启动软件就跟打字一样高效方便（如<kbd>\`</kbd>为热键）�
 
 讨论QQ群：[3222783【AutoHotkey高级群】](https://jq.qq.com/?_wv=1027&k=43uBHer)、[271105729【QZ/VimD/TC/AHK】](https://jq.qq.com/?_wv=1027&k=43u3DuR)、[493194474【软客】](https://jq.qq.com/?_wv=1027&k=43trxF5)
 
+支持RunAny：![支付宝](https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.jpg)
+
 ---
 
 ## <a name="ver">版本更新历史</a>
+
+### v2.1 酷炫😉
++ 批量导入程序名称
++ 图标自定义化(包括托盘图标)
++ 优化搜索条件，排除C:\Windows及其他升级文件夹
+* 现在会自动检查Everything.dll的可用性，需要用Everything64.dll时提示
 
 ### v2.0 正式更名为RunAny，易用性大幅提升，兼容菜单文件编辑和GUI界面编辑
 
