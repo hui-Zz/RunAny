@@ -494,7 +494,7 @@ return
 ;~;[使用everything搜索所有exe程序]
 everythingQuery(){
 	ev := new everything
-	str := "*.exe !C:\Windows"
+	str := "file:*.exe !C:\*Windows*"
 	;查询字串设为everything
 	ev.SetSearch(str)
 	;执行搜索
