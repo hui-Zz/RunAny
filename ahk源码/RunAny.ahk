@@ -107,7 +107,7 @@ Loop, read, %iniFile%
 		Menu_Add(menuRoot[menuLevel],appName)
 	}
 }
-gosub,TVMenu
+TVMenu("TVMenu")
 gosub,Run_Done
 if(ini){
 	TrayTip,,RunAny菜单初始化完成,3,1
@@ -232,6 +232,8 @@ Menu_Edit:
 		}
 	}
 	GuiControl, +Redraw, RunAnyTV
+	TVMenu("GuiMenu")
+	Gui, Menu, GuiMenu
 	Gui, Show, , %RunAny%菜单树管理(右键操作)
 return
 
@@ -246,14 +248,15 @@ return
 		return
 	F3::gosub,TVAdd
 	F7::gosub,TVDownNext
+	F8::gosub,TVImportFile
+	F9::gosub,TVImportFolder
 	Del::gosub,TVDel
 	^s::gosub,TVSave
 	Esc::gosub,GuiClose
 #If
 GuiContextMenu:
 	If (A_GuiControl = "RunAnyTV") {
-		ClickedID := A_EventInfo
-		TV_Modify(ClickedID, "Select")
+		TV_Modify(A_EventInfo, "Select")
 		Menu, TVMenu, Show
 	}
 return
@@ -271,16 +274,27 @@ GuiClose:
 		Gui, Destroy
 	}
 return
-TVMenu:
-	Menu, TVMenu, Add, 编辑`tF2, TVEdit
-	Menu, TVMenu, Add, 添加`tF3, TVAdd
-	Menu, TVMenu, Add, 删除`tDel, TVDel
-	Menu, TVMenu, Add
-	Menu, TVMenu, Add, 向下`tF5/PgDn, TVDown
-	Menu, TVMenu, Add, 向上`tF6/PgUp, TVUp
-	Menu, TVMenu, Add, 同级向下`tF7, TVDownNext
-	Menu, TVMenu, Add
-	Menu, TVMenu, Add, 保存`tCtrl+S, TVSave
+TVMenu(addMenu){
+	flag:=addMenu="GuiMenu" ? true : false
+	Menu, %addMenu%, Add,% flag ? "保存" : "保存`tCtrl+S", TVSave
+	Menu, %addMenu%, Icon,% flag ? "保存" : "保存`tCtrl+S", SHELL32.dll,194
+	Menu, %addMenu%, Add
+	Menu, %addMenu%, Add,% flag ? "编辑" : "编辑`tF2", TVEdit
+	Menu, %addMenu%, Icon,% flag ? "编辑" : "编辑`tF2", SHELL32.dll,134
+	Menu, %addMenu%, Add,% flag ? "添加" : "添加`tF3", TVAdd
+	Menu, %addMenu%, Icon,% flag ? "添加" : "添加`tF3", SHELL32.dll,1
+	Menu, %addMenu%, Add,% flag ? "删除" : "删除`tDel", TVDel
+	Menu, %addMenu%, Icon,% flag ? "删除" : "删除`tDel", SHELL32.dll,132
+	Menu, %addMenu%, Add
+	Menu, %addMenu%, Add,% flag ? "向下↓" : "向下↓`t(F5/PgDn)", TVDown
+	Menu, %addMenu%, Add,% flag ? "向上↑" : "向上↑`t(F6/PgUp)", TVUp
+	Menu, %addMenu%, Add,% flag ? "同级向下↘" : "同级向下↘`tF7", TVDownNext
+	Menu, %addMenu%, Add
+	Menu, %addMenu%, Add,% flag ? "多选导入" : "多选导入`tF8", TVImportFile
+	Menu, %addMenu%, Icon,% flag ? "多选导入" : "多选导入`tF8", SHELL32.dll,55
+	Menu, %addMenu%, Add,% flag ? "批量导入" : "批量导入`tF9", TVImportFolder
+	Menu, %addMenu%, Icon,% flag ? "批量导入" : "批量导入`tF9", SHELL32.dll,46
+}
 return
 TVClick:
 	if (A_GuiEvent == "e"){
@@ -296,8 +310,9 @@ TVAdd:
 	SendMessage, 0x110E, 0, addID, , ahk_id %HTV%
 return
 TVEdit:
-	If (A_ThisMenuItemPos = 1)
-		SendMessage, 0x110E, 0, ClickedID, , ahk_id %HTV%
+	ClickedID:=TV_GetSelection()
+	TV_Modify(ClickedID, "Select")
+	SendMessage, 0x110E, 0, ClickedID, , ahk_id %HTV%
 return
 TVDown:
 	TV_Move(true)
@@ -355,6 +370,37 @@ TVSave:
 		}
 	}else{
 		Gui,Destroy
+	}
+return
+TVImportFile:
+	FileSelectFile, exeName, M35, , 选择多项要导入的EXE(快捷方式), (*.exe;*.lnk)
+	Loop,parse,exeName,`n
+	{
+		if(A_Index=1){
+			lnkPath:=A_LoopField
+		}else{
+			I_LoopField:=A_LoopField
+			if Ext_Check(I_LoopField,StrLen(I_LoopField),".lnk"){
+				FileGetShortcut,%lnkPath%\%I_LoopField%,exePath
+				SplitPath,exePath,I_LoopField
+			}
+			selID:=TV_GetSelection()
+			addID:=TV_Add(I_LoopField,TV_GetParent(selID),selID)
+		}
+	}
+return
+TVImportFolder:
+	FileSelectFolder, folderName, , 0
+	if(folderName){
+		MsgBox,33,导入文件夹所有EXE,确定导入%folderName%及子文件夹下所有EXE吗？
+		IfMsgBox Ok
+		{
+			Loop,%folderName%\*.exe,0,1
+			{
+				selID:=TV_GetSelection()
+				addID:=TV_Add(A_LoopFileName,TV_GetParent(selID),selID)
+			}
+		}
 	}
 return
 ;~;[上下移动项目]
