@@ -1,9 +1,9 @@
 ﻿/*
 ╔═════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v2.1短语beta
+║【RunAny】一劳永逸的快速启动工具 v2.2
 ║ by Zz 建议：hui0.0713@gmail.com
-║ @2017.1.21 github.com/hui-Zz/RunAny
-║ 讨论QQ群：3222783、271105729、493194474
+║ @2017.1.22 github.com/hui-Zz/RunAny
+║ 讨论QQ群：[246308937]、3222783、493194474
 ╚═════════════════════════════════
 */
 #Persistent			;~让脚本持久运行
@@ -23,17 +23,13 @@ MenuTray()
 global MenuObj:=Object()
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化菜单显示热键]
-RegRead, MenuKey, HKEY_CURRENT_USER, SOFTWARE\RunAny, MenuKey
-;>>默认为重音符`
-if(!MenuKey)
-	MenuKey:="``"
+MenuKey:=Var_Read("MenuKey","``")
 ;~;[设定自定义菜单热键]
 try{
 	Hotkey,%MenuKey%,Menu_Show,On
 }catch{
 	gosub,Menu_Set
 	MsgBox,16,,%MenuKey%<=热键设置不正确`n请设置正确热键
-	gosub,Run_Done
 }
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化everything安装路径]
@@ -110,7 +106,7 @@ Loop, read, %iniFile%
 	}
 }
 TVMenu("TVMenu")
-gosub,Run_Done
+Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 if(ini){
 	TrayTip,,RunAny菜单初始化完成,3,1
 	gosub,Menu_About
@@ -126,11 +122,14 @@ Menu_Add(menuName,menuItem){
 		item:=MenuObj[(menuItem)]
 		itemLen:=StrLen(item)
 		Menu,%menuName%,add,%menuItem%,Menu_Run
-		if(Ext_Check(item,itemLen,".ahk")){
+		if(Ext_Check(item,itemLen,".lnk")){
+			FileGetShortcut, %item%, , , , , OutIcon, OutIconNum
+			Menu,%menuName%,Icon,%menuItem%,%OutIcon%,%OutIconNum%
+		}else if(Ext_Check(item,itemLen,".ahk")){
 			Menu,%menuName%,Icon,%menuItem%,% AHKIconS[1],% AHKIconS[2]
 		}else if(Ext_Check(item,itemLen,".bat") || Ext_Check(item,itemLen,".cmd")){
 			Menu,%menuName%,Icon,%menuItem%,% BATIconS[1],% BATIconS[2]
-		}else if(InStr(item,"/")){
+		}else if(RegExMatch(item,"([\w-]+://?|www[.]).*")){
 			Menu,%menuName%,Icon,%menuItem%,% UrlIconS[1],% UrlIconS[2]
 		}else if(InStr(item,"\")=itemLen){
 			Menu,%menuName%,Icon,%menuItem%,% FolderIconS[1],% FolderIconS[2]
@@ -202,10 +201,6 @@ Run_Exist:
 	}
 	IfNotExist,%A_ScriptDir%\%everyDLL%
 		MsgBox,16,,没有找到%everyDLL%，将不能识别菜单中程序的路径`n请复制%everyDLL%到%A_ScriptDir%目录下`n`n或在github.com/hui-Zz/RunAny/tree/RunMenu下载不使用Everything的版本
-
-	return
-Run_Done:
-	Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 	return
 ;~;[显示菜单]
 Menu_Show:
@@ -302,7 +297,7 @@ return
 #If
 GuiContextMenu:
 	If (A_GuiControl = "RunAnyTV") {
-		TV_Modify(A_EventInfo, "Select")
+		TV_Modify(A_EventInfo, "Select Vis")
 		Menu, TVMenu, Show
 	}
 return
@@ -325,10 +320,10 @@ TVMenu(addMenu){
 	Menu, %addMenu%, Add,% flag ? "保存" : "保存`tCtrl+S", TVSave
 	Menu, %addMenu%, Icon,% flag ? "保存" : "保存`tCtrl+S", SHELL32.dll,194
 	Menu, %addMenu%, Add
-	Menu, %addMenu%, Add,% flag ? "编辑" : "编辑`tF2", TVEdit
-	Menu, %addMenu%, Icon,% flag ? "编辑" : "编辑`tF2", SHELL32.dll,134
 	Menu, %addMenu%, Add,% flag ? "添加" : "添加`tF3", TVAdd
 	Menu, %addMenu%, Icon,% flag ? "添加" : "添加`tF3", SHELL32.dll,1
+	Menu, %addMenu%, Add,% flag ? "编辑" : "编辑`tF2", TVEdit
+	Menu, %addMenu%, Icon,% flag ? "编辑" : "编辑`tF2", SHELL32.dll,134
 	Menu, %addMenu%, Add,% flag ? "删除" : "删除`tDel", TVDel
 	Menu, %addMenu%, Icon,% flag ? "删除" : "删除`tDel", SHELL32.dll,132
 	Menu, %addMenu%, Add
@@ -344,20 +339,28 @@ TVMenu(addMenu){
 return
 TVClick:
 	if (A_GuiEvent == "e"){
+		;~;完成编辑时
 		TV_GetText(selVar, A_EventInfo)
 		TV_Modify(A_EventInfo, Set_Icon(selVar))
+		if(addID && RegExMatch(selVar,"S)^-+[^-]+.*")){
+			insertID:=TV_Add("",A_EventInfo)
+			TV_Modify(A_EventInfo, "Expand")
+			TV_Modify(insertID, "Select Vis")
+			SendMessage, 0x110E, 0, TV_GetSelection(), , ahk_id %HTV%
+			addID:=
+		}
 		TVFlag:=true
 	}
 return
-
 TVAdd:
 	selID:=TV_GetSelection()
 	addID:=TV_Add("",TV_GetParent(selID),selID)
+	TV_Modify(addID, "Select Vis")
 	SendMessage, 0x110E, 0, addID, , ahk_id %HTV%
 return
 TVEdit:
 	ClickedID:=TV_GetSelection()
-	TV_Modify(ClickedID, "Select")
+	TV_Modify(ClickedID, "Select Vis")
 	SendMessage, 0x110E, 0, ClickedID, , ahk_id %HTV%
 return
 TVDown:
@@ -431,7 +434,7 @@ TVImportFile:
 				SplitPath,exePath,I_LoopField
 			}
 			selID:=TV_GetSelection()
-			addID:=TV_Add(I_LoopField,TV_GetParent(selID),selID)
+			fileID:=TV_Add(I_LoopField,TV_GetParent(selID),selID)
 		}
 	}
 return
@@ -444,7 +447,7 @@ TVImportFolder:
 			Loop,%folderName%\*.exe,0,1
 			{
 				selID:=TV_GetSelection()
-				addID:=TV_Add(A_LoopFileName,TV_GetParent(selID),selID)
+				folderID:=TV_Add(A_LoopFileName,TV_GetParent(selID),selID)
 			}
 		}
 	}
@@ -462,8 +465,8 @@ TV_Move(moveMode = true,moveFull = true){
 		TV_GetText(selVar, selID)
 		TV_Modify(selID, , moveVar)
 		TV_Modify(moveID, , selVar)
-		TV_Modify(selID, "-select -focus")
-		TV_Modify(moveID, "select vis")
+		TV_Modify(selID, "-Select -focus")
+		TV_Modify(moveID, "Select Vis")
 		TV_Modify(selID, Set_Icon(moveVar))
 		TV_Modify(moveID, Set_Icon(selVar))
 		TVFlag:=true
@@ -473,13 +476,15 @@ TV_Move(moveMode = true,moveFull = true){
 ;~;[后缀判断图标]
 Set_Icon(itemVar){
 	itemLen:=StrLen(itemVar)
-	if(Ext_Check(itemVar,itemLen,".exe"))
+	if(RegExMatch(itemVar,"S)^-+[^-]+.*"))
+		return "Icon6"
+	else if(Ext_Check(itemVar,itemLen,".exe"))
 		return "Icon3"
 	else if(InStr(itemVar,";")=1 || itemVar="")
 		return "Icon2"
 	else if(InStr(itemVar,"\")=itemLen)
 		return "Icon4"
-	else if(InStr(itemVar,"/"))
+	else if(RegExMatch(itemVar,"([\w-]+://?|www[.]).*"))
 		return "Icon5"
 	else
 		return "Icon1"
@@ -531,16 +536,16 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAny%】一劳永逸的快速启动工具 v2.1短语beta
+	Gui,99:Add,Text,y+10, 【%RunAny%】一劳永逸的快速启动工具 v2.2
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10
 	Gui,99:Font,,Consolas
-	Gui,99:Add,Text,y+10, by Zz @2017.1.21 建议：hui0.0713@gmail.com
+	Gui,99:Add,Text,y+10, by Zz @2017.1.22 建议：hui0.0713@gmail.com
 	Gui,99:Font,CBlue Underline
 	Gui,99:Add,Text,y+10 Ggithub, GitHub：https://github.com/hui-Zz/RunAny
 	Gui,99:Font
-	Gui,99:Add,Text,y+10, 讨论QQ群：3222783、271105729、493194474
+	Gui,99:Add,Text,y+10, 讨论QQ群：[246308937]、3222783、493194474
 	Gui,99:Show,,关于%RunAny%
 	hCurs:=DllCall("LoadCursor","UInt",NULL,"Int",32649,"UInt") ;IDC_HAND
 	OnMessage(0x200,"WM_MOUSEMOVE") 
@@ -609,7 +614,7 @@ return
 ;~;[使用everything搜索所有exe程序]
 everythingQuery(){
 	ev := new everything
-	str := "file:*.exe !C:\*Windows*"
+	str := "file:*.exe|*.lnk !C:\*Windows*"
 	;查询字串设为everything
 	ev.SetSearch(str)
 	;执行搜索
@@ -667,38 +672,59 @@ ini:=true
 FileAppend,
 (
 ;以【;】开头代表注释
-cmd.exe
-;根目录分隔符【-】
--
-;在【|】前加上TC的简称显示
-TC|Totalcmd64.exe
-StrokesPlus.exe
-Everything.exe
-;以【-】开头+名称代表是目录
--app
-	计算器|calc.exe
+;以【-】开头+名称表示1级目录
+-App常用
+	;以【--】开头+名称表示2级目录树
+	--佳软
+		;在【|】前加上TC的简称显示
+		TC|Totalcmd.exe
+		StrokesPlus.exe
+		Everything.exe
+		Ditto.exe
+	--
+	chrome.exe
+	I&E|iexplore.exe
 	;2级分隔符【--】
 	--
-	--edit
-		notepad.exe
-		;3级分隔符【---】
-		---
-		写字板|wordpad.exe
-	--img
-		画图|mspaint.exe
-		---media
-			wmplayer.exe
+	Wiz.exe
+-Edit编辑
+	记事本(&N)|notepad.exe
+	--
+	winword.exe
+	excel.exe
+	powerpnt.exe
+-im&G图片
+	画图(&T)|mspaint.exe
+	ACDSee.exe
+	XnView.exe
+	IrfanView.exe
+-Video影音
+	cloudmusic.exe
+	--
+	QQPlayer.exe
+	PotPlayer.exe
+-Down下载
+	BaiduNetdisk.exe
+	--
+	Thunder.exe
+	QQDownload.exe
+	IDMan.exe
+-Web网址
+	更新地址&GitHub|https://github.com/hui-Zz/RunAny
+-File文件
+	WinRAR.exe
+-Sys系统
+	cmd.exe
+	控制面板(&S)|Control.exe
 -
-;此时【-】使下面项目都回归根目录
-C:\
+;1级目录分隔符【-】并且使下面项目都回归1级目录
+QQ.exe
+计算器(&X)|calc.exe
+我的电脑(&Z)|explorer.exe
 ;以【\】结尾代表是文件夹路径
-D:\
+&C盘|C:\
+;使用【&】指定快捷键为D,忽略上面Down的快捷键D
+&D盘|D:\
 -
-;带【/】代表是网址路径
-更新地址GitHub|https://github.com/hui-Zz/RunAny
--
-;使用【&】指定IE的快捷键为E,忽略上面Everything的快捷键E
-IE(&E)|C:\Program Files\Internet Explorer\iexplore.exe
-控制面板|Control.exe
 ),%iniFile%
 return
