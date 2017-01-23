@@ -16,7 +16,7 @@ SetBatchLines,-1		;~脚本全速执行
 SetWorkingDir,%A_ScriptDir%	;~脚本当前工作目录
 SplitPath,A_ScriptFullPath,,,,fileNotExt
 ;~ StartTick:=A_TickCount	;若要评估出menu时间
-RunAny:="RunAny"
+RunAnyZz:="RunAny"
 Gosub,Var_Set
 Gosub,Run_Exist
 MenuTray()
@@ -38,14 +38,14 @@ RegRead, EvPath, HKEY_CURRENT_USER, SOFTWARE\RunAny, EvPath
 while !WinExist("ahk_exe Everything.exe")
 {
 	Sleep,100
-	if(A_Index>=30){
+	if(A_Index>=20){
 		if(EvPath && RegExMatch(EvPath,"iS)^(\\\\|.:\\).*?\.exe$")){
 			Run,%EvPath% -startup
 			Sleep,1000
 			break
 		}else{
 			gosub,Menu_Set
-			MsgBox,16,,请设置正确的Everything安装路径，才能正确读取程序菜单!
+			MsgBox,16,,RunAny需要Everything快速识别程序的路径`n请设置正确安装路径或下载Everything：http://www.voidtools.com/
 			evExist:=false
 			break
 		}
@@ -62,7 +62,7 @@ If(evExist){
 ;══════════════════════════════════════════════════════════════════
 ;~;[读取自定义树形菜单设置]
 menuRoot:=Object()
-menuRoot.Insert(RunAny)
+menuRoot.Insert(RunAnyZz)
 menuLevel:=1
 Loop, read, %iniFile%
 {
@@ -85,7 +85,7 @@ Loop, read, %iniFile%
 	}else if(InStr(Z_ReadLine,"|")){
 		;~;[生成有前缀备注的应用]
 		menuDiy:=StrSplit(Z_ReadLine,"|")
-		appName:=RegExReplace(menuDiy[2],"iS)\.exe$")
+		appName:=RegExReplace(menuDiy[2],"iS)\.(exe|lnk)$")
 		if(MenuObj[appName]){
 			MenuObj[menuDiy[1]]:=MenuObj[appName]
 		}else{
@@ -99,7 +99,7 @@ Loop, read, %iniFile%
 		Menu_Add(menuRoot[menuLevel],nameNotExt)
 	}else{
 		;[生成已取到的应用]
-		appName:=RegExReplace(Z_ReadLine,"iS)\.exe$")
+		appName:=RegExReplace(Z_ReadLine,"iS)\.(exe|lnk)$")
 		if(!MenuObj[appName])
 			MenuObj[appName]:=Z_ReadLine
 		Menu_Add(menuRoot[menuLevel],appName)
@@ -123,8 +123,15 @@ Menu_Add(menuName,menuItem){
 		itemLen:=StrLen(item)
 		Menu,%menuName%,add,%menuItem%,Menu_Run
 		if(Ext_Check(item,itemLen,".lnk")){
-			FileGetShortcut, %item%, , , , , OutIcon, OutIconNum
-			Menu,%menuName%,Icon,%menuItem%,%OutIcon%,%OutIconNum%
+			try{
+				FileGetShortcut, %item%, OutItem, , , , OutIcon, OutIconNum
+				if(OutIcon)
+					Menu,%menuName%,Icon,%menuItem%,%OutIcon%,%OutIconNum%
+				else
+					Menu,%menuName%,Icon,%menuItem%,%OutItem%
+			} catch e {
+				Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,264
+			}
 		}else if(Ext_Check(item,itemLen,".ahk")){
 			Menu,%menuName%,Icon,%menuItem%,% AHKIconS[1],% AHKIconS[2]
 		}else if(Ext_Check(item,itemLen,".bat") || Ext_Check(item,itemLen,".cmd")){
@@ -163,6 +170,8 @@ Var_Read(rValue,defVar=""){
 		return defVar
 }
 Var_Set:
+	RegRead, AutoRun, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
+	global AutoRun:=AutoRun ? 1 : 0
 	global everyDLL:="Everything.dll"
 	global iconAny:="shell32.dll,190"
 	global iconMenu:="shell32.dll,195"
@@ -275,10 +284,10 @@ Menu_Edit:
 	GuiControl, +Redraw, RunAnyTV
 	TVMenu("GuiMenu")
 	Gui, Menu, GuiMenu
-	Gui, Show, , %RunAny%菜单树管理(右键操作)
+	Gui, Show, , %RunAnyZz%菜单树管理(右键操作)
 return
 
-#If WinActive(RunAny "菜单树管理(右键操作)")
+#If WinActive(RunAnyZz "菜单树管理(右键操作)")
 	F5::
 	PGDN::
 		gosub,TVDown
@@ -422,6 +431,8 @@ TVSave:
 	}
 return
 TVImportFile:
+	selID:=TV_GetSelection()
+	parentID:=TV_GetParent(selID)
 	FileSelectFile, exeName, M35, , 选择多项要导入的EXE(快捷方式), (*.exe;*.lnk)
 	Loop,parse,exeName,`n
 	{
@@ -431,24 +442,31 @@ TVImportFile:
 			I_LoopField:=A_LoopField
 			if Ext_Check(I_LoopField,StrLen(I_LoopField),".lnk"){
 				FileGetShortcut,%lnkPath%\%I_LoopField%,exePath
-				SplitPath,exePath,I_LoopField
+				if Ext_Check(exePath,StrLen(exePath),".exe")
+					SplitPath,exePath,I_LoopField
 			}
-			selID:=TV_GetSelection()
-			fileID:=TV_Add(I_LoopField,TV_GetParent(selID),selID)
+			fileID:=TV_Add(I_LoopField,parentID,selID)
+			TVFlag:=true
 		}
 	}
 return
 TVImportFolder:
 	FileSelectFolder, folderName, , 0
 	if(folderName){
-		MsgBox,33,导入文件夹所有EXE,确定导入%folderName%及子文件夹下所有EXE吗？
+		MsgBox,33,导入文件夹所有exe和lnk,确定导入%folderName%及子文件夹下所有程序和快捷方式吗？
 		IfMsgBox Ok
 		{
+			selID:=TV_GetSelection()
+			parentID:=TV_GetParent(selID)
+			Loop,%folderName%\*.lnk,0,1
+			{
+				lnkID:=TV_Add(A_LoopFileName,parentID,selID)
+			}
 			Loop,%folderName%\*.exe,0,1
 			{
-				selID:=TV_GetSelection()
-				folderID:=TV_Add(A_LoopFileName,TV_GetParent(selID),selID)
+				folderID:=TV_Add(A_LoopFileName,parentID,selID)
 			}
+			TVFlag:=true
 		}
 	}
 return
@@ -504,41 +522,43 @@ Menu_Set:
 	Gui,66:Destroy
 	Gui,66:Font,,Microsoft YaHei
 	Gui,66:Margin,30,40
-	Gui,66:Add,GroupBox,xm-10 y+20 w350 h55,自定义显示热键
-	Gui,66:Add,Hotkey,xm yp+20 w100 vvMenuKey,%MenuKey%
+	Gui,66:Add,Checkbox,Checked%AutoRun% xm-10 y+10 vvAutoRun,开机自动启动
+	Gui,66:Add,GroupBox,xm-10 y+10 w200 h55,自定义显示热键
+	Gui,66:Add,Hotkey,xm yp+20 w150 vvMenuKey,%MenuKey%
 	Gui,66:Add,GroupBox,xm-10 y+20 w350 h80,Everything安装路径
 	Gui,66:Add,Button,xm yp+20 w50 GSetPath,选择
 	Gui,66:Add,Edit,xm+60 yp w260 vvEvPath,%EvPath%
-	Gui,66:Add,GroupBox,xm-10 y+20 w350 h225,图标自定义设置（文件路径,序号）
-	Gui,66:Add,Text,xm yp+23 w80,树目录图标：
+	Gui,66:Add,GroupBox,xm-10 y+20 w350 h245,图标自定义设置（文件路径,序号）
+	Gui,66:Add,Text,xm yp+25 w80,树目录图标：
 	Gui,66:Add,Edit,xm+80 yp w240 vvTreeIcon,%TreeIcon%
-	Gui,66:Add,Text,xm yp+23 w80,文件夹图标：
+	Gui,66:Add,Text,xm yp+25 w80,文件夹图标：
 	Gui,66:Add,Edit,xm+80 yp w240 vvFolderIcon,%FolderIcon%
-	Gui,66:Add,Text,xm yp+23 w80,网址图标：
+	Gui,66:Add,Text,xm yp+25 w80,网址图标：
 	Gui,66:Add,Edit,xm+80 yp w240 vvUrlIcon,%UrlIcon%
-	Gui,66:Add,Text,xm yp+23 w80,批处理图标：
+	Gui,66:Add,Text,xm yp+25 w80,批处理图标：
 	Gui,66:Add,Edit,xm+80 yp w240 vvBATIcon,%BATIcon%
-	Gui,66:Add,Text,xm yp+23 w80,AHK图标：
+	Gui,66:Add,Text,xm yp+25 w80,AHK图标：
 	Gui,66:Add,Edit,xm+80 yp w240 vvAHKIcon,%AHKIcon%
-	Gui,66:Add,Text,xm yp+23 w80,EXE图标：
+	Gui,66:Add,Text,xm yp+25 w80,EXE图标：
 	Gui,66:Add,Edit,xm+80 yp w240 vvEXEIcon,%EXEIcon%
-	Gui,66:Add,Text,xm yp+23 w80,准备图标：
+	Gui,66:Add,Text,xm yp+25 w80,准备图标：
 	Gui,66:Add,Edit,xm+80 yp w240 vvMenuIcon,%MenuIcon%
-	Gui,66:Add,Text,xm yp+23 w80,托盘图标：
+	Gui,66:Add,Text,xm yp+25 w80,托盘图标：
 	Gui,66:Add,Edit,xm+80 yp w240 vvAnyIcon,%AnyIcon%
 	Gui,66:Add,Button,Default xm y+30 w75 GSetOK,确定(&Y)
 	Gui,66:Add,Button,x+5 w75 GSetCancel,取消(&C)
 	Gui,66:Add,Button,x+5 w75 GSetReSet,重置
-	Gui,66:Show,,%RunAny%设置
+	Gui,66:Show,,%RunAnyZz%设置
 	return
 ;~;[关于]
 Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAny%】一劳永逸的快速启动工具 v2.2
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v2.2
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
+	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
 	Gui,99:Add,Text,y+10
 	Gui,99:Font,,Consolas
 	Gui,99:Add,Text,y+10, by Zz @2017.1.22 建议：hui0.0713@gmail.com
@@ -546,7 +566,7 @@ Menu_About:
 	Gui,99:Add,Text,y+10 Ggithub, GitHub：https://github.com/hui-Zz/RunAny
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 讨论QQ群：[246308937]、3222783、493194474
-	Gui,99:Show,,关于%RunAny%
+	Gui,99:Show,,关于%RunAnyZz%
 	hCurs:=DllCall("LoadCursor","UInt",NULL,"Int",32649,"UInt") ;IDC_HAND
 	OnMessage(0x200,"WM_MOUSEMOVE") 
 	return
@@ -556,6 +576,14 @@ SetPath:
 return
 SetOK:
 	Gui,Submit
+	if(vAutoRun!=AutoRun){
+		AutoRun:=vAutoRun
+		if(AutoRun){
+			RegWrite, REG_SZ, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny, %A_ScriptFullPath%
+		}else{
+			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
+		}
+	}
 	Reg_Set(vMenuKey,MenuKey,"MenuKey")
 	Reg_Set(vEvPath,EvPath,"EvPath")
 	Reg_Set(vTreeIcon,TreeIcon,"TreeIcon")
@@ -589,17 +617,21 @@ Reg_Set(vGui, var, sz){
 MenuTray(){
 	Menu,Tray,NoStandard
 	Menu,Tray,Icon,% MenuIconS[1],% MenuIconS[2]
-	Menu,Tray,add,启动(&Z),Menu_Show
-	Menu,Tray,add,菜单(&E),Menu_Edit
+	Menu,Tray,add,启动菜单(&Z),Menu_Show
+	Menu,Tray,add,菜单配置(&E),Menu_Edit
+	Menu,Tray,add,配置文件(&F),Menu_Ini
 	Menu,Tray,add,设置(&D),Menu_Set
 	Menu,Tray,Add,关于(&A)...,Menu_About
 	Menu,Tray,add
 	Menu,Tray,add,重启(&R),Menu_Reload
 	Menu,Tray,add,挂起(&S),Menu_Suspend
 	Menu,Tray,add,退出(&X),Menu_Exit
-	Menu,Tray,Default,启动(&Z)
+	Menu,Tray,Default,启动菜单(&Z)
 	Menu,Tray,Click,1
 }
+Menu_Ini:
+	Run,%iniFile%
+return
 Menu_Reload:
 	Reload
 return
@@ -623,7 +655,7 @@ everythingQuery(){
 	Loop,% ev.GetTotResults()
 	{
 		Z_Index:=A_Index-1
-		MenuObj[(RegExReplace(ev.GetResultFileName(Z_Index),"iS)\.exe$",""))]:=ev.GetResultFullPathName(Z_Index)
+		MenuObj[(RegExReplace(ev.GetResultFileName(Z_Index),"iS)\.(exe|lnk)$",""))]:=ev.GetResultFullPathName(Z_Index)
 	}
 }
 class everything
@@ -668,7 +700,6 @@ class everything
 ;══════════════════════════════════════════════════════════════════
 ;~;[初次运行]
 First_Run:
-ini:=true
 FileAppend,
 (
 ;以【;】开头代表注释
@@ -683,7 +714,8 @@ FileAppend,
 		Ditto.exe
 	--
 	chrome.exe
-	I&E|iexplore.exe
+	;多个同名iexplore.exe用全路径指定运行32位IE
+	I&E|C:\Program Files (x86)\Internet Explorer\iexplore.exe
 	;2级分隔符【--】
 	--
 	Wiz.exe
@@ -703,28 +735,42 @@ FileAppend,
 	--
 	QQPlayer.exe
 	PotPlayer.exe
--Down下载
+-Web网址
+	更新地址&GitHub|https://github.com/hui-Zz/RunAny
+-File文件
+	WinRAR.exe
 	BaiduNetdisk.exe
 	--
 	Thunder.exe
 	QQDownload.exe
 	IDMan.exe
--Web网址
-	更新地址&GitHub|https://github.com/hui-Zz/RunAny
--File文件
-	WinRAR.exe
 -Sys系统
 	cmd.exe
 	控制面板(&S)|Control.exe
+-桌面(&D)`n
+),%iniFile%
+desktopItem:=""
+Loop,%A_Desktop%\*.lnk,0,1
+{
+	desktopItem.="`t" A_LoopFileName "`n"
+}
+desktopItem.="-`n"
+Loop,%A_Desktop%\*.exe,0,1
+{
+	desktopItem.="`t" A_LoopFileName "`n"
+}
+FileAppend,%desktopItem%,%iniFile%
+FileAppend,
+(
 -
-;1级目录分隔符【-】并且使下面项目都回归1级目录
+;1级分隔符【-】并且使下面项目都回归1级目录
 QQ.exe
-计算器(&X)|calc.exe
+;使用【&】指定快捷键为C,忽略下面C盘的快捷键C
+计算器(&C)|calc.exe
 我的电脑(&Z)|explorer.exe
 ;以【\】结尾代表是文件夹路径
-&C盘|C:\
-;使用【&】指定快捷键为D,忽略上面Down的快捷键D
-&D盘|D:\
+C盘|C:\
 -
 ),%iniFile%
+ini:=true
 return
