@@ -7,6 +7,10 @@
 RunAny追求就是：<u>**一劳永逸**</u>
 ---
 
+RunAny演示：![RunAny演示](https://raw.githubusercontent.com/hui-Zz/RunAny/master/RunAny演示.gif)
+
+---
+
 RunAny启动软件就跟打字一样高效方便（如<kbd>\`</kbd>为热键）：
 
 - \`ew就是work工作分类下的Word
