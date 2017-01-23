@@ -522,29 +522,38 @@ Menu_Set:
 	Gui,66:Destroy
 	Gui,66:Font,,Microsoft YaHei
 	Gui,66:Margin,30,40
-	Gui,66:Add,Checkbox,Checked%AutoRun% xm-10 y+10 vvAutoRun,开机自动启动
-	Gui,66:Add,GroupBox,xm-10 y+10 w200 h55,自定义显示热键
-	Gui,66:Add,Hotkey,xm yp+20 w150 vvMenuKey,%MenuKey%
-	Gui,66:Add,GroupBox,xm-10 y+20 w350 h80,Everything安装路径
-	Gui,66:Add,Button,xm yp+20 w50 GSetPath,选择
-	Gui,66:Add,Edit,xm+60 yp w260 vvEvPath,%EvPath%
-	Gui,66:Add,GroupBox,xm-10 y+20 w350 h245,图标自定义设置（文件路径,序号）
-	Gui,66:Add,Text,xm yp+25 w80,树目录图标：
-	Gui,66:Add,Edit,xm+80 yp w240 vvTreeIcon,%TreeIcon%
-	Gui,66:Add,Text,xm yp+25 w80,文件夹图标：
-	Gui,66:Add,Edit,xm+80 yp w240 vvFolderIcon,%FolderIcon%
-	Gui,66:Add,Text,xm yp+25 w80,网址图标：
-	Gui,66:Add,Edit,xm+80 yp w240 vvUrlIcon,%UrlIcon%
-	Gui,66:Add,Text,xm yp+25 w80,批处理图标：
-	Gui,66:Add,Edit,xm+80 yp w240 vvBATIcon,%BATIcon%
-	Gui,66:Add,Text,xm yp+25 w80,AHK图标：
-	Gui,66:Add,Edit,xm+80 yp w240 vvAHKIcon,%AHKIcon%
-	Gui,66:Add,Text,xm yp+25 w80,EXE图标：
-	Gui,66:Add,Edit,xm+80 yp w240 vvEXEIcon,%EXEIcon%
-	Gui,66:Add,Text,xm yp+25 w80,准备图标：
-	Gui,66:Add,Edit,xm+80 yp w240 vvMenuIcon,%MenuIcon%
-	Gui,66:Add,Text,xm yp+25 w80,托盘图标：
-	Gui,66:Add,Edit,xm+80 yp w240 vvAnyIcon,%AnyIcon%
+	Gui,66:Add,Tab,x10 y10 w360 h320,RunAny设置|Everything设置|图标设置
+	Gui,66:Tab,RunAny设置,,Exact
+	Gui,66:Add,GroupBox,xm-10 y+10 w200 h60,RunAny
+	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+30 vvAutoRun,开机自动启动
+	Gui,66:Add,GroupBox,xm-10 y+40 w200 h70,自定义显示热键
+	Gui,66:Add,Hotkey,xm+10 yp+30 w150 vvMenuKey,%MenuKey%
+	
+	Gui,66:Tab,Everything设置,,Exact
+	Gui,66:Add,GroupBox,xm-10 y+20 w340 h150,Everything安装路径
+	Gui,66:Add,Button,xm yp+30 w50 GSetPath,选择
+	Gui,66:Add,Edit,xm+60 yp w260 r4 vvEvPath,%EvPath%
+	
+	Gui,66:Tab,图标设置,,Exact
+	Gui,66:Add,GroupBox,xm-10 y+10 w340 h280,图标自定义设置（文件路径,序号）
+	Gui,66:Add,Text,xm yp+30 w80,树目录图标
+	Gui,66:Add,Edit,xm+70 yp w250 r1 vvTreeIcon,%TreeIcon%
+	Gui,66:Add,Text,xm yp+30 w80,文件夹图标
+	Gui,66:Add,Edit,xm+70 yp w250 r1 vvFolderIcon,%FolderIcon%
+	Gui,66:Add,Text,xm yp+30 w80,网址图标
+	Gui,66:Add,Edit,xm+70 yp w250 r1 vvUrlIcon,%UrlIcon%
+	Gui,66:Add,Text,xm yp+30 w80,批处理图标
+	Gui,66:Add,Edit,xm+70 yp w250 r1 vvBATIcon,%BATIcon%
+	Gui,66:Add,Text,xm yp+30 w80,AHK图标
+	Gui,66:Add,Edit,xm+70 yp w250 r1 vvAHKIcon,%AHKIcon%
+	Gui,66:Add,Text,xm yp+30 w80,EXE图标
+	Gui,66:Add,Edit,xm+70 yp w250 r1 vvEXEIcon,%EXEIcon%
+	Gui,66:Add,Text,xm yp+30 w80,准备图标
+	Gui,66:Add,Edit,xm+70 yp w250 r1 vvMenuIcon,%MenuIcon%
+	Gui,66:Add,Text,xm yp+30 w80,托盘图标
+	Gui,66:Add,Edit,xm+70 yp w250 r1 vvAnyIcon,%AnyIcon%
+	
+	Gui,66:Tab
 	Gui,66:Add,Button,Default xm y+30 w75 GSetOK,确定(&Y)
 	Gui,66:Add,Button,x+5 w75 GSetCancel,取消(&C)
 	Gui,66:Add,Button,x+5 w75 GSetReSet,重置
@@ -739,11 +748,6 @@ FileAppend,
 	更新地址&GitHub|https://github.com/hui-Zz/RunAny
 -File文件
 	WinRAR.exe
-	BaiduNetdisk.exe
-	--
-	Thunder.exe
-	QQDownload.exe
-	IDMan.exe
 -Sys系统
 	cmd.exe
 	控制面板(&S)|Control.exe
