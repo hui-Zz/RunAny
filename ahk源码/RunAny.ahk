@@ -147,28 +147,36 @@ Menu_Add(menuName,menuItem){
 		Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,124
 	}
 }
-;~;[输出短语]
-Send_Zz(strZz){
-	Candy_Saved:=ClipboardAll
-	Clipboard:=strZz
-	SendInput,^v
-	Sleep,200
-	Clipboard:=Candy_Saved
-}
-;~;[检查后缀名]
-Ext_Check(name,len,ext){
-	len_ext:=StrLen(ext)
-	site:=InStr(name,ext,,0,1)
-	return site!=0 && site=len-len_ext+1
-}
-;~;[读取注册表]
-Var_Read(rValue,defVar=""){
-	RegRead, regVar, HKEY_CURRENT_USER, SOFTWARE\RunAny, %rValue%
-	if regVar
-		return regVar
-	else
-		return defVar
-}
+;~;[显示菜单]
+Menu_Show:
+	try{
+		Menu,% menuRoot[1],Show
+	}catch{
+		gosub,Menu_Edit
+		MsgBox,16,,菜单显示错误，请检查菜单配置
+	}
+	return
+;~;[菜单运行]
+Menu_Run:
+	try {
+		any:=MenuObj[(A_ThisMenuItem)]
+		anyLen:=StrLen(any)
+		If(InStr(any,";")=anyLen){
+			StringLeft, any, any, anyLen-1
+			Send_Zz(any)	;[输出短语]
+		}else If GetKeyState("Ctrl"){		;[按住Ctrl是打开应用目录]
+			Run,% "explorer.exe /select," any
+		}else If GetKeyState("Shift"){	;[按住Shift则是管理员身份运行]
+			Run,*RunAs %any%
+		}else{
+			Run,%any%
+		}
+	} catch e {
+		MsgBox,16,找不到程序路径,运行路径不正确：%any%
+	}
+	return
+;══════════════════════════════════════════════════════════════════
+;~;[调用函数]
 Var_Set:
 	RegRead, AutoRun, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 	global AutoRun:=AutoRun ? 1 : 0
@@ -210,35 +218,43 @@ Run_Exist:
 	}
 	IfNotExist,%A_ScriptDir%\%everyDLL%
 		MsgBox,16,,没有找到%everyDLL%，将不能识别菜单中程序的路径`n请复制%everyDLL%到%A_ScriptDir%目录下`n`n或在github.com/hui-Zz/RunAny/tree/RunMenu下载不使用Everything的版本
-	return
-;~;[显示菜单]
-Menu_Show:
-	try{
-		Menu,% menuRoot[1],Show
-	}catch{
-		gosub,Menu_Edit
-		MsgBox,16,,菜单显示错误，请检查菜单配置
+return
+;~;[检查后缀名]
+Ext_Check(name,len,ext){
+	len_ext:=StrLen(ext)
+	site:=InStr(name,ext,,0,1)
+	return site!=0 && site=len-len_ext+1
+}
+;~;[读取注册表]
+Var_Read(rValue,defVar=""){
+	RegRead, regVar, HKEY_CURRENT_USER, SOFTWARE\RunAny, %rValue%
+	if regVar
+		return regVar
+	else
+		return defVar
+}
+;~;[输出短语]
+Send_Zz(strZz){
+	Candy_Saved:=ClipboardAll
+	Clipboard:=strZz
+	SendInput,^v
+	Sleep,200
+	Clipboard:=Candy_Saved
+}
+;~;[获取选中]
+Get_Zz(){
+	Candy_Saved:=ClipboardAll
+	Clipboard=
+	SendInput,^c
+	ClipWait,0.2
+	If(ErrorLevel){
+		Clipboard:=Candy_Saved
+		return
 	}
-	return
-;~;[菜单运行]
-Menu_Run:
-	try {
-		any:=MenuObj[(A_ThisMenuItem)]
-		anyLen:=StrLen(any)
-		If(InStr(any,";")=anyLen){
-			StringLeft, any, any, anyLen-1
-			Send_Zz(any)	;[输出短语]
-		}else If GetKeyState("Ctrl"){		;[按住Ctrl是打开应用目录]
-			Run,% "explorer.exe /select," any
-		}else If GetKeyState("Shift"){	;[按住Shift则是管理员身份运行]
-			Run,*RunAs %any%
-		}else{
-			Run,%any%
-		}
-	} catch e {
-		MsgBox,16,找不到程序路径,运行路径不正确：%any%
-	}
-	return
+	CandySel=%Clipboard%
+	Clipboard:=Candy_Saved
+	return CandySel
+}
 ;══════════════════════════════════════════════════════════════════
 ;~;[菜单配置]
 Menu_Edit:
@@ -256,7 +272,7 @@ Menu_Edit:
 		IL_Add(ImageListID, TreeIconS[1], TreeIconS[2])
 	else
 		IL_Add(ImageListID, "shell32.dll", 42)
-	Gui, Add, TreeView,vRunAnyTV w400 r30 -Readonly hwndHTV gTVClick ImageList%ImageListID%
+	Gui, Add, TreeView,vRunAnyTV w400 r30 -Readonly AltSubmit hwndHTV gTVClick ImageList%ImageListID%
 	GuiControl, -Redraw, RunAnyTV
 	treeRoot:=Object()
 	Loop, read, %iniFile%
@@ -300,7 +316,6 @@ return
 	F7::gosub,TVDownNext
 	F8::gosub,TVImportFile
 	F9::gosub,TVImportFolder
-	Del::gosub,TVDel
 	^s::gosub,TVSave
 	Esc::gosub,GuiClose
 #If
@@ -359,6 +374,9 @@ TVClick:
 			addID:=
 		}
 		TVFlag:=true
+	}else if (A_GuiEvent == "K"){
+		if (A_EventInfo = 46)
+			gosub,TVDel
 	}
 return
 TVAdd:
