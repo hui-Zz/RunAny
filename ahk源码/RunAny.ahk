@@ -26,6 +26,7 @@ global MenuObj:=Object()
 MenuKey:=Var_Read("MenuKey","``")
 ;~;[设定自定义菜单热键]
 try{
+	Hotkey, IfWinNotActive, ahk_group DisableGUI
 	Hotkey,%MenuKey%,Menu_Show,On
 }catch{
 	gosub,Menu_Set
@@ -181,6 +182,11 @@ Var_Set:
 	RegRead, AutoRun, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 	global AutoRun:=AutoRun ? 1 : 0
 	global everyDLL:="Everything.dll"
+	global DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe")
+	Loop,parse,DisableApp,`,
+	{
+		GroupAdd,DisableGUI,ahk_exe %A_LoopField%
+	}
 	global iconAny:="shell32.dll,190"
 	global iconMenu:="shell32.dll,195"
 	if(Ext_Check(A_ScriptName,StrLen(A_ScriptName),".exe")){
@@ -546,6 +552,8 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+30 vvAutoRun,开机自动启动
 	Gui,66:Add,GroupBox,xm-10 y+40 w200 h70,自定义显示热键
 	Gui,66:Add,Hotkey,xm+10 yp+30 w150 vvMenuKey,%MenuKey%
+	Gui,66:Add,GroupBox,xm-10 y+20 w330 h100,屏蔽RunAny程序列表（逗号分隔）
+	Gui,66:Add,Edit,xm+10 yp+30 w300 r3 vvDisableApp,%DisableApp%
 	
 	Gui,66:Tab,Everything设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+20 w340 h150,Everything安装路径
@@ -612,6 +620,7 @@ SetOK:
 		}
 	}
 	Reg_Set(vMenuKey,MenuKey,"MenuKey")
+	Reg_Set(vDisableApp,DisableApp,"DisableApp")
 	Reg_Set(vEvPath,EvPath,"EvPath")
 	Reg_Set(vTreeIcon,TreeIcon,"TreeIcon")
 	Reg_Set(vFolderIcon,FolderIcon,"FolderIcon")
