@@ -139,8 +139,10 @@ Menu_Add(menuName,menuItem){
 			Menu,%menuName%,Icon,%menuItem%,% BATIconS[1],% BATIconS[2]
 		}else if(RegExMatch(item,"([\w-]+://?|www[.]).*")){
 			Menu,%menuName%,Icon,%menuItem%,% UrlIconS[1],% UrlIconS[2]
-		}else if(InStr(item,"\")=itemLen){
+		}else if(InStr(item,"\",,0,1)=itemLen){
 			Menu,%menuName%,Icon,%menuItem%,% FolderIconS[1],% FolderIconS[2]
+		}else if(InStr(item,";",,0,1)=itemLen){
+			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,2
 		}else{
 			Menu,%menuName%,Icon,%menuItem%,%item%
 		}
@@ -162,7 +164,7 @@ Menu_Run:
 	try {
 		any:=MenuObj[(A_ThisMenuItem)]
 		anyLen:=StrLen(any)
-		If(InStr(any,";")=anyLen){
+		If(InStr(any,";",,0,1)=anyLen){
 			StringLeft, any, any, anyLen-1
 			Send_Zz(any)	;[输出短语]
 		}else If GetKeyState("Ctrl"){		;[按住Ctrl是打开应用目录]
@@ -273,6 +275,7 @@ Menu_Edit:
 	IL_Add(ImageListID, "shell32.dll", 2)
 	IL_Add(ImageListID, EXEIconS[1], EXEIconS[2])
 	IL_Add(ImageListID, FolderIconS[1], FolderIconS[2])
+	IL_Add(ImageListID, "shell32.dll", 264)
 	IL_Add(ImageListID, UrlIconS[1], UrlIconS[2])
 	if(TreeIcon)
 		IL_Add(ImageListID, TreeIconS[1], TreeIconS[2])
@@ -289,9 +292,9 @@ Menu_Edit:
 			treeLevel:=StrLen(RegExReplace(Z_ReadLine,"S)(^-+).+","$1"))
 			if(RegExMatch(Z_ReadLine,"S)^-+[^-]+.*")){
 				if(treeLevel=1){
-					treeRoot.Insert(treeLevel,TV_Add(Z_ReadLine,,"Icon6"))
+					treeRoot.Insert(treeLevel,TV_Add(Z_ReadLine,,"Icon7"))
 				}else{
-					treeRoot.Insert(treeLevel,TV_Add(Z_ReadLine,treeRoot[treeLevel-1],"Icon6"))
+					treeRoot.Insert(treeLevel,TV_Add(Z_ReadLine,treeRoot[treeLevel-1],"Icon7"))
 				}
 			}else if(Z_ReadLine="-"){
 				treeLevel:=0
@@ -519,15 +522,17 @@ TV_Move(moveMode = true,moveFull = true){
 Set_Icon(itemVar){
 	itemLen:=StrLen(itemVar)
 	if(RegExMatch(itemVar,"S)^-+[^-]+.*"))
-		return "Icon6"
+		return "Icon7"
 	else if(Ext_Check(itemVar,itemLen,".exe"))
 		return "Icon3"
+	else if(Ext_Check(itemVar,itemLen,".lnk"))
+		return "Icon5"
 	else if(InStr(itemVar,";")=1 || itemVar="")
 		return "Icon2"
-	else if(InStr(itemVar,"\")=itemLen)
+	else if(InStr(itemVar,"\",,0,1))
 		return "Icon4"
 	else if(RegExMatch(itemVar,"([\w-]+://?|www[.]).*"))
-		return "Icon5"
+		return "Icon6"
 	else
 		return "Icon1"
 }
@@ -550,7 +555,7 @@ Menu_Set:
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+10 w200 h60,RunAny
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+30 vvAutoRun,开机自动启动
-	Gui,66:Add,GroupBox,xm-10 y+40 w200 h70,自定义显示热键
+	Gui,66:Add,GroupBox,xm-10 y+20 w200 h70,自定义显示热键
 	Gui,66:Add,Hotkey,xm+10 yp+30 w150 vvMenuKey,%MenuKey%
 	Gui,66:Add,GroupBox,xm-10 y+20 w330 h100,屏蔽RunAny程序列表（逗号分隔）
 	Gui,66:Add,Edit,xm+10 yp+30 w300 r3 vvDisableApp,%DisableApp%
