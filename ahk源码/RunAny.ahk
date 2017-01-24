@@ -167,6 +167,8 @@ Menu_Run:
 		If(InStr(any,";",,0,1)=anyLen){
 			StringLeft, any, any, anyLen-1
 			Send_Zz(any)	;[输出短语]
+		}else If(TcPath && InStr(any,"\",,0,1)=anyLen){
+			Run,%TcPath% %any%
 		}else If GetKeyState("Ctrl"){		;[按住Ctrl是打开应用目录]
 			Run,% "explorer.exe /select," any
 		}else If GetKeyState("Shift"){	;[按住Shift则是管理员身份运行]
@@ -184,6 +186,7 @@ Var_Set:
 	RegRead, AutoRun, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 	global AutoRun:=AutoRun ? 1 : 0
 	global everyDLL:="Everything.dll"
+	global TcPath:=Var_Read("TcPath")
 	global DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe")
 	Loop,parse,DisableApp,`,
 	{
@@ -553,16 +556,19 @@ Menu_Set:
 	Gui,66:Margin,30,40
 	Gui,66:Add,Tab,x10 y10 w360 h320,RunAny设置|Everything设置|图标设置
 	Gui,66:Tab,RunAny设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+10 w200 h60,RunAny
-	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+30 vvAutoRun,开机自动启动
-	Gui,66:Add,GroupBox,xm-10 y+20 w200 h70,自定义显示热键
-	Gui,66:Add,Hotkey,xm+10 yp+30 w150 vvMenuKey,%MenuKey%
-	Gui,66:Add,GroupBox,xm-10 y+20 w330 h100,屏蔽RunAny程序列表（逗号分隔）
-	Gui,66:Add,Edit,xm+10 yp+30 w300 r3 vvDisableApp,%DisableApp%
+	Gui,66:Add,GroupBox,xm-10 y+10 w200 h55,RunAny
+	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+25 vvAutoRun,开机自动启动
+	Gui,66:Add,GroupBox,xm-10 y+20 w200 h55,自定义显示热键
+	Gui,66:Add,Hotkey,xm+10 yp+20 w150 vvMenuKey,%MenuKey%
+	Gui,66:Add,GroupBox,xm-10 y+20 w330 h85,屏蔽RunAny程序列表（逗号分隔）
+	Gui,66:Add,Edit,xm+10 yp+20 w300 r3 vvDisableApp,%DisableApp%
+	Gui,66:Add,GroupBox,xm-10 y+20 w340 h55,TotalCommander安装路径（TC打开文件夹）
+	Gui,66:Add,Button,xm yp+20 w50 GSetTcPath,选择
+	Gui,66:Add,Edit,xm+60 yp w260 r1 vvTcPath,%TcPath%
 	
 	Gui,66:Tab,Everything设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+20 w340 h150,Everything安装路径
-	Gui,66:Add,Button,xm yp+30 w50 GSetPath,选择
+	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp w260 r4 vvEvPath,%EvPath%
 	
 	Gui,66:Tab,图标设置,,Exact
@@ -610,9 +616,13 @@ Menu_About:
 	hCurs:=DllCall("LoadCursor","UInt",NULL,"Int",32649,"UInt") ;IDC_HAND
 	OnMessage(0x200,"WM_MOUSEMOVE") 
 	return
-SetPath:
-	FileSelectFile, evFilePath, 3, Everything.exe, Everything安装路径, Everything (*.exe)
-	GuiControl,, vZzpath, %evFilePath%
+SetEvPath:
+	FileSelectFile, evFilePath, 3, Everything.exe, Everything安装路径, (Everything.exe)
+	GuiControl,, vEvPath, %evFilePath%
+return
+SetTcPath:
+	FileSelectFile, tcFilePath, 3, , TC安装路径, (Totalcmd.exe;Totalcmd64.exe)
+	GuiControl,, vTcPath, %tcFilePath%
 return
 SetOK:
 	Gui,Submit
@@ -627,6 +637,7 @@ SetOK:
 	Reg_Set(vMenuKey,MenuKey,"MenuKey")
 	Reg_Set(vDisableApp,DisableApp,"DisableApp")
 	Reg_Set(vEvPath,EvPath,"EvPath")
+	Reg_Set(vTcPath,TcPath,"TcPath")
 	Reg_Set(vTreeIcon,TreeIcon,"TreeIcon")
 	Reg_Set(vFolderIcon,FolderIcon,"FolderIcon")
 	Reg_Set(vUrlIcon,UrlIcon,"UrlIcon")
