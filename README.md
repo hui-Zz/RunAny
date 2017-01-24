@@ -7,10 +7,6 @@
 RunAny追求就是：<u>**一劳永逸**</u>
 ---
 
-RunAny演示：![RunAny演示](https://raw.githubusercontent.com/hui-Zz/RunAny/master/RunAny演示.gif)
-
----
-
 RunAny启动软件就跟打字一样高效方便（如<kbd>\`</kbd>为热键）：
 
 - \`ew就是work工作分类下的Word
@@ -21,10 +17,13 @@ RunAny启动软件就跟打字一样高效方便（如<kbd>\`</kbd>为热键）�
 
 ---
 
-[版本更新历史](#ver)
+RunAny演示：<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/RunAny%E6%BC%94%E7%A4%BA.gif" alt="RunAny演示" style="max-width:60%;">
+---
+
+[【RunAny版本更新历史】](#ver)
 
 
-[RunAny版本更新历史](#tree)
+[【自定义树形菜单配置方法：】](#tree)
 
 ---
 
