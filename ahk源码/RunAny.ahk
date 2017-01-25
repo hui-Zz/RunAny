@@ -655,8 +655,8 @@ Menu_About:
 	Gui,99:Add,Text,y+10, by Zz @2017.1.22 建议：hui0.0713@gmail.com
 	Gui,99:Font,CBlue Underline
 	Gui,99:Add,Text,y+10 Ggithub, GitHub：https://github.com/hui-Zz/RunAny
+	Gui,99:Add,Text,y+10 GQQRunAny, 讨论QQ群：[246308937]、3222783、493194474
 	Gui,99:Font
-	Gui,99:Add,Text,y+10, 讨论QQ群：[246308937]、3222783、493194474
 	Gui,99:Show,,关于%RunAnyZz%
 	hCurs:=DllCall("LoadCursor","UInt",NULL,"Int",32649,"UInt") ;IDC_HAND
 	OnMessage(0x200,"WM_MOUSEMOVE") 
@@ -706,6 +706,9 @@ SetReSet:
 return
 github:
 	Run,https://github.com/hui-Zz/RunAny
+return
+QQRunAny:
+	Run,https://jq.qq.com/?_wv=1027&k=445Ug7u
 return
 Reg_Set(vGui, var, sz){
 	if(vGui!=var){
@@ -850,7 +853,7 @@ Loop,%A_Desktop%\*.lnk,0,1
 {
 	desktopItem.="`t" A_LoopFileName "`n"
 }
-desktopItem.="-`n"
+desktopItem.="`n"
 Loop,%A_Desktop%\*.exe,0,1
 {
 	desktopItem.="`t" A_LoopFileName "`n"
