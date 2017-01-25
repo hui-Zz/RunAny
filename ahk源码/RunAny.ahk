@@ -18,12 +18,15 @@ SplitPath,A_ScriptFullPath,,,,fileNotExt
 ;~ StartTick:=A_TickCount	;若要评估出menu时间
 RunAnyZz:="RunAny"
 Gosub,Var_Set
-Gosub,Run_Exist
 MenuTray()
+Gosub,Run_Exist
 global MenuObj:=Object()
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化菜单显示热键]
 MenuKey:=Var_Read("MenuKey","``")
+MenuWinKey:=Var_Read("MenuWinKey",0)
+EvKey:=Var_Read("EvKey")
+EvWinKey:=Var_Read("EvWinKey",0)
 ;~;[设定自定义菜单热键]
 try{
 	Hotkey, IfWinNotActive, ahk_group DisableGUI
@@ -62,6 +65,7 @@ If(evExist){
 }
 ;══════════════════════════════════════════════════════════════════
 ;~;[读取自定义树形菜单设置]
+Gosub,Icon_Set
 menuRoot:=Object()
 menuRoot.Insert(RunAnyZz)
 menuLevel:=1
@@ -181,19 +185,18 @@ Menu_Run:
 	}
 	return
 ;══════════════════════════════════════════════════════════════════
-;~;[调用函数]
+;~;[初始化]
 Var_Set:
 	RegRead, AutoRun, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
-	global AutoRun:=AutoRun ? 1 : 0
-	global everyDLL:="Everything.dll"
-	global TcPath:=Var_Read("TcPath")
-	global DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe")
+	AutoRun:=AutoRun ? 1 : 0
+	TcPath:=Var_Read("TcPath")
+	DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe")
 	Loop,parse,DisableApp,`,
 	{
 		GroupAdd,DisableGUI,ahk_exe %A_LoopField%
 	}
-	global iconAny:="shell32.dll,190"
-	global iconMenu:="shell32.dll,195"
+	iconAny:="shell32.dll,190"
+	iconMenu:="shell32.dll,195"
 	if(Ext_Check(A_ScriptName,StrLen(A_ScriptName),".exe")){
 		iconAny:=A_ScriptName ",1"
 		iconMenu:=A_ScriptName ",2"
@@ -205,23 +208,28 @@ Var_Set:
 	global AnyIconS:=StrSplit(AnyIcon,",")
 	global MenuIcon:=Var_Read("MenuIcon",iconMenu)
 	global MenuIconS:=StrSplit(MenuIcon,",")
-	global TreeIcon:=Var_Read("TreeIcon")
+return
+;~;[后缀图标初始化]
+Icon_Set:
+	TreeIcon:=Var_Read("TreeIcon")
 	global TreeIconS:=StrSplit(TreeIcon,",")
-	global FolderIcon:=Var_Read("FolderIcon","shell32.dll,4")
+	FolderIcon:=Var_Read("FolderIcon","shell32.dll,4")
 	global FolderIconS:=StrSplit(FolderIcon,",")
-	global UrlIcon:=Var_Read("UrlIcon","shell32.dll,44")
+	UrlIcon:=Var_Read("UrlIcon","shell32.dll,44")
 	global UrlIconS:=StrSplit(UrlIcon,",")
-	global BATIcon:=Var_Read("BATIcon","shell32.dll,72")
+	BATIcon:=Var_Read("BATIcon","shell32.dll,72")
 	global BATIconS:=StrSplit(BATIcon,",")
-	global AHKIcon:=Var_Read("AHKIcon","shell32.dll,74")
+	AHKIcon:=Var_Read("AHKIcon","shell32.dll,74")
 	global AHKIconS:=StrSplit(AHKIcon,",")
-	global EXEIcon:=Var_Read("EXEIcon","shell32.dll,3")
+	EXEIcon:=Var_Read("EXEIcon","shell32.dll,3")
 	global EXEIconS:=StrSplit(EXEIcon,",")
 return
+;~;[调用判断]
 Run_Exist:
 	iniFile:=A_ScriptDir "\" fileNotExt ".ini"
 	IfNotExist,%iniFile%
 		gosub,First_Run
+	global everyDLL:="Everything.dll"
 	if(FileExist(A_ScriptDir "\Everything.dll")){
 		everyDLL:=DllCall("LoadLibrary", str, "Everything.dll") ? "Everything.dll" : "Everything64.dll"
 	}else if(FileExist(A_ScriptDir "\Everything64.dll")){
@@ -558,8 +566,9 @@ Menu_Set:
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+10 w200 h55,RunAny
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+25 vvAutoRun,开机自动启动
-	Gui,66:Add,GroupBox,xm-10 y+20 w200 h55,自定义显示热键
-	Gui,66:Add,Hotkey,xm+10 yp+20 w150 vvMenuKey,%MenuKey%
+	Gui,66:Add,GroupBox,xm-10 y+20 w215 h55,自定义显示热键
+	Gui,66:Add,Hotkey,xm+10 yp+20 w140 vvMenuKey,%MenuKey%
+	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+155 yp+3 vvMenuWinKey,Win
 	Gui,66:Add,GroupBox,xm-10 y+20 w330 h85,屏蔽RunAny程序列表（逗号分隔）
 	Gui,66:Add,Edit,xm+10 yp+20 w300 r3 vvDisableApp,%DisableApp%
 	Gui,66:Add,GroupBox,xm-10 y+20 w340 h55,TotalCommander安装路径（TC打开文件夹）
@@ -567,7 +576,10 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+60 yp w260 r1 vvTcPath,%TcPath%
 	
 	Gui,66:Tab,Everything设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+20 w340 h150,Everything安装路径
+	Gui,66:Add,GroupBox,xm-10 y+20 w215 h55,一键Everything[搜索选中文字][激活][隐藏]
+	Gui,66:Add,Hotkey,xm+10 yp+20 w140 vvEvKey,%EvKey%
+	Gui,66:Add,Checkbox,Checked%EvWinKey% xm+155 yp+3 vvEvWinKey,Win
+	Gui,66:Add,GroupBox,xm-10 y+20 w340 h130,Everything安装路径
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp w260 r4 vvEvPath,%EvPath%
 	
@@ -635,7 +647,9 @@ SetOK:
 		}
 	}
 	Reg_Set(vMenuKey,MenuKey,"MenuKey")
+	Reg_Set(vMenuWinKey,MenuWinKey,"MenuWinKey")
 	Reg_Set(vDisableApp,DisableApp,"DisableApp")
+	Reg_Set(vEvWinKey,EvWinKey,"EvWinKey")
 	Reg_Set(vEvPath,EvPath,"EvPath")
 	Reg_Set(vTcPath,TcPath,"TcPath")
 	Reg_Set(vTreeIcon,TreeIcon,"TreeIcon")
