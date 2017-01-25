@@ -9,7 +9,7 @@ RunAny追求就是：<u>**一劳永逸**</u>
 
 RunAny启动软件就跟打字一样高效方便（如<kbd>\`</kbd>为热键）：
 
-- \`ew就是work工作分类下的Word
+- \`ww就是work工作分类下的Word
 - \`aw就是app常用分类下的Wiz
 - \`fw就是file文件分类下的WinRAR
 
@@ -32,6 +32,10 @@ RunAny演示：<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/
 讨论QQ群：[246308937【RunAny快速启动一劳永逸】](https://jq.qq.com/?_wv=1027&k=445Ug7u)、[3222783【AutoHotkey高级群】](https://jq.qq.com/?_wv=1027&k=43uBHer)、[493194474【软客】](https://jq.qq.com/?_wv=1027&k=43trxF5)
 
 支持RunAny：![支付宝](https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.jpg)
+
+> 这里是隐藏功能：
+按住Ctrl打开软件会打开软件所在的目录
+按住Shift打开软件会以管理员身份来运行
 
 ---
 
