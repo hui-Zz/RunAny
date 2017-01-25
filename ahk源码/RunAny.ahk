@@ -29,11 +29,21 @@ EvKey:=Var_Read("EvKey")
 EvWinKey:=Var_Read("EvWinKey",0)
 ;~;[设定自定义菜单热键]
 try{
+	MenuHotKey:=MenuWinKey ? "#" . MenuKey : MenuKey
 	Hotkey, IfWinNotActive, ahk_group DisableGUI
-	Hotkey,%MenuKey%,Menu_Show,On
+	Hotkey,%MenuHotKey%,Menu_Show,On
+	if(EvKey){
+		try{
+			EvHotKey:=EvWinKey ? "#" . EvKey : EvKey
+			Hotkey,%EvHotKey%,Ev_Show,On
+		}catch{
+			gosub,Menu_Set
+			MsgBox,16,请设置正确热键,%EvHotKey%`n一键Everything热键设置不正确
+		}
+	}
 }catch{
 	gosub,Menu_Set
-	MsgBox,16,,%MenuKey%<=热键设置不正确`n请设置正确热键
+	MsgBox,16,请设置正确热键,%MenuHotKey%`n自定义显示热键设置不正确
 }
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化everything安装路径]
@@ -151,7 +161,10 @@ Menu_Add(menuName,menuItem){
 			Menu,%menuName%,Icon,%menuItem%,%item%
 		}
 	} catch e {
-		Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,124
+		if(HideFail)
+			Menu,%menuName%,Delete,%menuItem%
+		else
+			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,124
 	}
 }
 ;~;[显示菜单]
@@ -184,11 +197,30 @@ Menu_Run:
 		MsgBox,16,找不到程序路径,运行路径不正确：%any%
 	}
 	return
+;~;[一键Everything][搜索选中文字][激活][隐藏]
+Ev_Show:
+	selectZz:=Get_Zz()
+	if(RegExMatch(selectZz,"^(\\\\|.:\\).*?$")){
+		SplitPath,selectZz,fileName
+		selectZz:=fileName
+	}
+	IfWinExist ahk_class EVERYTHING
+		if selectZz
+			Run % evPath " -search """ selectZz """"
+		else
+			IfWinNotActive
+				WinActivate
+			else
+				WinMinimize
+	else
+		Run % evPath (selectZz ? " -search """ selectZz """" : "")
+	return
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化]
 Var_Set:
 	RegRead, AutoRun, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 	AutoRun:=AutoRun ? 1 : 0
+	global HideFail:=Var_Read("HideFail",0)
 	TcPath:=Var_Read("TcPath")
 	DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe")
 	Loop,parse,DisableApp,`,
@@ -540,7 +572,7 @@ Set_Icon(itemVar){
 		return "Icon5"
 	else if(InStr(itemVar,";")=1 || itemVar="")
 		return "Icon2"
-	else if(InStr(itemVar,"\",,0,1))
+	else if(InStr(itemVar,"\",,0,1)=itemLen)
 		return "Icon4"
 	else if(RegExMatch(itemVar,"([\w-]+://?|www[.]).*"))
 		return "Icon6"
@@ -562,10 +594,11 @@ Menu_Set:
 	Gui,66:Destroy
 	Gui,66:Font,,Microsoft YaHei
 	Gui,66:Margin,30,40
-	Gui,66:Add,Tab,x10 y10 w360 h320,RunAny设置|Everything设置|图标设置
+	Gui,66:Add,Tab,x10 y10 w360 h335,RunAny设置|Everything设置|图标设置
 	Gui,66:Tab,RunAny设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+10 w200 h55,RunAny
+	Gui,66:Add,GroupBox,xm-10 y+10 w200 h70,RunAny
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+25 vvAutoRun,开机自动启动
+	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
 	Gui,66:Add,GroupBox,xm-10 y+20 w215 h55,自定义显示热键
 	Gui,66:Add,Hotkey,xm+10 yp+20 w140 vvMenuKey,%MenuKey%
 	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+155 yp+3 vvMenuWinKey,Win
@@ -603,7 +636,7 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+70 yp w250 r1 vvAnyIcon,%AnyIcon%
 	
 	Gui,66:Tab
-	Gui,66:Add,Button,Default xm y+30 w75 GSetOK,确定(&Y)
+	Gui,66:Add,Button,Default xm y+45 w75 GSetOK,确定(&Y)
 	Gui,66:Add,Button,x+5 w75 GSetCancel,取消(&C)
 	Gui,66:Add,Button,x+5 w75 GSetReSet,重置
 	Gui,66:Show,,%RunAnyZz%设置
@@ -646,9 +679,11 @@ SetOK:
 			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		}
 	}
+	Reg_Set(vDisableApp,DisableApp,"DisableApp")
+	Reg_Set(vHideFail,HideFail,"HideFail")
 	Reg_Set(vMenuKey,MenuKey,"MenuKey")
 	Reg_Set(vMenuWinKey,MenuWinKey,"MenuWinKey")
-	Reg_Set(vDisableApp,DisableApp,"DisableApp")
+	Reg_Set(vEvKey,EvKey,"EvKey")
 	Reg_Set(vEvWinKey,EvWinKey,"EvWinKey")
 	Reg_Set(vEvPath,EvPath,"EvPath")
 	Reg_Set(vTcPath,TcPath,"TcPath")
