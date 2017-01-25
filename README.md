@@ -51,7 +51,7 @@ RunAny演示：<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/
 ## <a name="ver">【RunAny版本更新历史】</a>
 
 ### v2.2 快捷🎈
-+ **增加lnk全盘路径和图标识别**
++ **增加快捷方式lnk全盘路径和图标识别**
 + **增加开机自动选项**
 + **增加一键Everything[搜索选中文字][激活][隐藏]**
 + *增加输出简单短语的功能*

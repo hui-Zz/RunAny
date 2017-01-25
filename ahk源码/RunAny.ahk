@@ -123,7 +123,7 @@ Loop, read, %iniFile%
 TVMenu("TVMenu")
 Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 if(ini){
-	TrayTip,,RunAny菜单初始化完成,3,1
+	TrayTip,,RunAny菜单初始化完成`n右击任务栏图标设置,3,1
 	gosub,Menu_About
 	gosub,Menu_Show
 }
