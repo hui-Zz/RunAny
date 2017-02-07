@@ -185,7 +185,7 @@ Menu_Run:
 			StringLeft, any, any, anyLen-1
 			Send_Zz(any)	;[输出短语]
 		}else If(TcPath && InStr(any,"\",,0,1)=anyLen){
-			Run,%TcPath% %any%
+			Run,%TcPath% "%any%"
 		}else If GetKeyState("Ctrl"){		;[按住Ctrl是打开应用目录]
 			Run,% "explorer.exe /select," any
 		}else If GetKeyState("Shift"){	;[按住Shift则是管理员身份运行]
@@ -335,15 +335,15 @@ Menu_Edit:
 			treeLevel:=StrLen(RegExReplace(Z_ReadLine,"S)(^-+).+","$1"))
 			if(RegExMatch(Z_ReadLine,"S)^-+[^-]+.*")){
 				if(treeLevel=1){
-					treeRoot.Insert(treeLevel,TV_Add(Z_ReadLine,,"Icon7"))
+					treeRoot.Insert(treeLevel,TV_Add(Z_ReadLine,,"Bold Icon7"))
 				}else{
-					treeRoot.Insert(treeLevel,TV_Add(Z_ReadLine,treeRoot[treeLevel-1],"Icon7"))
+					treeRoot.Insert(treeLevel,TV_Add(Z_ReadLine,treeRoot[treeLevel-1],"Bold Icon7"))
 				}
 			}else if(Z_ReadLine="-"){
 				treeLevel:=0
-				TV_Add(Z_ReadLine,,"Icon1")
+				TV_Add(Z_ReadLine,,"Bold Icon1")
 			}else{
-				TV_Add(Z_ReadLine,treeRoot[treeLevel])
+				TV_Add(Z_ReadLine,treeRoot[treeLevel],"Bold")
 			}
 		}else{
 			TV_Add(Z_ReadLine,treeRoot[treeLevel],Set_Icon(Z_ReadLine))
@@ -420,7 +420,7 @@ TVClick:
 		TV_Modify(A_EventInfo, Set_Icon(selVar))
 		if(addID && RegExMatch(selVar,"S)^-+[^-]+.*")){
 			insertID:=TV_Add("",A_EventInfo)
-			TV_Modify(A_EventInfo, "Expand")
+			TV_Modify(A_EventInfo, "Bold Expand")
 			TV_Modify(insertID, "Select Vis")
 			SendMessage, 0x110E, 0, TV_GetSelection(), , ahk_id %HTV%
 			addID:=
