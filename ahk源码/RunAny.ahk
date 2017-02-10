@@ -184,9 +184,8 @@ Menu_Run:
 		If(InStr(any,";",,0,1)=anyLen){
 			StringLeft, any, any, anyLen-1
 			Send_Zz(any)	;[输出短语]
-		}else If(TcPath){
-			if(InStr(any,"\",,0,1)=anyLen || GetKeyState("Ctrl"))
-				Run,%TcPath% "%any%"
+		}else If(TcPath && (InStr(any,"\",,0,1)=anyLen || GetKeyState("Ctrl"))){
+			Run,%TcPath% "%any%"
 		}else If GetKeyState("Ctrl"){		;[按住Ctrl是打开应用目录]
 			Run,% "explorer.exe /select," any
 		}else If GetKeyState("Shift"){	;[按住Shift则是管理员身份运行]
