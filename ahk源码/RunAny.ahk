@@ -461,6 +461,8 @@ TVMenu(addMenu){
 	Menu, %addMenu%, Icon,% flag ? "多选导入" : "多选导入`tF8", SHELL32.dll,55
 	Menu, %addMenu%, Add,% flag ? "批量导入" : "批量导入`tF9", TVImportFolder
 	Menu, %addMenu%, Icon,% flag ? "批量导入" : "批量导入`tF9", SHELL32.dll,46
+	Menu, %addMenu%, Add,导入桌面程序, Desktop_Import
+	Menu, %addMenu%, Icon,导入桌面程序, SHELL32.dll,35
 }
 return
 TVClick:
@@ -863,6 +865,37 @@ class everything
 	}
 }
 ;══════════════════════════════════════════════════════════════════
+;~;[导入桌面程序菜单]
+Desktop_Import:
+	Gosub,Desktop_Append
+	Gui,Destroy
+	Gosub,Menu_Edit
+return
+Desktop_Append:
+	desktopItem:="-桌面(&D)`n"
+	desktopDir:=""
+	Loop,%A_Desktop%\*.lnk,0,1
+	{
+		if(A_LoopFileDir!=A_Desktop && A_LoopFileDir!=desktopDir){
+			desktopDir:=A_LoopFileDir
+			StringReplace,dirItem,desktopDir,%A_Desktop%\
+			desktopItem.="`t--" dirItem "`n"
+		}
+		desktopItem.="`t" A_LoopFileName "`n"
+	}
+	desktopItem.="`n"
+	desktopDir:=""
+	Loop,%A_Desktop%\*.exe,0,1
+	{
+		if(A_LoopFileDir!=A_Desktop && A_LoopFileDir!=desktopDir){
+			desktopDir:=A_LoopFileDir
+			StringReplace,dirItem,desktopDir,%A_Desktop%\
+			desktopItem.="`t--" dirItem "`n"
+		}
+		desktopItem.="`t" A_LoopFileName "`n"
+	}
+	FileAppend,%desktopItem%,%iniFile%
+return
 ;~;[初次运行]
 First_Run:
 FileAppend,
@@ -907,19 +940,8 @@ FileAppend,
 -Sys系统
 	cmd.exe
 	控制面板(&S)|Control.exe
--桌面(&D)`n
 ),%iniFile%
-desktopItem:=""
-Loop,%A_Desktop%\*.lnk,0,1
-{
-	desktopItem.="`t" A_LoopFileName "`n"
-}
-desktopItem.="`n"
-Loop,%A_Desktop%\*.exe,0,1
-{
-	desktopItem.="`t" A_LoopFileName "`n"
-}
-FileAppend,%desktopItem%,%iniFile%
+Gosub,Desktop_Append
 FileAppend,
 (
 -
