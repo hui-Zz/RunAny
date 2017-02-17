@@ -120,6 +120,7 @@ Loop, read, %iniFile%
 		Menu_Add(menuRoot[menuLevel],appName)
 	}
 }
+Menu,% menuRoot[1],Add
 TVMenu("TVMenu")
 Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 if(ini){
@@ -193,10 +194,38 @@ Menu_Run:
 		}else{
 			Run,%any%
 		}
+		if(!RegExMatch(A_ThisMenuItem,"^&1|2"))
+			gosub,Menu_Common
 	} catch e {
 		MsgBox,16,找不到程序路径,运行路径不正确：%any%
 	}
 	return
+;~;[菜单最近运行]
+Menu_Common:
+	try {
+		if(!MenuCommonList[1]){
+			MenuCommon1:=MenuCommonList[1]
+			MenuCommonList[1]:="&1 " A_ThisMenuItem
+			MenuObj[MenuCommonList[1]]:=any
+			Menu,% menuRoot[1],Add,% MenuCommonList[1],Menu_Run
+		}else if(!MenuCommonList[2]){
+			MenuCommonList[2]:="&2 " A_ThisMenuItem
+			MenuObj[MenuCommonList[2]]:=any
+			Menu,% menuRoot[1],Add,% MenuCommonList[2],Menu_Run
+		}else{
+			MenuCommon1:=MenuCommonList[1]
+			MenuCommon2:=MenuCommonList[2]
+			MenuCommonList[1]:="&1 " A_ThisMenuItem
+			MenuCommonList[2]:=RegExReplace(MenuCommon1,"&1","&2")
+			MenuObj[MenuCommonList[1]]:=any
+			MenuObj[MenuCommonList[2]]:=MenuObj[(MenuCommon1)]
+			Menu,% menuRoot[1],Rename,% MenuCommon1,% MenuCommonList[1]
+			Menu,% menuRoot[1],Rename,% MenuCommon2,% MenuCommonList[2]
+		}
+	} catch e {
+		MsgBox,16,最近运行,记录最近运行程序错误%A_ThisMenuItem%
+	}
+return
 ;~;[一键Everything][搜索选中文字][激活][隐藏]
 Ev_Show:
 	selectZz:=Get_Zz()
@@ -240,6 +269,7 @@ Var_Set:
 	global AnyIconS:=StrSplit(AnyIcon,",")
 	global MenuIcon:=Var_Read("MenuIcon",iconMenu)
 	global MenuIconS:=StrSplit(MenuIcon,",")
+	global MenuCommonList:={}
 return
 ;~;[后缀图标初始化]
 Icon_Set:
