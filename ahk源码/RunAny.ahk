@@ -27,6 +27,8 @@ MenuKey:=Var_Read("MenuKey","``")
 MenuWinKey:=Var_Read("MenuWinKey",0)
 EvKey:=Var_Read("EvKey")
 EvWinKey:=Var_Read("EvWinKey",0)
+OneKey:=Var_Read("OneKey")
+OneWinKey:=Var_Read("OneWinKey",0)
 ;~;[设定自定义菜单热键]
 try{
 	MenuHotKey:=MenuWinKey ? "#" . MenuKey : MenuKey
@@ -39,6 +41,14 @@ try{
 		}catch{
 			gosub,Menu_Set
 			MsgBox,16,请设置正确热键,%EvHotKey%`n一键Everything热键设置不正确
+		}
+	}else if(OneKey){
+		try{
+			OneHotKey:=OneWinKey ? "#" . OneKey : OneKey
+			Hotkey,%OneHotKey%,One_Show,On
+		}catch{
+			gosub,Menu_Set
+			MsgBox,16,请设置正确热键,%OneHotKey%`n一键搜索热键设置不正确
 		}
 	}
 }catch{
@@ -226,6 +236,7 @@ Menu_Common:
 		MsgBox,16,最近运行,记录最近运行程序错误%A_ThisMenuItem%
 	}
 return
+;══════════════════════════════════════════════════════════════════
 ;~;[一键Everything][搜索选中文字][激活][隐藏]
 Ev_Show:
 	selectZz:=Get_Zz()
@@ -244,6 +255,14 @@ Ev_Show:
 	else
 		Run % evPath (selectZz ? " -search """ selectZz """" : "")
 	return
+One_Show:
+	selectZz:=Get_Zz()
+	if(InStr(OnePath,"%s")){
+		Run,% RegExReplace(OnePath,"%s",selectZz)
+	}else{
+		Run,% OnePath selectZz
+	}
+return
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化]
 Var_Set:
@@ -251,6 +270,7 @@ Var_Set:
 	AutoRun:=AutoRun ? 1 : 0
 	global HideFail:=Var_Read("HideFail",0)
 	TcPath:=Var_Read("TcPath")
+	OnePath:=Var_Read("OnePath","https://www.baidu.com/s?wd=%s")
 	DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe")
 	Loop,parse,DisableApp,`,
 	{
@@ -623,8 +643,8 @@ Set_Tab(tabNum){
 Menu_Set:
 	Gui,66:Destroy
 	Gui,66:Font,,Microsoft YaHei
-	Gui,66:Margin,30,40
-	Gui,66:Add,Tab,x10 y10 w360 h335,RunAny设置|Everything设置|图标设置
+	Gui,66:Margin,30,20
+	Gui,66:Add,Tab,x10 y10 w360 h340,RunAny设置|Everything设置|一键搜索|图标设置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+10 w200 h70,RunAny
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+25 vvAutoRun,开机自动启动
@@ -645,6 +665,13 @@ Menu_Set:
 	Gui,66:Add,GroupBox,xm-10 y+20 w340 h130,Everything安装路径
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp w260 r4 vvEvPath,%EvPath%
+	
+	Gui,66:Tab,一键搜索,,Exact
+	Gui,66:Add,GroupBox,xm-10 y+20 w340 h255,一键搜索选中文字
+	Gui,66:Add,Hotkey,xm yp+30 w140 vvOneKey,%OneKey%
+	Gui,66:Add,Checkbox,Checked%OneWinKey% xm+155 yp+3 vvOneWinKey,Win
+	Gui,66:Add,Text,xm yp+40 w250,一键搜索网址(`%s为选中文字的替代参数)
+	Gui,66:Add,Edit,xm yp+20 w325 r4 vvOnePath,%OnePath%
 	
 	Gui,66:Tab,图标设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+10 w340 h280,图标自定义设置（文件路径,序号）
@@ -716,6 +743,9 @@ SetOK:
 	Reg_Set(vEvKey,EvKey,"EvKey")
 	Reg_Set(vEvWinKey,EvWinKey,"EvWinKey")
 	Reg_Set(vEvPath,EvPath,"EvPath")
+	Reg_Set(vOneKey,OneKey,"OneKey")
+	Reg_Set(vOneWinKey,OneWinKey,"OneWinKey")
+	Reg_Set(vOnePath,OnePath,"OnePath")
 	Reg_Set(vTcPath,TcPath,"TcPath")
 	Reg_Set(vTreeIcon,TreeIcon,"TreeIcon")
 	Reg_Set(vFolderIcon,FolderIcon,"FolderIcon")
