@@ -732,7 +732,8 @@ SetCancel:
 return
 SetReSet:
 	RegDelete, HKEY_CURRENT_USER, SOFTWARE\RunAny
-	Gui,Destroy
+	RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
+	Reload
 return
 github:
 	Run,https://github.com/hui-Zz/RunAny
