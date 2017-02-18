@@ -208,14 +208,13 @@ Menu_Run:
 		if(!RegExMatch(A_ThisMenuItem,"^&1|2"))
 			gosub,Menu_Common
 	} catch e {
-		MsgBox,16,找不到程序路径,运行路径不正确：%any%
+		MsgBox,16,找不到程序路径,运行路径不正确：%A_ThisMenuItem%`n%any%
 	}
 	return
 ;~;[菜单最近运行]
 Menu_Common:
 	try {
 		if(!MenuCommonList[1]){
-			MenuCommon1:=MenuCommonList[1]
 			MenuCommonList[1]:="&1 " A_ThisMenuItem
 			MenuObj[MenuCommonList[1]]:=any
 			Menu,% menuRoot[1],Add,% MenuCommonList[1],Menu_Run
@@ -234,7 +233,7 @@ Menu_Common:
 			Menu,% menuRoot[1],Rename,% MenuCommon2,% MenuCommonList[2]
 		}
 	} catch e {
-		MsgBox,16,最近运行,记录最近运行程序错误%A_ThisMenuItem%
+		MsgBox,16,最近运行,记录最近运行程序错误：%A_ThisMenuItem%`n%any%
 	}
 return
 ;══════════════════════════════════════════════════════════════════
