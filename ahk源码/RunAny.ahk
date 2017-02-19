@@ -218,11 +218,11 @@ Menu_Common:
 			MenuCommonList[1]:="&1 " A_ThisMenuItem
 			MenuObj[MenuCommonList[1]]:=any
 			Menu,% menuRoot[1],Add,% MenuCommonList[1],Menu_Run
-		}else if(!MenuCommonList[2]){
+		}else if(!MenuCommonList[2] && MenuCommonList[1]!="&1 " A_ThisMenuItem){
 			MenuCommonList[2]:="&2 " A_ThisMenuItem
 			MenuObj[MenuCommonList[2]]:=any
 			Menu,% menuRoot[1],Add,% MenuCommonList[2],Menu_Run
-		}else{
+		}else if(MenuCommonList[1] && MenuCommonList[2]){
 			MenuCommon1:=MenuCommonList[1]
 			MenuCommon2:=MenuCommonList[2]
 			MenuCommonList[1]:="&1 " A_ThisMenuItem
