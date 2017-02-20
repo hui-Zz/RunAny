@@ -186,7 +186,7 @@ Menu_Show:
 		gosub,Menu_Edit
 		MsgBox,16,,菜单显示错误，请检查菜单配置
 	}
-	return
+return
 ;~;[菜单运行]
 Menu_Run:
 	try {
@@ -204,35 +204,31 @@ Menu_Run:
 		}else{
 			Run,%any%
 		}
-		if(!RegExMatch(A_ThisMenuItem,"^&1|2"))
-			gosub,Menu_Common
 	} catch e {
 		MsgBox,16,找不到程序路径,运行路径不正确：%A_ThisMenuItem%`n%any%
 	}
-	return
+	if(!RegExMatch(A_ThisMenuItem,"^&1|2"))
+		gosub,Menu_Common
+return
 ;~;[菜单最近运行]
 Menu_Common:
-	try {
-		if(!MenuCommonList[1]){
-			MenuCommonList[1]:="&1 " A_ThisMenuItem
-			MenuObj[MenuCommonList[1]]:=any
-			Menu,% menuRoot[1],Add,% MenuCommonList[1],Menu_Run
-		}else if(!MenuCommonList[2] && MenuCommonList[1]!="&1 " A_ThisMenuItem){
-			MenuCommonList[2]:="&2 " A_ThisMenuItem
-			MenuObj[MenuCommonList[2]]:=any
-			Menu,% menuRoot[1],Add,% MenuCommonList[2],Menu_Run
-		}else if(MenuCommonList[1] && MenuCommonList[2]){
-			MenuCommon1:=MenuCommonList[1]
-			MenuCommon2:=MenuCommonList[2]
-			MenuCommonList[1]:="&1 " A_ThisMenuItem
-			MenuCommonList[2]:=RegExReplace(MenuCommon1,"&1","&2")
-			MenuObj[MenuCommonList[1]]:=any
-			MenuObj[MenuCommonList[2]]:=MenuObj[(MenuCommon1)]
-			Menu,% menuRoot[1],Rename,% MenuCommon1,% MenuCommonList[1]
-			Menu,% menuRoot[1],Rename,% MenuCommon2,% MenuCommonList[2]
-		}
-	} catch e {
-		MsgBox,16,最近运行,记录最近运行程序错误：%A_ThisMenuItem%`n%any%
+	if(!MenuCommonList[1]){
+		MenuCommonList[1]:="&1 " A_ThisMenuItem
+		MenuObj[MenuCommonList[1]]:=any
+		Menu,% menuRoot[1],Add,% MenuCommonList[1],Menu_Run
+	}else if(!MenuCommonList[2] && MenuCommonList[1]!="&1 " A_ThisMenuItem){
+		MenuCommonList[2]:="&2 " A_ThisMenuItem
+		MenuObj[MenuCommonList[2]]:=any
+		Menu,% menuRoot[1],Add,% MenuCommonList[2],Menu_Run
+	}else if(MenuCommonList[1] && MenuCommonList[2]){
+		MenuCommon1:=MenuCommonList[1]
+		MenuCommon2:=MenuCommonList[2]
+		MenuCommonList[1]:="&1 " A_ThisMenuItem
+		MenuCommonList[2]:=RegExReplace(MenuCommon1,"&1","&2")
+		MenuObj[MenuCommonList[1]]:=any
+		MenuObj[MenuCommonList[2]]:=MenuObj[(MenuCommon1)]
+		Menu,% menuRoot[1],Rename,% MenuCommon1,% MenuCommonList[1]
+		Menu,% menuRoot[1],Rename,% MenuCommon2,% MenuCommonList[2]
 	}
 return
 ;══════════════════════════════════════════════════════════════════
@@ -253,7 +249,7 @@ Ev_Show:
 				WinMinimize
 	else
 		Run % evPath (selectZz ? " -search """ selectZz """" : "")
-	return
+return
 One_Show:
 	selectZz:=Get_Zz()
 	if(InStr(OnePath,"%s")){
