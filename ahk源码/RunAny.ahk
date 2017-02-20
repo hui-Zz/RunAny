@@ -275,14 +275,15 @@ Var_Set:
 	{
 		GroupAdd,DisableGUI,ahk_exe %A_LoopField%
 	}
-	iconAny:="shell32.dll,190"
-	iconMenu:="shell32.dll,195"
 	if(Ext_Check(A_ScriptName,StrLen(A_ScriptName),".exe")){
 		iconAny:=A_ScriptName ",1"
 		iconMenu:=A_ScriptName ",2"
 	}else if(FileExist(A_ScriptDir "\ZzIcon.dll")){
 		iconAny:="ZzIcon.dll,1"
 		iconMenu:="ZzIcon.dll,2"
+	}else{
+		iconAny:="shell32.dll,190"
+		iconMenu:="shell32.dll,195"
 	}
 	global AnyIcon:=Var_Read("AnyIcon",iconAny)
 	global AnyIconS:=StrSplit(AnyIcon,",")
@@ -922,7 +923,7 @@ Desktop_Import:
 	Gosub,Menu_Edit
 return
 Desktop_Append:
-	desktopItem:="-桌面(&D)`n"
+	desktopItem:="`n-桌面(&D)`n"
 	desktopDir:=""
 	Loop,%A_Desktop%\*.lnk,0,1
 	{

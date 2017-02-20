@@ -54,7 +54,25 @@ RunAny演示：<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/
 
 ## <a name="ver">【RunAny版本更新历史】</a>
 
-### v2.2 快捷🎈
+### 【RunAny】v2.5
++ 菜单配置增加有复选框
++ 现在可批量移动项目到指定的树目录
++ 将实现：
+  + RunAny在选中文件的情况下，运行程序将打开选中的文件
+  + RunAny在选中文字的情况下，将菜单显示为不同网址的搜索方式或其他
+自定义
+
+### 【RunAny】v2.4
++ 新增一键搜索选中文字
++ 记录最近运行程序
+* 独立导入桌面程序功能
+* 重置功能取消开机自动启动
+
+### 【RunAny】v2.3
++ 支持Ctrl键用TC打开应用目录
+* 修复不能正确打开带空格路径
+
+### 【RunAny】v2.2 快捷🎈
 + **增加快捷方式lnk全盘路径和图标识别**
 + **增加开机自动选项**
 + **增加一键Everything[搜索选中文字][激活][隐藏]**
@@ -69,7 +87,7 @@ RunAny演示：<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/
 * 修复了批量导入问题且现在可以导入快捷方式
 * 修正了网址的正则
 
-### v2.1 酷炫😉
+### 【RunAny】v2.1 酷炫😉
 + 批量导入程序名称
 + 图标自定义化(包括托盘图标)
 + 优化搜索条件，排除C:\Windows及其他升级文件夹
