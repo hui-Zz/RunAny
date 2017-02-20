@@ -132,7 +132,6 @@ Loop, read, %iniFile%
 	}
 }
 Menu,% menuRoot[1],Add
-TVMenu("TVMenu")
 Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 if(ini){
 	TrayTip,,RunAny菜单初始化完成`n右击任务栏图标设置,3,1
@@ -363,6 +362,7 @@ Menu_Edit:
 	Gui, Destroy
 	Gui, +Resize
 	Gui, Font,, Microsoft YaHei
+	;~;[树型菜单图标集]
 	ImageListID := IL_Create(6)
 	IL_Add(ImageListID, "shell32.dll", 1)
 	IL_Add(ImageListID, "shell32.dll", 2)
@@ -374,9 +374,13 @@ Menu_Edit:
 		IL_Add(ImageListID, TreeIconS[1], TreeIconS[2])
 	else
 		IL_Add(ImageListID, "shell32.dll", 42)
-	Gui, Add, TreeView,vRunAnyTV w400 r30 -Readonly AltSubmit hwndHTV gTVClick ImageList%ImageListID%
+	Gui, Add, TreeView,vRunAnyTV w500 r30 -Readonly AltSubmit Checked hwndHTV gTVClick ImageList%ImageListID%
 	GuiControl, -Redraw, RunAnyTV
 	treeRoot:=Object()
+	global moveRoot:=Object()
+	moveRoot[1]:="moveMenu"
+	global moveLevel:=0
+	;~;[读取菜单配置内容写入树形菜单]
 	Loop, read, %iniFile%
 	{
 		Z_ReadLine=%A_LoopReadLine%
@@ -389,6 +393,7 @@ Menu_Edit:
 				}else{
 					treeRoot.Insert(treeLevel,TV_Add(Z_ReadLine,treeRoot[treeLevel-1],"Bold Icon7"))
 				}
+				TVMoveMenu(Z_ReadLine)
 			}else if(Z_ReadLine="-"){
 				treeLevel:=0
 				TV_Add(Z_ReadLine,,"Bold Icon1")
@@ -400,6 +405,7 @@ Menu_Edit:
 		}
 	}
 	GuiControl, +Redraw, RunAnyTV
+	TVMenu("TVMenu")
 	TVMenu("GuiMenu")
 	Gui, Menu, GuiMenu
 	Gui, Show, , %RunAnyZz%菜单树管理(右键操作)
@@ -415,7 +421,6 @@ return
 		gosub,TVUp
 		return
 	F3::gosub,TVAdd
-	F7::gosub,TVDownNext
 	F8::gosub,TVImportFile
 	F9::gosub,TVImportFolder
 	^s::gosub,TVSave
@@ -445,7 +450,7 @@ TVMenu(addMenu){
 	flag:=addMenu="GuiMenu" ? true : false
 	Menu, %addMenu%, Add,% flag ? "保存" : "保存`tCtrl+S", TVSave
 	Menu, %addMenu%, Icon,% flag ? "保存" : "保存`tCtrl+S", SHELL32.dll,194
-	Menu, %addMenu%, Add
+;~;[创建头部及右键功能菜单]
 	Menu, %addMenu%, Add,% flag ? "添加" : "添加`tF3", TVAdd
 	Menu, %addMenu%, Icon,% flag ? "添加" : "添加`tF3", SHELL32.dll,1
 	Menu, %addMenu%, Add,% flag ? "编辑" : "编辑`tF2", TVEdit
@@ -453,9 +458,12 @@ TVMenu(addMenu){
 	Menu, %addMenu%, Add,% flag ? "删除" : "删除`tDel", TVDel
 	Menu, %addMenu%, Icon,% flag ? "删除" : "删除`tDel", SHELL32.dll,132
 	Menu, %addMenu%, Add
-	Menu, %addMenu%, Add,% flag ? "向下↓" : "向下↓`t(F5/PgDn)", TVDown
-	Menu, %addMenu%, Add,% flag ? "向上↑" : "向上↑`t(F6/PgUp)", TVUp
-	Menu, %addMenu%, Add,% flag ? "同级向下↘" : "同级向下↘`tF7", TVDownNext
+	Menu, %addMenu%, Add,移动到..., :moveMenu
+	Menu, %addMenu%, Icon,移动到..., SHELL32.dll,246
+	Menu, %addMenu%, Add,% flag ? "向下" : "向下`t(F5/PgDn)", TVDown
+	Menu, %addMenu%, Icon,% flag ? "向下" : "向下`t(F5/PgDn)", SHELL32.dll,248
+	Menu, %addMenu%, Add,% flag ? "向上" : "向上`t(F6/PgUp)", TVUp
+	Menu, %addMenu%, Icon,% flag ? "向上" : "向上`t(F6/PgUp)", SHELL32.dll,247
 	Menu, %addMenu%, Add
 	Menu, %addMenu%, Add,% flag ? "多选导入" : "多选导入`tF8", TVImportFile
 	Menu, %addMenu%, Icon,% flag ? "多选导入" : "多选导入`tF8", SHELL32.dll,55
@@ -464,7 +472,6 @@ TVMenu(addMenu){
 	Menu, %addMenu%, Add,导入桌面程序, Desktop_Import
 	Menu, %addMenu%, Icon,导入桌面程序, SHELL32.dll,35
 }
-return
 TVClick:
 	if (A_GuiEvent == "e"){
 		;~;完成编辑时
@@ -481,6 +488,8 @@ TVClick:
 	}else if (A_GuiEvent == "K"){
 		if (A_EventInfo = 46)
 			gosub,TVDel
+	}else if (A_GuiControl = "RunAnyTV") {
+		TV_Modify(A_EventInfo, "Select Vis")
 	}
 return
 TVAdd:
@@ -496,9 +505,6 @@ TVEdit:
 return
 TVDown:
 	TV_Move(true)
-return
-TVDownNext:
-	TV_Move(true,false)
 return
 TVUp:
 	TV_Move(false)
@@ -593,13 +599,9 @@ TVImportFolder:
 	}
 return
 ;~;[上下移动项目]
-TV_Move(moveMode = true,moveFull = true){
+TV_Move(moveMode = true){
 	selID:=TV_GetSelection()
-	if moveMode
-		moveID:=moveFull ? TV_GetNext(selID, "Full") : TV_GetNext(selID)
-	else
-		moveID:=TV_GetPrev(selID)
-	moveID:=moveID=0 ? TV_GetParent(selID) : moveID
+	moveID:=moveMode ? TV_GetNext(selID) : TV_GetPrev(selID)
 	if(moveID!=0){
 		TV_GetText(moveVar, moveID)
 		TV_GetText(selVar, selID)
@@ -613,6 +615,54 @@ TV_Move(moveMode = true,moveFull = true){
 	}
 	return
 }
+;~;[批量移动项目到指定树目录]
+TVMoveMenu(moveMenuName){
+	moveItem:=RegExReplace(moveMenuName,"S)^-+")
+	moveLevel:=StrLen(RegExReplace(moveMenuName,"S)(^-+).*","$1"))
+	Menu,%moveMenuName%,add,%moveMenuName%,Move_Menu
+	Menu,% moveRoot[moveLevel],add,%moveItem%, :%moveMenuName%
+	Menu,% moveRoot[moveLevel],Icon,%moveItem%,% TreeIconS[1],% TreeIconS[2]
+	moveLevel+=1
+	moveRoot[moveLevel]:=moveMenuName
+}
+Move_Menu:
+	ItemID = 0
+	MoveID = 0
+	CheckID = 0
+	DelIDList:=Object()
+	try {
+		Loop
+		{
+			ItemID := TV_GetNext(ItemID, "Full")
+			if not ItemID
+				break
+			TV_GetText(ItemText, ItemID)
+			if(ItemText=A_ThisMenuItem){
+				MoveID:=ItemID
+			}
+		}
+		if(MoveID){
+			Loop
+			{
+				CheckID := TV_GetNext(CheckID, "Checked")
+				if not CheckID
+					break
+				TV_GetText(ItemText, CheckID)
+				moveAddID:=TV_Add(ItemText,MoveID,Set_Icon(ItemText))
+				DelIDList.Insert(CheckID)
+				TVFlag:=true
+			}
+			Loop,% DelIDList.MaxIndex()
+			{
+				TV_Delete(DelIDList[A_Index])
+			}
+			TV_Modify(moveAddID, "VisFirst")
+			TV_Modify(moveAddID, "Select")
+		}
+	} catch e {
+		MsgBox,16,批量移动项目,移动项目%ItemText%到目录%A_ThisMenuItem%失败
+	}
+return
 ;~;[后缀判断图标]
 Set_Icon(itemVar){
 	itemLen:=StrLen(itemVar)
