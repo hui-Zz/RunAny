@@ -374,7 +374,7 @@ Menu_Edit:
 		IL_Add(ImageListID, TreeIconS[1], TreeIconS[2])
 	else
 		IL_Add(ImageListID, "shell32.dll", 42)
-	Gui, Add, TreeView,vRunAnyTV w500 r30 -Readonly AltSubmit Checked hwndHTV gTVClick ImageList%ImageListID%
+	Gui, Add, TreeView,vRunAnyTV w450 r30 -Readonly AltSubmit Checked hwndHTV gTVClick ImageList%ImageListID%
 	GuiControl, -Redraw, RunAnyTV
 	treeRoot:=Object()
 	global moveRoot:=Object()
@@ -446,11 +446,11 @@ GuiClose:
 		Gui, Destroy
 	}
 return
+;~;[创建头部及右键功能菜单]
 TVMenu(addMenu){
 	flag:=addMenu="GuiMenu" ? true : false
 	Menu, %addMenu%, Add,% flag ? "保存" : "保存`tCtrl+S", TVSave
 	Menu, %addMenu%, Icon,% flag ? "保存" : "保存`tCtrl+S", SHELL32.dll,194
-;~;[创建头部及右键功能菜单]
 	Menu, %addMenu%, Add,% flag ? "添加" : "添加`tF3", TVAdd
 	Menu, %addMenu%, Icon,% flag ? "添加" : "添加`tF3", SHELL32.dll,1
 	Menu, %addMenu%, Add,% flag ? "编辑" : "编辑`tF2", TVEdit
