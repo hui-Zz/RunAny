@@ -94,7 +94,7 @@ Loop, read, %iniFile%
 {
 	Z_ReadLine=%A_LoopReadLine%
 	if(InStr(Z_ReadLine,"-")=1){
-		;~;[生成目录树层级结构]
+		;~;[生成节点树层级结构]
 		menuItem:=RegExReplace(Z_ReadLine,"S)^-+")
 		menuLevel:=StrLen(RegExReplace(Z_ReadLine,"S)(^-+).*","$1"))
 		if(menuItem){
@@ -386,7 +386,7 @@ Menu_Edit:
 	{
 		Z_ReadLine=%A_LoopReadLine%
 		if(InStr(Z_ReadLine,"-")=1){
-			;~;[生成目录树层级结构]
+			;~;[生成节点树层级结构]
 			treeLevel:=StrLen(RegExReplace(Z_ReadLine,"S)(^-+).+","$1"))
 			if(RegExMatch(Z_ReadLine,"S)^-+[^-]+.*")){
 				if(treeLevel=1){
@@ -394,7 +394,7 @@ Menu_Edit:
 				}else{
 					treeRoot.Insert(treeLevel,TV_Add(Z_ReadLine,treeRoot[treeLevel-1],"Bold Icon7"))
 				}
-				TVMoveMenu(Z_ReadLine)
+				TV_MoveMenu(Z_ReadLine)
 			}else if(Z_ReadLine="-"){
 				treeLevel:=0
 				TV_Add(Z_ReadLine,,"Bold Icon1")
@@ -470,8 +470,8 @@ TVMenu(addMenu){
 	Menu, %addMenu%, Icon,% flag ? "多选导入" : "多选导入`tF8", SHELL32.dll,55
 	Menu, %addMenu%, Add,% flag ? "批量导入" : "批量导入`tF9", TVImportFolder
 	Menu, %addMenu%, Icon,% flag ? "批量导入" : "批量导入`tF9", SHELL32.dll,46
-	Menu, %addMenu%, Add,导入桌面程序, Desktop_Import
-	Menu, %addMenu%, Icon,导入桌面程序, SHELL32.dll,35
+	Menu, %addMenu%, Add,桌面导入, Desktop_Import
+	Menu, %addMenu%, Icon,桌面导入, SHELL32.dll,35
 }
 ;~;[后缀判断图标]
 Set_Icon(itemVar){
@@ -644,8 +644,8 @@ TV_Move(moveMode = true){
 	}
 	return
 }
-;~;[批量移动项目到指定树目录]
-TVMoveMenu(moveMenuName){
+;~;[批量移动项目到指定树节点]
+TV_MoveMenu(moveMenuName){
 	moveItem:=RegExReplace(moveMenuName,"S)^-+")
 	moveLevel:=StrLen(RegExReplace(moveMenuName,"S)(^-+).*","$1"))
 	Menu,%moveMenuName%,add,%moveMenuName%,Move_Menu
@@ -654,42 +654,93 @@ TVMoveMenu(moveMenuName){
 	moveLevel+=1
 	moveRoot[moveLevel]:=moveMenuName
 }
+TV_MoveMenuClean(){
+	Menu,moveMenu,Delete
+	Menu,TVMenu,Delete
+	Menu,GuiMenu,Delete
+	ItemID = 0
+	Loop
+	{
+		ItemID := TV_GetNext(ItemID, "Full")
+		if not ItemID
+			break
+		TV_GetText(ItemText, ItemID)
+		if(RegExMatch(ItemText,"S)^-+[^-]+.*")){
+			TV_MoveMenu(ItemText)
+		}
+	}
+	TVMenu("TVMenu")
+	TVMenu("GuiMenu")
+	Gui, Menu, GuiMenu
+}
 Move_Menu:
 	ItemID = 0
 	MoveID = 0
 	CheckID = 0
 	DelIDList:=Object()
-	try {
+	Loop
+	{
+		ItemID := TV_GetNext(ItemID, "Full")
+		if not ItemID
+			break
+		TV_GetText(ItemText, ItemID)
+		if(ItemText=A_ThisMenuItem){
+			MoveID:=ItemID
+		}
+	}
+	MoveRID:=MoveID
+	if(MoveID){
+		moveAddID:=
 		Loop
 		{
-			ItemID := TV_GetNext(ItemID, "Full")
-			if not ItemID
+			CheckID := TV_GetNext(CheckID, "Checked")
+			if not CheckID
 				break
-			TV_GetText(ItemText, ItemID)
-			if(ItemText=A_ThisMenuItem){
-				MoveID:=ItemID
-			}
-		}
-		if(MoveID){
-			Loop
-			{
-				CheckID := TV_GetNext(CheckID, "Checked")
-				if not CheckID
-					break
-				TV_GetText(ItemText, CheckID)
+			TV_GetText(ItemText, CheckID)
+			cpLevel:=0
+			;[对比选中节点到移动节点的级别，进行加减"-"级别匹配]
+			if(InStr(ItemText,"-")=1){
+				pLevel:=StrLen(RegExReplace(A_ThisMenuItem,"S)(^-+).*","$1"))
+				cLevel:=StrLen(RegExReplace(ItemText,"S)(^-+).*","$1"))
+				cItem:=RegExReplace(ItemText,"S)^-+")
+				cpLevel:=cLevel-pLevel
+				if(cpLevel>1){
+					Loop,% cpLevel - 1
+					{
+						ItemText:=RegExReplace(ItemText,"S)^-")
+					}
+				}else if(cpLevel<1){
+					Loop,% Abs(1 - cpLevel)
+					{
+						ItemText:="-" . ItemText
+					}
+				}else if(Abs(cpLevel)=1 && !cItem){
+					ItemText:="-" . ItemText
+				}
+				if(Abs(cpLevel)=1 && cItem){
+					moveAddID:=TV_Add(ItemText,MoveRID,Set_Icon(ItemText))
+				}else{
+					moveAddID:=TV_Add(ItemText,MoveID,Set_Icon(ItemText))
+				}
+				if(cItem)
+					MoveID:=moveAddID
+				;[遇到分隔符则改变树型]
+				if(Abs(cpLevel)=0 && !cItem){
+					MoveID:=MoveRID
+				}
+			}else{
 				moveAddID:=TV_Add(ItemText,MoveID,Set_Icon(ItemText))
-				DelIDList.Insert(CheckID)
-				TVFlag:=true
 			}
-			Loop,% DelIDList.MaxIndex()
-			{
-				TV_Delete(DelIDList[A_Index])
-			}
-			TV_Modify(moveAddID, "VisFirst")
-			TV_Modify(moveAddID, "Select")
+			DelIDList.Insert(CheckID)
+			TVFlag:=true
 		}
-	} catch e {
-		MsgBox,16,批量移动项目,移动项目%ItemText%到目录%A_ThisMenuItem%失败
+		Loop,% DelIDList.MaxIndex()
+		{
+			TV_Delete(DelIDList[A_Index])
+		}
+		TV_Modify(moveAddID, "VisFirst")
+		TV_Modify(moveAddID, "Select")
+		TV_MoveMenuClean()
 	}
 return
 TV_CheckUncheckWalk(_GuiEvent, _EventInfo, _GuiControl)
@@ -787,7 +838,7 @@ Menu_Set:
 	
 	Gui,66:Tab,图标设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+10 w340 h280,图标自定义设置（文件路径,序号）
-	Gui,66:Add,Text,xm yp+30 w80,树目录图标
+	Gui,66:Add,Text,xm yp+30 w80,树节点图标
 	Gui,66:Add,Edit,xm+70 yp w250 r1 vvTreeIcon,%TreeIcon%
 	Gui,66:Add,Text,xm yp+30 w80,文件夹图标
 	Gui,66:Add,Edit,xm+70 yp w250 r1 vvFolderIcon,%FolderIcon%
@@ -1011,9 +1062,9 @@ First_Run:
 FileAppend,
 (
 ;以【;】开头代表注释
-;以【-】开头+名称表示1级目录
+;以【-】开头+名称表示1级节点
 -App常用
-	;以【--】开头+名称表示2级目录树
+	;以【--】开头+名称表示2级节点树
 	--佳软
 		;在【|】前加上TC的简称显示
 		TC|Totalcmd.exe
@@ -1055,7 +1106,7 @@ Gosub,Desktop_Append
 FileAppend,
 (
 -
-;1级分隔符【-】并且使下面项目都回归1级目录
+;1级分隔符【-】并且使下面项目都回归1级节点
 QQ.exe
 ;使用【&】指定快捷键为C,忽略下面C盘的快捷键C
 计算器(&C)|calc.exe
