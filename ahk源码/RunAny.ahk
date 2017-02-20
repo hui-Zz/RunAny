@@ -509,8 +509,7 @@ TVClick:
 			gosub,TVDel
 	}else if (A_GuiControl = "RunAnyTV") {
 		TV_Modify(A_EventInfo, "Select Vis")
-		if(TV_GetChild(A_EventInfo))
-			TV_CheckUncheckWalk(A_GuiEvent,A_EventInfo,A_GuiControl)
+		TV_CheckUncheckWalk(A_GuiEvent,A_EventInfo,A_GuiControl)
 	}
 return
 TVAdd:
@@ -702,58 +701,30 @@ TV_CheckUncheckWalk(_GuiEvent, _EventInfo, _GuiControl)
 	{
 		Critical											                    ;不能被中断。
 		TV_SuspendEvents := True												;在工作时停止对功能的进一步调用
-		Gui, TreeView, %_GuiControl% 											;激活正确的电视
+		Gui, TreeView, %_GuiControl% 											;激活正确的TV
 		TV_Modify(_EventInfo, "Select")										;选择项目反正...这一行可能在这里取消和分散进一步
 		If TV_Get( _EventInfo, "Checked" )										;项目的复选标记
 		{
 			If TV_GetChild( _EventInfo )										;项目的节点
 				ToggleAllTheWay( _EventInfo, False )							;复选标记所有的孩子一路下来
-			If !TV_Get( TV_GetParent( _EventInfo ), "Checked") 				;父节点选中怎么样？
-			{
-				locItemId := TV_GetParent( _EventInfo )						;父节点检查标记：获取父ID
-				While locItemId													;循环一路向上
-				{
-					TV_Modify( locItemId , "Check" )							;它的未选中：检查！
-					locItemId := TV_GetParent( locItemId )						;获取下一个父ID
-				}
-			}
 		}
 		Else																	;它未被选中
 		{
 			If TV_GetChild( _EventInfo )										;它是一个节点
 				ToggleAllTheWay( _EventInfo, True )								;取消选中所有的孩子一直向下
-			If HowAboutSiblings( _EventInfo, False)								;如何'兄弟姐妹？
+			If TV_Get( TV_GetParent( _EventInfo ), "Checked") 				;父节点选中怎么样？
 			{
-				locItemId := TV_GetParent( _EventInfo )						;他们都取消选中，获取父ID和...
-				Loop															;循环一路向上
+				locItemId := TV_GetParent( _EventInfo )						;父节点检查标记：获取父ID
+				While locItemId													;循环一路向上
 				{
-					TV_Modify(locItemId, "-Check" )							;开始取消选中第一个父项
-					If HowAboutSiblings( locItemId, False)						;如何'兄弟姐妹？
-						locItemId := TV_GetParent( locItemId )					;从兄弟姐妹取得一致：获取父ID和循环
-					Else
-						Break													; 1个或多个兄弟姐妹被检查标记：打破循环
+					TV_Modify( locItemId , "-Check" )							;它的未选中：检查！
+					locItemId := TV_GetParent( locItemId )						;获取下一个父ID
 				}
 			}
 		}
 	}
 	TV_SuspendEvents := False													;激活事件
 	Return
-}
-; HowAboutSiblings：内部使用
-HowAboutSiblings( _ItemID, _ChkUchk=True ) {
-	local ret
-	If !_ItemID
-		Return
-	_ItemID := TV_GetChild( TV_GetParent( _ItemID ) )  ;从顶部开始
-	_ChkUchk ? ret := TV_Get( _ItemID, "Checked" ) : ret := !TV_Get( _ItemID, "Checked" )        ;区分条件检索
-	Loop
-	{
-		If !_ItemID
-			Break
-		_ChkUchk ? ret := ret && TV_Get( _ItemID, "Checked" ) : ret := ret && !TV_Get( _ItemID, "Checked" )     ;区分条件检索
-		_ItemID := TV_GetNext(_ItemID )
-	}
-	Return ret
 }
 ; ToggleAllTheWay：内部使用
 ToggleAllTheWay(_ItemID=0, _ChkUchk=True ) {
