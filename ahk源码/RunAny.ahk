@@ -356,9 +356,6 @@ Get_Zz(){
 ;~;[菜单配置]
 Menu_Edit:
 	global TVFlag:=false
-	Gui, Destroy
-	Gui, +Resize
-	Gui, Font,, Microsoft YaHei
 	;~;[树型菜单图标集]
 	ImageListID := IL_Create(6)
 	IL_Add(ImageListID, "shell32.dll", 1)
@@ -371,12 +368,17 @@ Menu_Edit:
 		IL_Add(ImageListID, TreeIconS[1], TreeIconS[2])
 	else
 		IL_Add(ImageListID, "shell32.dll", 42)
-	Gui, Add, TreeView,vRunAnyTV w450 r30 -Readonly AltSubmit Checked hwndHTV gTVClick ImageList%ImageListID%
-	GuiControl, -Redraw, RunAnyTV
+	;~;[功能菜单初始化]
 	treeRoot:=Object()
 	global moveRoot:=Object()
 	moveRoot[1]:="moveMenu"
 	global moveLevel:=0
+	;~;[树型菜单初始化]
+	Gui, Destroy
+	Gui, +Resize
+	Gui, Font,, Microsoft YaHei
+	Gui, Add, TreeView,vRunAnyTV w450 r30 -Readonly AltSubmit Checked hwndHTV gTVClick ImageList%ImageListID%
+	GuiControl, -Redraw, RunAnyTV
 	;~;[读取菜单配置内容写入树形菜单]
 	Loop, read, %iniFile%
 	{
@@ -651,9 +653,11 @@ TV_MoveMenu(moveMenuName){
 	moveRoot[moveLevel]:=moveMenuName
 }
 TV_MoveMenuClean(){
-	Menu,moveMenu,Delete
+	;[清空功能菜单]
 	Menu,TVMenu,Delete
 	Menu,GuiMenu,Delete
+	Menu,moveMenu,DeleteAll
+	;[重建]
 	ItemID = 0
 	Loop
 	{
@@ -673,7 +677,8 @@ Move_Menu:
 	ItemID = 0
 	MoveID = 0
 	CheckID = 0
-	DelIDList:=Object()
+	DelListID:=Object()
+	;[获取目标节点]
 	Loop
 	{
 		ItemID := TV_GetNext(ItemID, "Full")
@@ -685,6 +690,7 @@ Move_Menu:
 		}
 	}
 	MoveRID:=MoveID
+	;[获取选中节点并移动到目标节点下]
 	if(MoveID){
 		moveAddID:=
 		Loop
@@ -694,23 +700,23 @@ Move_Menu:
 				break
 			TV_GetText(ItemText, CheckID)
 			cpLevel:=0
-			;[对比选中节点到移动节点的级别，进行加减"-"级别匹配]
+			;[对比选中节点到目标节点的级别，进行加减"-"级别匹配]
 			if(InStr(ItemText,"-")=1){
 				pLevel:=StrLen(RegExReplace(A_ThisMenuItem,"S)(^-+).*","$1"))
 				cLevel:=StrLen(RegExReplace(ItemText,"S)(^-+).*","$1"))
 				cItem:=RegExReplace(ItemText,"S)^-+")
 				cpLevel:=cLevel-pLevel
-				if(cpLevel>1){
+				if(cpLevel>1){	;选中节点比目标大于1级
 					Loop,% cpLevel - 1
 					{
 						ItemText:=RegExReplace(ItemText,"S)^-")
 					}
-				}else if(cpLevel<1){
+				}else if(cpLevel<1){	;选中节点比目标小于1级
 					Loop,% Abs(1 - cpLevel)
 					{
 						ItemText:="-" . ItemText
 					}
-				}else if(Abs(cpLevel)=1 && !cItem){
+				}else if(Abs(cpLevel)=1 && !cItem){	;选中节点与目标差1级且不是分隔符
 					ItemText:="-" . ItemText
 				}
 				if(Abs(cpLevel)=1 && cItem){
@@ -727,13 +733,15 @@ Move_Menu:
 			}else{
 				moveAddID:=TV_Add(ItemText,MoveID,Set_Icon(ItemText))
 			}
-			DelIDList.Insert(CheckID)
+			DelListID.Insert(CheckID)
 			TVFlag:=true
 		}
-		Loop,% DelIDList.MaxIndex()
+		;[删除原先节点]
+		Loop,% DelListID.MaxIndex()
 		{
-			TV_Delete(DelIDList[A_Index])
+			TV_Delete(DelListID[A_Index])
 		}
+		;[焦点到移动后新节点]
 		TV_Modify(moveAddID, "VisFirst")
 		TV_Modify(moveAddID, "Select")
 		TV_MoveMenuClean()
@@ -944,8 +952,8 @@ MenuTray(){
 	Menu,Tray,add,启动菜单(&Z),Menu_Show
 	Menu,Tray,add,菜单配置(&E),Menu_Edit
 	Menu,Tray,add,配置文件(&F),Menu_Ini
-	Menu,Tray,add,设置(&D),Menu_Set
-	Menu,Tray,Add,关于(&A)...,Menu_About
+	Menu,Tray,add,设置RunAny(&D),Menu_Set
+	Menu,Tray,Add,关于RunAny(&A)...,Menu_About
 	Menu,Tray,add
 	Menu,Tray,add,重启(&R),Menu_Reload
 	Menu,Tray,add,挂起(&S),Menu_Suspend
