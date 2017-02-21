@@ -673,6 +673,7 @@ TV_MoveMenuClean(){
 	TVMenu("GuiMenu")
 	Gui, Menu, GuiMenu
 }
+;~;[移动节点后保存原来级别和自动变更名称(死了好多脑细胞)]
 Move_Menu:
 	ItemID = 0
 	MoveID = 0
@@ -689,23 +690,26 @@ Move_Menu:
 			MoveID:=ItemID
 		}
 	}
-	MoveRID:=MoveID
 	;[获取选中节点并移动到目标节点下]
 	if(MoveID){
-		moveAddID:=
+		parentL:=StrLen(RegExReplace(A_ThisMenuItem,"S)(^-+).*","$1"))
+		moveLevelID:=
+		moveLevelList:=Object()
+		moveLevelList[parentL]:=MoveID
+		cpLevel:=0
 		Loop
 		{
 			CheckID := TV_GetNext(CheckID, "Checked")
 			if not CheckID
 				break
 			TV_GetText(ItemText, CheckID)
-			cpLevel:=0
 			;[对比选中节点到目标节点的级别，进行加减"-"级别匹配]
 			if(InStr(ItemText,"-")=1){
-				pLevel:=StrLen(RegExReplace(A_ThisMenuItem,"S)(^-+).*","$1"))
-				cLevel:=StrLen(RegExReplace(ItemText,"S)(^-+).*","$1"))
 				cItem:=RegExReplace(ItemText,"S)^-+")
-				cpLevel:=cLevel-pLevel
+				cLevel:=StrLen(RegExReplace(ItemText,"S)(^-+).*","$1"))
+				;[如已有比选中节点高一级则它为父级,否则为目标节点级别]
+				pLevel:=(moveLevelList[cLevel+Abs(cpLevel)]) ? cLevel+Abs(cpLevel) : parentL
+				cpLevel:=cLevel-pLevel	;选中节点与目标的级别差
 				if(cpLevel>1){	;选中节点比目标大于1级
 					Loop,% cpLevel - 1
 					{
@@ -716,22 +720,22 @@ Move_Menu:
 					{
 						ItemText:="-" . ItemText
 					}
-				}else if(Abs(cpLevel)=1 && !cItem){	;选中节点与目标差1级且不是分隔符
-					ItemText:="-" . ItemText
 				}
-				if(Abs(cpLevel)=1 && cItem){
-					moveAddID:=TV_Add(ItemText,MoveRID,Set_Icon(ItemText))
-				}else{
-					moveAddID:=TV_Add(ItemText,MoveID,Set_Icon(ItemText))
-				}
-				if(cItem)
-					MoveID:=moveAddID
-				;[遇到分隔符则改变树型]
-				if(Abs(cpLevel)=0 && !cItem){
-					MoveID:=MoveRID
+				cLevel:=StrLen(RegExReplace(ItemText,"S)(^-+).*","$1"))
+				if(Abs(cLevel-pLevel)=1){	;选中节点与目标差1级
+					if(cItem){
+						;[是节点不是分隔符]
+						moveLevelID:=TV_Add(ItemText,moveLevelList[cLevel-1],Set_Icon(ItemText))
+						moveLevelList[cLevel]:=moveLevelID
+						MoveID:=moveLevelID
+					}else{
+						;[遇到分隔符则改变树型]
+						TV_Add(ItemText,moveLevelList[cLevel-1],Set_Icon(ItemText))
+						MoveID:=moveLevelList[cLevel-1]
+					}
 				}
 			}else{
-				moveAddID:=TV_Add(ItemText,MoveID,Set_Icon(ItemText))
+				moveLevelID:=TV_Add(ItemText,MoveID,Set_Icon(ItemText))
 			}
 			DelListID.Insert(CheckID)
 			TVFlag:=true
@@ -742,11 +746,12 @@ Move_Menu:
 			TV_Delete(DelListID[A_Index])
 		}
 		;[焦点到移动后新节点]
-		TV_Modify(moveAddID, "VisFirst")
-		TV_Modify(moveAddID, "Select")
+		TV_Modify(moveLevelID, "VisFirst")
+		TV_Modify(moveLevelID, "Select")
 		TV_MoveMenuClean()
 	}
 return
+;修改于ahk论坛全选全不选
 TV_CheckUncheckWalk(_GuiEvent, _EventInfo, _GuiControl)
 {	
 	static 	TV_SuspendEvents := False											;最初接受事件并保持跟踪
