@@ -180,35 +180,49 @@ Menu_Add(menuName,menuItem){
 }
 ;~;[显示菜单]
 Menu_Show:
-	try{
-		Menu,% menuRoot[1],Show
-	}catch{
-		gosub,Menu_Edit
-		MsgBox,16,,菜单显示错误，请检查菜单配置
-	}
+	Menu,% menuRoot[1],Show
 return
 ;~;[菜单运行]
 Menu_Run:
+	if(!RegExMatch(A_ThisMenuItem,"^&1|2"))
+		gosub,Menu_Common
 	try {
 		any:=MenuObj[(A_ThisMenuItem)]
 		anyLen:=StrLen(any)
 		If(InStr(any,";",,0,1)=anyLen){
 			StringLeft, any, any, anyLen-1
 			Send_Zz(any)	;[输出短语]
-		}else If(TcPath && (InStr(any,"\",,0,1)=anyLen || GetKeyState("Ctrl"))){
-			Run,%TcPath% "%any%"
-		}else If GetKeyState("Ctrl"){		;[按住Ctrl是打开应用目录]
-			Run,% "explorer.exe /select," any
-		}else If GetKeyState("Shift"){	;[按住Shift则是管理员身份运行]
+			return
+		}
+		If GetKeyState("Ctrl"){	;[按住Ctrl是打开应用目录]
+			If(TcPath && InStr(any,"\",,0,1)=anyLen){
+				Run,%TcPath% "%any%"
+			}else{
+				Run,% "explorer.exe /select," any
+			}
+			return
+		}
+		try {
+			selectZz:=Get_Zz()
+			if(selectZz && Candy_isFile=1){
+				If GetKeyState("Shift"){	;[按住Shift则是管理员身份运行]
+					Run,*RunAs %any% %selectZz%
+				}else{
+					Run,%any% %selectZz%
+				}
+				return
+			}
+		} catch e {
+			MsgBox,16,%A_ThisMenuItem%运行选择出错,% "运行选择出错：" any " " selectZz "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+		}
+		If GetKeyState("Shift"){	;[按住Shift则是管理员身份运行]
 			Run,*RunAs %any%
 		}else{
 			Run,%any%
 		}
 	} catch e {
-		MsgBox,16,找不到程序路径,运行路径不正确：%A_ThisMenuItem%`n%any%
+		MsgBox,16,%A_ThisMenuItem%运行出错,% "运行路径：" any "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 	}
-	if(!RegExMatch(A_ThisMenuItem,"^&1|2"))
-		gosub,Menu_Common
 return
 ;~;[菜单最近运行]
 Menu_Common:
@@ -216,19 +230,21 @@ Menu_Common:
 		MenuCommonList[1]:="&1 " A_ThisMenuItem
 		MenuObj[MenuCommonList[1]]:=any
 		Menu,% menuRoot[1],Add,% MenuCommonList[1],Menu_Run
-	}else if(!MenuCommonList[2] && MenuCommonList[1]!="&1 " A_ThisMenuItem){
-		MenuCommonList[2]:="&2 " A_ThisMenuItem
-		MenuObj[MenuCommonList[2]]:=any
-		Menu,% menuRoot[1],Add,% MenuCommonList[2],Menu_Run
-	}else if(MenuCommonList[1] && MenuCommonList[2]){
-		MenuCommon1:=MenuCommonList[1]
-		MenuCommon2:=MenuCommonList[2]
-		MenuCommonList[1]:="&1 " A_ThisMenuItem
-		MenuCommonList[2]:=RegExReplace(MenuCommon1,"&1","&2")
-		MenuObj[MenuCommonList[1]]:=any
-		MenuObj[MenuCommonList[2]]:=MenuObj[(MenuCommon1)]
-		Menu,% menuRoot[1],Rename,% MenuCommon1,% MenuCommonList[1]
-		Menu,% menuRoot[1],Rename,% MenuCommon2,% MenuCommonList[2]
+	}else if(MenuCommonList[1]!="&1 " A_ThisMenuItem){
+		if(!MenuCommonList[2]){
+			MenuCommonList[2]:="&2 " A_ThisMenuItem
+			MenuObj[MenuCommonList[2]]:=any
+			Menu,% menuRoot[1],Add,% MenuCommonList[2],Menu_Run
+		}else if(MenuCommonList[1] && MenuCommonList[2]){
+			MenuCommon1:=MenuCommonList[1]
+			MenuCommon2:=MenuCommonList[2]
+			MenuCommonList[1]:="&1 " A_ThisMenuItem
+			MenuCommonList[2]:=RegExReplace(MenuCommon1,"&1","&2")
+			MenuObj[MenuCommonList[1]]:=any
+			MenuObj[MenuCommonList[2]]:=MenuObj[(MenuCommon1)]
+			Menu,% menuRoot[1],Rename,% MenuCommon1,% MenuCommonList[1]
+			Menu,% menuRoot[1],Rename,% MenuCommon2,% MenuCommonList[2]
+		}
 	}
 return
 ;══════════════════════════════════════════════════════════════════
@@ -340,14 +356,19 @@ Send_Zz(strZz){
 }
 ;~;[获取选中]
 Get_Zz(){
+	global Candy_isFile
 	Candy_Saved:=ClipboardAll
 	Clipboard=
 	SendInput,^c
-	ClipWait,0.2
+	if WinActive("ahk_class TTOTAL_CMD")
+		ClipWait,0.5
+	else
+		ClipWait,0.2
 	If(ErrorLevel){
 		Clipboard:=Candy_Saved
 		return
 	}
+	Candy_isFile:=DllCall("IsClipboardFormatAvailable","UInt",15)
 	CandySel=%Clipboard%
 	Clipboard:=Candy_Saved
 	return CandySel
