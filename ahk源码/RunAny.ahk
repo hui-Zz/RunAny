@@ -184,11 +184,11 @@ Menu_Show:
 return
 ;~;[菜单运行]
 Menu_Run:
+	any:=MenuObj[(A_ThisMenuItem)]
+	anyLen:=StrLen(any)
 	if(!RegExMatch(A_ThisMenuItem,"^&1|2"))
 		gosub,Menu_Common
 	try {
-		any:=MenuObj[(A_ThisMenuItem)]
-		anyLen:=StrLen(any)
 		If(InStr(any,";",,0,1)=anyLen){
 			StringLeft, any, any, anyLen-1
 			Send_Zz(any)	;[输出短语]
@@ -206,14 +206,14 @@ Menu_Run:
 			selectZz:=Get_Zz()
 			if(selectZz && Candy_isFile=1){
 				If GetKeyState("Shift"){	;[按住Shift则是管理员身份运行]
-					Run,*RunAs %any% %selectZz%
+					Run,*RunAs %any%%A_Space%%selectZz%
 				}else{
-					Run,%any% %selectZz%
+					Run,%any%%A_Space%%selectZz%
 				}
 				return
 			}
 		} catch e {
-			MsgBox,16,%A_ThisMenuItem%运行选择出错,% "运行选择出错：" any " " selectZz "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+			MsgBox,16,%A_ThisMenuItem%运行选择出错,% "运行选择出错：" any A_Space selectZz "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 		}
 		If GetKeyState("Shift"){	;[按住Shift则是管理员身份运行]
 			Run,*RunAs %any%
@@ -230,15 +230,15 @@ Menu_Common:
 		MenuCommonList[1]:="&1 " A_ThisMenuItem
 		MenuObj[MenuCommonList[1]]:=any
 		Menu,% menuRoot[1],Add,% MenuCommonList[1],Menu_Run
-	}else if(MenuCommonList[1]!="&1 " A_ThisMenuItem){
+	}else if(MenuCommonList[1]!="&1" A_Space A_ThisMenuItem){
 		if(!MenuCommonList[2]){
-			MenuCommonList[2]:="&2 " A_ThisMenuItem
+			MenuCommonList[2]:="&2" A_Space A_ThisMenuItem
 			MenuObj[MenuCommonList[2]]:=any
 			Menu,% menuRoot[1],Add,% MenuCommonList[2],Menu_Run
 		}else if(MenuCommonList[1] && MenuCommonList[2]){
 			MenuCommon1:=MenuCommonList[1]
 			MenuCommon2:=MenuCommonList[2]
-			MenuCommonList[1]:="&1 " A_ThisMenuItem
+			MenuCommonList[1]:="&1" A_Space A_ThisMenuItem
 			MenuCommonList[2]:=RegExReplace(MenuCommon1,"&1","&2")
 			MenuObj[MenuCommonList[1]]:=any
 			MenuObj[MenuCommonList[2]]:=MenuObj[(MenuCommon1)]
