@@ -196,7 +196,7 @@ Menu_Run:
 		}
 		If GetKeyState("Ctrl"){	;[按住Ctrl是打开应用目录]
 			If(TcPath && InStr(any,"\",,0,1)=anyLen){
-				Run,%TcPath% "%any%"
+				Run,%TcPath%%A_Space%"%any%"
 			}else{
 				Run,% "explorer.exe /select," any
 			}
@@ -204,16 +204,19 @@ Menu_Run:
 		}
 		try {
 			selectZz:=Get_Zz()
-			if(selectZz && Candy_isFile=1){
-				If GetKeyState("Shift"){	;[按住Shift则是管理员身份运行]
-					Run,*RunAs %any%%A_Space%%selectZz%
-				}else{
-					Run,%any%%A_Space%%selectZz%
+			if(selectZz){
+				if(Candy_isFile=1){
+					if(GetKeyState("Shift")){
+						Run,*RunAs %any%%A_Space%"%selectZz%"
+					}else{
+						Run,%any%%A_Space%"%selectZz%"
+					}
+				}else if(RegExMatch(any,"([\w-]+://?|www[.]).*")){
+					Run,%any%%selectZz%
 				}
 				return
 			}
 		} catch e {
-			MsgBox,16,%A_ThisMenuItem%运行选择出错,% "运行选择出错：" any A_Space selectZz "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 		}
 		If GetKeyState("Shift"){	;[按住Shift则是管理员身份运行]
 			Run,*RunAs %any%
@@ -522,6 +525,7 @@ TVClick:
 			SendMessage, 0x110E, 0, TV_GetSelection(), , ahk_id %HTV%
 			addID:=
 		}
+		TV_MoveMenuClean()
 		TVFlag:=true
 	}else if (A_GuiEvent == "K"){
 		if (A_EventInfo = 46)
