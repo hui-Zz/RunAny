@@ -132,7 +132,7 @@ Loop, read, %iniFile%
 	}
 }
 Menu,% menuRoot[1],Add
-Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
+try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 if(ini){
 	TrayTip,,RunAny菜单初始化完成`n右击任务栏图标设置,3,1
 	gosub,Menu_About
@@ -1148,7 +1148,11 @@ FileAppend,
 	QQPlayer.exe
 	PotPlayer.exe
 -Web网址
-	更新地址&GitHub|https://github.com/hui-Zz/RunAny
+	百度(&B)|https://www.baidu.com/s?wd=
+	翻译(&F)|http://translate.google.cn/#auto/zh-CN/
+	淘宝(&T)|https://s.taobao.com/search?q=
+	--
+	RunAny地址|https://github.com/hui-Zz/RunAny
 -File文件
 	WinRAR.exe
 -Sys系统

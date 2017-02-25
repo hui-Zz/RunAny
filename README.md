@@ -1,8 +1,9 @@
-# 【RunAny】一劳永逸的快速启动工具 v2.2
+# 【RunAny】一劳永逸的快速启动工具 v2.5
 
 只需配置一个自定义程序菜单，就可以快速启动任何电脑任何路径的程序😎
 
 家里和公司电脑还是笔记本都使用同一套配置，云端同步就更是如虎添翼！
+
 
 RunAny追求就是：<u>**一劳永逸**</u>
 ---
@@ -16,6 +17,7 @@ RunAny启动软件就跟打字一样高效方便（如<kbd>\`</kbd>为热键）�
 (PS:输入\`可以<kbd>Win</kbd>+<kbd>\`</kbd>输入)
 
 ---
+
 
 RunAny演示：<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/RunAny%E6%BC%94%E7%A4%BA.gif" alt="RunAny演示" style="max-width:60%;">
 ---
@@ -34,8 +36,8 @@ RunAny演示：<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/
 支持RunAny：![支付宝](https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.jpg)
 
 > 这里是隐藏功能：
-按住Ctrl打开软件会打开软件所在的目录
-按住Shift打开软件会以管理员身份来运行
+> 按住Ctrl打开软件会打开软件所在的目录
+> 按住Shift打开软件会以管理员身份来运行
 
 ---
 
@@ -54,23 +56,25 @@ RunAny演示：<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/
 
 ## <a name="ver">【RunAny版本更新历史】</a>
 
-### 【RunAny】v2.5
-+ 菜单配置增加有复选框
-+ 现在可批量移动项目到指定的树目录
-+ 将实现：
-  + RunAny在选中文件的情况下，运行程序将打开选中的文件
-  + RunAny在选中文字的情况下，将菜单显示为不同网址的搜索方式或其他
-自定义
+### 【RunAny】v2.5 组合功能🔩
++ **先选中文件，然后RunAny中运行程序将打开选中的文件**
+  + 如在资源管理器先选中1.txt，再按启动RunAny中notepad.exe就打开了1.txt
++ **先选中文字，然后RunAny运行网址将文件作为搜索条件**
+  + 如先选中AHK，再启动RunAny中的百度(&B)|https://www.baidu.com/s?wd=，就变成了搜索AHK
++ **菜单配置增加有复选框**
+  + TreeView的全选全不选功能
+  + 批量移动项目到指定的节点下，并自动匹配级别
+  + 批量勾选项目删除
 
-### 【RunAny】v2.4
+### 【RunAny】v2.4 便利
 + 新增一键搜索选中文字
 + 记录最近运行程序
 * 独立导入桌面程序功能
-* 重置功能取消开机自动启动
 
 ### 【RunAny】v2.3
 + 支持Ctrl键用TC打开应用目录
 * 修复不能正确打开带空格路径
+* 重置功能取消开机自动启动
 
 ### 【RunAny】v2.2 快捷🎈
 + **增加快捷方式lnk全盘路径和图标识别**
