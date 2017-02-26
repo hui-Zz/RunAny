@@ -162,8 +162,14 @@ Menu_Add(menuName,menuItem){
 			Menu,%menuName%,Icon,%menuItem%,% AHKIconS[1],% AHKIconS[2]
 		}else if(Ext_Check(item,itemLen,".bat") || Ext_Check(item,itemLen,".cmd")){
 			Menu,%menuName%,Icon,%menuItem%,% BATIconS[1],% BATIconS[2]
-		}else if(RegExMatch(item,"([\w-]+://?|www[.]).*")){
-			Menu,%menuName%,Icon,%menuItem%,% UrlIconS[1],% UrlIconS[2]
+		}else if(RegExMatch(item,"iS)([\w-]+://?|www[.]).*")){
+			website:=RegExReplace(item,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
+			webIcon:=A_ScriptDir "\RunIcon\" website ".ico"
+			if(FileExist(webIcon)){
+				Menu,%menuName%,Icon,%menuItem%,%webIcon%,0
+			}else{
+				Menu,%menuName%,Icon,%menuItem%,% UrlIconS[1],% UrlIconS[2]
+			}
 		}else if(InStr(item,"\",,0,1)=itemLen){
 			Menu,%menuName%,Icon,%menuItem%,% FolderIconS[1],% FolderIconS[2]
 		}else if(InStr(item,";",,0,1)=itemLen){
@@ -186,7 +192,7 @@ return
 Menu_Run:
 	any:=MenuObj[(A_ThisMenuItem)]
 	anyLen:=StrLen(any)
-	if(!RegExMatch(A_ThisMenuItem,"^&1|2"))
+	if(!RegExMatch(A_ThisMenuItem,"S)^&1|2"))
 		gosub,Menu_Common
 	try {
 		If(InStr(any,";",,0,1)=anyLen){
@@ -211,7 +217,7 @@ Menu_Run:
 					}else{
 						Run,%any%%A_Space%"%selectZz%"
 					}
-				}else if(RegExMatch(any,"([\w-]+://?|www[.]).*")){
+				}else if(RegExMatch(any,"iS)([\w-]+://?|www[.]).*")){
 					Run,%any%%selectZz%
 				}
 				return
@@ -254,7 +260,7 @@ return
 ;~;[一键Everything][搜索选中文字][激活][隐藏]
 Ev_Show:
 	selectZz:=Get_Zz()
-	if(RegExMatch(selectZz,"^(\\\\|.:\\).*?$")){
+	if(RegExMatch(selectZz,"S)^(\\\\|.:\\).*?$")){
 		SplitPath,selectZz,fileName
 		selectZz:=fileName
 	}
@@ -402,6 +408,8 @@ Menu_Edit:
 	Gui, +Resize
 	Gui, Font,, Microsoft YaHei
 	Gui, Add, TreeView,vRunAnyTV w450 r30 -Readonly AltSubmit Checked hwndHTV gTVClick ImageList%ImageListID%
+	Gui, Add, Progress,vMyProgress w450 cBlue
+	GuiControl, Hide, MyProgress
 	GuiControl, -Redraw, RunAnyTV
 	;~;[读取菜单配置内容写入树形菜单]
 	Loop, read, %iniFile%
@@ -494,24 +502,25 @@ TVMenu(addMenu){
 	Menu, %addMenu%, Icon,% flag ? "批量导入" : "批量导入`tF9", SHELL32.dll,46
 	Menu, %addMenu%, Add,桌面导入, Desktop_Import
 	Menu, %addMenu%, Icon,桌面导入, SHELL32.dll,35
+	Menu, %addMenu%, Add,网站图标, Website_Icon
+	Menu, %addMenu%, Icon,网站图标, SHELL32.dll,14
 }
 ;~;[后缀判断图标]
 Set_Icon(itemVar){
 	itemLen:=StrLen(itemVar)
 	if(RegExMatch(itemVar,"S)^-+[^-]+.*"))
 		return "Icon7"
-	else if(Ext_Check(itemVar,itemLen,".exe"))
+	if(Ext_Check(itemVar,itemLen,".exe"))
 		return "Icon3"
-	else if(Ext_Check(itemVar,itemLen,".lnk"))
+	if(Ext_Check(itemVar,itemLen,".lnk"))
 		return "Icon5"
-	else if(InStr(itemVar,";")=1 || itemVar="")
+	if(InStr(itemVar,";")=1 || itemVar="")
 		return "Icon2"
-	else if(InStr(itemVar,"\",,0,1)=itemLen)
+	if(InStr(itemVar,"\",,0,1)=itemLen)
 		return "Icon4"
-	else if(RegExMatch(itemVar,"([\w-]+://?|www[.]).*"))
+	if(RegExMatch(itemVar,"iS)([\w-]+://?|www[.]).*"))
 		return "Icon6"
-	else
-		return "Icon1"
+	return "Icon1"
 }
 TVClick:
 	if (A_GuiEvent == "e"){
@@ -667,6 +676,37 @@ TVImportFolder:
 			}
 			TVFlag:=true
 		}
+	}
+return
+Website_Icon:
+	MsgBox,33,下载网站图标,确定下载RunAny内所有网站图标吗？`n下载的图标在%A_ScriptDir%\RunIcon
+	IfMsgBox Ok
+	{
+		errDown:=""
+		ItemID = 0
+		Loop
+		{
+			ItemID := TV_GetNext(ItemID, "Full")
+			if not ItemID
+				break
+			TV_GetText(ItemText, ItemID)
+			GuiControl, Show, MyProgress
+			try {
+				diyText:=StrSplit(ItemText,"|")
+				webText:=(diyText[2]) ? diyText[2] : diyText[1]
+				if(RegExMatch(webText,"iS)([\w-]+://?|www[.]).*")){
+					website:=RegExReplace(webText,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
+					webIcon:=A_ScriptDir "\RunIcon\" website ".ico"
+					URLDownloadToFile,http://%website%/favicon.ico,%webIcon%
+					GuiControl,, MyProgress, +10
+				}
+			} catch e {
+				errDown.="http://" website "/favicon.ico`n"
+			}
+		}
+		if(errDown!="")
+			MsgBox,以下网站图标无法下载，可以手动重命名添加到%A_ScriptDir%\RunIcon`n%errDown%
+		GuiControl, Hide, MyProgress
 	}
 return
 ;~;[上下移动项目]
