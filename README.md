@@ -60,7 +60,7 @@ RunAny演示：<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/
 + **先选中文件，然后RunAny中运行程序将打开选中的文件**
   + 如在资源管理器先选中1.txt，再按启动RunAny中notepad.exe就打开了1.txt
 + **先选中文字，然后RunAny运行网址将文件作为搜索条件**
-  + 如先选中AHK，再启动RunAny中的百度(&B)|https://www.baidu.com/s?wd=，就变成了搜索AHK
+  + 如先选中"关键字"，再启动RunAny中的百度(&B)|https://www.baidu.com/s?wd=，就变成了搜索"关键字"
 + **菜单配置增加有复选框**
   + TreeView的全选全不选功能
   + 批量移动项目到指定的节点下，并自动匹配级别
