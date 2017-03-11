@@ -1,19 +1,16 @@
-# 【RunAny】一劳永逸的快速启动工具 v2.2
+# 【RunAny】一劳永逸的快速启动工具 v2.5
 
 只需配置一个自定义程序菜单，就可以快速启动任何电脑任何路径的程序😎
 
 家里和公司电脑还是笔记本都使用同一套配置，云端同步就更是如虎添翼！
 
+
 RunAny追求就是：<u>**一劳永逸**</u>
----
-
-RunAny演示：![RunAny演示](https://raw.githubusercontent.com/hui-Zz/RunAny/master/RunAny演示.gif)
-
 ---
 
 RunAny启动软件就跟打字一样高效方便（如<kbd>\`</kbd>为热键）：
 
-- \`ew就是work工作分类下的Word
+- \`ww就是work工作分类下的Word
 - \`aw就是app常用分类下的Wiz
 - \`fw就是file文件分类下的WinRAR
 
@@ -21,10 +18,14 @@ RunAny启动软件就跟打字一样高效方便（如<kbd>\`</kbd>为热键）�
 
 ---
 
-[版本更新历史](#ver)
+
+RunAny演示：<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/RunAny%E6%BC%94%E7%A4%BA.gif" alt="RunAny演示" style="max-width:60%;">
+---
+
+[【RunAny版本更新历史】](#ver)
 
 
-[RunAny版本更新历史](#tree)
+[【自定义树形菜单配置方法：】](#tree)
 
 ---
 
@@ -33,6 +34,10 @@ RunAny启动软件就跟打字一样高效方便（如<kbd>\`</kbd>为热键）�
 讨论QQ群：[246308937【RunAny快速启动一劳永逸】](https://jq.qq.com/?_wv=1027&k=445Ug7u)、[3222783【AutoHotkey高级群】](https://jq.qq.com/?_wv=1027&k=43uBHer)、[493194474【软客】](https://jq.qq.com/?_wv=1027&k=43trxF5)
 
 支持RunAny：![支付宝](https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.jpg)
+
+> 这里是隐藏功能：
+> 按住Ctrl打开软件会打开软件所在的目录
+> 按住Shift打开软件会以管理员身份来运行
 
 ---
 
@@ -51,17 +56,42 @@ RunAny启动软件就跟打字一样高效方便（如<kbd>\`</kbd>为热键）�
 
 ## <a name="ver">【RunAny版本更新历史】</a>
 
-### v2.2 快捷🎈
-+ **增加lnk全盘路径和图标识别**
+### 【RunAny】v2.5 组合功能🔩
++ **先选中文件，然后RunAny中运行程序将打开选中的文件**
+  + 如在资源管理器先选中1.txt，再按启动RunAny中notepad.exe就打开了1.txt
++ **先选中文字，然后RunAny运行网址将文件作为搜索条件**
+  + 如先选中AHK，再启动RunAny中的百度(&B)|https://www.baidu.com/s?wd=，就变成了搜索AHK
++ **菜单配置增加有复选框**
+  + TreeView的全选全不选功能
+  + 批量移动项目到指定的节点下，并自动匹配级别
+  + 批量勾选项目删除
+
+### 【RunAny】v2.4 便利
++ 新增一键搜索选中文字
++ 记录最近运行程序
+* 独立导入桌面程序功能
+
+### 【RunAny】v2.3
++ 支持Ctrl键用TC打开应用目录
+* 修复不能正确打开带空格路径
+* 重置功能取消开机自动启动
+
+### 【RunAny】v2.2 快捷🎈
++ **增加快捷方式lnk全盘路径和图标识别**
 + **增加开机自动选项**
++ **增加一键Everything[搜索选中文字][激活][隐藏]**
 + *增加输出简单短语的功能*
++ *新增屏蔽RunAny热键的程序列表*
++ *支持TotalCommander打开文件夹*
++ ~~现在可以隐藏失效的项目~~
 + 菜单编辑添加树时自动为其增加子项目
 + 初次运行的菜单配置增加了通用分类和流行软件
 + 初次运行自动添加桌面快捷方式
+* 修复菜单删除项目时Del与删文字冲突
 * 修复了批量导入问题且现在可以导入快捷方式
 * 修正了网址的正则
 
-### v2.1 酷炫😉
+### 【RunAny】v2.1 酷炫😉
 + 批量导入程序名称
 + 图标自定义化(包括托盘图标)
 + 优化搜索条件，排除C:\Windows及其他升级文件夹

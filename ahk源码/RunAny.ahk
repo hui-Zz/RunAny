@@ -1,8 +1,8 @@
 ﻿/*
 ╔═════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v2.2
+║【RunAny】一劳永逸的快速启动工具 v2.5
 ║ by Zz 建议：hui0.0713@gmail.com
-║ @2017.1.22 github.com/hui-Zz/RunAny
+║ @2017.2.25 github.com/hui-Zz/RunAny
 ║ 讨论QQ群：[246308937]、3222783、493194474
 ╚═════════════════════════════════
 */
@@ -18,18 +18,43 @@ SplitPath,A_ScriptFullPath,,,,fileNotExt
 ;~ StartTick:=A_TickCount	;若要评估出menu时间
 RunAnyZz:="RunAny"
 Gosub,Var_Set
-Gosub,Run_Exist
 MenuTray()
+Gosub,Run_Exist
 global MenuObj:=Object()
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化菜单显示热键]
 MenuKey:=Var_Read("MenuKey","``")
+MenuWinKey:=Var_Read("MenuWinKey",0)
+EvKey:=Var_Read("EvKey")
+EvWinKey:=Var_Read("EvWinKey",0)
+OneKey:=Var_Read("OneKey")
+OneWinKey:=Var_Read("OneWinKey",0)
 ;~;[设定自定义菜单热键]
 try{
-	Hotkey,%MenuKey%,Menu_Show,On
+	MenuHotKey:=MenuWinKey ? "#" . MenuKey : MenuKey
+	Hotkey, IfWinNotActive, ahk_group DisableGUI
+	Hotkey,%MenuHotKey%,Menu_Show,On
+	if(EvKey){
+		try{
+			EvHotKey:=EvWinKey ? "#" . EvKey : EvKey
+			Hotkey,%EvHotKey%,Ev_Show,On
+		}catch{
+			gosub,Menu_Set
+			MsgBox,16,请设置正确热键,%EvHotKey%`n一键Everything热键设置不正确
+		}
+	}
+	if(OneKey){
+		try{
+			OneHotKey:=OneWinKey ? "#" . OneKey : OneKey
+			Hotkey,%OneHotKey%,One_Show,On
+		}catch{
+			gosub,Menu_Set
+			MsgBox,16,请设置正确热键,%OneHotKey%`n一键搜索热键设置不正确
+		}
+	}
 }catch{
 	gosub,Menu_Set
-	MsgBox,16,,%MenuKey%<=热键设置不正确`n请设置正确热键
+	MsgBox,16,请设置正确热键,%MenuHotKey%`n自定义显示热键设置不正确
 }
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化everything安装路径]
@@ -61,6 +86,7 @@ If(evExist){
 }
 ;══════════════════════════════════════════════════════════════════
 ;~;[读取自定义树形菜单设置]
+Gosub,Icon_Set
 menuRoot:=Object()
 menuRoot.Insert(RunAnyZz)
 menuLevel:=1
@@ -68,7 +94,7 @@ Loop, read, %iniFile%
 {
 	Z_ReadLine=%A_LoopReadLine%
 	if(InStr(Z_ReadLine,"-")=1){
-		;~;[生成目录树层级结构]
+		;~;[生成节点树层级结构]
 		menuItem:=RegExReplace(Z_ReadLine,"S)^-+")
 		menuLevel:=StrLen(RegExReplace(Z_ReadLine,"S)(^-+).*","$1"))
 		if(menuItem){
@@ -105,10 +131,10 @@ Loop, read, %iniFile%
 		Menu_Add(menuRoot[menuLevel],appName)
 	}
 }
-TVMenu("TVMenu")
-Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
+Menu,% menuRoot[1],Add
+try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 if(ini){
-	TrayTip,,RunAny菜单初始化完成,3,1
+	TrayTip,,RunAny菜单初始化完成`n右击任务栏图标设置,3,1
 	gosub,Menu_About
 	gosub,Menu_Show
 }
@@ -136,25 +162,185 @@ Menu_Add(menuName,menuItem){
 			Menu,%menuName%,Icon,%menuItem%,% AHKIconS[1],% AHKIconS[2]
 		}else if(Ext_Check(item,itemLen,".bat") || Ext_Check(item,itemLen,".cmd")){
 			Menu,%menuName%,Icon,%menuItem%,% BATIconS[1],% BATIconS[2]
-		}else if(RegExMatch(item,"([\w-]+://?|www[.]).*")){
-			Menu,%menuName%,Icon,%menuItem%,% UrlIconS[1],% UrlIconS[2]
-		}else if(InStr(item,"\")=itemLen){
+		}else if(RegExMatch(item,"iS)([\w-]+://?|www[.]).*")){
+			website:=RegExReplace(item,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
+			webIcon:=A_ScriptDir "\RunIcon\" website ".ico"
+			if(FileExist(webIcon)){
+				Menu,%menuName%,Icon,%menuItem%,%webIcon%,0
+			}else{
+				Menu,%menuName%,Icon,%menuItem%,% UrlIconS[1],% UrlIconS[2]
+			}
+		}else if(InStr(item,"\",,0,1)=itemLen){
 			Menu,%menuName%,Icon,%menuItem%,% FolderIconS[1],% FolderIconS[2]
+		}else if(InStr(item,";",,0,1)=itemLen){
+			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,2
 		}else{
 			Menu,%menuName%,Icon,%menuItem%,%item%
 		}
 	} catch e {
-		Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,124
+		if(HideFail)
+			Menu,%menuName%,Delete,%menuItem%
+		else
+			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,124
 	}
 }
-;~;[输出短语]
-Send_Zz(strZz){
-	Candy_Saved:=ClipboardAll
-	Clipboard:=strZz
-	SendInput,^v
-	Sleep,200
-	Clipboard:=Candy_Saved
-}
+;~;[显示菜单]
+Menu_Show:
+	Menu,% menuRoot[1],Show
+return
+;~;[菜单运行]
+Menu_Run:
+	any:=MenuObj[(A_ThisMenuItem)]
+	anyLen:=StrLen(any)
+	if(!RegExMatch(A_ThisMenuItem,"S)^&1|2"))
+		gosub,Menu_Common
+	try {
+		If(InStr(any,";",,0,1)=anyLen){
+			StringLeft, any, any, anyLen-1
+			Send_Zz(any)	;[输出短语]
+			return
+		}
+		If GetKeyState("Ctrl"){	;[按住Ctrl是打开应用目录]
+			If(TcPath && InStr(any,"\",,0,1)=anyLen){
+				Run,%TcPath%%A_Space%"%any%"
+			}else{
+				Run,% "explorer.exe /select," any
+			}
+			return
+		}
+		try {
+			selectZz:=Get_Zz()
+			if(selectZz){
+				if(Candy_isFile=1){
+					if(GetKeyState("Shift")){
+						Run,*RunAs %any%%A_Space%"%selectZz%"
+					}else{
+						Run,%any%%A_Space%"%selectZz%"
+					}
+				}else if(RegExMatch(any,"iS)([\w-]+://?|www[.]).*")){
+					Run,%any%%selectZz%
+				}
+				return
+			}
+		} catch e {
+		}
+		If GetKeyState("Shift"){	;[按住Shift则是管理员身份运行]
+			Run,*RunAs %any%
+		}else{
+			Run,%any%
+		}
+	} catch e {
+		MsgBox,16,%A_ThisMenuItem%运行出错,% "运行路径：" any "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+	}
+return
+;~;[菜单最近运行]
+Menu_Common:
+	if(!MenuCommonList[1]){
+		MenuCommonList[1]:="&1 " A_ThisMenuItem
+		MenuObj[MenuCommonList[1]]:=any
+		Menu,% menuRoot[1],Add,% MenuCommonList[1],Menu_Run
+	}else if(MenuCommonList[1]!="&1" A_Space A_ThisMenuItem){
+		if(!MenuCommonList[2]){
+			MenuCommonList[2]:="&2" A_Space A_ThisMenuItem
+			MenuObj[MenuCommonList[2]]:=any
+			Menu,% menuRoot[1],Add,% MenuCommonList[2],Menu_Run
+		}else if(MenuCommonList[1] && MenuCommonList[2]){
+			MenuCommon1:=MenuCommonList[1]
+			MenuCommon2:=MenuCommonList[2]
+			MenuCommonList[1]:="&1" A_Space A_ThisMenuItem
+			MenuCommonList[2]:=RegExReplace(MenuCommon1,"&1","&2")
+			MenuObj[MenuCommonList[1]]:=any
+			MenuObj[MenuCommonList[2]]:=MenuObj[(MenuCommon1)]
+			Menu,% menuRoot[1],Rename,% MenuCommon1,% MenuCommonList[1]
+			Menu,% menuRoot[1],Rename,% MenuCommon2,% MenuCommonList[2]
+		}
+	}
+return
+;══════════════════════════════════════════════════════════════════
+;~;[一键Everything][搜索选中文字][激活][隐藏]
+Ev_Show:
+	selectZz:=Get_Zz()
+	if(RegExMatch(selectZz,"S)^(\\\\|.:\\).*?$")){
+		SplitPath,selectZz,fileName
+		selectZz:=fileName
+	}
+	IfWinExist ahk_class EVERYTHING
+		if selectZz
+			Run % evPath " -search """ selectZz """"
+		else
+			IfWinNotActive
+				WinActivate
+			else
+				WinMinimize
+	else
+		Run % evPath (selectZz ? " -search """ selectZz """" : "")
+return
+One_Show:
+	selectZz:=Get_Zz()
+	if(InStr(OnePath,"%s")){
+		Run,% RegExReplace(OnePath,"%s",selectZz)
+	}else{
+		Run,% OnePath selectZz
+	}
+return
+;══════════════════════════════════════════════════════════════════
+;~;[初始化]
+Var_Set:
+	RegRead, AutoRun, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
+	AutoRun:=AutoRun ? 1 : 0
+	global HideFail:=Var_Read("HideFail",0)
+	TcPath:=Var_Read("TcPath")
+	OnePath:=Var_Read("OnePath","https://www.baidu.com/s?wd=%s")
+	DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe")
+	Loop,parse,DisableApp,`,
+	{
+		GroupAdd,DisableGUI,ahk_exe %A_LoopField%
+	}
+	if(Ext_Check(A_ScriptName,StrLen(A_ScriptName),".exe")){
+		iconAny:=A_ScriptName ",1"
+		iconMenu:=A_ScriptName ",2"
+	}else if(FileExist(A_ScriptDir "\ZzIcon.dll")){
+		iconAny:="ZzIcon.dll,1"
+		iconMenu:="ZzIcon.dll,2"
+	}else{
+		iconAny:="shell32.dll,190"
+		iconMenu:="shell32.dll,195"
+	}
+	global AnyIcon:=Var_Read("AnyIcon",iconAny)
+	global AnyIconS:=StrSplit(AnyIcon,",")
+	global MenuIcon:=Var_Read("MenuIcon",iconMenu)
+	global MenuIconS:=StrSplit(MenuIcon,",")
+	global MenuCommonList:={}
+return
+;~;[后缀图标初始化]
+Icon_Set:
+	TreeIcon:=Var_Read("TreeIcon")
+	global TreeIconS:=StrSplit(TreeIcon,",")
+	FolderIcon:=Var_Read("FolderIcon","shell32.dll,4")
+	global FolderIconS:=StrSplit(FolderIcon,",")
+	UrlIcon:=Var_Read("UrlIcon","shell32.dll,44")
+	global UrlIconS:=StrSplit(UrlIcon,",")
+	BATIcon:=Var_Read("BATIcon","shell32.dll,72")
+	global BATIconS:=StrSplit(BATIcon,",")
+	AHKIcon:=Var_Read("AHKIcon","shell32.dll,74")
+	global AHKIconS:=StrSplit(AHKIcon,",")
+	EXEIcon:=Var_Read("EXEIcon","shell32.dll,3")
+	global EXEIconS:=StrSplit(EXEIcon,",")
+return
+;~;[调用判断]
+Run_Exist:
+	iniFile:=A_ScriptDir "\" fileNotExt ".ini"
+	IfNotExist,%iniFile%
+		gosub,First_Run
+	global everyDLL:="Everything.dll"
+	if(FileExist(A_ScriptDir "\Everything.dll")){
+		everyDLL:=DllCall("LoadLibrary", str, "Everything.dll") ? "Everything.dll" : "Everything64.dll"
+	}else if(FileExist(A_ScriptDir "\Everything64.dll")){
+		everyDLL:=DllCall("LoadLibrary", str, "Everything64.dll") ? "Everything64.dll" : "Everything.dll"
+	}
+	IfNotExist,%A_ScriptDir%\%everyDLL%
+		MsgBox,16,,没有找到%everyDLL%，将不能识别菜单中程序的路径`n请复制%everyDLL%到%A_ScriptDir%目录下`n`n或在github.com/hui-Zz/RunAny/tree/RunMenu下载不使用Everything的版本
+return
 ;~;[检查后缀名]
 Ext_Check(name,len,ext){
 	len_ext:=StrLen(ext)
@@ -169,119 +355,88 @@ Var_Read(rValue,defVar=""){
 	else
 		return defVar
 }
-Var_Set:
-	RegRead, AutoRun, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
-	global AutoRun:=AutoRun ? 1 : 0
-	global everyDLL:="Everything.dll"
-	global iconAny:="shell32.dll,190"
-	global iconMenu:="shell32.dll,195"
-	if(Ext_Check(A_ScriptName,StrLen(A_ScriptName),".exe")){
-		iconAny:=A_ScriptName ",1"
-		iconMenu:=A_ScriptName ",2"
-	}else if(FileExist(A_ScriptDir "\ZzIcon.dll")){
-		iconAny:="ZzIcon.dll,1"
-		iconMenu:="ZzIcon.dll,2"
+;~;[输出短语]
+Send_Zz(strZz){
+	Candy_Saved:=ClipboardAll
+	Clipboard:=strZz
+	SendInput,^v
+	Sleep,200
+	Clipboard:=Candy_Saved
+}
+;~;[获取选中]
+Get_Zz(){
+	global Candy_isFile
+	Candy_Saved:=ClipboardAll
+	Clipboard=
+	SendInput,^c
+	if WinActive("ahk_class TTOTAL_CMD")
+		ClipWait,0.5
+	else
+		ClipWait,0.2
+	If(ErrorLevel){
+		Clipboard:=Candy_Saved
+		return
 	}
-	global AnyIcon:=Var_Read("AnyIcon",iconAny)
-	global AnyIconS:=StrSplit(AnyIcon,",")
-	global MenuIcon:=Var_Read("MenuIcon",iconMenu)
-	global MenuIconS:=StrSplit(MenuIcon,",")
-	global TreeIcon:=Var_Read("TreeIcon")
-	global TreeIconS:=StrSplit(TreeIcon,",")
-	global FolderIcon:=Var_Read("FolderIcon","shell32.dll,4")
-	global FolderIconS:=StrSplit(FolderIcon,",")
-	global UrlIcon:=Var_Read("UrlIcon","shell32.dll,44")
-	global UrlIconS:=StrSplit(UrlIcon,",")
-	global BATIcon:=Var_Read("BATIcon","shell32.dll,72")
-	global BATIconS:=StrSplit(BATIcon,",")
-	global AHKIcon:=Var_Read("AHKIcon","shell32.dll,74")
-	global AHKIconS:=StrSplit(AHKIcon,",")
-	global EXEIcon:=Var_Read("EXEIcon","shell32.dll,3")
-	global EXEIconS:=StrSplit(EXEIcon,",")
-return
-Run_Exist:
-	iniFile:=A_ScriptDir "\" fileNotExt ".ini"
-	IfNotExist,%iniFile%
-		gosub,First_Run
-	if(FileExist(A_ScriptDir "\Everything.dll")){
-		everyDLL:=DllCall("LoadLibrary", str, "Everything.dll") ? "Everything.dll" : "Everything64.dll"
-	}else if(FileExist(A_ScriptDir "\Everything64.dll")){
-		everyDLL:=DllCall("LoadLibrary", str, "Everything64.dll") ? "Everything64.dll" : "Everything.dll"
-	}
-	IfNotExist,%A_ScriptDir%\%everyDLL%
-		MsgBox,16,,没有找到%everyDLL%，将不能识别菜单中程序的路径`n请复制%everyDLL%到%A_ScriptDir%目录下`n`n或在github.com/hui-Zz/RunAny/tree/RunMenu下载不使用Everything的版本
-	return
-;~;[显示菜单]
-Menu_Show:
-	try{
-		Menu,% menuRoot[1],Show
-	}catch{
-		gosub,Menu_Edit
-		MsgBox,16,,菜单显示错误，请检查菜单配置
-	}
-	return
-;~;[菜单运行]
-Menu_Run:
-	try {
-		any:=MenuObj[(A_ThisMenuItem)]
-		anyLen:=StrLen(any)
-		If(InStr(any,";")=anyLen){
-			StringLeft, any, any, anyLen-1
-			Send_Zz(any)	;[输出短语]
-		}else If GetKeyState("Ctrl"){		;[按住Ctrl是打开应用目录]
-			Run,% "explorer.exe /select," any
-		}else If GetKeyState("Shift"){	;[按住Shift则是管理员身份运行]
-			Run,*RunAs %any%
-		}else{
-			Run,%any%
-		}
-	} catch e {
-		MsgBox,16,找不到程序路径,运行路径不正确：%any%
-	}
-	return
+	Candy_isFile:=DllCall("IsClipboardFormatAvailable","UInt",15)
+	CandySel=%Clipboard%
+	Clipboard:=Candy_Saved
+	return CandySel
+}
 ;══════════════════════════════════════════════════════════════════
 ;~;[菜单配置]
 Menu_Edit:
 	global TVFlag:=false
-	Gui, Destroy
-	Gui, +Resize
-	Gui, Font,, Microsoft YaHei
+	;~;[树型菜单图标集]
 	ImageListID := IL_Create(6)
 	IL_Add(ImageListID, "shell32.dll", 1)
 	IL_Add(ImageListID, "shell32.dll", 2)
 	IL_Add(ImageListID, EXEIconS[1], EXEIconS[2])
 	IL_Add(ImageListID, FolderIconS[1], FolderIconS[2])
+	IL_Add(ImageListID, "shell32.dll", 264)
 	IL_Add(ImageListID, UrlIconS[1], UrlIconS[2])
 	if(TreeIcon)
 		IL_Add(ImageListID, TreeIconS[1], TreeIconS[2])
 	else
 		IL_Add(ImageListID, "shell32.dll", 42)
-	Gui, Add, TreeView,vRunAnyTV w400 r30 -Readonly hwndHTV gTVClick ImageList%ImageListID%
-	GuiControl, -Redraw, RunAnyTV
+	;~;[功能菜单初始化]
 	treeRoot:=Object()
+	global moveRoot:=Object()
+	moveRoot[1]:="moveMenu"
+	global moveLevel:=0
+	;~;[树型菜单初始化]
+	Gui, Destroy
+	Gui, +Resize
+	Gui, Font,, Microsoft YaHei
+	Gui, Add, TreeView,vRunAnyTV w450 r30 -Readonly AltSubmit Checked hwndHTV gTVClick ImageList%ImageListID%
+	Gui, Add, Progress,vMyProgress w450 cBlue
+	GuiControl, Hide, MyProgress
+	GuiControl, -Redraw, RunAnyTV
+	;~;[读取菜单配置内容写入树形菜单]
 	Loop, read, %iniFile%
 	{
 		Z_ReadLine=%A_LoopReadLine%
 		if(InStr(Z_ReadLine,"-")=1){
-			;~;[生成目录树层级结构]
+			;~;[生成节点树层级结构]
 			treeLevel:=StrLen(RegExReplace(Z_ReadLine,"S)(^-+).+","$1"))
 			if(RegExMatch(Z_ReadLine,"S)^-+[^-]+.*")){
 				if(treeLevel=1){
-					treeRoot.Insert(treeLevel,TV_Add(Z_ReadLine,,"Icon6"))
+					treeRoot.Insert(treeLevel,TV_Add(Z_ReadLine,,"Bold Icon7"))
 				}else{
-					treeRoot.Insert(treeLevel,TV_Add(Z_ReadLine,treeRoot[treeLevel-1],"Icon6"))
+					treeRoot.Insert(treeLevel,TV_Add(Z_ReadLine,treeRoot[treeLevel-1],"Bold Icon7"))
 				}
+				TV_MoveMenu(Z_ReadLine)
 			}else if(Z_ReadLine="-"){
 				treeLevel:=0
-				TV_Add(Z_ReadLine,,"Icon1")
+				TV_Add(Z_ReadLine,,"Bold Icon1")
 			}else{
-				TV_Add(Z_ReadLine,treeRoot[treeLevel])
+				TV_Add(Z_ReadLine,treeRoot[treeLevel],"Bold")
 			}
 		}else{
 			TV_Add(Z_ReadLine,treeRoot[treeLevel],Set_Icon(Z_ReadLine))
 		}
 	}
 	GuiControl, +Redraw, RunAnyTV
+	TVMenu("TVMenu")
 	TVMenu("GuiMenu")
 	Gui, Menu, GuiMenu
 	Gui, Show, , %RunAnyZz%菜单树管理(右键操作)
@@ -297,10 +452,8 @@ return
 		gosub,TVUp
 		return
 	F3::gosub,TVAdd
-	F7::gosub,TVDownNext
 	F8::gosub,TVImportFile
 	F9::gosub,TVImportFolder
-	Del::gosub,TVDel
 	^s::gosub,TVSave
 	Esc::gosub,GuiClose
 #If
@@ -324,11 +477,11 @@ GuiClose:
 		Gui, Destroy
 	}
 return
+;~;[创建头部及右键功能菜单]
 TVMenu(addMenu){
 	flag:=addMenu="GuiMenu" ? true : false
 	Menu, %addMenu%, Add,% flag ? "保存" : "保存`tCtrl+S", TVSave
 	Menu, %addMenu%, Icon,% flag ? "保存" : "保存`tCtrl+S", SHELL32.dll,194
-	Menu, %addMenu%, Add
 	Menu, %addMenu%, Add,% flag ? "添加" : "添加`tF3", TVAdd
 	Menu, %addMenu%, Icon,% flag ? "添加" : "添加`tF3", SHELL32.dll,1
 	Menu, %addMenu%, Add,% flag ? "编辑" : "编辑`tF2", TVEdit
@@ -336,16 +489,39 @@ TVMenu(addMenu){
 	Menu, %addMenu%, Add,% flag ? "删除" : "删除`tDel", TVDel
 	Menu, %addMenu%, Icon,% flag ? "删除" : "删除`tDel", SHELL32.dll,132
 	Menu, %addMenu%, Add
-	Menu, %addMenu%, Add,% flag ? "向下↓" : "向下↓`t(F5/PgDn)", TVDown
-	Menu, %addMenu%, Add,% flag ? "向上↑" : "向上↑`t(F6/PgUp)", TVUp
-	Menu, %addMenu%, Add,% flag ? "同级向下↘" : "同级向下↘`tF7", TVDownNext
+	Menu, %addMenu%, Add,移动到..., :moveMenu
+	Menu, %addMenu%, Icon,移动到..., SHELL32.dll,246
+	Menu, %addMenu%, Add,% flag ? "向下" : "向下`t(F5/PgDn)", TVDown
+	Menu, %addMenu%, Icon,% flag ? "向下" : "向下`t(F5/PgDn)", SHELL32.dll,248
+	Menu, %addMenu%, Add,% flag ? "向上" : "向上`t(F6/PgUp)", TVUp
+	Menu, %addMenu%, Icon,% flag ? "向上" : "向上`t(F6/PgUp)", SHELL32.dll,247
 	Menu, %addMenu%, Add
 	Menu, %addMenu%, Add,% flag ? "多选导入" : "多选导入`tF8", TVImportFile
 	Menu, %addMenu%, Icon,% flag ? "多选导入" : "多选导入`tF8", SHELL32.dll,55
 	Menu, %addMenu%, Add,% flag ? "批量导入" : "批量导入`tF9", TVImportFolder
 	Menu, %addMenu%, Icon,% flag ? "批量导入" : "批量导入`tF9", SHELL32.dll,46
+	Menu, %addMenu%, Add,桌面导入, Desktop_Import
+	Menu, %addMenu%, Icon,桌面导入, SHELL32.dll,35
+	Menu, %addMenu%, Add,网站图标, Website_Icon
+	Menu, %addMenu%, Icon,网站图标, SHELL32.dll,14
 }
-return
+;~;[后缀判断图标]
+Set_Icon(itemVar){
+	itemLen:=StrLen(itemVar)
+	if(RegExMatch(itemVar,"S)^-+[^-]+.*"))
+		return "Icon7"
+	if(Ext_Check(itemVar,itemLen,".exe"))
+		return "Icon3"
+	if(Ext_Check(itemVar,itemLen,".lnk"))
+		return "Icon5"
+	if(InStr(itemVar,";")=1 || itemVar="")
+		return "Icon2"
+	if(InStr(itemVar,"\",,0,1)=itemLen)
+		return "Icon4"
+	if(RegExMatch(itemVar,"iS)([\w-]+://?|www[.]).*"))
+		return "Icon6"
+	return "Icon1"
+}
 TVClick:
 	if (A_GuiEvent == "e"){
 		;~;完成编辑时
@@ -353,12 +529,19 @@ TVClick:
 		TV_Modify(A_EventInfo, Set_Icon(selVar))
 		if(addID && RegExMatch(selVar,"S)^-+[^-]+.*")){
 			insertID:=TV_Add("",A_EventInfo)
-			TV_Modify(A_EventInfo, "Expand")
+			TV_Modify(A_EventInfo, "Bold Expand")
 			TV_Modify(insertID, "Select Vis")
 			SendMessage, 0x110E, 0, TV_GetSelection(), , ahk_id %HTV%
 			addID:=
 		}
+		TV_MoveMenuClean()
 		TVFlag:=true
+	}else if (A_GuiEvent == "K"){
+		if (A_EventInfo = 46)
+			gosub,TVDel
+	}else if (A_GuiControl = "RunAnyTV") {
+		TV_Modify(A_EventInfo, "Select Vis")
+		TV_CheckUncheckWalk(A_GuiEvent,A_EventInfo,A_GuiControl)
 	}
 return
 TVAdd:
@@ -375,21 +558,37 @@ return
 TVDown:
 	TV_Move(true)
 return
-TVDownNext:
-	TV_Move(true,false)
-return
 TVUp:
 	TV_Move(false)
 return
 TVDel:
-	TV_GetText(selVar, TV_GetSelection())
-	if(RegExMatch(selVar,"S)^-+[^-]+.*"))
-		MsgBox,52,请确认,确定删除选中的【%selVar%】以及它下面的所有子项目？(注意)
+	selText:=""
+	DelListID:=Object()
+	CheckID = 0
+	Loop
+	{
+		CheckID := TV_GetNext(CheckID, "Checked")
+		if not CheckID
+			break
+		TV_GetText(ItemText, CheckID)
+		selText.=ItemText "`n"
+		DelListID.Insert(CheckID)
+	}
+	if(!selText){
+		MsgBox,请最少勾选一项
+		return
+	}
+	if(RegExMatch(selText,"S)^-+[^-]+.*"))
+		MsgBox,51,请确认(Esc取消),确定删除勾中的【以及它下面的所有子项目】？(注意)`n%selText%
 	else
-		MsgBox,52,请确认,确定删除选中的【%selVar%】？
+		MsgBox,51,请确认(Esc取消),确定删除勾中的？`n%selText%
 	IfMsgBox Yes
 	{
-		TV_Delete(TV_GetSelection())
+		Loop,% DelListID.MaxIndex()
+		{
+			TV_Delete(DelListID[A_Index])
+		}
+		TV_MoveMenuClean()
 		TVFlag:=true
 	}
 return
@@ -430,6 +629,15 @@ TVSave:
 		Gui,Destroy
 	}
 return
+;~;[制表符设置]
+Set_Tab(tabNum){
+	tabText:=""
+	Loop,%tabNum%
+	{
+		tabText.=A_Tab
+	}
+	return tabText
+}
 TVImportFile:
 	selID:=TV_GetSelection()
 	parentID:=TV_GetParent(selID)
@@ -470,14 +678,41 @@ TVImportFolder:
 		}
 	}
 return
+Website_Icon:
+	MsgBox,33,下载网站图标,确定下载RunAny内所有网站图标吗？`n下载的图标在%A_ScriptDir%\RunIcon
+	IfMsgBox Ok
+	{
+		errDown:=""
+		ItemID = 0
+		Loop
+		{
+			ItemID := TV_GetNext(ItemID, "Full")
+			if not ItemID
+				break
+			TV_GetText(ItemText, ItemID)
+			GuiControl, Show, MyProgress
+			try {
+				diyText:=StrSplit(ItemText,"|")
+				webText:=(diyText[2]) ? diyText[2] : diyText[1]
+				if(RegExMatch(webText,"iS)([\w-]+://?|www[.]).*")){
+					website:=RegExReplace(webText,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
+					webIcon:=A_ScriptDir "\RunIcon\" website ".ico"
+					URLDownloadToFile,http://%website%/favicon.ico,%webIcon%
+					GuiControl,, MyProgress, +10
+				}
+			} catch e {
+				errDown.="http://" website "/favicon.ico`n"
+			}
+		}
+		if(errDown!="")
+			MsgBox,以下网站图标无法下载，可以手动重命名添加到%A_ScriptDir%\RunIcon`n%errDown%
+		GuiControl, Hide, MyProgress
+	}
+return
 ;~;[上下移动项目]
-TV_Move(moveMode = true,moveFull = true){
+TV_Move(moveMode = true){
 	selID:=TV_GetSelection()
-	if moveMode
-		moveID:=moveFull ? TV_GetNext(selID, "Full") : TV_GetNext(selID)
-	else
-		moveID:=TV_GetPrev(selID)
-	moveID:=moveID=0 ? TV_GetParent(selID) : moveID
+	moveID:=moveMode ? TV_GetNext(selID) : TV_GetPrev(selID)
 	if(moveID!=0){
 		TV_GetText(moveVar, moveID)
 		TV_GetText(selVar, selID)
@@ -491,52 +726,212 @@ TV_Move(moveMode = true,moveFull = true){
 	}
 	return
 }
-;~;[后缀判断图标]
-Set_Icon(itemVar){
-	itemLen:=StrLen(itemVar)
-	if(RegExMatch(itemVar,"S)^-+[^-]+.*"))
-		return "Icon6"
-	else if(Ext_Check(itemVar,itemLen,".exe"))
-		return "Icon3"
-	else if(InStr(itemVar,";")=1 || itemVar="")
-		return "Icon2"
-	else if(InStr(itemVar,"\")=itemLen)
-		return "Icon4"
-	else if(RegExMatch(itemVar,"([\w-]+://?|www[.]).*"))
-		return "Icon5"
-	else
-		return "Icon1"
+;~;[批量移动项目到指定树节点]
+TV_MoveMenu(moveMenuName){
+	moveItem:=RegExReplace(moveMenuName,"S)^-+")
+	moveLevel:=StrLen(RegExReplace(moveMenuName,"S)(^-+).*","$1"))
+	Menu,%moveMenuName%,add,%moveMenuName%,Move_Menu
+	Menu,% moveRoot[moveLevel],add,%moveItem%, :%moveMenuName%
+	Menu,% moveRoot[moveLevel],Icon,%moveItem%,% TreeIconS[1],% TreeIconS[2]
+	moveLevel+=1
+	moveRoot[moveLevel]:=moveMenuName
 }
-;~;[制表符设置]
-Set_Tab(tabNum){
-	tabText:=""
-	Loop,%tabNum%
+TV_MoveMenuClean(){
+	;[清空功能菜单]
+	Menu,TVMenu,Delete
+	Menu,GuiMenu,Delete
+	Menu,moveMenu,DeleteAll
+	;[重建]
+	ItemID = 0
+	Loop
 	{
-		tabText.=A_Tab
+		ItemID := TV_GetNext(ItemID, "Full")
+		if not ItemID
+			break
+		TV_GetText(ItemText, ItemID)
+		if(RegExMatch(ItemText,"S)^-+[^-]+.*")){
+			TV_MoveMenu(ItemText)
+		}
 	}
-	return tabText
+	TVMenu("TVMenu")
+	TVMenu("GuiMenu")
+	Gui, Menu, GuiMenu
+}
+;~;[移动节点后保存原来级别和自动变更名称(死了好多脑细胞)]
+Move_Menu:
+	ItemID = 0
+	MoveID = 0
+	CheckID = 0
+	DelListID:=Object()
+	;[获取目标节点]
+	Loop
+	{
+		ItemID := TV_GetNext(ItemID, "Full")
+		if not ItemID
+			break
+		TV_GetText(ItemText, ItemID)
+		if(ItemText=A_ThisMenuItem){
+			MoveID:=ItemID
+		}
+	}
+	;[获取选中节点并移动到目标节点下]
+	if(MoveID){
+		parentL:=StrLen(RegExReplace(A_ThisMenuItem,"S)(^-+).*","$1"))
+		moveLevelID:=
+		moveLevelList:=Object()
+		moveLevelList[parentL]:=MoveID
+		cpLevel:=0
+		Loop
+		{
+			CheckID := TV_GetNext(CheckID, "Checked")
+			if not CheckID
+				break
+			TV_GetText(ItemText, CheckID)
+			;[对比选中节点到目标节点的级别，进行加减"-"级别匹配]
+			if(InStr(ItemText,"-")=1){
+				cItem:=RegExReplace(ItemText,"S)^-+")
+				cLevel:=StrLen(RegExReplace(ItemText,"S)(^-+).*","$1"))
+				;[如已有比选中节点高一级则它为父级,否则为目标节点级别]
+				pLevel:=(moveLevelList[cLevel+Abs(cpLevel)]) ? cLevel+Abs(cpLevel) : parentL
+				cpLevel:=cLevel-pLevel	;选中节点与目标的级别差
+				if(cpLevel>1){	;选中节点比目标大于1级
+					Loop,% cpLevel - 1
+					{
+						ItemText:=RegExReplace(ItemText,"S)^-")
+					}
+				}else if(cpLevel<1){	;选中节点比目标小于1级
+					Loop,% Abs(1 - cpLevel)
+					{
+						ItemText:="-" . ItemText
+					}
+				}
+				cLevel:=StrLen(RegExReplace(ItemText,"S)(^-+).*","$1"))
+				if(Abs(cLevel-pLevel)=1){	;选中节点与目标差1级
+					if(cItem){
+						;[是节点不是分隔符]
+						moveLevelID:=TV_Add(ItemText,moveLevelList[cLevel-1],Set_Icon(ItemText))
+						moveLevelList[cLevel]:=moveLevelID
+						MoveID:=moveLevelID
+					}else{
+						;[遇到分隔符则改变树型]
+						TV_Add(ItemText,moveLevelList[cLevel-1],Set_Icon(ItemText))
+						MoveID:=moveLevelList[cLevel-1]
+					}
+				}
+			}else{
+				moveLevelID:=TV_Add(ItemText,MoveID,Set_Icon(ItemText))
+			}
+			DelListID.Insert(CheckID)
+			TVFlag:=true
+		}
+		;[删除原先节点]
+		Loop,% DelListID.MaxIndex()
+		{
+			TV_Delete(DelListID[A_Index])
+		}
+		;[焦点到移动后新节点]
+		TV_Modify(moveLevelID, "VisFirst")
+		TV_Modify(moveLevelID, "Select")
+		TV_MoveMenuClean()
+	}
+return
+;修改于ahk论坛全选全不选
+TV_CheckUncheckWalk(_GuiEvent, _EventInfo, _GuiControl)
+{	
+	static 	TV_SuspendEvents := False											;最初接受事件并保持跟踪
+	If ( TV_SuspendEvents || !_GuiEvent || !_EventInfo || !_GuiControl )		;无所事事：出去！
+		Return
+	If _GuiEvent = Normal														;这是一个左键：继续
+	{
+		Critical											                    ;不能被中断。
+		TV_SuspendEvents := True												;在工作时停止对功能的进一步调用
+		Gui, TreeView, %_GuiControl% 											;激活正确的TV
+		TV_Modify(_EventInfo, "Select")										;选择项目反正...这一行可能在这里取消和分散进一步
+		If TV_Get( _EventInfo, "Checked" )										;项目的复选标记
+		{
+			If TV_GetChild( _EventInfo )										;项目的节点
+				ToggleAllTheWay( _EventInfo, False )							;复选标记所有的孩子一路下来
+		}
+		Else																	;它未被选中
+		{
+			If TV_GetChild( _EventInfo )										;它是一个节点
+				ToggleAllTheWay( _EventInfo, True )								;取消选中所有的孩子一直向下
+			If TV_Get( TV_GetParent( _EventInfo ), "Checked") 				;父节点选中怎么样？
+			{
+				locItemId := TV_GetParent( _EventInfo )						;父节点检查标记：获取父ID
+				While locItemId													;循环一路向上
+				{
+					TV_Modify( locItemId , "-Check" )							;它的未选中：检查！
+					locItemId := TV_GetParent( locItemId )						;获取下一个父ID
+				}
+			}
+		}
+	}
+	TV_SuspendEvents := False													;激活事件
+	Return
+}
+; ToggleAllTheWay：内部使用
+ToggleAllTheWay(_ItemID=0, _ChkUchk=True ) {
+	If !_ItemID		;停止递归
+		Return			
+	_ItemID := TV_GetChild( _ItemID ) 	;得到下一个孩子
+	Loop
+	{
+		If  !_ItemID 					;工作结束：出去
+			Break
+		If _ChkUchk        ;区分条件检索
+		{
+			If TV_Get( _ItemID , "Checked" )
+				TV_Modify( _ItemID , "-Check" )
+		}
+		Else
+		{
+			If !TV_Get( _ItemID , "Checked" )
+				TV_Modify( _ItemID , "Check" )
+		}
+		ToggleAllTheWay( _ItemID, _ChkUchk )			;使用递归
+		_ItemID := TV_GetNext( _ItemID )
+	}
+	Return
 }
 ;══════════════════════════════════════════════════════════════════
 ;~;[设置选项]
 Menu_Set:
 	Gui,66:Destroy
 	Gui,66:Font,,Microsoft YaHei
-	Gui,66:Margin,30,40
-	Gui,66:Add,Tab,x10 y10 w360 h320,RunAny设置|Everything设置|图标设置
+	Gui,66:Margin,30,20
+	Gui,66:Add,Tab,x10 y10 w360 h340,RunAny设置|Everything设置|一键搜索|图标设置
 	Gui,66:Tab,RunAny设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+10 w200 h60,RunAny
-	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+30 vvAutoRun,开机自动启动
-	Gui,66:Add,GroupBox,xm-10 y+40 w200 h70,自定义显示热键
-	Gui,66:Add,Hotkey,xm+10 yp+30 w150 vvMenuKey,%MenuKey%
+	Gui,66:Add,GroupBox,xm-10 y+10 w200 h70,RunAny
+	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+25 vvAutoRun,开机自动启动
+	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
+	Gui,66:Add,GroupBox,xm-10 y+20 w215 h55,自定义显示热键
+	Gui,66:Add,Hotkey,xm+10 yp+20 w140 vvMenuKey,%MenuKey%
+	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+155 yp+3 vvMenuWinKey,Win
+	Gui,66:Add,GroupBox,xm-10 y+20 w330 h85,屏蔽RunAny程序列表（逗号分隔）
+	Gui,66:Add,Edit,xm+10 yp+20 w300 r3 vvDisableApp,%DisableApp%
+	Gui,66:Add,GroupBox,xm-10 y+20 w340 h55,TotalCommander安装路径（TC打开文件夹）
+	Gui,66:Add,Button,xm yp+20 w50 GSetTcPath,选择
+	Gui,66:Add,Edit,xm+60 yp w260 r1 vvTcPath,%TcPath%
 	
 	Gui,66:Tab,Everything设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+20 w340 h150,Everything安装路径
-	Gui,66:Add,Button,xm yp+30 w50 GSetPath,选择
+	Gui,66:Add,GroupBox,xm-10 y+20 w215 h55,一键Everything[搜索选中文字][激活][隐藏]
+	Gui,66:Add,Hotkey,xm+10 yp+20 w140 vvEvKey,%EvKey%
+	Gui,66:Add,Checkbox,Checked%EvWinKey% xm+155 yp+3 vvEvWinKey,Win
+	Gui,66:Add,GroupBox,xm-10 y+20 w340 h130,Everything安装路径
+	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp w260 r4 vvEvPath,%EvPath%
+	
+	Gui,66:Tab,一键搜索,,Exact
+	Gui,66:Add,GroupBox,xm-10 y+20 w340 h255,一键搜索选中文字
+	Gui,66:Add,Hotkey,xm yp+30 w140 vvOneKey,%OneKey%
+	Gui,66:Add,Checkbox,Checked%OneWinKey% xm+155 yp+3 vvOneWinKey,Win
+	Gui,66:Add,Text,xm yp+40 w250,一键搜索网址(`%s为选中文字的替代参数)
+	Gui,66:Add,Edit,xm yp+20 w325 r4 vvOnePath,%OnePath%
 	
 	Gui,66:Tab,图标设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+10 w340 h280,图标自定义设置（文件路径,序号）
-	Gui,66:Add,Text,xm yp+30 w80,树目录图标
+	Gui,66:Add,Text,xm yp+30 w80,树节点图标
 	Gui,66:Add,Edit,xm+70 yp w250 r1 vvTreeIcon,%TreeIcon%
 	Gui,66:Add,Text,xm yp+30 w80,文件夹图标
 	Gui,66:Add,Edit,xm+70 yp w250 r1 vvFolderIcon,%FolderIcon%
@@ -554,7 +949,7 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+70 yp w250 r1 vvAnyIcon,%AnyIcon%
 	
 	Gui,66:Tab
-	Gui,66:Add,Button,Default xm y+30 w75 GSetOK,确定(&Y)
+	Gui,66:Add,Button,Default xm y+45 w75 GSetOK,确定(&Y)
 	Gui,66:Add,Button,x+5 w75 GSetCancel,取消(&C)
 	Gui,66:Add,Button,x+5 w75 GSetReSet,重置
 	Gui,66:Show,,%RunAnyZz%设置
@@ -564,24 +959,28 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v2.2
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v2.5
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
 	Gui,99:Add,Text,y+10
 	Gui,99:Font,,Consolas
-	Gui,99:Add,Text,y+10, by Zz @2017.1.22 建议：hui0.0713@gmail.com
+	Gui,99:Add,Text,y+10, by Zz @2017.2.25 建议：hui0.0713@gmail.com
 	Gui,99:Font,CBlue Underline
 	Gui,99:Add,Text,y+10 Ggithub, GitHub：https://github.com/hui-Zz/RunAny
+	Gui,99:Add,Text,y+10 GQQRunAny, 讨论QQ群：[246308937]、3222783、493194474
 	Gui,99:Font
-	Gui,99:Add,Text,y+10, 讨论QQ群：[246308937]、3222783、493194474
 	Gui,99:Show,,关于%RunAnyZz%
 	hCurs:=DllCall("LoadCursor","UInt",NULL,"Int",32649,"UInt") ;IDC_HAND
 	OnMessage(0x200,"WM_MOUSEMOVE") 
 	return
-SetPath:
-	FileSelectFile, evFilePath, 3, Everything.exe, Everything安装路径, Everything (*.exe)
-	GuiControl,, vZzpath, %evFilePath%
+SetEvPath:
+	FileSelectFile, evFilePath, 3, Everything.exe, Everything安装路径, (Everything.exe)
+	GuiControl,, vEvPath, %evFilePath%
+return
+SetTcPath:
+	FileSelectFile, tcFilePath, 3, , TC安装路径, (Totalcmd.exe;Totalcmd64.exe)
+	GuiControl,, vTcPath, %tcFilePath%
 return
 SetOK:
 	Gui,Submit
@@ -593,8 +992,17 @@ SetOK:
 			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		}
 	}
+	Reg_Set(vDisableApp,DisableApp,"DisableApp")
+	Reg_Set(vHideFail,HideFail,"HideFail")
 	Reg_Set(vMenuKey,MenuKey,"MenuKey")
+	Reg_Set(vMenuWinKey,MenuWinKey,"MenuWinKey")
+	Reg_Set(vEvKey,EvKey,"EvKey")
+	Reg_Set(vEvWinKey,EvWinKey,"EvWinKey")
 	Reg_Set(vEvPath,EvPath,"EvPath")
+	Reg_Set(vOneKey,OneKey,"OneKey")
+	Reg_Set(vOneWinKey,OneWinKey,"OneWinKey")
+	Reg_Set(vOnePath,OnePath,"OnePath")
+	Reg_Set(vTcPath,TcPath,"TcPath")
 	Reg_Set(vTreeIcon,TreeIcon,"TreeIcon")
 	Reg_Set(vFolderIcon,FolderIcon,"FolderIcon")
 	Reg_Set(vUrlIcon,UrlIcon,"UrlIcon")
@@ -610,10 +1018,14 @@ SetCancel:
 return
 SetReSet:
 	RegDelete, HKEY_CURRENT_USER, SOFTWARE\RunAny
-	Gui,Destroy
+	RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
+	Reload
 return
 github:
 	Run,https://github.com/hui-Zz/RunAny
+return
+QQRunAny:
+	Run,https://jq.qq.com/?_wv=1027&k=445Ug7u
 return
 Reg_Set(vGui, var, sz){
 	if(vGui!=var){
@@ -629,8 +1041,8 @@ MenuTray(){
 	Menu,Tray,add,启动菜单(&Z),Menu_Show
 	Menu,Tray,add,菜单配置(&E),Menu_Edit
 	Menu,Tray,add,配置文件(&F),Menu_Ini
-	Menu,Tray,add,设置(&D),Menu_Set
-	Menu,Tray,Add,关于(&A)...,Menu_About
+	Menu,Tray,add,设置RunAny(&D),Menu_Set
+	Menu,Tray,Add,关于RunAny(&A)...,Menu_About
 	Menu,Tray,add
 	Menu,Tray,add,重启(&R),Menu_Reload
 	Menu,Tray,add,挂起(&S),Menu_Suspend
@@ -707,14 +1119,45 @@ class everything
 	}
 }
 ;══════════════════════════════════════════════════════════════════
+;~;[导入桌面程序菜单]
+Desktop_Import:
+	Gosub,Desktop_Append
+	Gui,Destroy
+	Gosub,Menu_Edit
+return
+Desktop_Append:
+	desktopItem:="`n-桌面(&D)`n"
+	desktopDir:=""
+	Loop,%A_Desktop%\*.lnk,0,1
+	{
+		if(A_LoopFileDir!=A_Desktop && A_LoopFileDir!=desktopDir){
+			desktopDir:=A_LoopFileDir
+			StringReplace,dirItem,desktopDir,%A_Desktop%\
+			desktopItem.="`t--" dirItem "`n"
+		}
+		desktopItem.="`t" A_LoopFileName "`n"
+	}
+	desktopItem.="`n"
+	desktopDir:=""
+	Loop,%A_Desktop%\*.exe,0,1
+	{
+		if(A_LoopFileDir!=A_Desktop && A_LoopFileDir!=desktopDir){
+			desktopDir:=A_LoopFileDir
+			StringReplace,dirItem,desktopDir,%A_Desktop%\
+			desktopItem.="`t--" dirItem "`n"
+		}
+		desktopItem.="`t" A_LoopFileName "`n"
+	}
+	FileAppend,%desktopItem%,%iniFile%
+return
 ;~;[初次运行]
 First_Run:
 FileAppend,
 (
 ;以【;】开头代表注释
-;以【-】开头+名称表示1级目录
+;以【-】开头+名称表示1级节点
 -App常用
-	;以【--】开头+名称表示2级目录树
+	;以【--】开头+名称表示2级节点树
 	--佳软
 		;在【|】前加上TC的简称显示
 		TC|Totalcmd.exe
@@ -745,29 +1188,22 @@ FileAppend,
 	QQPlayer.exe
 	PotPlayer.exe
 -Web网址
-	更新地址&GitHub|https://github.com/hui-Zz/RunAny
+	百度(&B)|https://www.baidu.com/s?wd=
+	翻译(&F)|http://translate.google.cn/#auto/zh-CN/
+	淘宝(&T)|https://s.taobao.com/search?q=
+	--
+	RunAny地址|https://github.com/hui-Zz/RunAny
 -File文件
 	WinRAR.exe
 -Sys系统
 	cmd.exe
 	控制面板(&S)|Control.exe
--桌面(&D)`n
 ),%iniFile%
-desktopItem:=""
-Loop,%A_Desktop%\*.lnk,0,1
-{
-	desktopItem.="`t" A_LoopFileName "`n"
-}
-desktopItem.="-`n"
-Loop,%A_Desktop%\*.exe,0,1
-{
-	desktopItem.="`t" A_LoopFileName "`n"
-}
-FileAppend,%desktopItem%,%iniFile%
+Gosub,Desktop_Append
 FileAppend,
 (
 -
-;1级分隔符【-】并且使下面项目都回归1级目录
+;1级分隔符【-】并且使下面项目都回归1级节点
 QQ.exe
 ;使用【&】指定快捷键为C,忽略下面C盘的快捷键C
 计算器(&C)|calc.exe
