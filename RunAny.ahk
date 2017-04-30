@@ -173,8 +173,10 @@ Menu_Add(menuName,menuItem){
 			webIcon:=A_ScriptDir "\RunIcon\" website ".ico"
 			if(FileExist(webIcon)){
 				Menu,%menuName%,Icon,%menuItem%,%webIcon%,0
+				IL_Add(ImageListID, webIcon, 0)
 			}else{
-				Menu,%menuName%,Icon,%menuItem%,% UrlIconS[1],% UrlIconS[2]
+				Menu,%menuName%,Icon,%menuItem%,shell32.dll,44
+				IL_Add(ImageListID, "shell32.dll", 44)
 			}
 		}else if(InStr(item,"\",,0,1)=itemLen){
 			Menu,%menuName%,Icon,%menuItem%,% FolderIconS[1],% FolderIconS[2]
@@ -336,15 +338,12 @@ Icon_Set:
 	global TreeIconS:=StrSplit(TreeIcon,",")
 	FolderIcon:=Var_Read("FolderIcon","shell32.dll,4")
 	global FolderIconS:=StrSplit(FolderIcon,",")
-	UrlIcon:=Var_Read("UrlIcon","shell32.dll,44")
-	global UrlIconS:=StrSplit(UrlIcon,",")
 	BATIcon:=Var_Read("BATIcon","shell32.dll,72")
 	global BATIconS:=StrSplit(BATIcon,",")
 	AHKIcon:=Var_Read("AHKIcon","shell32.dll,74")
 	global AHKIconS:=StrSplit(AHKIcon,",")
 	EXEIcon:=Var_Read("EXEIcon","shell32.dll,3")
 	global EXEIconS:=StrSplit(EXEIcon,",")
-	global exeIconNum:=7
 	;~;[树型菜单图标集]
 	global ImageListID := IL_Create(6)
 	IL_Add(ImageListID, "shell32.dll", 1)
@@ -352,7 +351,6 @@ Icon_Set:
 	IL_Add(ImageListID, EXEIconS[1], EXEIconS[2])
 	IL_Add(ImageListID, FolderIconS[1], FolderIconS[2])
 	IL_Add(ImageListID, "shell32.dll", 264)
-	IL_Add(ImageListID, UrlIconS[1], UrlIconS[2])
 		IL_Add(ImageListID, TreeIconS[1], TreeIconS[2])
 return
 ;~;[调用判断]
@@ -419,6 +417,7 @@ Menu_Edit:
 	global moveRoot:=Object()
 	moveRoot[1]:="moveMenu"
 	global moveLevel:=0
+	global exeIconNum:=6
 	;~;[树型菜单初始化]
 	Gui, Destroy
 	Gui, +Resize
@@ -436,9 +435,9 @@ Menu_Edit:
 			treeLevel:=StrLen(RegExReplace(Z_ReadLine,"S)(^-+).+","$1"))
 			if(RegExMatch(Z_ReadLine,"S)^-+[^-]+.*")){
 				if(treeLevel=1){
-					treeRoot.Insert(treeLevel,TV_Add(Z_ReadLine,,"Bold Icon7"))
+					treeRoot.Insert(treeLevel,TV_Add(Z_ReadLine,,"Bold Icon6"))
 				}else{
-					treeRoot.Insert(treeLevel,TV_Add(Z_ReadLine,treeRoot[treeLevel-1],"Bold Icon7"))
+					treeRoot.Insert(treeLevel,TV_Add(Z_ReadLine,treeRoot[treeLevel-1],"Bold Icon6"))
 				}
 				TV_MoveMenu(Z_ReadLine)
 			}else if(Z_ReadLine="-"){
@@ -525,8 +524,8 @@ TVMenu(addMenu){
 Set_Icon(itemVar){
 	itemLen:=StrLen(itemVar)
 	if(RegExMatch(itemVar,"S)^-+[^-]+.*"))
-		return "Icon7"
-	if(RegExMatch(itemVar,"iS)\.(exe|lnk)$")){
+		return "Icon6"
+	if(RegExMatch(itemVar,"iS)\.(exe|lnk)$") || RegExMatch(itemVar,"iS)([\w-]+://?|www[.]).*")){
 		exeIconNum++
 		return "Icon" . exeIconNum
 	}
@@ -534,8 +533,6 @@ Set_Icon(itemVar){
 		return "Icon2"
 	if(InStr(itemVar,"\",,0,1)=itemLen)
 		return "Icon4"
-	if(RegExMatch(itemVar,"iS)([\w-]+://?|www[.]).*"))
-		return "Icon6"
 	return "Icon1"
 }
 TVClick:
@@ -951,8 +948,6 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+70 yp w250 r1 vvTreeIcon,%TreeIcon%
 	Gui,66:Add,Text,xm yp+30 w80,文件夹图标
 	Gui,66:Add,Edit,xm+70 yp w250 r1 vvFolderIcon,%FolderIcon%
-	Gui,66:Add,Text,xm yp+30 w80,网址图标
-	Gui,66:Add,Edit,xm+70 yp w250 r1 vvUrlIcon,%UrlIcon%
 	Gui,66:Add,Text,xm yp+30 w80,批处理图标
 	Gui,66:Add,Edit,xm+70 yp w250 r1 vvBATIcon,%BATIcon%
 	Gui,66:Add,Text,xm yp+30 w80,AHK图标
@@ -1021,7 +1016,6 @@ SetOK:
 	Reg_Set(vTcPath,TcPath,"TcPath")
 	Reg_Set(vTreeIcon,TreeIcon,"TreeIcon")
 	Reg_Set(vFolderIcon,FolderIcon,"FolderIcon")
-	Reg_Set(vUrlIcon,UrlIcon,"UrlIcon")
 	Reg_Set(vBATIcon,BATIcon,"BATIcon")
 	Reg_Set(vAHKIcon,AHKIcon,"AHKIcon")
 	Reg_Set(vEXEIcon,EXEIcon,"EXEIcon")
