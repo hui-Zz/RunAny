@@ -56,7 +56,7 @@ RunAny演示：<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/
 
 ## <a name="ver">【RunAny版本更新历史】</a>
 
-### 【RunAny】v2.6 图标优化
+### 【RunAny】v2.6 图标优化🖼
 + 现在菜单配置中程序将显示自己的图标！
 + 在菜单配置加入"网站图标"功能，点击即可下载菜单中所以网站图标
   + 下载完成后网站无论是快捷启动还是菜单配置都将显示自己的图标
