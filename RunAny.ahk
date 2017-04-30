@@ -695,6 +695,9 @@ Website_Icon:
 	MsgBox,33,下载网站图标,确定下载RunAny内所有网站图标吗？`n下载的图标在%A_ScriptDir%\RunIcon
 	IfMsgBox Ok
 	{
+		IconPath:=A_ScriptDir "\RunIcon\"
+		IfNotExist %IconPath%
+			FileCreateDir,%IconPath%
 		errDown:=""
 		ItemID = 0
 		Loop
@@ -709,7 +712,7 @@ Website_Icon:
 				webText:=(diyText[2]) ? diyText[2] : diyText[1]
 				if(RegExMatch(webText,"iS)([\w-]+://?|www[.]).*")){
 					website:=RegExReplace(webText,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
-					webIcon:=A_ScriptDir "\RunIcon\" website ".ico"
+					webIcon:=IconPath website ".ico"
 					URLDownloadToFile,http://%website%/favicon.ico,%webIcon%
 					GuiControl,, MyProgress, +10
 				}
@@ -720,6 +723,9 @@ Website_Icon:
 		if(errDown!="")
 			MsgBox,以下网站图标无法下载，可以手动重命名添加到%A_ScriptDir%\RunIcon`n%errDown%
 		GuiControl, Hide, MyProgress
+		MsgBox,65,,图标下载完成，是否要重启生效？
+		IfMsgBox Ok
+			Reload
 	}
 return
 ;~;[上下移动项目]
