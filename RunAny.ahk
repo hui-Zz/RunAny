@@ -1,8 +1,8 @@
 ﻿/*
 ╔═════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v2.5
+║【RunAny】一劳永逸的快速启动工具 v2.6 极速版
 ║ by Zz 建议：hui0.0713@gmail.com
-║ @2017.2.25 github.com/hui-Zz/RunAny
+║ @2017.4.30 github.com/hui-Zz/RunAny
 ║ 讨论QQ群：[246308937]、3222783、493194474
 ╚═════════════════════════════════
 */
@@ -70,7 +70,9 @@ while !WinExist("ahk_exe Everything.exe")
 			break
 		}else{
 			gosub,Menu_Set
-			MsgBox,16,,RunAny需要Everything快速识别程序的路径`n请设置正确安装路径或下载Everything：http://www.voidtools.com/
+			MsgBox,17,,RunAny需要Everything快速识别程序的路径`n请设置正确安装路径或下载Everything：http://www.voidtools.com/
+			IfMsgBox Ok
+				Run,http://www.voidtools.com/
 			evExist:=false
 			break
 		}
@@ -151,12 +153,16 @@ Menu_Add(menuName,menuItem){
 		if(Ext_Check(item,itemLen,".lnk")){
 			try{
 				FileGetShortcut, %item%, OutItem, , , , OutIcon, OutIconNum
-				if(OutIcon)
+				if(OutIcon){
 					Menu,%menuName%,Icon,%menuItem%,%OutIcon%,%OutIconNum%
-				else
+					IL_Add(ImageListID, OutIcon, OutIconNum)
+				}else{
 					Menu,%menuName%,Icon,%menuItem%,%OutItem%
+					IL_Add(ImageListID, OutItem, 0)
+				}
 			} catch e {
 				Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,264
+				IL_Add(ImageListID, "shell32.dll", 264)
 			}
 		}else if(Ext_Check(item,itemLen,".ahk")){
 			Menu,%menuName%,Icon,%menuItem%,% AHKIconS[1],% AHKIconS[2]
@@ -176,8 +182,10 @@ Menu_Add(menuName,menuItem){
 			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,2
 		}else{
 			Menu,%menuName%,Icon,%menuItem%,%item%
+			IL_Add(ImageListID, item, 0)
 		}
 	} catch e {
+		IL_Add(ImageListID, EXEIconS[1], EXEIconS[2])
 		if(HideFail)
 			Menu,%menuName%,Delete,%menuItem%
 		else
@@ -302,19 +310,29 @@ Var_Set:
 	}else if(FileExist(A_ScriptDir "\ZzIcon.dll")){
 		iconAny:="ZzIcon.dll,1"
 		iconMenu:="ZzIcon.dll,2"
+		TreeIcon:="ZzIcon.dll,3"
+		MoveIcon:="ZzIcon.dll,4"
+		UpIcon:="ZzIcon.dll,5"
+		DownIcon:="ZzIcon.dll,6"
 	}else{
 		iconAny:="shell32.dll,190"
 		iconMenu:="shell32.dll,195"
+		MoveIcon:="SHELL32.dll,246"
+		UpIcon:="SHELL32.dll,247"
+		DownIcon:="SHELL32.dll,248"
 	}
 	global AnyIcon:=Var_Read("AnyIcon",iconAny)
 	global AnyIconS:=StrSplit(AnyIcon,",")
 	global MenuIcon:=Var_Read("MenuIcon",iconMenu)
 	global MenuIconS:=StrSplit(MenuIcon,",")
+	global MoveIconS:=StrSplit(MoveIcon,",")
+	global UpIconS:=StrSplit(UpIcon,",")
+	global DownIconS:=StrSplit(DownIcon,",")
 	global MenuCommonList:={}
 return
 ;~;[后缀图标初始化]
 Icon_Set:
-	TreeIcon:=Var_Read("TreeIcon")
+	TreeIcon:=Var_Read("TreeIcon",TreeIcon)
 	global TreeIconS:=StrSplit(TreeIcon,",")
 	FolderIcon:=Var_Read("FolderIcon","shell32.dll,4")
 	global FolderIconS:=StrSplit(FolderIcon,",")
@@ -326,6 +344,16 @@ Icon_Set:
 	global AHKIconS:=StrSplit(AHKIcon,",")
 	EXEIcon:=Var_Read("EXEIcon","shell32.dll,3")
 	global EXEIconS:=StrSplit(EXEIcon,",")
+	global exeIconNum:=7
+	;~;[树型菜单图标集]
+	global ImageListID := IL_Create(6)
+	IL_Add(ImageListID, "shell32.dll", 1)
+	IL_Add(ImageListID, "shell32.dll", 2)
+	IL_Add(ImageListID, EXEIconS[1], EXEIconS[2])
+	IL_Add(ImageListID, FolderIconS[1], FolderIconS[2])
+	IL_Add(ImageListID, "shell32.dll", 264)
+	IL_Add(ImageListID, UrlIconS[1], UrlIconS[2])
+		IL_Add(ImageListID, TreeIconS[1], TreeIconS[2])
 return
 ;~;[调用判断]
 Run_Exist:
@@ -386,18 +414,6 @@ Get_Zz(){
 ;~;[菜单配置]
 Menu_Edit:
 	global TVFlag:=false
-	;~;[树型菜单图标集]
-	ImageListID := IL_Create(6)
-	IL_Add(ImageListID, "shell32.dll", 1)
-	IL_Add(ImageListID, "shell32.dll", 2)
-	IL_Add(ImageListID, EXEIconS[1], EXEIconS[2])
-	IL_Add(ImageListID, FolderIconS[1], FolderIconS[2])
-	IL_Add(ImageListID, "shell32.dll", 264)
-	IL_Add(ImageListID, UrlIconS[1], UrlIconS[2])
-	if(TreeIcon)
-		IL_Add(ImageListID, TreeIconS[1], TreeIconS[2])
-	else
-		IL_Add(ImageListID, "shell32.dll", 42)
 	;~;[功能菜单初始化]
 	treeRoot:=Object()
 	global moveRoot:=Object()
@@ -490,11 +506,11 @@ TVMenu(addMenu){
 	Menu, %addMenu%, Icon,% flag ? "删除" : "删除`tDel", SHELL32.dll,132
 	Menu, %addMenu%, Add
 	Menu, %addMenu%, Add,移动到..., :moveMenu
-	Menu, %addMenu%, Icon,移动到..., SHELL32.dll,246
+	Menu, %addMenu%, Icon,移动到...,% MoveIconS[1],% MoveIconS[2]
 	Menu, %addMenu%, Add,% flag ? "向下" : "向下`t(F5/PgDn)", TVDown
-	Menu, %addMenu%, Icon,% flag ? "向下" : "向下`t(F5/PgDn)", SHELL32.dll,248
+	Menu, %addMenu%, Icon,% flag ? "向下" : "向下`t(F5/PgDn)",% DownIconS[1],% DownIconS[2]
 	Menu, %addMenu%, Add,% flag ? "向上" : "向上`t(F6/PgUp)", TVUp
-	Menu, %addMenu%, Icon,% flag ? "向上" : "向上`t(F6/PgUp)", SHELL32.dll,247
+	Menu, %addMenu%, Icon,% flag ? "向上" : "向上`t(F6/PgUp)",% UpIconS[1],% UpIconS[2]
 	Menu, %addMenu%, Add
 	Menu, %addMenu%, Add,% flag ? "多选导入" : "多选导入`tF8", TVImportFile
 	Menu, %addMenu%, Icon,% flag ? "多选导入" : "多选导入`tF8", SHELL32.dll,55
@@ -510,10 +526,10 @@ Set_Icon(itemVar){
 	itemLen:=StrLen(itemVar)
 	if(RegExMatch(itemVar,"S)^-+[^-]+.*"))
 		return "Icon7"
-	if(Ext_Check(itemVar,itemLen,".exe"))
-		return "Icon3"
-	if(Ext_Check(itemVar,itemLen,".lnk"))
-		return "Icon5"
+	if(RegExMatch(itemVar,"iS)\.(exe|lnk)$")){
+		exeIconNum++
+		return "Icon" . exeIconNum
+	}
 	if(InStr(itemVar,";")=1 || itemVar="")
 		return "Icon2"
 	if(InStr(itemVar,"\",,0,1)=itemLen)
@@ -959,13 +975,13 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v2.5
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v2.6 极速版
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
 	Gui,99:Add,Text,y+10
 	Gui,99:Font,,Consolas
-	Gui,99:Add,Text,y+10, by Zz @2017.2.25 建议：hui0.0713@gmail.com
+	Gui,99:Add,Text,y+10, by Zz @2017.4.30 建议：hui0.0713@gmail.com
 	Gui,99:Font,CBlue Underline
 	Gui,99:Add,Text,y+10 Ggithub, GitHub：https://github.com/hui-Zz/RunAny
 	Gui,99:Add,Text,y+10 GQQRunAny, 讨论QQ群：[246308937]、3222783、493194474
