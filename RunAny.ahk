@@ -1,8 +1,8 @@
 ﻿/*
 ╔═════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v2.6 极速版
+║【RunAny】一劳永逸的快速启动工具 v2.7 极速版
 ║ by Zz 建议：hui0.0713@gmail.com
-║ @2017.4.30 github.com/hui-Zz/RunAny
+║ @2017.5.6 github.com/hui-Zz/RunAny
 ║ 讨论QQ群：[246308937]、3222783、493194474
 ╚═════════════════════════════════
 */
@@ -519,8 +519,13 @@ GuiSize:
 return
 GuiClose:
 	if(TVFlag){
-		MsgBox,49,菜单树退出,确定退出而不保存修改吗？
-		IfMsgBox Ok
+		MsgBox,51,菜单树退出,已修改过菜单信息，是否保存修改再退出？
+		IfMsgBox Yes
+		{
+			gosub,Menu_Save
+			Gui, Destroy
+		}
+		IfMsgBox No
 			Gui, Destroy
 	}else{
 		Gui, Destroy
@@ -644,6 +649,13 @@ TVSave:
 		MsgBox,33,菜单树保存,需要保存修改吗？
 		IfMsgBox Ok
 		{
+			gosub,Menu_Save
+		}
+	}else{
+		Gui,Destroy
+	}
+return
+Menu_Save:
 			ItemID = 0
 			tabText:=""
 			saveText:=""
@@ -671,10 +683,6 @@ TVSave:
 			FileDelete,%iniFile%
 			FileAppend,%saveText%,%iniFile%
 			Reload
-		}
-	}else{
-		Gui,Destroy
-	}
 return
 ;~;[制表符设置]
 Set_Tab(tabNum){
@@ -689,37 +697,55 @@ TVImportFile:
 	selID:=TV_GetSelection()
 	parentID:=TV_GetParent(selID)
 	FileSelectFile, exeName, M35, , 选择多项要导入的EXE(快捷方式), (*.exe;*.lnk)
+	Menu,import%selID%,add,TVImportFolder	;只用于测试应用图标
 	Loop,parse,exeName,`n
 	{
 		if(A_Index=1){
 			lnkPath:=A_LoopField
 		}else{
 			I_LoopField:=A_LoopField
+			exePath:=lnkPath "\" I_LoopField
 			if Ext_Check(I_LoopField,StrLen(I_LoopField),".lnk"){
 				FileGetShortcut,%lnkPath%\%I_LoopField%,exePath
 				if Ext_Check(exePath,StrLen(exePath),".exe")
 					SplitPath,exePath,I_LoopField
 			}
-			fileID:=TV_Add(I_LoopField,parentID,selID)
+			try{
+				Menu,import%selID%,Icon,TVImportFolder,%exePath%,0
+				IL_Add(ImageListID, exePath, 0)
+				exeIconNum++
+				fileID:=TV_Add(I_LoopField,parentID,"Icon" . exeIconNum)
+			} catch e {
+				fileID:=TV_Add(I_LoopField,parentID,"Icon3")
+			} finally {
 			TVFlag:=true
+			}
 		}
 	}
 return
 TVImportFolder:
+	selID:=TV_GetSelection()
+	parentID:=TV_GetParent(selID)
 	FileSelectFolder, folderName, , 0
+	Menu,import%selID%,add,TVImportFolder	;只用于测试应用图标
 	if(folderName){
 		MsgBox,33,导入文件夹所有exe和lnk,确定导入%folderName%及子文件夹下所有程序和快捷方式吗？
 		IfMsgBox Ok
 		{
-			selID:=TV_GetSelection()
-			parentID:=TV_GetParent(selID)
 			Loop,%folderName%\*.lnk,0,1
 			{
-				lnkID:=TV_Add(A_LoopFileName,parentID,selID)
+				lnkID:=TV_Add(A_LoopFileName,parentID,"Icon5")
 			}
 			Loop,%folderName%\*.exe,0,1
 			{
-				folderID:=TV_Add(A_LoopFileName,parentID,selID)
+				try{
+					Menu,import%selID%,Icon,TVImportFolder,%A_LoopFileFullPath%,0
+					IL_Add(ImageListID, A_LoopFileFullPath, 0)
+					exeIconNum++
+					folderID:=TV_Add(A_LoopFileName,parentID,"Icon" . exeIconNum)
+				} catch e {
+					folderID:=TV_Add(A_LoopFileName,parentID,"Icon3")
+				}
 			}
 			TVFlag:=true
 		}
@@ -1010,13 +1036,13 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v2.6 极速版
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v2.7 极速版
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
 	Gui,99:Add,Text,y+10
 	Gui,99:Font,,Consolas
-	Gui,99:Add,Text,y+10, by Zz @2017.4.30 建议：hui0.0713@gmail.com
+	Gui,99:Add,Text,y+10, by Zz @2017.5.6 建议：hui0.0713@gmail.com
 	Gui,99:Font,CBlue Underline
 	Gui,99:Add,Text,y+10 Ggithub, GitHub：https://github.com/hui-Zz/RunAny
 	Gui,99:Add,Text,y+10 GQQRunAny, 讨论QQ群：[246308937]、3222783、493194474
