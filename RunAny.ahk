@@ -1,8 +1,8 @@
 ﻿/*
 ╔═════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v2.6 图标优化
+║【RunAny】一劳永逸的快速启动工具 v2.6 极速版
 ║ by Zz 建议：hui0.0713@gmail.com
-║ @2017.3.12 github.com/hui-Zz/RunAny
+║ @2017.4.30 github.com/hui-Zz/RunAny
 ║ 讨论QQ群：[246308937]、3222783、493194474
 ╚═════════════════════════════════
 */
@@ -17,6 +17,7 @@ SetWorkingDir,%A_ScriptDir%	;~脚本当前工作目录
 SplitPath,A_ScriptFullPath,,,,fileNotExt
 ;~ StartTick:=A_TickCount	;若要评估出menu时间
 RunAnyZz:="RunAny"
+global fast:=true
 Gosub,Var_Set
 MenuTray()
 Gosub,Run_Exist
@@ -89,6 +90,7 @@ If(evExist){
 ;══════════════════════════════════════════════════════════════════
 ;~;[读取自定义树形菜单设置]
 Gosub,Icon_Set
+Menu_Init:
 menuRoot:=Object()
 menuRoot.Insert(RunAnyZz)
 menuLevel:=1
@@ -105,7 +107,7 @@ Loop, read, %iniFile%
 			Menu,% menuRoot[menuLevel],Icon,%menuItem%,% TreeIconS[1],% TreeIconS[2]
 			menuLevel+=1
 			menuRoot[menuLevel]:=menuItem
-		}else if(menuRoot[menuLevel]){
+		}else if(fast && menuRoot[menuLevel]){
 			Menu,% menuRoot[menuLevel],Add
 		}
 	}else if(InStr(Z_ReadLine,";")=1 || Z_ReadLine=""){
@@ -119,29 +121,46 @@ Loop, read, %iniFile%
 		}else{
 			MenuObj[menuDiy[1]]:=menuDiy[2]
 		}
-		Menu_Add(menuRoot[menuLevel],menuDiy[1])
+		if(fast){
+			Menu_Add_Fast(menuRoot[menuLevel],menuDiy[1])
+		}else{
+			Menu_Add(menuRoot[menuLevel],menuDiy[1])
+		}
 	}else if(RegExMatch(Z_ReadLine,"iS)^(\\\\|.:\\).*?\.exe$")){
 		;~ ;[生成完全路径的应用]
 		SplitPath,Z_ReadLine,fileName,,,nameNotExt
 		MenuObj[nameNotExt]:=Z_ReadLine
-		Menu_Add(menuRoot[menuLevel],nameNotExt)
+		if(fast){
+			Menu_Add_Fast(menuRoot[menuLevel],nameNotExt)
+		}else{
+			Menu_Add(menuRoot[menuLevel],nameNotExt)
+		}
 	}else{
 		;[生成已取到的应用]
 		appName:=RegExReplace(Z_ReadLine,"iS)\.(exe|lnk)$")
 		if(!MenuObj[appName])
 			MenuObj[appName]:=Z_ReadLine
-		Menu_Add(menuRoot[menuLevel],appName)
+		if(fast){
+			Menu_Add_Fast(menuRoot[menuLevel],appName)
+		}else{
+			Menu_Add(menuRoot[menuLevel],appName)
+		}
 	}
 }
 Menu,% menuRoot[1],Add
-try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 if(ini){
+	ini:=false
 	TrayTip,,RunAny菜单初始化完成`n右击任务栏图标设置,3,1
 	gosub,Menu_About
 	gosub,Menu_Show
 }
-ini=true
 ;~ TrayTip,,% A_TickCount-StartTick "毫秒",3,17
+;~;>>如果当前是无图标极速菜单,则开始加载图标的正常菜单
+if(fast){
+	fast:=false
+	gosub,Menu_Init
+}
+try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 return
 ;══════════════════════════════════════════════════════════════════
 ;~;[生成菜单]
@@ -149,7 +168,8 @@ Menu_Add(menuName,menuItem){
 	try {
 		item:=MenuObj[(menuItem)]
 		itemLen:=StrLen(item)
-		Menu,%menuName%,add,%menuItem%,Menu_Run
+		if(!fast)
+			Menu,%menuName%,add,%menuItem%,Menu_Run
 		if(Ext_Check(item,itemLen,".lnk")){
 			try{
 				FileGetShortcut, %item%, OutItem, , , , OutIcon, OutIconNum
@@ -188,10 +208,23 @@ Menu_Add(menuName,menuItem){
 		}
 	} catch e {
 		IL_Add(ImageListID, EXEIconS[1], EXEIconS[2])
-		if(HideFail)
+		if(HideFail){
 			Menu,%menuName%,Delete,%menuItem%
-		else
+		}else{
 			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,124
+		}
+	}
+}
+;~;[生成菜单_极速]
+Menu_Add_Fast(menuName,menuItem){
+	try {
+		Menu,%menuName%,add,%menuItem%,Menu_Run
+	} catch e {
+		if(HideFail){
+			Menu,%menuName%,Delete,%menuItem%
+		}else{
+			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,124
+		}
 	}
 }
 ;~;[显示菜单]
@@ -351,7 +384,7 @@ Icon_Set:
 	IL_Add(ImageListID, EXEIconS[1], EXEIconS[2])
 	IL_Add(ImageListID, FolderIconS[1], FolderIconS[2])
 	IL_Add(ImageListID, "shell32.dll", 264)
-		IL_Add(ImageListID, TreeIconS[1], TreeIconS[2])
+	IL_Add(ImageListID, TreeIconS[1], TreeIconS[2])
 return
 ;~;[调用判断]
 Run_Exist:
@@ -409,6 +442,7 @@ Get_Zz(){
 	return CandySel
 }
 ;══════════════════════════════════════════════════════════════════
+
 ;~;[菜单配置]
 Menu_Edit:
 	global TVFlag:=false
@@ -919,37 +953,37 @@ Menu_Set:
 	Gui,66:Destroy
 	Gui,66:Font,,Microsoft YaHei
 	Gui,66:Margin,30,20
-	Gui,66:Add,Tab,x10 y10 w360 h340,RunAny设置|Everything设置|一键搜索|图标设置
+	Gui,66:Add,Tab,x10 y10 w360 h350,RunAny设置|Everything设置|一键搜索|图标设置
 	Gui,66:Tab,RunAny设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+10 w200 h70,RunAny
+	Gui,66:Add,GroupBox,xm-10 y+5 w200 h70,RunAny
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+25 vvAutoRun,开机自动启动
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
-	Gui,66:Add,GroupBox,xm-10 y+20 w215 h55,自定义显示热键
+	Gui,66:Add,GroupBox,xm-10 y+10 w215 h55,自定义显示热键
 	Gui,66:Add,Hotkey,xm+10 yp+20 w140 vvMenuKey,%MenuKey%
 	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+155 yp+3 vvMenuWinKey,Win
-	Gui,66:Add,GroupBox,xm-10 y+20 w330 h85,屏蔽RunAny程序列表（逗号分隔）
+	Gui,66:Add,GroupBox,xm-10 y+15 w330 h85,屏蔽RunAny程序列表（逗号分隔）
 	Gui,66:Add,Edit,xm+10 yp+20 w300 r3 vvDisableApp,%DisableApp%
-	Gui,66:Add,GroupBox,xm-10 y+20 w340 h55,TotalCommander安装路径（TC打开文件夹）
+	Gui,66:Add,GroupBox,xm-10 y+10 w340 h65,TotalCommander安装路径（TC打开文件夹）
 	Gui,66:Add,Button,xm yp+20 w50 GSetTcPath,选择
-	Gui,66:Add,Edit,xm+60 yp w260 r1 vvTcPath,%TcPath%
+	Gui,66:Add,Edit,xm+60 yp w260 r2 vvTcPath,%TcPath%
 	
 	Gui,66:Tab,Everything设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+20 w215 h55,一键Everything[搜索选中文字][激活][隐藏]
 	Gui,66:Add,Hotkey,xm+10 yp+20 w140 vvEvKey,%EvKey%
 	Gui,66:Add,Checkbox,Checked%EvWinKey% xm+155 yp+3 vvEvWinKey,Win
-	Gui,66:Add,GroupBox,xm-10 y+20 w340 h130,Everything安装路径
+	Gui,66:Add,GroupBox,xm-10 y+20 w340 h150,Everything安装路径
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
-	Gui,66:Add,Edit,xm+60 yp w260 r4 vvEvPath,%EvPath%
+	Gui,66:Add,Edit,xm+60 yp w260 r5 vvEvPath,%EvPath%
 	
 	Gui,66:Tab,一键搜索,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+20 w340 h255,一键搜索选中文字
+	Gui,66:Add,GroupBox,xm-10 y+20 w340 h230,一键搜索选中文字
 	Gui,66:Add,Hotkey,xm yp+30 w140 vvOneKey,%OneKey%
 	Gui,66:Add,Checkbox,Checked%OneWinKey% xm+155 yp+3 vvOneWinKey,Win
 	Gui,66:Add,Text,xm yp+40 w250,一键搜索网址(`%s为选中文字的替代参数)
-	Gui,66:Add,Edit,xm yp+20 w325 r4 vvOnePath,%OnePath%
+	Gui,66:Add,Edit,xm yp+20 w325 r5 vvOnePath,%OnePath%
 	
 	Gui,66:Tab,图标设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+10 w340 h280,图标自定义设置（文件路径,序号）
+	Gui,66:Add,GroupBox,xm-10 y+10 w340 h260,图标自定义设置（文件路径,序号）
 	Gui,66:Add,Text,xm yp+30 w80,树节点图标
 	Gui,66:Add,Edit,xm+70 yp w250 r1 vvTreeIcon,%TreeIcon%
 	Gui,66:Add,Text,xm yp+30 w80,文件夹图标
@@ -966,7 +1000,7 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+70 yp w250 r1 vvAnyIcon,%AnyIcon%
 	
 	Gui,66:Tab
-	Gui,66:Add,Button,Default xm y+45 w75 GSetOK,确定(&Y)
+	Gui,66:Add,Button,Default xm y+50 w75 GSetOK,确定(&Y)
 	Gui,66:Add,Button,x+5 w75 GSetCancel,取消(&C)
 	Gui,66:Add,Button,x+5 w75 GSetReSet,重置
 	Gui,66:Show,,%RunAnyZz%设置
@@ -976,13 +1010,13 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v2.6 图标优化
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v2.6 极速版
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
 	Gui,99:Add,Text,y+10
 	Gui,99:Font,,Consolas
-	Gui,99:Add,Text,y+10, by Zz @2017.3.12 建议：hui0.0713@gmail.com
+	Gui,99:Add,Text,y+10, by Zz @2017.4.30 建议：hui0.0713@gmail.com
 	Gui,99:Font,CBlue Underline
 	Gui,99:Add,Text,y+10 Ggithub, GitHub：https://github.com/hui-Zz/RunAny
 	Gui,99:Add,Text,y+10 GQQRunAny, 讨论QQ群：[246308937]、3222783、493194474
@@ -1114,15 +1148,18 @@ class everything
 		dllcall(everyDLL "\Everything_SetSearch",str,aValue)
 		return
 	}
+	;执行搜索动作
 	Query(aValue=1)
 	{
 		dllcall(everyDLL "\Everything_Query",int,aValue)
 		return
 	}
+	;返回匹配总数
 	GetTotResults()
 	{
 		return dllcall(everyDLL "\Everything_GetTotResults")
 	}
+	;返回文件名
 	GetResultFileName(aValue)
 	{
 		return strget(dllcall(everyDLL "\Everything_GetResultFileName",int,aValue))
@@ -1229,4 +1266,5 @@ C盘|C:\
 -
 ),%iniFile%
 ini:=true
+fast:=false
 return
