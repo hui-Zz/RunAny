@@ -1,8 +1,8 @@
 ﻿/*
 ╔═════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v2.7 极速版
+║【RunAny】一劳永逸的快速启动工具 v3.0 批量搜索
 ║ by Zz 建议：hui0.0713@gmail.com
-║ @2017.5.6 github.com/hui-Zz/RunAny
+║ @2017.5.15 github.com/hui-Zz/RunAny
 ║ 讨论QQ群：[246308937]、3222783、493194474
 ╚═════════════════════════════════
 */
@@ -91,9 +91,14 @@ If(evExist){
 ;~;[读取自定义树形菜单设置]
 Gosub,Icon_Set
 Menu_Init:
-menuRoot:=Object()
+;#应用菜单数组#
+global menuRoot:=Object()
 menuRoot.Insert(RunAnyZz)
-menuLevel:=1
+global menuLevel:=1
+;#网址菜单名数组及地址队列#
+global menuWebRoot:=Object()
+global menuWebList:=Object()
+menuWebRoot.Insert(RunAnyZz)
 Loop, read, %iniFile%
 {
 	Z_ReadLine=%A_LoopReadLine%
@@ -127,7 +132,7 @@ Loop, read, %iniFile%
 			Menu_Add(menuRoot[menuLevel],menuDiy[1])
 		}
 	}else if(RegExMatch(Z_ReadLine,"iS)^(\\\\|.:\\).*?\.exe$")){
-		;~ ;[生成完全路径的应用]
+		;~;[生成完全路径的应用]
 		SplitPath,Z_ReadLine,fileName,,,nameNotExt
 		MenuObj[nameNotExt]:=Z_ReadLine
 		if(fast){
@@ -136,7 +141,7 @@ Loop, read, %iniFile%
 			Menu_Add(menuRoot[menuLevel],nameNotExt)
 		}
 	}else{
-		;[生成已取到的应用]
+		;~;[生成已取到的应用]
 		appName:=RegExReplace(Z_ReadLine,"iS)\.(exe|lnk)$")
 		if(!MenuObj[appName])
 			MenuObj[appName]:=Z_ReadLine
@@ -155,15 +160,28 @@ if(ini){
 	gosub,Menu_Show
 }
 ;~ TrayTip,,% A_TickCount-StartTick "毫秒",3,17
-;~;>>如果当前是无图标极速菜单,则开始加载图标的正常菜单
+;#如果当前是无图标极速菜单,则开始加载图标的正常菜单#
 if(fast){
 	fast:=false
 	gosub,Menu_Init
 }
+;#添加网址菜单的批量打开功能
+Loop,% menuWebRoot.MaxIndex()
+{
+	webRoot:=menuWebRoot[A_Index]
+	if(webRoot = menuRoot[1]){
+		Menu,MENUWEB,add
+		Menu,MENUWEB,add,&1批量打开,Web_Run
+		Menu,MENUWEB,Icon,&1批量打开,shell32.dll,44
+	}else{
+		Menu,%webRoot%,add,&1批量打开%webRoot%,Web_Run
+		Menu,%webRoot%,Icon,&1批量打开%webRoot%,shell32.dll,44
+	}
+}
 try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 return
 ;══════════════════════════════════════════════════════════════════
-;~;[生成菜单]
+;~;[生成菜单(判断后缀创建图标)]
 Menu_Add(menuName,menuItem){
 	try {
 		item:=MenuObj[(menuItem)]
@@ -198,6 +216,15 @@ Menu_Add(menuName,menuItem){
 				Menu,%menuName%,Icon,%menuItem%,shell32.dll,44
 				IL_Add(ImageListID, "shell32.dll", 44)
 			}
+			;~ [添加到网址菜单]
+			if(menuName = menuRoot[1]){
+				Menu,MENUWEB,Add,%menuItem%,Menu_Run
+				Menu,MENUWEB,Icon,%menuItem%,%webIcon%,0
+			}else{
+				Menu,MENUWEB,Add,%menuName%, :%menuName%
+			}
+			menuWebList[(menuName)].=menuItem "`n"
+			menuWebRoot[menuLevel]:=menuRoot[menuLevel]
 		}else if(InStr(item,"\",,0,1)=itemLen){
 			Menu,%menuName%,Icon,%menuItem%,% FolderIconS[1],% FolderIconS[2]
 		}else if(InStr(item,";",,0,1)=itemLen){
@@ -229,7 +256,13 @@ Menu_Add_Fast(menuName,menuItem){
 }
 ;~;[显示菜单]
 Menu_Show:
-	Menu,% menuRoot[1],Show
+	global selectZz:=Get_Zz()
+	;#选中文本弹出网址菜单，其他弹出应用菜单#
+	if(selectZz && Candy_isFile!=1){
+		Menu,MENUWEB,Show
+	}else{
+		Menu,% menuRoot[1],Show
+	}
 return
 ;~;[菜单运行]
 Menu_Run:
@@ -252,7 +285,6 @@ Menu_Run:
 			return
 		}
 		try {
-			selectZz:=Get_Zz()
 			if(selectZz){
 				if(Candy_isFile=1){
 					if(GetKeyState("Shift")){
@@ -262,6 +294,8 @@ Menu_Run:
 					}
 				}else if(RegExMatch(any,"iS)([\w-]+://?|www[.]).*")){
 					Run,%any%%selectZz%
+				}else{
+					Run,%any%
 				}
 				return
 			}
@@ -299,10 +333,28 @@ Menu_Common:
 		}
 	}
 return
+Web_Run:
+	webName:=RegExReplace(A_ThisMenuItem,"iS)^&1批量打开")
+	if(webName){
+		webList:=menuWebList[(webName)]
+	}else{
+		webList:=menuWebList[(menuRoot[1])]
+	}
+	MsgBox,33,开始批量打开,确定用【%selectZz%】批量搜索以下网站：`n%webList%
+	IfMsgBox Ok
+	{
+		Loop,parse,webList,`n
+		{
+			if(A_LoopField){
+				any:=MenuObj[(A_LoopField)]
+				Run,%any%%selectZz%
+			}
+		}
+	}
+return
 ;══════════════════════════════════════════════════════════════════
 ;~;[一键Everything][搜索选中文字][激活][隐藏]
 Ev_Show:
-	selectZz:=Get_Zz()
 	if(RegExMatch(selectZz,"S)^(\\\\|.:\\).*?$")){
 		SplitPath,selectZz,fileName
 		selectZz:=fileName
@@ -319,7 +371,6 @@ Ev_Show:
 		Run % evPath (selectZz ? " -search """ selectZz """" : "")
 return
 One_Show:
-	selectZz:=Get_Zz()
 	if(InStr(OnePath,"%s")){
 		Run,% RegExReplace(OnePath,"%s",selectZz)
 	}else{
@@ -656,33 +707,33 @@ TVSave:
 	}
 return
 Menu_Save:
-			ItemID = 0
+	ItemID = 0
+	tabText:=""
+	saveText:=""
+	Loop
+	{
+		ItemID := TV_GetNext(ItemID, "Full")
+		if not ItemID
+			break
+		TV_GetText(ItemText, ItemID)
+		;~;根据保存菜单树生成菜单ini文件
+		treeLevel:=StrLen(RegExReplace(ItemText,"S)(^-+).+","$1"))
+		if(RegExMatch(ItemText,"S)^-+[^-]+.*")){
+			saveText.=Set_Tab(treeLevel-1) . ItemText . "`n"
+			tabText:=Set_Tab(treeLevel)
+		}else if(ItemText="-"){
 			tabText:=""
-			saveText:=""
-			Loop
-			{
-				ItemID := TV_GetNext(ItemID, "Full")
-				if not ItemID
-					break
-				TV_GetText(ItemText, ItemID)
-				;~;根据保存菜单树生成菜单ini文件
-				treeLevel:=StrLen(RegExReplace(ItemText,"S)(^-+).+","$1"))
-				if(RegExMatch(ItemText,"S)^-+[^-]+.*")){
-					saveText.=Set_Tab(treeLevel-1) . ItemText . "`n"
-					tabText:=Set_Tab(treeLevel)
-				}else if(ItemText="-"){
-					tabText:=""
-					saveText.=tabText . ItemText . "`n"
-				}else if(RegExMatch(ItemText,"S)^-+")){
-					tabText:=Set_Tab(treeLevel)
-					saveText.=tabText . ItemText . "`n"
-				}else{
-					saveText.=tabText . ItemText . "`n"
-				}
-			}
-			FileDelete,%iniFile%
-			FileAppend,%saveText%,%iniFile%
-			Reload
+			saveText.=tabText . ItemText . "`n"
+		}else if(RegExMatch(ItemText,"S)^-+")){
+			tabText:=Set_Tab(treeLevel)
+			saveText.=tabText . ItemText . "`n"
+		}else{
+			saveText.=tabText . ItemText . "`n"
+		}
+	}
+	FileDelete,%iniFile%
+	FileAppend,%saveText%,%iniFile%
+	Reload
 return
 ;~;[制表符设置]
 Set_Tab(tabNum){
@@ -718,7 +769,7 @@ TVImportFile:
 			} catch e {
 				fileID:=TV_Add(I_LoopField,parentID,"Icon3")
 			} finally {
-			TVFlag:=true
+				TVFlag:=true
 			}
 		}
 	}
@@ -1036,13 +1087,13 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v2.7 极速版
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v3.0 批量搜索
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
 	Gui,99:Add,Text,y+10
 	Gui,99:Font,,Consolas
-	Gui,99:Add,Text,y+10, by Zz @2017.5.6 建议：hui0.0713@gmail.com
+	Gui,99:Add,Text,y+10, by Zz @2017.5.15 建议：hui0.0713@gmail.com
 	Gui,99:Font,CBlue Underline
 	Gui,99:Add,Text,y+10 Ggithub, GitHub：https://github.com/hui-Zz/RunAny
 	Gui,99:Add,Text,y+10 GQQRunAny, 讨论QQ群：[246308937]、3222783、493194474
@@ -1200,9 +1251,12 @@ class everything
 ;══════════════════════════════════════════════════════════════════
 ;~;[导入桌面程序菜单]
 Desktop_Import:
-	Gosub,Desktop_Append
-	Gui,Destroy
-	Gosub,Menu_Edit
+	MsgBox,33,导入桌面程序,确定导入桌面程序到菜单当中吗？
+	IfMsgBox Ok
+	{
+		Gosub,Desktop_Append
+		Reload
+	}
 return
 Desktop_Append:
 	desktopItem:="`n-桌面(&D)`n"
