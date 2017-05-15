@@ -99,6 +99,7 @@ global menuLevel:=1
 global menuWebRoot:=Object()
 global menuWebList:=Object()
 menuWebRoot.Insert(RunAnyZz)
+global webRootShow:=false
 Loop, read, %iniFile%
 {
 	Z_ReadLine=%A_LoopReadLine%
@@ -170,9 +171,11 @@ Loop,% menuWebRoot.MaxIndex()
 {
 	webRoot:=menuWebRoot[A_Index]
 	if(webRoot = menuRoot[1]){
-		Menu,MENUWEB,add
-		Menu,MENUWEB,add,&1批量打开,Web_Run
-		Menu,MENUWEB,Icon,&1批量打开,shell32.dll,44
+		if(webRootShow){
+			Menu,MENUWEB,add
+			Menu,MENUWEB,add,&1批量打开,Web_Run
+			Menu,MENUWEB,Icon,&1批量打开,shell32.dll,44
+		}
 	}else{
 		Menu,%webRoot%,add,&1批量打开%webRoot%,Web_Run
 		Menu,%webRoot%,Icon,&1批量打开%webRoot%,shell32.dll,44
@@ -220,11 +223,22 @@ Menu_Add(menuName,menuItem){
 			if(menuName = menuRoot[1]){
 				Menu,MENUWEB,Add,%menuItem%,Menu_Run
 				Menu,MENUWEB,Icon,%menuItem%,%webIcon%,0
+				webRootShow:=true
 			}else{
 				Menu,MENUWEB,Add,%menuName%, :%menuName%
 			}
 			menuWebList[(menuName)].=menuItem "`n"
-			menuWebRoot[menuLevel]:=menuRoot[menuLevel]
+			menuWebSame:=false
+			Loop,% menuWebRoot.MaxIndex()
+			{
+				if(menuWebRoot[A_Index]=menuName){
+					menuWebSame:=true
+					break
+				}
+			}
+			if(!menuWebSame){
+				menuWebRoot.Insert(menuName)
+			}
 		}else if(InStr(item,"\",,0,1)=itemLen){
 			Menu,%menuName%,Icon,%menuItem%,% FolderIconS[1],% FolderIconS[2]
 		}else if(InStr(item,";",,0,1)=itemLen){
@@ -347,7 +361,11 @@ Web_Run:
 		{
 			if(A_LoopField){
 				any:=MenuObj[(A_LoopField)]
-				Run,%any%%selectZz%
+				if(InStr(any,"%s")){
+					Run,% RegExReplace(any,"S)%s",selectZz)
+				}else{
+					Run,%any%%selectZz%
+				}
 			}
 		}
 	}
