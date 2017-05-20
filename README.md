@@ -27,9 +27,9 @@
 RunAny追求就是：<u>**一劳永逸**</u>
 ---
 
-[【RunAny版本更新历史】](#ver)
+[首次使用请阅读：【自定义树形菜单配置方法】](#tree)
 
-[【自定义树形菜单配置方法：】](#tree)
+[【RunAny版本更新历史】](#ver)
 
 ---
 
@@ -52,7 +52,7 @@ RunAny演示：<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/
 
 ---
 
-## <a name="tree">【自定义树形菜单配置方法：】</a>
+## <a name="tree">【自定义树形菜单配置方法】</a>
 
 * 以-开头+名称为1级目录名,--名称为2级以此类推，如：`-app`、`--img`
 * 单独一个-是1级分隔符，--2级亦是如此，如：`-`、`--`
