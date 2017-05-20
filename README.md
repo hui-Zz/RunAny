@@ -27,13 +27,13 @@
 RunAny追求就是：<u>**一劳永逸**</u>
 ---
 
-RunAny演示：<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/RunAny%E6%BC%94%E7%A4%BA.gif" alt="RunAny演示" style="max-width:60%;">
----
-
 [【RunAny版本更新历史】](#ver)
 
-
 [【自定义树形菜单配置方法：】](#tree)
+
+---
+
+RunAny演示：<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/RunAny%E6%BC%94%E7%A4%BA.gif" alt="RunAny演示" style="max-width:60%;">
 
 ---
 
@@ -46,7 +46,6 @@ RunAny演示：<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/
 > 这里是隐藏功能：
 
 > 按住Ctrl打开软件会打开软件所在的目录
-
 > 按住Shift打开软件会以管理员身份来运行
 
 > (PS:输入\`可以<kbd>Win</kbd>+<kbd>\`</kbd>输入)
