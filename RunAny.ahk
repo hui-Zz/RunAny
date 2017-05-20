@@ -2,7 +2,7 @@
 ╔═════════════════════════════════
 ║【RunAny】一劳永逸的快速启动工具 v3.0 批量搜索
 ║ by Zz 建议：hui0.0713@gmail.com
-║ @2017.5.15 github.com/hui-Zz/RunAny
+║ @2017.5.20 github.com/hui-Zz/RunAny
 ║ 讨论QQ群：[246308937]、3222783、493194474
 ╚═════════════════════════════════
 */
@@ -837,7 +837,24 @@ Website_Icon:
 		selTextList.Insert(ItemText)
 	}
 	if(selTextList.MaxIndex()=1){
-		MsgBox,% selText
+		try {
+			diyText:=StrSplit(ItemText,"|")
+			webText:=(diyText[2]) ? diyText[2] : diyText[1]
+			if(RegExMatch(webText,"iS)([\w-]+://?|www[.]).*")){
+				website:=RegExReplace(webText,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
+				webIcon:=IconPath website ".ico"
+				InputBox, webSiteInput, 重新下载网站图标,如果下载网站图标的地址有误`n请修改后再下载,,,,,,,,http://%website%/favicon.ico
+				if !ErrorLevel
+				{
+					URLDownloadToFile,%webSiteInput%,%webIcon%
+					MsgBox,65,,图标下载成功，是否要重启生效？
+					IfMsgBox Ok
+						Reload
+				}
+			}
+		} catch e {
+			MsgBox,以下网站图标无法下载，可以手动添加对应网址图标到%A_ScriptDir%\RunIcon`n%webSiteInput%
+		}
 		return
 	}
 	if(selText){
@@ -851,7 +868,7 @@ Website_Icon:
 				Gosub,Website_Icon_Down
 			}
 			if(errDown!="")
-				MsgBox,以下网站图标无法下载，可以手动重命名添加到%A_ScriptDir%\RunIcon`n%errDown%
+				MsgBox,以下网站图标无法下载，请单选后点[网站图标]按钮重新指定网址下载，或手动添加对应网址图标到%A_ScriptDir%\RunIcon`n%errDown%
 			GuiControl, Hide, MyProgress
 			MsgBox,65,,图标下载完成，是否要重启生效？
 			IfMsgBox Ok
@@ -874,7 +891,7 @@ Website_Icon:
 			Gosub,Website_Icon_Down
 		}
 		if(errDown!="")
-			MsgBox,以下网站图标无法下载，可以手动重命名添加到%A_ScriptDir%\RunIcon`n%errDown%
+			MsgBox,以下网站图标无法下载，请单选后点[网站图标]按钮重新指定网址下载，或手动添加对应网址图标到%A_ScriptDir%\RunIcon`n%errDown%
 		GuiControl, Hide, MyProgress
 		MsgBox,65,,图标下载完成，是否要重启生效？
 		IfMsgBox Ok
@@ -1149,7 +1166,7 @@ Menu_About:
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
 	Gui,99:Add,Text,y+10
 	Gui,99:Font,,Consolas
-	Gui,99:Add,Text,y+10, by Zz @2017.5.15 建议：hui0.0713@gmail.com
+	Gui,99:Add,Text,y+10, by Zz @2017.5.20 建议：hui0.0713@gmail.com
 	Gui,99:Font,CBlue Underline
 	Gui,99:Add,Text,y+10 Ggithub, GitHub：https://github.com/hui-Zz/RunAny
 	Gui,99:Add,Text,y+10 GQQRunAny, 讨论QQ群：[246308937]、3222783、493194474
