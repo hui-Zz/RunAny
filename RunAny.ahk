@@ -821,12 +821,47 @@ TVImportFolder:
 	}
 return
 Website_Icon:
-	MsgBox,33,下载网站图标,确定下载RunAny内所有网站图标吗？`n下载的图标在%A_ScriptDir%\RunIcon
+	IconPath:=A_ScriptDir "\RunIcon\"
+	IfNotExist %IconPath%
+		FileCreateDir,%IconPath%
+	selText:=""
+	selTextList:=Object()
+	CheckID = 0
+	Loop
+	{
+		CheckID := TV_GetNext(CheckID, "Checked")
+		if not CheckID
+			break
+		TV_GetText(ItemText, CheckID)
+		selText.=ItemText "`n"
+		selTextList.Insert(ItemText)
+	}
+	if(selTextList.MaxIndex()=1){
+		MsgBox,% selText
+		return
+	}
+	if(selText){
+		MsgBox,33,下载网站图标,确定下载以下选中的网站图标：`n(下载的图标在%A_ScriptDir%\RunIcon)`n%selText%
+		IfMsgBox Ok
+		{
+			Loop,% selTextList.MaxIndex()
+			{
+				GuiControl, Show, MyProgress
+				ItemText:=selTextList[A_Index]
+				Gosub,Website_Icon_Down
+			}
+			if(errDown!="")
+				MsgBox,以下网站图标无法下载，可以手动重命名添加到%A_ScriptDir%\RunIcon`n%errDown%
+			GuiControl, Hide, MyProgress
+			MsgBox,65,,图标下载完成，是否要重启生效？
+			IfMsgBox Ok
+				Reload
+		}
+		return
+	}
+	MsgBox,33,下载网站图标,确定下载RunAny内所有网站图标吗？`n(下载的图标在%A_ScriptDir%\RunIcon)
 	IfMsgBox Ok
 	{
-		IconPath:=A_ScriptDir "\RunIcon\"
-		IfNotExist %IconPath%
-			FileCreateDir,%IconPath%
 		errDown:=""
 		ItemID = 0
 		Loop
@@ -836,18 +871,7 @@ Website_Icon:
 				break
 			TV_GetText(ItemText, ItemID)
 			GuiControl, Show, MyProgress
-			try {
-				diyText:=StrSplit(ItemText,"|")
-				webText:=(diyText[2]) ? diyText[2] : diyText[1]
-				if(RegExMatch(webText,"iS)([\w-]+://?|www[.]).*")){
-					website:=RegExReplace(webText,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
-					webIcon:=IconPath website ".ico"
-					URLDownloadToFile,http://%website%/favicon.ico,%webIcon%
-					GuiControl,, MyProgress, +10
-				}
-			} catch e {
-				errDown.="http://" website "/favicon.ico`n"
-			}
+			Gosub,Website_Icon_Down
 		}
 		if(errDown!="")
 			MsgBox,以下网站图标无法下载，可以手动重命名添加到%A_ScriptDir%\RunIcon`n%errDown%
@@ -855,6 +879,20 @@ Website_Icon:
 		MsgBox,65,,图标下载完成，是否要重启生效？
 		IfMsgBox Ok
 			Reload
+	}
+return
+Website_Icon_Down:
+	try {
+		diyText:=StrSplit(ItemText,"|")
+		webText:=(diyText[2]) ? diyText[2] : diyText[1]
+		if(RegExMatch(webText,"iS)([\w-]+://?|www[.]).*")){
+			website:=RegExReplace(webText,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
+			webIcon:=IconPath website ".ico"
+			URLDownloadToFile,http://%website%/favicon.ico,%webIcon%
+			GuiControl,, MyProgress, +10
+		}
+	} catch e {
+		errDown.="http://" website "/favicon.ico`n"
 	}
 return
 ;~;[上下移动项目]
