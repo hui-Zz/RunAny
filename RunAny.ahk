@@ -272,7 +272,7 @@ Menu_Add_Fast(menuName,menuItem){
 Menu_Show:
 	global selectZz:=Get_Zz()
 	;#选中文本弹出网址菜单，其他弹出应用菜单#
-	if(selectZz && Candy_isFile!=1){
+	if(selectZz && !HideUnSelect && Candy_isFile!=1){
 		Menu,MENUWEB,Show
 	}else{
 		Menu,% menuRoot[1],Show
@@ -373,6 +373,7 @@ return
 ;══════════════════════════════════════════════════════════════════
 ;~;[一键Everything][搜索选中文字][激活][隐藏]
 Ev_Show:
+	selectZz:=Get_Zz()
 	if(RegExMatch(selectZz,"S)^(\\\\|.:\\).*?$")){
 		SplitPath,selectZz,fileName
 		selectZz:=fileName
@@ -389,6 +390,7 @@ Ev_Show:
 		Run % evPath (selectZz ? " -search """ selectZz """" : "")
 return
 One_Show:
+	selectZz:=Get_Zz()
 	if(InStr(OnePath,"%s")){
 		Run,% RegExReplace(OnePath,"%s",selectZz)
 	}else{
@@ -401,6 +403,7 @@ Var_Set:
 	RegRead, AutoRun, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 	AutoRun:=AutoRun ? 1 : 0
 	global HideFail:=Var_Read("HideFail",0)
+	global HideUnSelect:=Var_Read("HideUnSelect",0)
 	TcPath:=Var_Read("TcPath")
 	OnePath:=Var_Read("OnePath","https://www.baidu.com/s?wd=%s")
 	DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe")
@@ -1105,9 +1108,10 @@ Menu_Set:
 	Gui,66:Margin,30,20
 	Gui,66:Add,Tab,x10 y10 w360 h350,RunAny设置|Everything设置|一键搜索|图标设置
 	Gui,66:Tab,RunAny设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+5 w200 h70,RunAny
+	Gui,66:Add,GroupBox,xm-10 y+5 w330 h70,RunAny
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+25 vvAutoRun,开机自动启动
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
+	Gui,66:Add,Checkbox,Checked%HideUnSelect% x+30 vvHideUnSelect,选中文字也显示应用菜单
 	Gui,66:Add,GroupBox,xm-10 y+10 w215 h55,自定义显示热键
 	Gui,66:Add,Hotkey,xm+10 yp+20 w140 vvMenuKey,%MenuKey%
 	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+155 yp+3 vvMenuWinKey,Win
@@ -1195,6 +1199,7 @@ SetOK:
 	}
 	Reg_Set(vDisableApp,DisableApp,"DisableApp")
 	Reg_Set(vHideFail,HideFail,"HideFail")
+	Reg_Set(vHideUnSelect,HideUnSelect,"HideUnSelect")
 	Reg_Set(vMenuKey,MenuKey,"MenuKey")
 	Reg_Set(vMenuWinKey,MenuWinKey,"MenuWinKey")
 	Reg_Set(vEvKey,EvKey,"EvKey")
