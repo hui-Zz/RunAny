@@ -4,7 +4,6 @@
 
 家里和公司电脑还是笔记本都使用同一套配置，云端同步就更是如虎添翼！
 
-
 RunAny追求就是：<u>**一劳永逸**</u>
 ---
 
@@ -14,7 +13,14 @@ RunAny启动软件就跟打字一样高效方便（如<kbd>\`</kbd>为热键）�
 - \`aw就是app常用分类下的Wiz
 - \`fw就是file文件分类下的WinRAR
 
-(PS:输入\`可以<kbd>Win</kbd>+<kbd>\`</kbd>输入)
+---
+
+RunAny让你告别繁琐的右键打开文件！
+只要先选中文件，然后再启动RunAny中的软件，即可用该软件打开选中文件，就是这么方便！
+---
+
+RunAny除了运行还能搜索！
+在菜单配置添加搜索网址，任意情况选中任意文字，然后用RunAny运行网址即可搜索，更有一次批量搜索功能，就是这么高效！
 
 ---
 
@@ -39,6 +45,7 @@ RunAny演示：<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/
 > 按住Ctrl打开软件会打开软件所在的目录
 > 按住Shift打开软件会以管理员身份来运行
 
+(PS:输入\`可以<kbd>Win</kbd>+<kbd>\`</kbd>输入)
 ---
 
 ## <a name="tree">【自定义树形菜单配置方法：】</a>
@@ -51,7 +58,7 @@ RunAny演示：<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/
 * 末尾;识别为短语可以直接输出，如：`hui0.0713@gmail.com;`
 * 如果电脑上有多个同名程序，加上全路径指定运行其中一个
 * 运行除exe、lnk后缀之外的，也可用全路径或者创建快捷方式来放入RunAny菜单
-
+* 搜索网址的关键字，如果在中间而不是在末尾，用%s表示，默认不加就是加在末尾来搜索
 ---
 
 ## <a name="ver">【RunAny版本更新历史】</a>
