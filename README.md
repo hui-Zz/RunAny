@@ -44,9 +44,13 @@ RunAny演示：<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/
 支持RunAny：![支付宝](https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.jpg)
 
 > 这里是隐藏功能：
+
 > 按住Ctrl打开软件会打开软件所在的目录
+
 > 按住Shift打开软件会以管理员身份来运行
+
 > (PS:输入\`可以<kbd>Win</kbd>+<kbd>\`</kbd>输入)
+
 ---
 
 ## <a name="tree">【自定义树形菜单配置方法：】</a>
