@@ -57,7 +57,7 @@ RunAny演示：<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/
 ## <a name="ver">【RunAny版本更新历史】</a>
 
 ### 【RunAny】v3.0 批量搜索🔍
-+ 选中文本只弹出网址菜单搜索
++ 选中文本只弹出网址菜单搜索(也可在配置中取消)
 + **增加批量打开网址和选中文字批量搜索功能！**
 
 ### 【RunAny】v2.9
