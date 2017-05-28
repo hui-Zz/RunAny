@@ -174,11 +174,11 @@ Loop,% menuWebRoot.MaxIndex()
 		if(webRootShow){
 			Menu,MENUWEB,add
 			Menu,MENUWEB,add,&1批量打开,Web_Run
-			Menu,MENUWEB,Icon,&1批量打开,shell32.dll,44
+			Menu,MENUWEB,Icon,&1批量打开,% UrlIconS[1],% UrlIconS[2]
 		}
 	}else{
 		Menu,%webRoot%,add,&1批量打开%webRoot%,Web_Run
-		Menu,%webRoot%,Icon,&1批量打开%webRoot%,shell32.dll,44
+		Menu,%webRoot%,Icon,&1批量打开%webRoot%,% UrlIconS[1],% UrlIconS[2]
 	}
 }
 try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
@@ -216,8 +216,8 @@ Menu_Add(menuName,menuItem){
 				Menu,%menuName%,Icon,%menuItem%,%webIcon%,0
 				IL_Add(ImageListID, webIcon, 0)
 			}else{
-				Menu,%menuName%,Icon,%menuItem%,shell32.dll,44
-				IL_Add(ImageListID, "shell32.dll", 44)
+				Menu,%menuName%,Icon,%menuItem%,% UrlIconS[1],% UrlIconS[2]
+				IL_Add(ImageListID, UrlIconS[1], UrlIconS[2])
 			}
 			;~ [添加到网址菜单]
 			if(menuName = menuRoot[1]){
@@ -252,7 +252,7 @@ Menu_Add(menuName,menuItem){
 		if(HideFail){
 			Menu,%menuName%,Delete,%menuItem%
 		}else{
-			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,124
+			Menu,%menuName%,Icon,%menuItem%,% EXEIconS[1],% EXEIconS[2]
 		}
 	}
 }
@@ -443,6 +443,8 @@ Icon_Set:
 	global TreeIconS:=StrSplit(TreeIcon,",")
 	FolderIcon:=Var_Read("FolderIcon","shell32.dll,4")
 	global FolderIconS:=StrSplit(FolderIcon,",")
+	UrlIcon:=Var_Read("UrlIcon","shell32.dll,44")
+	global UrlIconS:=StrSplit(UrlIcon,",")
 	BATIcon:=Var_Read("BATIcon","shell32.dll,72")
 	global BATIconS:=StrSplit(BATIcon,",")
 	AHKIcon:=Var_Read("AHKIcon","shell32.dll,74")
@@ -457,6 +459,11 @@ Icon_Set:
 	IL_Add(ImageListID, FolderIconS[1], FolderIconS[2])
 	IL_Add(ImageListID, "shell32.dll", 264)
 	IL_Add(ImageListID, TreeIconS[1], TreeIconS[2])
+	Menu,Tray,Icon,启动菜单(&Z),% TreeIconS[1],% TreeIconS[2]
+	Menu,Tray,Icon,菜单配置(&E),% EXEIconS[1],% EXEIconS[2]
+	Menu,Tray,Icon,配置文件(&F),SHELL32.dll,134
+	Menu,Tray,Icon,设置RunAny(&D),% AnyIconS[1],% AnyIconS[2]
+	Menu,Tray,Icon,关于RunAny(&A)...,% MenuIconS[1],% MenuIconS[2]
 return
 ;~;[调用判断]
 Run_Exist:
@@ -846,7 +853,7 @@ Website_Icon:
 			if(RegExMatch(webText,"iS)([\w-]+://?|www[.]).*")){
 				website:=RegExReplace(webText,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
 				webIcon:=IconPath website ".ico"
-				InputBox, webSiteInput, 重新下载网站图标,如果下载网站图标的地址有误`n请修改后再下载,,,,,,,,http://%website%/favicon.ico
+				InputBox, webSiteInput, 重新下载网站图标,可以重新下载图标并匹配网址`n请修改以下网址再点击下载,,,,,,,,http://%website%/favicon.ico
 				if !ErrorLevel
 				{
 					URLDownloadToFile,%webSiteInput%,%webIcon%
@@ -1117,7 +1124,7 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+155 yp+3 vvMenuWinKey,Win
 	Gui,66:Add,GroupBox,xm-10 y+15 w330 h85,屏蔽RunAny程序列表（逗号分隔）
 	Gui,66:Add,Edit,xm+10 yp+20 w300 r3 vvDisableApp,%DisableApp%
-	Gui,66:Add,GroupBox,xm-10 y+10 w340 h65,TotalCommander安装路径（TC打开文件夹）
+	Gui,66:Add,GroupBox,xm-10 y+15 w340 h65,TotalCommander安装路径（TC打开文件夹）
 	Gui,66:Add,Button,xm yp+20 w50 GSetTcPath,选择
 	Gui,66:Add,Edit,xm+60 yp w260 r2 vvTcPath,%TcPath%
 	
@@ -1137,11 +1144,13 @@ Menu_Set:
 	Gui,66:Add,Edit,xm yp+20 w325 r5 vvOnePath,%OnePath%
 	
 	Gui,66:Tab,图标设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+10 w340 h260,图标自定义设置（文件路径,序号）
+	Gui,66:Add,GroupBox,xm-10 y+10 w340 h280,图标自定义设置（文件路径,序号）
 	Gui,66:Add,Text,xm yp+30 w80,树节点图标
 	Gui,66:Add,Edit,xm+70 yp w250 r1 vvTreeIcon,%TreeIcon%
 	Gui,66:Add,Text,xm yp+30 w80,文件夹图标
 	Gui,66:Add,Edit,xm+70 yp w250 r1 vvFolderIcon,%FolderIcon%
+	Gui,66:Add,Text,xm yp+30 w80,网址图标		
+	Gui,66:Add,Edit,xm+70 yp w250 r1 vvUrlIcon,%UrlIcon%
 	Gui,66:Add,Text,xm yp+30 w80,批处理图标
 	Gui,66:Add,Edit,xm+70 yp w250 r1 vvBATIcon,%BATIcon%
 	Gui,66:Add,Text,xm yp+30 w80,AHK图标
@@ -1154,7 +1163,7 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+70 yp w250 r1 vvAnyIcon,%AnyIcon%
 	
 	Gui,66:Tab
-	Gui,66:Add,Button,Default xm y+50 w75 GSetOK,确定(&Y)
+	Gui,66:Add,Button,Default xm y+25 w75 GSetOK,确定(&Y)
 	Gui,66:Add,Button,x+5 w75 GSetCancel,取消(&C)
 	Gui,66:Add,Button,x+5 w75 GSetReSet,重置
 	Gui,66:Show,,%RunAnyZz%设置
@@ -1211,6 +1220,7 @@ SetOK:
 	Reg_Set(vTcPath,TcPath,"TcPath")
 	Reg_Set(vTreeIcon,TreeIcon,"TreeIcon")
 	Reg_Set(vFolderIcon,FolderIcon,"FolderIcon")
+	Reg_Set(vUrlIcon,UrlIcon,"UrlIcon")
 	Reg_Set(vBATIcon,BATIcon,"BATIcon")
 	Reg_Set(vAHKIcon,AHKIcon,"AHKIcon")
 	Reg_Set(vEXEIcon,EXEIcon,"EXEIcon")
@@ -1246,6 +1256,7 @@ MenuTray(){
 	Menu,Tray,add,启动菜单(&Z),Menu_Show
 	Menu,Tray,add,菜单配置(&E),Menu_Edit
 	Menu,Tray,add,配置文件(&F),Menu_Ini
+	Menu,Tray,add
 	Menu,Tray,add,设置RunAny(&D),Menu_Set
 	Menu,Tray,Add,关于RunAny(&A)...,Menu_About
 	Menu,Tray,add
