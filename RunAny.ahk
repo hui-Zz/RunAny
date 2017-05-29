@@ -202,8 +202,8 @@ Menu_Add(menuName,menuItem){
 					IL_Add(ImageListID, OutItem, 0)
 				}
 			} catch e {
-				Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,264
-				IL_Add(ImageListID, "shell32.dll", 264)
+				Menu,%menuName%,Icon,%menuItem%,% LNKIconS[1],% LNKIconS[2]
+				IL_Add(ImageListID, LNKIconS[1], LNKIconS[2])
 			}
 		}else if(Ext_Check(item,itemLen,".ahk")){
 			Menu,%menuName%,Icon,%menuItem%,% AHKIconS[1],% AHKIconS[2]
@@ -411,27 +411,36 @@ Var_Set:
 	{
 		GroupAdd,DisableGUI,ahk_exe %A_LoopField%
 	}
+	iconAny:="shell32.dll,190"
+	iconMenu:="shell32.dll,195"
+	iconTree:="shell32.dll,53"
+	if(A_OSVersion="WIN_XP"){
+		MoveIcon:="shell32.dll,53"
+		UpIcon:="shell32.dll,53"
+		DownIcon:="shell32.dll,53"
+	}else{
+		MoveIcon:="shell32.dll,246"
+		UpIcon:="shell32.dll,247"
+		DownIcon:="shell32.dll,248"
+	}
 	if(Ext_Check(A_ScriptName,StrLen(A_ScriptName),".exe")){
 		iconAny:=A_ScriptName ",1"
 		iconMenu:=A_ScriptName ",2"
-	}else if(FileExist(A_ScriptDir "\ZzIcon.dll")){
+	}
+	if(FileExist(A_ScriptDir "\ZzIcon.dll")){
 		iconAny:="ZzIcon.dll,1"
 		iconMenu:="ZzIcon.dll,2"
-		TreeIcon:="ZzIcon.dll,3"
+		iconTree:="ZzIcon.dll,3"
 		MoveIcon:="ZzIcon.dll,4"
 		UpIcon:="ZzIcon.dll,5"
 		DownIcon:="ZzIcon.dll,6"
-	}else{
-		iconAny:="shell32.dll,190"
-		iconMenu:="shell32.dll,195"
-		MoveIcon:="SHELL32.dll,246"
-		UpIcon:="SHELL32.dll,247"
-		DownIcon:="SHELL32.dll,248"
 	}
 	global AnyIcon:=Var_Read("AnyIcon",iconAny)
 	global AnyIconS:=StrSplit(AnyIcon,",")
 	global MenuIcon:=Var_Read("MenuIcon",iconMenu)
 	global MenuIconS:=StrSplit(MenuIcon,",")
+	global TreeIcon:=Var_Read("TreeIcon",iconTree)
+	global TreeIconS:=StrSplit(TreeIcon,",")
 	global MoveIconS:=StrSplit(MoveIcon,",")
 	global UpIconS:=StrSplit(UpIcon,",")
 	global DownIconS:=StrSplit(DownIcon,",")
@@ -439,8 +448,6 @@ Var_Set:
 return
 ;~;[后缀图标初始化]
 Icon_Set:
-	TreeIcon:=Var_Read("TreeIcon",TreeIcon)
-	global TreeIconS:=StrSplit(TreeIcon,",")
 	FolderIcon:=Var_Read("FolderIcon","shell32.dll,4")
 	global FolderIconS:=StrSplit(FolderIcon,",")
 	UrlIcon:=Var_Read("UrlIcon","shell32.dll,44")
@@ -451,13 +458,18 @@ Icon_Set:
 	global AHKIconS:=StrSplit(AHKIcon,",")
 	EXEIcon:=Var_Read("EXEIcon","shell32.dll,3")
 	global EXEIconS:=StrSplit(EXEIcon,",")
+	LNKIcon:="shell32.dll,264"
+	if(A_OSVersion="WIN_XP"){
+		LNKIcon:="shell32.dll,30"
+	}
+	global LNKIconS:=StrSplit(LNKIcon,",")
 	;~;[树型菜单图标集]
 	global ImageListID := IL_Create(6)
 	IL_Add(ImageListID, "shell32.dll", 1)
 	IL_Add(ImageListID, "shell32.dll", 2)
 	IL_Add(ImageListID, EXEIconS[1], EXEIconS[2])
 	IL_Add(ImageListID, FolderIconS[1], FolderIconS[2])
-	IL_Add(ImageListID, "shell32.dll", 264)
+	IL_Add(ImageListID, LNKIconS[1], LNKIconS[2])
 	IL_Add(ImageListID, TreeIconS[1], TreeIconS[2])
 	Menu,Tray,Icon,启动菜单(&Z),% TreeIconS[1],% TreeIconS[2]
 	Menu,Tray,Icon,菜单配置(&E),% EXEIconS[1],% EXEIconS[2]
@@ -477,7 +489,7 @@ Run_Exist:
 		everyDLL:=DllCall("LoadLibrary", str, "Everything64.dll") ? "Everything64.dll" : "Everything.dll"
 	}
 	IfNotExist,%A_ScriptDir%\%everyDLL%
-		MsgBox,16,,没有找到%everyDLL%，将不能识别菜单中程序的路径`n请复制%everyDLL%到%A_ScriptDir%目录下`n`n或在github.com/hui-Zz/RunAny/tree/RunMenu下载不使用Everything的版本
+		MsgBox,16,,没有找到%everyDLL%，将不能识别菜单中程序的路径`n请复制%everyDLL%到%A_ScriptDir%`n目录下
 return
 ;~;[检查后缀名]
 Ext_Check(name,len,ext){
@@ -488,7 +500,7 @@ Ext_Check(name,len,ext){
 ;~;[读取注册表]
 Var_Read(rValue,defVar=""){
 	RegRead, regVar, HKEY_CURRENT_USER, SOFTWARE\RunAny, %rValue%
-	if regVar
+	if(regVar)
 		return regVar
 	else
 		return defVar
