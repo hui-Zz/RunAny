@@ -53,6 +53,8 @@ RunAny演示批量搜索：
 
 支持RunAny：![支付宝](https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.jpg)
 
+**在此特别感谢 AHK-工兵、Balance、☆☆天甜 等对RunAny的大力支持，欢迎大家多多提出建议！**
+
 > 这里是隐藏功能：
 
 > 按住Ctrl打开软件会打开软件所在的目录
