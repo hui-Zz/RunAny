@@ -2,7 +2,7 @@
 ╔═════════════════════════════════
 ║【RunAny】一劳永逸的快速启动工具 v3.0 批量搜索
 ║ by Zz 建议：hui0.0713@gmail.com
-║ @2017.5.20 github.com/hui-Zz/RunAny
+║ @2017.5.30 github.com/hui-Zz/RunAny
 ║ 讨论QQ群：[246308937]、3222783、493194474
 ╚═════════════════════════════════
 */
@@ -572,7 +572,7 @@ Menu_Edit:
 				TV_Add(Z_ReadLine,treeRoot[treeLevel],"Bold")
 			}
 		}else{
-			TV_Add(Z_ReadLine,treeRoot[treeLevel],Set_Icon(Z_ReadLine))
+			TV_Add(Z_ReadLine,treeRoot[treeLevel],Set_Icon(Z_ReadLine,false))
 		}
 	}
 	GuiControl, +Redraw, RunAnyTV
@@ -580,6 +580,7 @@ Menu_Edit:
 	TVMenu("GuiMenu")
 	Gui, Menu, GuiMenu
 	Gui, Show, , %RunAnyZz%菜单树管理(右键操作)
+	Menu,exeTestMenu,add,TVImportFolder	;只用于测试应用图标正常添加
 return
 
 #If WinActive(RunAnyZz "菜单树管理(右键操作)")
@@ -651,11 +652,29 @@ TVMenu(addMenu){
 	Menu, %addMenu%, Icon,网站图标, SHELL32.dll,14
 }
 ;~;[后缀判断图标]
-Set_Icon(itemVar){
+Set_Icon(itemVar,editVar=true){
 	itemLen:=StrLen(itemVar)
 	if(RegExMatch(itemVar,"S)^-+[^-]+.*"))
 		return "Icon6"
+	if(editVar && Ext_Check(itemVar,itemLen,".lnk"))
+		return "Icon5"
 	if(RegExMatch(itemVar,"iS)\.(exe|lnk)$") || RegExMatch(itemVar,"iS)([\w-]+://?|www[.]).*")){
+		if(editVar && Ext_Check(itemVar,itemLen,".exe")){
+			;~;[编辑后通过everything重新添加应用图标]
+			try{
+				diyText:=StrSplit(itemVar,"|")
+				exeText:=(diyText[2]) ? diyText[2] : diyText[1]
+				exeQueryPath:=exeQuery(exeText)
+				if(exeQueryPath){
+					Menu,exeTestMenu,Icon,TVImportFolder,%exeQueryPath%,0
+					IL_Add(ImageListID, exeQueryPath, 0)
+				}else{
+					return "Icon3"
+				}
+			} catch e {
+				return "Icon3"
+			}
+		}
 		exeIconNum++
 		return "Icon" . exeIconNum
 	}
@@ -788,7 +807,6 @@ TVImportFile:
 	selID:=TV_GetSelection()
 	parentID:=TV_GetParent(selID)
 	FileSelectFile, exeName, M35, , 选择多项要导入的EXE(快捷方式), (*.exe;*.lnk)
-	Menu,import%selID%,add,TVImportFolder	;只用于测试应用图标
 	Loop,parse,exeName,`n
 	{
 		if(A_Index=1){
@@ -802,7 +820,7 @@ TVImportFile:
 					SplitPath,exePath,I_LoopField
 			}
 			try{
-				Menu,import%selID%,Icon,TVImportFolder,%exePath%,0
+				Menu,exeTestMenu,Icon,TVImportFolder,%exePath%,0
 				IL_Add(ImageListID, exePath, 0)
 				exeIconNum++
 				fileID:=TV_Add(I_LoopField,parentID,"Icon" . exeIconNum)
@@ -818,7 +836,6 @@ TVImportFolder:
 	selID:=TV_GetSelection()
 	parentID:=TV_GetParent(selID)
 	FileSelectFolder, folderName, , 0
-	Menu,import%selID%,add,TVImportFolder	;只用于测试应用图标
 	if(folderName){
 		MsgBox,33,导入文件夹所有exe和lnk,确定导入%folderName%及子文件夹下所有程序和快捷方式吗？
 		IfMsgBox Ok
@@ -830,7 +847,7 @@ TVImportFolder:
 			Loop,%folderName%\*.exe,0,1
 			{
 				try{
-					Menu,import%selID%,Icon,TVImportFolder,%A_LoopFileFullPath%,0
+					Menu,exeTestMenu,Icon,TVImportFolder,%A_LoopFileFullPath%,0
 					IL_Add(ImageListID, A_LoopFileFullPath, 0)
 					exeIconNum++
 					folderID:=TV_Add(A_LoopFileName,parentID,"Icon" . exeIconNum)
@@ -875,7 +892,7 @@ Website_Icon:
 				}
 			}
 		} catch e {
-			MsgBox,以下网站图标无法下载，可以手动添加对应网址图标到%A_ScriptDir%\RunIcon`n%webSiteInput%
+			WebsiteIconError(webSiteInput)
 		}
 		return
 	}
@@ -890,7 +907,7 @@ Website_Icon:
 				Gosub,Website_Icon_Down
 			}
 			if(errDown!="")
-				MsgBox,以下网站图标无法下载，请单选后点[网站图标]按钮重新指定网址下载，或手动添加对应网址图标到%A_ScriptDir%\RunIcon`n%errDown%
+				WebsiteIconError(errDown)
 			GuiControl, Hide, MyProgress
 			MsgBox,65,,图标下载完成，是否要重启生效？
 			IfMsgBox Ok
@@ -913,7 +930,7 @@ Website_Icon:
 			Gosub,Website_Icon_Down
 		}
 		if(errDown!="")
-			MsgBox,以下网站图标无法下载，请单选后点[网站图标]按钮重新指定网址下载，或手动添加对应网址图标到%A_ScriptDir%\RunIcon`n%errDown%
+			WebsiteIconError(errDown)
 		GuiControl, Hide, MyProgress
 		MsgBox,65,,图标下载完成，是否要重启生效？
 		IfMsgBox Ok
@@ -934,6 +951,9 @@ Website_Icon_Down:
 		errDown.="http://" website "/favicon.ico`n"
 	}
 return
+WebsiteIconError(errDown){
+	MsgBox,以下网站图标无法下载，请单选后点[网站图标]按钮重新指定网址下载，`n或手动添加对应网址图标到%A_ScriptDir%\RunIcon`n%errDown%
+}
 ;~;[上下移动项目]
 TV_Move(moveMode = true){
 	selID:=TV_GetSelection()
@@ -1191,7 +1211,7 @@ Menu_About:
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
 	Gui,99:Add,Text,y+10
 	Gui,99:Font,,Consolas
-	Gui,99:Add,Text,y+10, by Zz @2017.5.20 建议：hui0.0713@gmail.com
+	Gui,99:Add,Text,y+10, by Zz @2017.5.30 建议：hui0.0713@gmail.com
 	Gui,99:Font,CBlue Underline
 	Gui,99:Add,Text,y+10 Ggithub, GitHub：https://github.com/hui-Zz/RunAny
 	Gui,99:Add,Text,y+10 GQQRunAny, 讨论QQ群：[246308937]、3222783、493194474
@@ -1307,6 +1327,18 @@ everythingQuery(){
 		MenuObj[(RegExReplace(ev.GetResultFileName(Z_Index),"iS)\.(exe|lnk)$",""))]:=ev.GetResultFullPathName(Z_Index)
 	}
 }
+;~;[使用everything搜索单个exe程序]
+exeQuery(exeName){
+	ev := new everything
+	str := exeName . " !C:\*Windows*"
+	;查询字串设为全字匹配
+	ev.SetMatchWholeWord(true)
+	ev.SetSearch(str)
+	;执行搜索
+	ev.Query()
+	sleep 100
+	return ev.GetResultFullPathName(0)
+}
 class everything
 {
 	__New(){
@@ -1326,6 +1358,13 @@ class everything
 		dllcall(everyDLL "\Everything_SetSearch",str,aValue)
 		return
 	}
+	;设置全字匹配
+	SetMatchWholeWord(aValue)
+	{
+		this.eMatchWholeWord := aValue
+		dllcall(everyDLL "\Everything_SetMatchWholeWord",int,aValue)
+		return
+	}
 	;执行搜索动作
 	Query(aValue=1)
 	{
@@ -1342,6 +1381,7 @@ class everything
 	{
 		return strget(dllcall(everyDLL "\Everything_GetResultFileName",int,aValue))
 	}
+	;返回文件全路径
 	GetResultFullPathName(aValue,cValue=128)
 	{
 		VarSetCapacity(bValue,cValue*2)
