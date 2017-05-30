@@ -1336,7 +1336,6 @@ exeQuery(exeName){
 	ev.SetSearch(str)
 	;执行搜索
 	ev.Query()
-	sleep 100
 	return ev.GetResultFullPathName(0)
 }
 class everything
