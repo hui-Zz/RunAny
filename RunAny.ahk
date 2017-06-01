@@ -1,8 +1,8 @@
 ﻿/*
 ╔═════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v3.0 批量搜索
+║【RunAny】一劳永逸的快速启动工具 v3.0.1 批量搜索
 ║ by Zz 建议：hui0.0713@gmail.com
-║ @2017.5.30 github.com/hui-Zz/RunAny
+║ @2017.6.1 github.com/hui-Zz/RunAny
 ║ 讨论QQ群：[246308937]、3222783、493194474
 ╚═════════════════════════════════
 */
@@ -307,7 +307,11 @@ Menu_Run:
 						Run,%any%%A_Space%"%selectZz%"
 					}
 				}else if(RegExMatch(any,"iS)([\w-]+://?|www[.]).*")){
-					Run,%any%%selectZz%
+					if(InStr(any,"%s")){
+						Run,% RegExReplace(any,"%s",selectZz)
+					}else{
+						Run,%any%%selectZz%
+					}
 				}else{
 					Run,%any%
 				}
@@ -1145,7 +1149,7 @@ Menu_Set:
 	Gui,66:Destroy
 	Gui,66:Font,,Microsoft YaHei
 	Gui,66:Margin,30,20
-	Gui,66:Add,Tab,x10 y10 w360 h350,RunAny设置|Everything设置|一键搜索|图标设置
+	Gui,66:Add,Tab,x10 y10 w360 h360,RunAny设置|Everything设置|一键搜索|图标设置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+5 w330 h70,RunAny
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+25 vvAutoRun,开机自动启动
@@ -1205,13 +1209,13 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v3.0 批量搜索
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v3.0.1 批量搜索
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
 	Gui,99:Add,Text,y+10
 	Gui,99:Font,,Consolas
-	Gui,99:Add,Text,y+10, by Zz @2017.5.30 建议：hui0.0713@gmail.com
+	Gui,99:Add,Text,y+10, by Zz @2017.6.1 建议：hui0.0713@gmail.com
 	Gui,99:Font,CBlue Underline
 	Gui,99:Add,Text,y+10 Ggithub, GitHub：https://github.com/hui-Zz/RunAny
 	Gui,99:Add,Text,y+10 GQQRunAny, 讨论QQ群：[246308937]、3222783、493194474
