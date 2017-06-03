@@ -1,8 +1,8 @@
 ﻿/*
 ╔═════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v3.0.1 批量搜索
+║【RunAny】一劳永逸的快速启动工具 v3.2 双重菜单
 ║ by Zz 建议：hui0.0713@gmail.com
-║ @2017.6.1 github.com/hui-Zz/RunAny
+║ @2017.6.2 github.com/hui-Zz/RunAny
 ║ 讨论QQ群：[246308937]、3222783、493194474
 ╚═════════════════════════════════
 */
@@ -19,43 +19,57 @@ SplitPath,A_ScriptFullPath,,,,fileNotExt
 RunAnyZz:="RunAny"
 global fast:=true
 Gosub,Var_Set
-MenuTray()
 Gosub,Run_Exist
+MenuTray()
 global MenuObj:=Object()
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化菜单显示热键]
 MenuKey:=Var_Read("MenuKey","``")
 MenuWinKey:=Var_Read("MenuWinKey",0)
+MenuKey2:=Var_Read("MenuKey2")
+MenuWinKey2:=Var_Read("MenuWinKey2",0)
 EvKey:=Var_Read("EvKey")
 EvWinKey:=Var_Read("EvWinKey",0)
 OneKey:=Var_Read("OneKey")
 OneWinKey:=Var_Read("OneWinKey",0)
-;~;[设定自定义菜单热键]
+;~;[设定RunAny菜单自定义热键]
 try{
 	MenuHotKey:=MenuWinKey ? "#" . MenuKey : MenuKey
 	Hotkey, IfWinNotActive, ahk_group DisableGUI
 	Hotkey,%MenuHotKey%,Menu_Show,On
-	if(EvKey){
-		try{
-			EvHotKey:=EvWinKey ? "#" . EvKey : EvKey
-			Hotkey,%EvHotKey%,Ev_Show,On
-		}catch{
-			gosub,Menu_Set
-			MsgBox,16,请设置正确热键,%EvHotKey%`n一键Everything热键设置不正确
-		}
-	}
-	if(OneKey){
-		try{
-			OneHotKey:=OneWinKey ? "#" . OneKey : OneKey
-			Hotkey,%OneHotKey%,One_Show,On
-		}catch{
-			gosub,Menu_Set
-			MsgBox,16,请设置正确热键,%OneHotKey%`n一键搜索热键设置不正确
-		}
-	}
 }catch{
 	gosub,Menu_Set
-	MsgBox,16,请设置正确热键,%MenuHotKey%`n自定义显示热键设置不正确
+	MsgBox,16,请设置正确热键,%MenuHotKey%`nRunAny菜单自定义热键设置不正确
+}
+if(MenuKey2){
+	IfExist,%iniPath2%
+	{
+		try{
+			MenuHotKey2:=MenuWinKey2 ? "#" . MenuKey2 : MenuKey2
+			Hotkey,%MenuHotKey2%,Menu_Show2,On
+		}catch{
+			gosub,Menu_Set
+			MsgBox,16,请设置正确热键,%MenuHotKey2%`n菜单2自定义热键设置不正确
+		}
+	}
+}
+if(EvKey){
+	try{
+		EvHotKey:=EvWinKey ? "#" . EvKey : EvKey
+		Hotkey,%EvHotKey%,Ev_Show,On
+	}catch{
+		gosub,Menu_Set
+		MsgBox,16,请设置正确热键,%EvHotKey%`n一键Everything热键设置不正确
+	}
+}
+if(OneKey){
+	try{
+		OneHotKey:=OneWinKey ? "#" . OneKey : OneKey
+		Hotkey,%OneHotKey%,One_Show,On
+	}catch{
+		gosub,Menu_Set
+		MsgBox,16,请设置正确热键,%OneHotKey%`n一键搜索热键设置不正确
+	}
 }
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化everything安装路径]
@@ -93,13 +107,18 @@ Gosub,Icon_Set
 Menu_Init:
 ;#应用菜单数组#
 global menuRoot:=Object()
-menuRoot.Insert(RunAnyZz)
 global menuLevel:=1
 ;#网址菜单名数组及地址队列#
 global menuWebRoot:=Object()
 global menuWebList:=Object()
-menuWebRoot.Insert(RunAnyZz)
 global webRootShow:=false
+if(!menu2Flag){
+	menuRoot.Insert(RunAnyZz)
+	menuWebRoot.Insert(RunAnyZz)
+}else{
+	menuRoot.Insert(RunAnyZz . "2")
+	menuWebRoot.Insert(RunAnyZz . "2")
+}
 Loop, read, %iniFile%
 {
 	Z_ReadLine=%A_LoopReadLine%
@@ -153,7 +172,6 @@ Loop, read, %iniFile%
 		}
 	}
 }
-Menu,% menuRoot[1],Add
 if(ini){
 	ini:=false
 	TrayTip,,RunAny菜单初始化完成`n右击任务栏图标设置,3,1
@@ -165,6 +183,8 @@ if(ini){
 if(fast){
 	fast:=false
 	gosub,Menu_Init
+}else{
+	Menu,% menuRoot[1],Add
 }
 ;#添加网址菜单的批量打开功能
 Loop,% menuWebRoot.MaxIndex()
@@ -181,7 +201,16 @@ Loop,% menuWebRoot.MaxIndex()
 		Menu,%webRoot%,Icon,&1批量打开%webRoot%,% UrlIconS[1],% UrlIconS[2]
 	}
 }
+;#菜单已经加载完毕，托盘图标变化
 try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
+;#如果有第2菜单则开始加载
+if(menu2Flag){
+	menu2Flag:=false
+	iniFile:=iniPath2
+	global menuRoot1:=menuRoot
+	global menuWebRoot1:=menuWebRoot
+	gosub,Menu_Init
+}
 return
 ;══════════════════════════════════════════════════════════════════
 ;~;[生成菜单(判断后缀创建图标)]
@@ -248,6 +277,7 @@ Menu_Add(menuName,menuItem){
 			IL_Add(ImageListID, item, 0)
 		}
 	} catch e {
+		;应用路径错误或图标无法读取情况
 		IL_Add(ImageListID, EXEIconS[1], EXEIconS[2])
 		if(HideFail){
 			Menu,%menuName%,Delete,%menuItem%
@@ -270,6 +300,20 @@ Menu_Add_Fast(menuName,menuItem){
 }
 ;~;[显示菜单]
 Menu_Show:
+	global selectZz:=Get_Zz()
+	;#选中文本弹出网址菜单，其他弹出应用菜单#
+	if(selectZz && !HideUnSelect && Candy_isFile!=1){
+		Menu,MENUWEB,Show
+	}else{
+		IfNotExist,%iniPath2%
+		{
+			Menu,% menuRoot[1],Show
+		}else{
+			Menu,% menuRoot1[1],Show
+		}
+	}
+return
+Menu_Show2:
 	global selectZz:=Get_Zz()
 	;#选中文本弹出网址菜单，其他弹出应用菜单#
 	if(selectZz && !HideUnSelect && Candy_isFile!=1){
@@ -393,6 +437,7 @@ Ev_Show:
 	else
 		Run % evPath (selectZz ? " -search """ selectZz """" : "")
 return
+;~;[一键搜索]
 One_Show:
 	selectZz:=Get_Zz()
 	if(InStr(OnePath,"%s")){
@@ -476,16 +521,25 @@ Icon_Set:
 	IL_Add(ImageListID, LNKIconS[1], LNKIconS[2])
 	IL_Add(ImageListID, TreeIconS[1], TreeIconS[2])
 	Menu,Tray,Icon,启动菜单(&Z),% TreeIconS[1],% TreeIconS[2]
-	Menu,Tray,Icon,菜单配置(&E),% EXEIconS[1],% EXEIconS[2]
-	Menu,Tray,Icon,配置文件(&F),SHELL32.dll,134
+	Menu,Tray,Icon,修改菜单(&E),% EXEIconS[1],% EXEIconS[2]
+	Menu,Tray,Icon,修改文件(&F),SHELL32.dll,134
+	IfExist,%iniPath2%
+	{
+		Menu,Tray,Icon,修改菜单2(&2),% EXEIconS[1],% EXEIconS[2]
+		Menu,Tray,Icon,修改文件2(&G),SHELL32.dll,134
+	}
 	Menu,Tray,Icon,设置RunAny(&D),% AnyIconS[1],% AnyIconS[2]
 	Menu,Tray,Icon,关于RunAny(&A)...,% MenuIconS[1],% MenuIconS[2]
 return
 ;~;[调用判断]
 Run_Exist:
-	iniFile:=A_ScriptDir "\" fileNotExt ".ini"
+	global iniPath:=A_ScriptDir "\" fileNotExt ".ini"
+	global iniPath2:=A_ScriptDir "\" fileNotExt "2.ini"
+	global iniFile:=iniPath
 	IfNotExist,%iniFile%
 		gosub,First_Run
+	IfExist,%iniPath2%
+		global menu2Flag:=true
 	global everyDLL:="Everything.dll"
 	if(FileExist(A_ScriptDir "\Everything.dll")){
 		everyDLL:=DllCall("LoadLibrary", str, "Everything.dll") ? "Everything.dll" : "Everything64.dll"
@@ -537,7 +591,6 @@ Get_Zz(){
 	return CandySel
 }
 ;══════════════════════════════════════════════════════════════════
-
 ;~;[菜单配置]
 Menu_Edit:
 	global TVFlag:=false
@@ -545,6 +598,7 @@ Menu_Edit:
 	treeRoot:=Object()
 	global moveRoot:=Object()
 	moveRoot[1]:="moveMenu"
+	Menu,% moveRoot[1],add
 	global moveLevel:=0
 	global exeIconNum:=6
 	;~;[树型菜单初始化]
@@ -586,7 +640,14 @@ Menu_Edit:
 	Gui, Show, , %RunAnyZz%菜单树管理(右键操作)
 	Menu,exeTestMenu,add,TVImportFolder	;只用于测试应用图标正常添加
 return
-
+Menu_Edit1:
+	iniFile:=iniPath
+	gosub,Menu_Edit
+return
+Menu_Edit2:
+	iniFile:=iniPath2
+	gosub,Menu_Edit
+return
 #If WinActive(RunAnyZz "菜单树管理(右键操作)")
 	F5::
 	PGDN::
@@ -1149,33 +1210,41 @@ Menu_Set:
 	Gui,66:Destroy
 	Gui,66:Font,,Microsoft YaHei
 	Gui,66:Margin,30,20
-	Gui,66:Add,Tab,x10 y10 w360 h360,RunAny设置|Everything设置|一键搜索|图标设置
+	Gui,66:Add,Tab,x10 y10 w360 h360,RunAny设置|Everything+TC设置|一键搜索|图标设置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+5 w330 h70,RunAny
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+25 vvAutoRun,开机自动启动
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
 	Gui,66:Add,Checkbox,Checked%HideUnSelect% x+30 vvHideUnSelect,选中文字也显示应用菜单
-	Gui,66:Add,GroupBox,xm-10 y+10 w215 h55,自定义显示热键
-	Gui,66:Add,Hotkey,xm+10 yp+20 w140 vvMenuKey,%MenuKey%
-	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+155 yp+3 vvMenuWinKey,Win
-	Gui,66:Add,GroupBox,xm-10 y+15 w330 h85,屏蔽RunAny程序列表（逗号分隔）
+	Gui,66:Add,GroupBox,xm-10 y+10 w215 h55,RunAny菜单自定义热键
+	Gui,66:Add,Hotkey,xm+10 yp+20 w130 vvMenuKey,%MenuKey%
+	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+150 yp+3 vvMenuWinKey,Win
+	IfExist,%iniPath2%
+	{
+		Gui,66:Add,GroupBox,xm-10 y+15 w215 h55,菜单2自定义热键
+		Gui,66:Add,Hotkey,xm+10 yp+20 w130 vvMenuKey2,%MenuKey2%
+		Gui,66:Add,Checkbox,Checked%MenuWinKey2% xm+150 yp+3 vvMenuWinKey2,Win
+	}else{
+		Gui,66:Add,Button,xm yp+50 w150 GSetMenu2,开启第2个菜单
+	}
+	Gui,66:Add,GroupBox,xm-10 y+25 w330 h85,屏蔽RunAny程序列表（逗号分隔）
 	Gui,66:Add,Edit,xm+10 yp+20 w300 r3 vvDisableApp,%DisableApp%
-	Gui,66:Add,GroupBox,xm-10 y+15 w340 h65,TotalCommander安装路径（TC打开文件夹）
+	
+	Gui,66:Tab,Everything+TC设置,,Exact
+	Gui,66:Add,GroupBox,xm-10 y+20 w235 h55,一键Everything[搜索选中文字][激活][隐藏]
+	Gui,66:Add,Hotkey,xm+10 yp+20 w130 vvEvKey,%EvKey%
+	Gui,66:Add,Checkbox,Checked%EvWinKey% xm+150 yp+3 vvEvWinKey,Win
+	Gui,66:Add,GroupBox,xm-10 y+20 w340 h100,Everything安装路径
+	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
+	Gui,66:Add,Edit,xm+60 yp w260 r3 vvEvPath,%EvPath%
+	Gui,66:Add,GroupBox,xm-10 y+30 w340 h70,TotalCommander安装路径（TC打开RunAny中的文件夹）
 	Gui,66:Add,Button,xm yp+20 w50 GSetTcPath,选择
 	Gui,66:Add,Edit,xm+60 yp w260 r2 vvTcPath,%TcPath%
 	
-	Gui,66:Tab,Everything设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+20 w215 h55,一键Everything[搜索选中文字][激活][隐藏]
-	Gui,66:Add,Hotkey,xm+10 yp+20 w140 vvEvKey,%EvKey%
-	Gui,66:Add,Checkbox,Checked%EvWinKey% xm+155 yp+3 vvEvWinKey,Win
-	Gui,66:Add,GroupBox,xm-10 y+20 w340 h150,Everything安装路径
-	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
-	Gui,66:Add,Edit,xm+60 yp w260 r5 vvEvPath,%EvPath%
-	
 	Gui,66:Tab,一键搜索,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+20 w340 h230,一键搜索选中文字
-	Gui,66:Add,Hotkey,xm yp+30 w140 vvOneKey,%OneKey%
-	Gui,66:Add,Checkbox,Checked%OneWinKey% xm+155 yp+3 vvOneWinKey,Win
+	Gui,66:Add,Hotkey,xm yp+30 w130 vvOneKey,%OneKey%
+	Gui,66:Add,Checkbox,Checked%OneWinKey% xm+140 yp+3 vvOneWinKey,Win
 	Gui,66:Add,Text,xm yp+40 w250,一键搜索网址(`%s为选中文字的替代参数)
 	Gui,66:Add,Edit,xm yp+20 w325 r5 vvOnePath,%OnePath%
 	
@@ -1209,13 +1278,13 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v3.0.1 批量搜索
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v3.2 双重菜单
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
 	Gui,99:Add,Text,y+10
 	Gui,99:Font,,Consolas
-	Gui,99:Add,Text,y+10, by Zz @2017.6.1 建议：hui0.0713@gmail.com
+	Gui,99:Add,Text,y+10, by Zz @2017.6.2 建议：hui0.0713@gmail.com
 	Gui,99:Font,CBlue Underline
 	Gui,99:Add,Text,y+10 Ggithub, GitHub：https://github.com/hui-Zz/RunAny
 	Gui,99:Add,Text,y+10 GQQRunAny, 讨论QQ群：[246308937]、3222783、493194474
@@ -1247,6 +1316,8 @@ SetOK:
 	Reg_Set(vHideUnSelect,HideUnSelect,"HideUnSelect")
 	Reg_Set(vMenuKey,MenuKey,"MenuKey")
 	Reg_Set(vMenuWinKey,MenuWinKey,"MenuWinKey")
+	Reg_Set(vMenuKey2,MenuKey2,"MenuKey2")
+	Reg_Set(vMenuWinKey2,MenuWinKey2,"MenuWinKey2")
 	Reg_Set(vEvKey,EvKey,"EvKey")
 	Reg_Set(vEvWinKey,EvWinKey,"EvWinKey")
 	Reg_Set(vEvPath,EvPath,"EvPath")
@@ -1278,6 +1349,15 @@ return
 QQRunAny:
 	Run,https://jq.qq.com/?_wv=1027&k=445Ug7u
 return
+setMenu2:
+	MsgBox,33,开启第2个菜单,确定开启第2个菜单吗？
+	IfMsgBox Ok
+	{
+		text2=;这里添加第2菜单内容
+		FileAppend,%text2%,%iniPath2%
+		gosub,Menu_Edit2
+	}
+return
 Reg_Set(vGui, var, sz){
 	if(vGui!=var){
 		%sz%=%vGui%
@@ -1290,9 +1370,15 @@ MenuTray(){
 	Menu,Tray,NoStandard
 	Menu,Tray,Icon,% MenuIconS[1],% MenuIconS[2]
 	Menu,Tray,add,启动菜单(&Z),Menu_Show
-	Menu,Tray,add,菜单配置(&E),Menu_Edit
-	Menu,Tray,add,配置文件(&F),Menu_Ini
+	Menu,Tray,add,修改菜单(&E),Menu_Edit1
+	Menu,Tray,add,修改文件(&F),Menu_Ini
 	Menu,Tray,add
+	IfExist,%iniPath2%
+	{
+		Menu,Tray,add,修改菜单2(&2),Menu_Edit2
+		Menu,Tray,add,修改文件2(&G),Menu_Ini2
+		Menu,Tray,add
+	}
 	Menu,Tray,add,设置RunAny(&D),Menu_Set
 	Menu,Tray,Add,关于RunAny(&A)...,Menu_About
 	Menu,Tray,add
@@ -1304,6 +1390,9 @@ MenuTray(){
 }
 Menu_Ini:
 	Run,%iniFile%
+return
+Menu_Ini2:
+	Run,%iniPath2%
 return
 Menu_Reload:
 	Reload
