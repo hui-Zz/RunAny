@@ -384,12 +384,12 @@ Menu_Common:
 	if(!MenuCommonList[1]){
 		MenuCommonList[1]:="&1 " A_ThisMenuItem
 		MenuObj[MenuCommonList[1]]:=any
-		Menu,% menuRoot[1],Add,% MenuCommonList[1],Menu_Run
+		Menu,% MENU2FLAG ? menuRoot1[1] : menuRoot[1],Add,% MenuCommonList[1],Menu_Run
 	}else if(MenuCommonList[1]!="&1" A_Space A_ThisMenuItem){
 		if(!MenuCommonList[2]){
 			MenuCommonList[2]:="&2" A_Space A_ThisMenuItem
 			MenuObj[MenuCommonList[2]]:=any
-			Menu,% menuRoot[1],Add,% MenuCommonList[2],Menu_Run
+			Menu,% MENU2FLAG ? menuRoot1[1] : menuRoot[1],Add,% MenuCommonList[2],Menu_Run
 		}else if(MenuCommonList[1] && MenuCommonList[2]){
 			MenuCommon1:=MenuCommonList[1]
 			MenuCommon2:=MenuCommonList[2]
@@ -397,8 +397,8 @@ Menu_Common:
 			MenuCommonList[2]:=RegExReplace(MenuCommon1,"&1","&2")
 			MenuObj[MenuCommonList[1]]:=any
 			MenuObj[MenuCommonList[2]]:=MenuObj[(MenuCommon1)]
-			Menu,% menuRoot[1],Rename,% MenuCommon1,% MenuCommonList[1]
-			Menu,% menuRoot[1],Rename,% MenuCommon2,% MenuCommonList[2]
+			Menu,% MENU2FLAG ? menuRoot1[1] : menuRoot[1],Rename,% MenuCommon1,% MenuCommonList[1]
+			Menu,% MENU2FLAG ? menuRoot1[1] : menuRoot[1],Rename,% MenuCommon2,% MenuCommonList[2]
 		}
 	}
 return
