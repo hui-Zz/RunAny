@@ -42,8 +42,7 @@ try{
 	MsgBox,16,请设置正确热键,%MenuHotKey%`nRunAny菜单自定义热键设置不正确
 }
 if(MenuKey2){
-	IfExist,%iniPath2%
-	{
+	If(MENU2FLAG){
 		try{
 			MenuHotKey2:=MenuWinKey2 ? "#" . MenuKey2 : MenuKey2
 			Hotkey,%MenuHotKey2%,Menu_Show2,On
@@ -102,8 +101,31 @@ If(evExist){
 	}
 }
 ;══════════════════════════════════════════════════════════════════
-;~;[读取自定义树形菜单设置]
 Gosub,Icon_Set
+Gosub,Menu_Init
+;#如果是第一次运行#
+if(ini){
+	ini:=false
+	TrayTip,,RunAny菜单初始化完成`n右击任务栏图标设置,3,1
+	gosub,Menu_About
+	gosub,Menu_Show
+}
+;#如果有第2菜单则开始加载
+global menu2:=MENU2FLAG
+if(menu2){
+	iniFile:=iniPath2
+	global menuRoot1:=menuRoot
+	global menuWebRoot1:=menuWebRoot
+	global menuWebList1:=menuWebList
+	gosub,Menu_Init
+}
+;~ TrayTip,,% A_TickCount-StartTick "毫秒",3,17
+;#如果当前是无图标极速菜单,则开始加载图标的正常菜单#
+;#菜单已经加载完毕，托盘图标变化
+try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
+return
+;══════════════════════════════════════════════════════════════════
+;~;[读取自定义树形菜单设置]
 Menu_Init:
 ;#应用菜单数组#
 global menuRoot:=Object()
@@ -112,11 +134,13 @@ global menuLevel:=1
 global menuWebRoot:=Object()
 global menuWebList:=Object()
 global webRootShow:=false
-if(!menu2Flag){
+if(!menu2){
 	menuRoot.Insert(RunAnyZz)
+	menuWebRoot.Insert(RunAnyZz . "Web")
 	menuWebRoot.Insert(RunAnyZz)
 }else{
 	menuRoot.Insert(RunAnyZz . "2")
+	menuWebRoot.Insert(RunAnyZz . "Web2")
 	menuWebRoot.Insert(RunAnyZz . "2")
 }
 Loop, read, %iniFile%
@@ -172,14 +196,6 @@ Loop, read, %iniFile%
 		}
 	}
 }
-if(ini){
-	ini:=false
-	TrayTip,,RunAny菜单初始化完成`n右击任务栏图标设置,3,1
-	gosub,Menu_About
-	gosub,Menu_Show
-}
-;~ TrayTip,,% A_TickCount-StartTick "毫秒",3,17
-;#如果当前是无图标极速菜单,则开始加载图标的正常菜单#
 if(fast){
 	fast:=false
 	gosub,Menu_Init
@@ -189,27 +205,19 @@ if(fast){
 ;#添加网址菜单的批量打开功能
 Loop,% menuWebRoot.MaxIndex()
 {
-	webRoot:=menuWebRoot[A_Index]
-	if(webRoot = menuRoot[1]){
-		if(webRootShow){
-			Menu,MENUWEB,add
-			Menu,MENUWEB,add,&1批量打开,Web_Run
-			Menu,MENUWEB,Icon,&1批量打开,% UrlIconS[1],% UrlIconS[2]
+	if(A_Index!=1){	;忽略比较menuWebRoot第1层web菜单
+		webRoot:=menuWebRoot[A_Index]
+		if(webRoot = menuRoot[1]){
+			if(webRootShow){
+				Menu,% menuWebRoot[1],add
+				Menu,% menuWebRoot[1],add,&1批量打开,Web_Run
+				Menu,% menuWebRoot[1],Icon,&1批量打开,% UrlIconS[1],% UrlIconS[2]
+			}
+		}else{
+			Menu,%webRoot%,add,&1批量打开%webRoot%,Web_Run
+			Menu,%webRoot%,Icon,&1批量打开%webRoot%,% UrlIconS[1],% UrlIconS[2]
 		}
-	}else{
-		Menu,%webRoot%,add,&1批量打开%webRoot%,Web_Run
-		Menu,%webRoot%,Icon,&1批量打开%webRoot%,% UrlIconS[1],% UrlIconS[2]
 	}
-}
-;#菜单已经加载完毕，托盘图标变化
-try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
-;#如果有第2菜单则开始加载
-if(menu2Flag){
-	menu2Flag:=false
-	iniFile:=iniPath2
-	global menuRoot1:=menuRoot
-	global menuWebRoot1:=menuWebRoot
-	gosub,Menu_Init
 }
 return
 ;══════════════════════════════════════════════════════════════════
@@ -250,11 +258,11 @@ Menu_Add(menuName,menuItem){
 			}
 			;~ [添加到网址菜单]
 			if(menuName = menuRoot[1]){
-				Menu,MENUWEB,Add,%menuItem%,Menu_Run
-				Menu,MENUWEB,Icon,%menuItem%,%webIcon%,0
+				Menu,% menuWebRoot[1],Add,%menuItem%,Menu_Run
+				Menu,% menuWebRoot[1],Icon,%menuItem%,%webIcon%,0
 				webRootShow:=true
 			}else{
-				Menu,MENUWEB,Add,%menuName%, :%menuName%
+				Menu,% menuWebRoot[1],Add,%menuName%, :%menuName%
 			}
 			menuWebList[(menuName)].=menuItem "`n"
 			menuWebSame:=false
@@ -280,7 +288,11 @@ Menu_Add(menuName,menuItem){
 		;应用路径错误或图标无法读取情况
 		IL_Add(ImageListID, EXEIconS[1], EXEIconS[2])
 		if(HideFail){
-			Menu,%menuName%,Delete,%menuItem%
+			If(FileExist(item)){
+				Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,124
+			}else{
+				Menu,%menuName%,Delete,%menuItem%
+			}
 		}else{
 			Menu,%menuName%,Icon,%menuItem%,% EXEIconS[1],% EXEIconS[2]
 		}
@@ -303,21 +315,16 @@ Menu_Show:
 	global selectZz:=Get_Zz()
 	;#选中文本弹出网址菜单，其他弹出应用菜单#
 	if(selectZz && !HideUnSelect && Candy_isFile!=1){
-		Menu,MENUWEB,Show
+		Menu,% MENU2FLAG ? menuWebRoot1[1] : menuWebRoot[1],Show
 	}else{
-		IfNotExist,%iniPath2%
-		{
-			Menu,% menuRoot[1],Show
-		}else{
-			Menu,% menuRoot1[1],Show
-		}
+		Menu,% MENU2FLAG ? menuRoot1[1] : menuRoot[1],Show
 	}
 return
 Menu_Show2:
 	global selectZz:=Get_Zz()
 	;#选中文本弹出网址菜单，其他弹出应用菜单#
 	if(selectZz && !HideUnSelect && Candy_isFile!=1){
-		Menu,MENUWEB,Show
+		Menu,% menuWebRoot[1],Show
 	}else{
 		Menu,% menuRoot[1],Show
 	}
@@ -398,11 +405,11 @@ return
 Web_Run:
 	webName:=RegExReplace(A_ThisMenuItem,"iS)^&1批量打开")
 	if(webName){
-		webList:=menuWebList[(webName)]
+		webList:=(A_ThisHotkey=MenuHotKey2) ? menuWebList[(webName)] : menuWebList1[(webName)]
 	}else{
-		webList:=menuWebList[(menuRoot[1])]
+		webList:=(A_ThisHotkey=MenuHotKey2) ? menuWebList[(menuRoot[1])] : menuWebList1[(menuRoot1[1])]
 	}
-	MsgBox,33,开始批量打开,确定用【%selectZz%】批量搜索以下网站：`n%webList%
+	MsgBox,33,开始批量打开%webName%,确定用【%selectZz%】批量搜索以下网站：`n%webList%
 	IfMsgBox Ok
 	{
 		Loop,parse,webList,`n
@@ -523,8 +530,7 @@ Icon_Set:
 	Menu,Tray,Icon,启动菜单(&Z),% TreeIconS[1],% TreeIconS[2]
 	Menu,Tray,Icon,修改菜单(&E),% EXEIconS[1],% EXEIconS[2]
 	Menu,Tray,Icon,修改文件(&F),SHELL32.dll,134
-	IfExist,%iniPath2%
-	{
+	If(MENU2FLAG){
 		Menu,Tray,Icon,修改菜单2(&2),% EXEIconS[1],% EXEIconS[2]
 		Menu,Tray,Icon,修改文件2(&G),SHELL32.dll,134
 	}
@@ -536,10 +542,13 @@ Run_Exist:
 	global iniPath:=A_ScriptDir "\" fileNotExt ".ini"
 	global iniPath2:=A_ScriptDir "\" fileNotExt "2.ini"
 	global iniFile:=iniPath
+	;#判断初始化#
 	IfNotExist,%iniFile%
 		gosub,First_Run
+	;#判断第2菜单ini#
 	IfExist,%iniPath2%
-		global menu2Flag:=true
+		global MENU2FLAG:=true
+	;#判断Everything拓展DLL文件#
 	global everyDLL:="Everything.dll"
 	if(FileExist(A_ScriptDir "\Everything.dll")){
 		everyDLL:=DllCall("LoadLibrary", str, "Everything.dll") ? "Everything.dll" : "Everything64.dll"
@@ -1219,8 +1228,7 @@ Menu_Set:
 	Gui,66:Add,GroupBox,xm-10 y+10 w215 h55,RunAny菜单自定义热键
 	Gui,66:Add,Hotkey,xm+10 yp+20 w130 vvMenuKey,%MenuKey%
 	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+150 yp+3 vvMenuWinKey,Win
-	IfExist,%iniPath2%
-	{
+	If(MENU2FLAG){
 		Gui,66:Add,GroupBox,xm-10 y+15 w215 h55,菜单2自定义热键
 		Gui,66:Add,Hotkey,xm+10 yp+20 w130 vvMenuKey2,%MenuKey2%
 		Gui,66:Add,Checkbox,Checked%MenuWinKey2% xm+150 yp+3 vvMenuWinKey2,Win
@@ -1373,8 +1381,7 @@ MenuTray(){
 	Menu,Tray,add,修改菜单(&E),Menu_Edit1
 	Menu,Tray,add,修改文件(&F),Menu_Ini
 	Menu,Tray,add
-	IfExist,%iniPath2%
-	{
+	If(MENU2FLAG){
 		Menu,Tray,add,修改菜单2(&2),Menu_Edit2
 		Menu,Tray,add,修改文件2(&G),Menu_Ini2
 		Menu,Tray,add
