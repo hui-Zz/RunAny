@@ -212,6 +212,8 @@ Loop,% menuWebRoot.MaxIndex()
 				Menu,% menuWebRoot[1],add
 				Menu,% menuWebRoot[1],add,&1批量打开,Web_Run
 				Menu,% menuWebRoot[1],Icon,&1批量打开,% UrlIconS[1],% UrlIconS[2]
+			}else if(menu2){
+				Menu,% menuWebRoot[1],add	;避免菜单2无网址而报错
 			}
 		}else{
 			Menu,%webRoot%,add,&1批量打开%webRoot%,Web_Run
@@ -1396,7 +1398,7 @@ MenuTray(){
 	Menu,Tray,Click,1
 }
 Menu_Ini:
-	Run,%iniFile%
+	Run,%iniPath%
 return
 Menu_Ini2:
 	Run,%iniPath2%
