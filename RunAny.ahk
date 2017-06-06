@@ -335,6 +335,8 @@ return
 Menu_Run:
 	any:=MenuObj[(A_ThisMenuItem)]
 	anyLen:=StrLen(any)
+	SplitPath, any, , dir
+	SetWorkingDir,%dir%
 	if(!RegExMatch(A_ThisMenuItem,"S)^&1|2"))
 		gosub,Menu_Common
 	try {
@@ -380,6 +382,7 @@ Menu_Run:
 	} catch e {
 		MsgBox,16,%A_ThisMenuItem%运行出错,% "运行路径：" any "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 	}
+	SetWorkingDir,%A_ScriptDir%
 return
 ;~;[菜单最近运行]
 Menu_Common:
