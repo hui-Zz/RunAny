@@ -1,8 +1,8 @@
 ﻿/*
 ╔═════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v3.2 双重菜单
+║【RunAny】一劳永逸的快速启动工具 v3.2.4 双重菜单
 ║ by Zz 建议：hui0.0713@gmail.com
-║ @2017.6.2 github.com/hui-Zz/RunAny
+║ @2017.6.6 github.com/hui-Zz/RunAny
 ║ 讨论QQ群：[246308937]、3222783、493194474
 ╚═════════════════════════════════
 */
@@ -525,13 +525,14 @@ Icon_Set:
 	}
 	global LNKIconS:=StrSplit(LNKIcon,",")
 	;~;[树型菜单图标集]
-	global ImageListID := IL_Create(6)
+	global ImageListID := IL_Create(7)
 	IL_Add(ImageListID, "shell32.dll", 1)
 	IL_Add(ImageListID, "shell32.dll", 2)
 	IL_Add(ImageListID, EXEIconS[1], EXEIconS[2])
 	IL_Add(ImageListID, FolderIconS[1], FolderIconS[2])
 	IL_Add(ImageListID, LNKIconS[1], LNKIconS[2])
 	IL_Add(ImageListID, TreeIconS[1], TreeIconS[2])
+	IL_Add(ImageListID, UrlIconS[1], UrlIconS[2])
 	Menu,Tray,Icon,启动菜单(&Z),% TreeIconS[1],% TreeIconS[2]
 	Menu,Tray,Icon,修改菜单(&E),% EXEIconS[1],% EXEIconS[2]
 	Menu,Tray,Icon,修改文件(&F),SHELL32.dll,134
@@ -614,7 +615,7 @@ Menu_Edit:
 	moveRoot[1]:="moveMenu"
 	Menu,% moveRoot[1],add
 	global moveLevel:=0
-	global exeIconNum:=6
+	global exeIconNum:=7
 	;~;[树型菜单初始化]
 	Gui, Destroy
 	Gui, +Resize
@@ -737,6 +738,8 @@ Set_Icon(itemVar,editVar=true){
 		return "Icon6"
 	if(editVar && Ext_Check(itemVar,itemLen,".lnk"))
 		return "Icon5"
+	if(editVar && RegExMatch(itemVar,"iS)([\w-]+://?|www[.]).*"))
+		return "Icon7"
 	if(RegExMatch(itemVar,"iS)\.(exe|lnk)$") || RegExMatch(itemVar,"iS)([\w-]+://?|www[.]).*")){
 		if(editVar && Ext_Check(itemVar,itemLen,".exe")){
 			;~;[编辑后通过everything重新添加应用图标]
@@ -1291,13 +1294,13 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v3.2 双重菜单
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v3.2.4 双重菜单
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
 	Gui,99:Add,Text,y+10
 	Gui,99:Font,,Consolas
-	Gui,99:Add,Text,y+10, by Zz @2017.6.2 建议：hui0.0713@gmail.com
+	Gui,99:Add,Text,y+10, by Zz @2017.6.6 建议：hui0.0713@gmail.com
 	Gui,99:Font,CBlue Underline
 	Gui,99:Add,Text,y+10 Ggithub, GitHub：https://github.com/hui-Zz/RunAny
 	Gui,99:Add,Text,y+10 GQQRunAny, 讨论QQ群：[246308937]、3222783、493194474
