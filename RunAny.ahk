@@ -1,6 +1,6 @@
 ﻿/*
 ╔═════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v3.2.5 菜单修改显示所有后缀图标
+║【RunAny】一劳永逸的快速启动工具 v3.2.6 双重菜单
 ║ by Zz 建议：hui0.0713@gmail.com
 ║ @2017.6.7 github.com/hui-Zz/RunAny
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -249,8 +249,13 @@ Menu_Add(menuName,menuItem){
 			website:=RegExReplace(item,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
 			webIcon:=A_ScriptDir "\RunIcon\" website ".ico"
 			if(FileExist(webIcon)){
-				Menu,%menuName%,Icon,%menuItem%,%webIcon%,0
-				IL_Add(ImageListID, webIcon, 0)
+				try{
+					Menu,%menuName%,Icon,%menuItem%,%webIcon%,0
+					IL_Add(ImageListID, webIcon, 0)
+				} catch e {
+					Menu,%menuName%,Icon,%menuItem%,% UrlIconS[1],% UrlIconS[2]
+					IL_Add(ImageListID, UrlIconS[1], UrlIconS[2])
+				}
 			}else{
 				Menu,%menuName%,Icon,%menuItem%,% UrlIconS[1],% UrlIconS[2]
 				IL_Add(ImageListID, UrlIconS[1], UrlIconS[2])
@@ -959,16 +964,8 @@ TVImportFile:
 				if Ext_Check(exePath,StrLen(exePath),".exe")
 					SplitPath,exePath,I_LoopField
 			}
-			try{
-				Menu,exeTestMenu,Icon,TVImportFolder,%exePath%,0
-				IL_Add(ImageListID, exePath, 0)
-				exeIconNum++
-				fileID:=TV_Add(I_LoopField,parentID,"Icon" . exeIconNum)
-			} catch e {
-				fileID:=TV_Add(I_LoopField,parentID,"Icon3")
-			} finally {
-				TVFlag:=true
-			}
+			fileID:=TV_Add(I_LoopField,parentID,Set_Icon(exePath))
+			TVFlag:=true
 		}
 	}
 return
@@ -986,14 +983,7 @@ TVImportFolder:
 			}
 			Loop,%folderName%\*.exe,0,1
 			{
-				try{
-					Menu,exeTestMenu,Icon,TVImportFolder,%A_LoopFileFullPath%,0
-					IL_Add(ImageListID, A_LoopFileFullPath, 0)
-					exeIconNum++
-					folderID:=TV_Add(A_LoopFileName,parentID,"Icon" . exeIconNum)
-				} catch e {
-					folderID:=TV_Add(A_LoopFileName,parentID,"Icon3")
-				}
+				folderID:=TV_Add(A_LoopFileName,parentID,Set_Icon(A_LoopFileFullPath))
 			}
 			TVFlag:=true
 		}
@@ -1092,7 +1082,7 @@ Website_Icon_Down:
 	}
 return
 WebsiteIconError(errDown){
-	MsgBox,以下网站图标无法下载，请单选后点[网站图标]按钮重新指定网址下载，`n或手动添加对应网址图标到%A_ScriptDir%\RunIcon`n%errDown%
+	MsgBox,以下网站图标无法下载，请单选后点[网站图标]按钮重新指定网址下载，`n或手动添加对应图标到[%A_ScriptDir%\RunIcon]`n`n%errDown%
 }
 ;~;[上下移动项目]
 TV_Move(moveMode = true){
@@ -1354,7 +1344,7 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v3.2.5 双重菜单
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v3.2.6 双重菜单
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
