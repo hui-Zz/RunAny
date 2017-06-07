@@ -1,8 +1,8 @@
 ﻿/*
 ╔═════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v3.2.4 双重菜单
+║【RunAny】一劳永逸的快速启动工具 v3.2.5 菜单修改显示所有后缀图标
 ║ by Zz 建议：hui0.0713@gmail.com
-║ @2017.6.6 github.com/hui-Zz/RunAny
+║ @2017.6.7 github.com/hui-Zz/RunAny
 ║ 讨论QQ群：[246308937]、3222783、493194474
 ╚═════════════════════════════════
 */
@@ -235,14 +235,11 @@ Menu_Add(menuName,menuItem){
 				FileGetShortcut, %item%, OutItem, , , , OutIcon, OutIconNum
 				if(OutIcon){
 					Menu,%menuName%,Icon,%menuItem%,%OutIcon%,%OutIconNum%
-					IL_Add(ImageListID, OutIcon, OutIconNum)
 				}else{
 					Menu,%menuName%,Icon,%menuItem%,%OutItem%
-					IL_Add(ImageListID, OutItem, 0)
 				}
 			} catch e {
 				Menu,%menuName%,Icon,%menuItem%,% LNKIconS[1],% LNKIconS[2]
-				IL_Add(ImageListID, LNKIconS[1], LNKIconS[2])
 			}
 		}else if(Ext_Check(item,itemLen,".ahk")){
 			Menu,%menuName%,Icon,%menuItem%,% AHKIconS[1],% AHKIconS[2]
@@ -284,11 +281,9 @@ Menu_Add(menuName,menuItem){
 			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,2
 		}else{
 			Menu,%menuName%,Icon,%menuItem%,%item%
-			IL_Add(ImageListID, item, 0)
 		}
 	} catch e {
 		;应用路径错误或图标无法读取情况
-		IL_Add(ImageListID, EXEIconS[1], EXEIconS[2])
 		if(HideFail){
 			If(FileExist(item)){
 				Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,124
@@ -315,11 +310,15 @@ Menu_Add_Fast(menuName,menuItem){
 ;~;[显示菜单]
 Menu_Show:
 	global selectZz:=Get_Zz()
-	;#选中文本弹出网址菜单，其他弹出应用菜单#
-	if(selectZz && !HideUnSelect && Candy_isFile!=1){
-		Menu,% MENU2FLAG ? menuWebRoot1[1] : menuWebRoot[1],Show
+	if(fast){
+		Menu,% menuRoot[1],Show
 	}else{
-		Menu,% MENU2FLAG ? menuRoot1[1] : menuRoot[1],Show
+		;#选中文本弹出网址菜单，其他弹出应用菜单#
+		if(selectZz && !HideUnSelect && Candy_isFile!=1){
+			Menu,% MENU2FLAG ? menuWebRoot1[1] : menuWebRoot[1],Show
+		}else{
+			Menu,% MENU2FLAG ? menuRoot1[1] : menuRoot[1],Show
+		}
 	}
 return
 Menu_Show2:
@@ -460,6 +459,7 @@ One_Show:
 return
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化]
+;══════════════════════════════════════════════════════════════════
 Var_Set:
 	RegRead, AutoRun, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 	AutoRun:=AutoRun ? 1 : 0
@@ -605,8 +605,20 @@ Get_Zz(){
 	Clipboard:=Candy_Saved
 	return CandySel
 }
+Get_Obj_Path(Z_ReadLine){
+	if(InStr(Z_ReadLine,"|")){
+		menuDiy:=StrSplit(Z_ReadLine,"|")
+		return MenuObj[menuDiy[1]]
+	}else if(RegExMatch(Z_ReadLine,"iS)^(\\\\|.:\\).*?\.exe$")){
+		return Z_ReadLine
+	}else{
+		appName:=RegExReplace(Z_ReadLine,"iS)\.(exe|lnk)$")
+		return MenuObj[appName]
+	}
+}
 ;══════════════════════════════════════════════════════════════════
 ;~;[菜单配置]
+;══════════════════════════════════════════════════════════════════
 Menu_Edit:
 	global TVFlag:=false
 	;~;[功能菜单初始化]
@@ -733,38 +745,84 @@ TVMenu(addMenu){
 }
 ;~;[后缀判断图标]
 Set_Icon(itemVar,editVar=true){
+	SplitPath, itemVar,,, FileExt  ; 获取文件扩展名.
 	itemLen:=StrLen(itemVar)
 	if(RegExMatch(itemVar,"S)^-+[^-]+.*"))
 		return "Icon6"
-	if(editVar && Ext_Check(itemVar,itemLen,".lnk"))
-		return "Icon5"
-	if(editVar && RegExMatch(itemVar,"iS)([\w-]+://?|www[.]).*"))
-		return "Icon7"
-	if(RegExMatch(itemVar,"iS)\.(exe|lnk)$") || RegExMatch(itemVar,"iS)([\w-]+://?|www[.]).*")){
-		if(editVar && Ext_Check(itemVar,itemLen,".exe")){
-			;~;[编辑后通过everything重新添加应用图标]
-			try{
-				diyText:=StrSplit(itemVar,"|")
-				exeText:=(diyText[2]) ? diyText[2] : diyText[1]
-				exeQueryPath:=exeQuery(exeText)
-				if(exeQueryPath){
-					Menu,exeTestMenu,Icon,TVImportFolder,%exeQueryPath%,0
-					IL_Add(ImageListID, exeQueryPath, 0)
-				}else{
-					return "Icon3"
-				}
-			} catch e {
-				return "Icon3"
-			}
-		}
-		exeIconNum++
-		return "Icon" . exeIconNum
-	}
 	if(InStr(itemVar,";")=1 || itemVar="")
 		return "Icon2"
+	if(RegExMatch(itemVar,"iS)([\w-]+://?|www[.]).*")){
+		if(editVar){
+			return "Icon7"
+		}else{
+			exeIconNum++
+			return "Icon" . exeIconNum
+		}
+	}
 	if(InStr(itemVar,"\",,0,1)=itemLen)
 		return "Icon4"
-	return "Icon1"
+	;~;[获取全路径]
+	FileName:=Get_Obj_Path(itemVar)
+	;~;[编辑后图标重新加载]
+	if(editVar && FileExt = "exe"){
+		;~;[编辑后通过everything重新添加应用图标]
+		diyText:=StrSplit(itemVar,"|")
+		exeText:=(diyText[2]) ? diyText[2] : diyText[1]
+		exeQueryPath:=exeQuery(exeText)
+		if(exeQueryPath){
+			FileName:=exeQueryPath
+		}else{
+			return "Icon3"
+		}
+	}
+	; 计算 SHFILEINFO 结构需要的缓存大小.
+	sfi_size := A_PtrSize + 8 + (A_IsUnicode ? 680 : 340)
+	VarSetCapacity(sfi, sfi_size)
+	;【下面开始处理未知的项目图标】
+    SplitPath, FileName, , , FileExt  ; 获取文件扩展名.
+    if FileExt in EXE,ICO,ANI,CUR
+    {
+        ExtID := FileExt  ; 特殊 ID 作为占位符.
+        IconNumber = 0  ; 进行标记这样每种类型就含有唯一的图标.
+    }
+    else  ; 其他的扩展名/文件类型, 计算它们的唯一 ID.
+    {
+        ExtID = 0  ; 进行初始化来处理比其他更短的扩展名.
+        Loop 7     ; 限制扩展名为 7 个字符, 这样之后计算的结果才能存放到 64 位值.
+        {
+            StringMid, ExtChar, FileExt, A_Index, 1
+            if not ExtChar  ; 没有更多字符了.
+                break
+            ; 把每个字符与不同的位位置进行运算来得到唯一 ID:
+            ExtID := ExtID | (Asc(ExtChar) << (8 * (A_Index - 1)))
+        }
+        ; 检查此文件扩展名的图标是否已经在图像列表中. 如果是,
+        ; 可以避免多次调用并极大提高性能,
+        ; 尤其对于包含数以百计文件的文件夹而言:
+        IconNumber := IconArray%ExtID%
+    }
+    if not IconNumber  ; 此扩展名还没有相应的图标, 所以进行加载.
+    {
+		; 获取与此文件扩展名关联的高质量小图标:
+		if not DllCall("Shell32\SHGetFileInfo" . (A_IsUnicode ? "W":"A"), "str", FileName
+            , "uint", 0, "ptr", &sfi, "uint", sfi_size, "uint", 0x101)  ; 0x101 为 SHGFI_ICON+SHGFI_SMALLICON
+		{
+			IconNumber = 3  ; 显示默认应用图标.
+		}
+		else ; 成功加载图标.
+		{
+			; 从结构中提取 hIcon 成员:
+			hIcon := NumGet(sfi, 0)
+			; 直接添加 HICON 到小图标和大图标列表.
+			; 下面加上 1 来把返回的索引从基于零转换到基于一:
+			IconNumber := DllCall("ImageList_ReplaceIcon", "ptr", ImageListID, "int", -1, "ptr", hIcon) + 1
+			; 现在已经把它复制到图像列表, 所以应销毁原来的:
+			DllCall("DestroyIcon", "ptr", hIcon)
+			; 缓存图标来节省内存并提升加载性能:
+			IconArray%ExtID% := IconNumber
+		}
+	}
+	return "Icon" . IconNumber
 }
 TVClick:
 	if (A_GuiEvent == "e"){
@@ -1041,8 +1099,8 @@ TV_Move(moveMode = true){
 	selID:=TV_GetSelection()
 	moveID:=moveMode ? TV_GetNext(selID) : TV_GetPrev(selID)
 	if(moveID!=0){
-		TV_GetText(moveVar, moveID)
 		TV_GetText(selVar, selID)
+		TV_GetText(moveVar, moveID)
 		TV_Modify(selID, , moveVar)
 		TV_Modify(moveID, , selVar)
 		TV_Modify(selID, "-Select -focus")
@@ -1050,6 +1108,8 @@ TV_Move(moveMode = true){
 		TV_Modify(selID, Set_Icon(moveVar))
 		TV_Modify(moveID, Set_Icon(selVar))
 		TVFlag:=true
+		if(RegExMatch(moveVar,"S)^-+[^-]+.*"))
+			TrayTip,,移动根节点，只会互换节点名,2,17
 	}
 	return
 }
@@ -1294,13 +1354,13 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v3.2.4 双重菜单
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v3.2.5 双重菜单
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
 	Gui,99:Add,Text,y+10
 	Gui,99:Font,,Consolas
-	Gui,99:Add,Text,y+10, by Zz @2017.6.6 建议：hui0.0713@gmail.com
+	Gui,99:Add,Text,y+10, by Zz @2017.6.7 建议：hui0.0713@gmail.com
 	Gui,99:Font,CBlue Underline
 	Gui,99:Add,Text,y+10 Ggithub, GitHub：https://github.com/hui-Zz/RunAny
 	Gui,99:Add,Text,y+10 GQQRunAny, 讨论QQ群：[246308937]、3222783、493194474
