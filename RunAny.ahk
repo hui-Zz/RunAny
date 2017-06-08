@@ -538,6 +538,7 @@ Icon_Set:
 	}
 	Menu,Tray,Icon,设置RunAny(&D),% AnyIconS[1],% AnyIconS[2]
 	Menu,Tray,Icon,关于RunAny(&A)...,% MenuIconS[1],% MenuIconS[2]
+	Menu,exeTestMenu,add,github	;只用于测试应用图标正常添加
 return
 ;~;[调用判断]
 Run_Exist:
@@ -661,7 +662,6 @@ Menu_Edit:
 	TVMenu("GuiMenu")
 	Gui, Menu, GuiMenu
 	Gui, Show, , %RunAnyZz%菜单树管理(右键操作)
-	Menu,exeTestMenu,add,TVImportFolder	;只用于测试应用图标正常添加
 return
 Menu_Edit1:
 	iniFile:=iniPath
@@ -747,18 +747,33 @@ Set_Icon(itemVar,editVar=true){
 		return "Icon6"
 	if(InStr(itemVar,";")=1 || itemVar="")
 		return "Icon2"
-	if(RegExMatch(itemVar,"iS)([\w-]+://?|www[.]).*")){
-		if(editVar){
-			return "Icon7"
-		}else{
-			exeIconNum++
-			return "Icon" . exeIconNum
-		}
-	}
 	if(InStr(itemVar,"\",,0,1)=itemLen)
 		return "Icon4"
 	;~;[获取全路径]
 	FileName:=Get_Obj_Path(itemVar)
+	;~;[获取网址图标]
+	if(RegExMatch(FileName,"iS)([\w-]+://?|www[.]).*")){
+		if(editVar){
+			return "Icon7"
+		}
+		if(iniFile=iniPath){
+			exeIconNum++
+			return "Icon" . exeIconNum
+		}
+		try{
+			website:=RegExReplace(FileName,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
+			webIcon:=A_ScriptDir "\RunIcon\" website ".ico"
+			if(FileExist(webIcon)){
+				Menu,exeTestMenu,Icon,github,%webIcon%,0
+				addNum:=IL_Add(ImageListID, webIcon, 0)
+				return "Icon" . addNum
+			}else{
+				return "Icon7"
+			}
+		} catch e {
+			return "Icon7"
+		}
+	}
 	;~;[编辑后图标重新加载]
 	if(editVar && FileExt = "exe"){
 		;~;[编辑后通过everything重新添加应用图标]
@@ -1578,7 +1593,7 @@ FileAppend,
 (
 ;以【;】开头代表注释
 ;以【-】开头+名称表示1级节点
--App常用
+-常用(&App)
 	;以【--】开头+名称表示2级节点树
 	--佳软
 		;在【|】前加上TC的简称显示
@@ -1593,31 +1608,31 @@ FileAppend,
 	;2级分隔符【--】
 	--
 	Wiz.exe
--Edit编辑
+-编辑(&Edit)
 	记事本(&N)|notepad.exe
 	--
 	winword.exe
 	excel.exe
 	powerpnt.exe
--im&G图片
+-图片(im&G)
 	画图(&T)|mspaint.exe
 	ACDSee.exe
 	XnView.exe
 	IrfanView.exe
--Video影音
+-影音(&Video)
 	cloudmusic.exe
 	--
 	QQPlayer.exe
 	PotPlayer.exe
--Web网址
+-网址(&Web)
 	百度(&B)|https://www.baidu.com/s?wd=
 	翻译(&F)|http://translate.google.cn/#auto/zh-CN/
 	淘宝(&T)|https://s.taobao.com/search?q=
 	--
 	RunAny地址|https://github.com/hui-Zz/RunAny
--File文件
+-文件(&File)
 	WinRAR.exe
--Sys系统
+-系统(&Sys)
 	cmd.exe
 	控制面板(&S)|Control.exe
 ),%iniFile%
