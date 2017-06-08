@@ -101,8 +101,23 @@ If(evExist){
 	}
 }
 ;══════════════════════════════════════════════════════════════════
+;~;[后缀图标初始化]
 Gosub,Icon_Set
-Gosub,Menu_Init
+;#应用菜单数组#网址菜单名数组及地址队列#
+menuRoot:=Object()
+menuWebRoot:=Object()
+menuWebList:=Object()
+menuRoot.Insert(RunAnyZz)
+menuWebRoot.Insert(RunAnyZz . "Web")
+menuWebRoot.Insert(RunAnyZz)
+;~;[快速创建无图标应用菜单]
+if(fast){
+	Menu_Read(iniPath,true,menuRoot,1,menuWebRoot,menuWebList,false)
+}
+;~;[读取带图标的自定义应用菜单]
+Menu_Read(iniPath,false,menuRoot,1,menuWebRoot,menuWebList,false)
+Menu,% menuRoot[1],Add
+
 ;#如果是第一次运行#
 if(ini){
 	ini:=false
@@ -113,118 +128,98 @@ if(ini){
 ;#如果有第2菜单则开始加载
 global menu2:=MENU2FLAG
 if(menu2){
-	iniFile:=iniPath2
-	global menuRoot1:=menuRoot
-	global menuWebRoot1:=menuWebRoot
-	global menuWebList1:=menuWebList
-	gosub,Menu_Init
+	menuRoot2:=Object()
+	menuWebRoot2:=Object()
+	menuWebList2:=Object()
+	menuRoot2.Insert(RunAnyZz . "2")
+	menuWebRoot2.Insert(RunAnyZz . "Web2")
+	menuWebRoot2.Insert(RunAnyZz . "2")
+	Menu_Read(iniPath2,false,menuRoot2,1,menuWebRoot2,menuWebList2,false)
 }
 ;~ TrayTip,,% A_TickCount-StartTick "毫秒",3,17
-;#如果当前是无图标极速菜单,则开始加载图标的正常菜单#
 ;#菜单已经加载完毕，托盘图标变化
 try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 return
 ;══════════════════════════════════════════════════════════════════
-;~;[读取自定义树形菜单设置]
-Menu_Init:
-;#应用菜单数组#
-global menuRoot:=Object()
-global menuLevel:=1
-;#网址菜单名数组及地址队列#
-global menuWebRoot:=Object()
-global menuWebList:=Object()
-global webRootShow:=false
-if(!menu2){
-	menuRoot.Insert(RunAnyZz)
-	menuWebRoot.Insert(RunAnyZz . "Web")
-	menuWebRoot.Insert(RunAnyZz)
-}else{
-	menuRoot.Insert(RunAnyZz . "2")
-	menuWebRoot.Insert(RunAnyZz . "Web2")
-	menuWebRoot.Insert(RunAnyZz . "2")
-}
-Loop, read, %iniFile%
-{
-	Z_ReadLine=%A_LoopReadLine%
-	if(InStr(Z_ReadLine,"-")=1){
-		;~;[生成节点树层级结构]
-		menuItem:=RegExReplace(Z_ReadLine,"S)^-+")
-		menuLevel:=StrLen(RegExReplace(Z_ReadLine,"S)(^-+).*","$1"))
-		if(menuItem){
-			Menu,%menuItem%,add
-			Menu,% menuRoot[menuLevel],add,%menuItem%,:%menuItem%
-			Menu,% menuRoot[menuLevel],Icon,%menuItem%,% TreeIconS[1],% TreeIconS[2]
-			menuLevel+=1
-			menuRoot[menuLevel]:=menuItem
-		}else if(fast && menuRoot[menuLevel]){
-			Menu,% menuRoot[menuLevel],Add
-		}
-	}else if(InStr(Z_ReadLine,";")=1 || Z_ReadLine=""){
-		continue
-	}else if(InStr(Z_ReadLine,"|")){
-		;~;[生成有前缀备注的应用]
-		menuDiy:=StrSplit(Z_ReadLine,"|")
-		appName:=RegExReplace(menuDiy[2],"iS)\.(exe|lnk)$")
-		if(MenuObj[appName]){
-			MenuObj[menuDiy[1]]:=MenuObj[appName]
-		}else{
-			MenuObj[menuDiy[1]]:=menuDiy[2]
-		}
-		if(fast){
-			Menu_Add_Fast(menuRoot[menuLevel],menuDiy[1])
-		}else{
-			Menu_Add(menuRoot[menuLevel],menuDiy[1])
-		}
-	}else if(RegExMatch(Z_ReadLine,"iS)^(\\\\|.:\\).*?\.exe$")){
-		;~;[生成完全路径的应用]
-		SplitPath,Z_ReadLine,fileName,,,nameNotExt
-		MenuObj[nameNotExt]:=Z_ReadLine
-		if(fast){
-			Menu_Add_Fast(menuRoot[menuLevel],nameNotExt)
-		}else{
-			Menu_Add(menuRoot[menuLevel],nameNotExt)
-		}
-	}else{
-		;~;[生成已取到的应用]
-		appName:=RegExReplace(Z_ReadLine,"iS)\.(exe|lnk)$")
-		if(!MenuObj[appName])
-			MenuObj[appName]:=Z_ReadLine
-		if(fast){
-			Menu_Add_Fast(menuRoot[menuLevel],appName)
-		}else{
-			Menu_Add(menuRoot[menuLevel],appName)
-		}
-	}
-}
-if(fast){
-	fast:=false
-	gosub,Menu_Init
-}else{
-	Menu,% menuRoot[1],Add
-}
-;#添加网址菜单的批量打开功能
-Loop,% menuWebRoot.MaxIndex()
-{
-	if(A_Index!=1){	;忽略比较menuWebRoot第1层web菜单
-		webRoot:=menuWebRoot[A_Index]
-		if(webRoot = menuRoot[1]){
-			if(webRootShow){
-				Menu,% menuWebRoot[1],add
-				Menu,% menuWebRoot[1],add,&1批量打开,Web_Run
-				Menu,% menuWebRoot[1],Icon,&1批量打开,% UrlIconS[1],% UrlIconS[2]
-			}else if(menu2){
-				Menu,% menuWebRoot[1],add	;避免菜单2无网址而报错
+;~;[读取配置并开始创建菜单]
+;══════════════════════════════════════════════════════════════════
+Menu_Read(iniFilePath,fast,menuRoot,menuLevel,menuWebRoot,menuWebList,webRootShow){
+	Loop, read, %iniFilePath%
+	{
+		Z_ReadLine=%A_LoopReadLine%
+		if(InStr(Z_ReadLine,"-")=1){
+			;~;[生成节点树层级结构]
+			menuItem:=RegExReplace(Z_ReadLine,"S)^-+")
+			menuLevel:=StrLen(RegExReplace(Z_ReadLine,"S)(^-+).*","$1"))
+			if(menuItem){
+				Menu,%menuItem%,add
+				Menu,% menuRoot[menuLevel],add,%menuItem%,:%menuItem%
+				Menu,% menuRoot[menuLevel],Icon,%menuItem%,% TreeIconS[1],% TreeIconS[2]
+				menuLevel+=1
+				menuRoot[menuLevel]:=menuItem
+			}else if(fast && menuRoot[menuLevel]){
+				Menu,% menuRoot[menuLevel],Add
+			}
+		}else if(InStr(Z_ReadLine,";")=1 || Z_ReadLine=""){
+			continue
+		}else if(InStr(Z_ReadLine,"|")){
+			;~;[生成有前缀备注的应用]
+			menuDiy:=StrSplit(Z_ReadLine,"|")
+			appName:=RegExReplace(menuDiy[2],"iS)\.(exe|lnk)$")
+			if(MenuObj[appName]){
+				MenuObj[menuDiy[1]]:=MenuObj[appName]
+			}else{
+				MenuObj[menuDiy[1]]:=menuDiy[2]
+			}
+			if(fast){
+				Menu_Add_Fast(menuRoot[menuLevel],menuDiy[1])
+			}else{
+				Menu_Add(menuRoot[menuLevel],menuDiy[1],fast,menuRoot,menuWebRoot,menuWebList,webRootShow)
+			}
+		}else if(RegExMatch(Z_ReadLine,"iS)^(\\\\|.:\\).*?\.exe$")){
+			;~;[生成完全路径的应用]
+			SplitPath,Z_ReadLine,fileName,,,nameNotExt
+			MenuObj[nameNotExt]:=Z_ReadLine
+			if(fast){
+				Menu_Add_Fast(menuRoot[menuLevel],nameNotExt)
+			}else{
+				Menu_Add(menuRoot[menuLevel],nameNotExt,fast,menuRoot,menuWebRoot,menuWebList,webRootShow)
 			}
 		}else{
-			Menu,%webRoot%,add,&1批量打开%webRoot%,Web_Run
-			Menu,%webRoot%,Icon,&1批量打开%webRoot%,% UrlIconS[1],% UrlIconS[2]
+			;~;[生成已取到的应用]
+			appName:=RegExReplace(Z_ReadLine,"iS)\.(exe|lnk)$")
+			if(!MenuObj[appName])
+				MenuObj[appName]:=Z_ReadLine
+			if(fast){
+				Menu_Add_Fast(menuRoot[menuLevel],appName)
+			}else{
+				Menu_Add(menuRoot[menuLevel],appName,fast,menuRoot,menuWebRoot,menuWebList,webRootShow)
+			}
+		}
+	}
+	;#添加网址菜单的批量打开功能
+	Loop,% menuWebRoot.MaxIndex()
+	{
+		if(A_Index!=1){	;忽略比较menuWebRoot第1层web菜单
+			webRoot:=menuWebRoot[A_Index]
+			if(webRoot = menuRoot[1]){
+				if(webRootShow){
+					Menu,% menuWebRoot[1],add
+					Menu,% menuWebRoot[1],add,&1批量打开,Web_Run
+					Menu,% menuWebRoot[1],Icon,&1批量打开,% UrlIconS[1],% UrlIconS[2]
+				}else if(menu2){
+					Menu,% menuWebRoot[1],add	;避免菜单2无网址而报错
+				}
+			}else{
+				Menu,%webRoot%,add,&1批量打开%webRoot%,Web_Run
+				Menu,%webRoot%,Icon,&1批量打开%webRoot%,% UrlIconS[1],% UrlIconS[2]
+			}
 		}
 	}
 }
-return
 ;══════════════════════════════════════════════════════════════════
 ;~;[生成菜单(判断后缀创建图标)]
-Menu_Add(menuName,menuItem){
+Menu_Add(menuName,menuItem,fast,menuRoot,menuWebRoot,menuWebList,webRootShow){
 	try {
 		item:=MenuObj[(menuItem)]
 		itemLen:=StrLen(item)
@@ -315,24 +310,20 @@ Menu_Add_Fast(menuName,menuItem){
 ;~;[显示菜单]
 Menu_Show:
 	global selectZz:=Get_Zz()
-	if(fast){
-		Menu,% menuRoot[1],Show
+	;#选中文本弹出网址菜单，其他弹出应用菜单#
+	if(selectZz && !HideUnSelect && Candy_isFile!=1){
+		Menu,% menuWebRoot[1],Show
 	}else{
-		;#选中文本弹出网址菜单，其他弹出应用菜单#
-		if(selectZz && !HideUnSelect && Candy_isFile!=1){
-			Menu,% MENU2FLAG ? menuWebRoot1[1] : menuWebRoot[1],Show
-		}else{
-			Menu,% MENU2FLAG ? menuRoot1[1] : menuRoot[1],Show
-		}
+		Menu,% menuRoot[1],Show
 	}
 return
 Menu_Show2:
 	global selectZz:=Get_Zz()
 	;#选中文本弹出网址菜单，其他弹出应用菜单#
 	if(selectZz && !HideUnSelect && Candy_isFile!=1){
-		Menu,% menuWebRoot[1],Show
+		Menu,% menuWebRoot2[1],Show
 	}else{
-		Menu,% menuRoot[1],Show
+		Menu,% menuRoot2[1],Show
 	}
 return
 ;~;[菜单运行]
@@ -393,12 +384,12 @@ Menu_Common:
 	if(!MenuCommonList[1]){
 		MenuCommonList[1]:="&1 " A_ThisMenuItem
 		MenuObj[MenuCommonList[1]]:=any
-		Menu,% MENU2FLAG ? menuRoot1[1] : menuRoot[1],Add,% MenuCommonList[1],Menu_Run
+		Menu,% menuRoot[1],Add,% MenuCommonList[1],Menu_Run
 	}else if(MenuCommonList[1]!="&1" A_Space A_ThisMenuItem){
 		if(!MenuCommonList[2]){
 			MenuCommonList[2]:="&2" A_Space A_ThisMenuItem
 			MenuObj[MenuCommonList[2]]:=any
-			Menu,% MENU2FLAG ? menuRoot1[1] : menuRoot[1],Add,% MenuCommonList[2],Menu_Run
+			Menu,% menuRoot[1],Add,% MenuCommonList[2],Menu_Run
 		}else if(MenuCommonList[1] && MenuCommonList[2]){
 			MenuCommon1:=MenuCommonList[1]
 			MenuCommon2:=MenuCommonList[2]
@@ -406,17 +397,17 @@ Menu_Common:
 			MenuCommonList[2]:=RegExReplace(MenuCommon1,"&1","&2")
 			MenuObj[MenuCommonList[1]]:=any
 			MenuObj[MenuCommonList[2]]:=MenuObj[(MenuCommon1)]
-			Menu,% MENU2FLAG ? menuRoot1[1] : menuRoot[1],Rename,% MenuCommon1,% MenuCommonList[1]
-			Menu,% MENU2FLAG ? menuRoot1[1] : menuRoot[1],Rename,% MenuCommon2,% MenuCommonList[2]
+			Menu,% menuRoot[1],Rename,% MenuCommon1,% MenuCommonList[1]
+			Menu,% menuRoot[1],Rename,% MenuCommon2,% MenuCommonList[2]
 		}
 	}
 return
 Web_Run:
 	webName:=RegExReplace(A_ThisMenuItem,"iS)^&1批量打开")
 	if(webName){
-		webList:=(A_ThisHotkey=MenuHotKey2) ? menuWebList[(webName)] : menuWebList1[(webName)]
+		webList:=(A_ThisHotkey=MenuHotKey2) ? menuWebList2[(webName)] : menuWebList[(webName)]
 	}else{
-		webList:=(A_ThisHotkey=MenuHotKey2) ? menuWebList[(menuRoot[1])] : menuWebList1[(menuRoot1[1])]
+		webList:=(A_ThisHotkey=MenuHotKey2) ? menuWebList2[(menuRoot2[1])] : menuWebList[(menuRoot[1])]
 	}
 	MsgBox,33,开始批量打开%webName%,确定用【%selectZz%】批量搜索以下网站：`n%webList%
 	IfMsgBox Ok
