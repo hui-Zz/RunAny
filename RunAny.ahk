@@ -1,8 +1,8 @@
 ﻿/*
 ╔═════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v3.2.6 双重菜单
+║【RunAny】一劳永逸的快速启动工具 v3.2.7 双重菜单
 ║ by Zz 建议：hui0.0713@gmail.com
-║ @2017.6.7 github.com/hui-Zz/RunAny
+║ @2017.6.10 github.com/hui-Zz/RunAny
 ║ 讨论QQ群：[246308937]、3222783、493194474
 ╚═════════════════════════════════
 */
@@ -139,6 +139,17 @@ if(menu2){
 ;~ TrayTip,,% A_TickCount-StartTick "毫秒",3,17
 ;#菜单已经加载完毕，托盘图标变化
 try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
+;#菜单加载完后，预读完成"修改菜单"的GUI图标
+Loop, read, %iniPath%
+{
+	Set_Icon(A_LoopReadLine,false)
+}
+if(menu2){
+	Loop, read, %iniPath2%
+	{
+		Set_Icon(A_LoopReadLine,false)
+	}
+}
 return
 ;══════════════════════════════════════════════════════════════════
 ;~;[读取配置并开始创建菜单]
@@ -545,6 +556,7 @@ Run_Exist:
 	global iniPath:=A_ScriptDir "\" fileNotExt ".ini"
 	global iniPath2:=A_ScriptDir "\" fileNotExt "2.ini"
 	global iniFile:=iniPath
+	global both:=1
 	;#判断初始化#
 	IfNotExist,%iniFile%
 		gosub,First_Run
@@ -621,7 +633,7 @@ Menu_Edit:
 	;~;[功能菜单初始化]
 	treeRoot:=Object()
 	global moveRoot:=Object()
-	moveRoot[1]:="moveMenu"
+	moveRoot[1]:="moveMenu" . both
 	Menu,% moveRoot[1],add
 	global moveLevel:=0
 	global exeIconNum:=7
@@ -664,10 +676,12 @@ Menu_Edit:
 	Gui, Show, , %RunAnyZz%菜单树管理(右键操作)
 return
 Menu_Edit1:
+	both:=1
 	iniFile:=iniPath
 	gosub,Menu_Edit
 return
 Menu_Edit2:
+	both:=2
 	iniFile:=iniPath2
 	gosub,Menu_Edit
 return
@@ -723,7 +737,7 @@ TVMenu(addMenu){
 	Menu, %addMenu%, Add,% flag ? "删除" : "删除`tDel", TVDel
 	Menu, %addMenu%, Icon,% flag ? "删除" : "删除`tDel", SHELL32.dll,132
 	Menu, %addMenu%, Add
-	Menu, %addMenu%, Add,移动到..., :moveMenu
+	Menu, %addMenu%, Add,移动到..., :moveMenu%both%
 	Menu, %addMenu%, Icon,移动到...,% MoveIconS[1],% MoveIconS[2]
 	Menu, %addMenu%, Add,% flag ? "向下" : "向下`t(F5/PgDn)", TVDown
 	Menu, %addMenu%, Icon,% flag ? "向下" : "向下`t(F5/PgDn)",% DownIconS[1],% DownIconS[2]
@@ -1123,7 +1137,7 @@ TV_MoveMenuClean(){
 	;[清空功能菜单]
 	Menu,TVMenu,Delete
 	Menu,GuiMenu,Delete
-	Menu,moveMenu,DeleteAll
+	Menu,moveMenu%both%,DeleteAll
 	;[重建]
 	ItemID = 0
 	Loop
@@ -1350,13 +1364,13 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v3.2.6 双重菜单
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v3.2.7 双重菜单
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
 	Gui,99:Add,Text,y+10
 	Gui,99:Font,,Consolas
-	Gui,99:Add,Text,y+10, by Zz @2017.6.7 建议：hui0.0713@gmail.com
+	Gui,99:Add,Text,y+10, by Zz @2017.6.10 建议：hui0.0713@gmail.com
 	Gui,99:Font,CBlue Underline
 	Gui,99:Add,Text,y+10 Ggithub, GitHub：https://github.com/hui-Zz/RunAny
 	Gui,99:Add,Text,y+10 GQQRunAny, 讨论QQ群：[246308937]、3222783、493194474
