@@ -142,12 +142,14 @@ try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 ;#菜单加载完后，预读完成"修改菜单"的GUI图标
 Loop, read, %iniPath%
 {
-	Set_Icon(A_LoopReadLine,false)
+	Z_ReadLine=%A_LoopReadLine%
+	Set_Icon(Z_ReadLine,false)
 }
 if(menu2){
 	Loop, read, %iniPath2%
 	{
-		Set_Icon(A_LoopReadLine,false)
+		Z_ReadLine=%A_LoopReadLine%
+		Set_Icon(Z_ReadLine,false)
 	}
 }
 return
@@ -320,22 +322,26 @@ Menu_Add_Fast(menuName,menuItem){
 }
 ;~;[显示菜单]
 Menu_Show:
-	global selectZz:=Get_Zz()
-	;#选中文本弹出网址菜单，其他弹出应用菜单#
-	if(selectZz && !HideUnSelect && Candy_isFile!=1){
-		Menu,% menuWebRoot[1],Show
-	}else{
-		Menu,% menuRoot[1],Show
-	}
+	try{
+		global selectZz:=Get_Zz()
+		;#选中文本弹出网址菜单，其他弹出应用菜单#
+		if(selectZz && !HideUnSelect && Candy_isFile!=1){
+			Menu,% menuWebRoot[1],Show
+		}else{
+			Menu,% menuRoot[1],Show
+		}
+	}catch{}
 return
 Menu_Show2:
-	global selectZz:=Get_Zz()
-	;#选中文本弹出网址菜单，其他弹出应用菜单#
-	if(selectZz && !HideUnSelect && Candy_isFile!=1){
-		Menu,% menuWebRoot2[1],Show
-	}else{
-		Menu,% menuRoot2[1],Show
-	}
+	try{
+		global selectZz:=Get_Zz()
+		;#选中文本弹出网址菜单，其他弹出应用菜单#
+		if(selectZz && !HideUnSelect && Candy_isFile!=1){
+			Menu,% menuWebRoot2[1],Show
+		}else{
+			Menu,% menuRoot2[1],Show
+		}
+	}catch{}
 return
 ;~;[菜单运行]
 Menu_Run:
@@ -468,6 +474,7 @@ return
 ;~;[初始化]
 ;══════════════════════════════════════════════════════════════════
 Var_Set:
+	;~;[RunAny设置参数]
 	RegRead, AutoRun, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 	AutoRun:=AutoRun ? 1 : 0
 	global HideFail:=Var_Read("HideFail",0)
@@ -670,6 +677,9 @@ Menu_Edit:
 		}
 	}
 	GuiControl, +Redraw, RunAnyTV
+	try{
+		Menu,TVMenu,Delete
+	}catch{}
 	TVMenu("TVMenu")
 	TVMenu("GuiMenu")
 	Gui, Menu, GuiMenu
@@ -759,6 +769,8 @@ Set_Icon(itemVar,editVar=true){
 	itemLen:=StrLen(itemVar)
 	if(RegExMatch(itemVar,"S)^-+[^-]+.*"))
 		return "Icon6"
+	if(RegExMatch(itemVar,"S)^-+"))
+		return "Icon1"
 	if(InStr(itemVar,";")=1 || itemVar="")
 		return "Icon2"
 	if(InStr(itemVar,"\",,0,1)=itemLen)
@@ -789,7 +801,7 @@ Set_Icon(itemVar,editVar=true){
 		}
 	}
 	;~;[编辑后图标重新加载]
-	if(editVar && FileExt = "exe"){
+	if(editVar && !FileName && FileExt = "exe"){
 		;~;[编辑后通过everything重新添加应用图标]
 		diyText:=StrSplit(itemVar,"|")
 		exeText:=(diyText[2]) ? diyText[2] : diyText[1]
@@ -1107,10 +1119,55 @@ WebsiteIconError(errDown){
 ;~;[上下移动项目]
 TV_Move(moveMode = true){
 	selID:=TV_GetSelection()
-	moveID:=moveMode ? TV_GetNext(selID) : TV_GetPrev(selID)
+	moveID:=moveMode ? TV_GetNext(selID) : TV_GetPrev(selID)	; 向下：moveID为下个节点ID，向上：上个节点ID
 	if(moveID!=0){
 		TV_GetText(selVar, selID)
 		TV_GetText(moveVar, moveID)
+		selTreeFalg:=RegExMatch(selVar,"S)^-+[^-]+.*")
+		moveTreeFalg:=RegExMatch(moveVar,"S)^-+[^-]+.*")
+		selNextID:=moveMode ? moveID : TV_GetNext(selID)	; 向下：moveID即为树末节点，向上：选中树的下个同级节点为树末节点
+		moveNextID:=!moveMode ? selID : TV_GetNext(moveID)	; 向上：selID即为树末节点，向下：目标树的下个同级节点为树末节点
+		if((selTreeFalg || moveTreeFalg) && selNextID && moveNextID){
+			DelListID:=Object()		; 需要删除的旧节点
+			selTextList:=Object()	; 选中树的所有节点名列表
+			moveTextList:=Object()	; 目标树的所有节点名列表
+			ItemID:=selID
+			Loop
+			{
+				ItemID := TV_GetNext(ItemID, "Full")
+				if(ItemID=selNextID)	; 如果遍历到树末节点则跳出
+					break
+				TV_GetText(ItemText, ItemID)
+				selTextList.Insert(ItemText)
+				DelListID.Insert(ItemID)
+			}
+			ItemID:=moveID
+			Loop
+			{
+				ItemID := TV_GetNext(ItemID, "Full")
+				if(ItemID=moveNextID)	; 如果遍历到树末节点则跳出
+					break
+				TV_GetText(ItemText, ItemID)
+				moveTextList.Insert(ItemText)
+				DelListID.Insert(ItemID)
+			}
+			; 遍历旧节点数组删除
+			Loop,% DelListID.MaxIndex()
+			{
+				TV_Delete(DelListID[A_Index])
+			}
+			; 遍历添加选中树内容到目标树
+			Loop,% selTextList.MaxIndex()
+			{
+				TV_Add(selTextList[A_Index],moveID,Set_Icon(selTextList[A_Index]))
+			}
+			; 遍历添加目标树内容到选中树
+			Loop,% moveTextList.MaxIndex()
+			{
+				TV_Add(moveTextList[A_Index],selID,Set_Icon(moveTextList[A_Index]))
+			}
+		}
+		;~ [互换选中目标节点的名称]
 		TV_Modify(selID, , moveVar)
 		TV_Modify(moveID, , selVar)
 		TV_Modify(selID, "-Select -focus")
@@ -1118,10 +1175,8 @@ TV_Move(moveMode = true){
 		TV_Modify(selID, Set_Icon(moveVar))
 		TV_Modify(moveID, Set_Icon(selVar))
 		TVFlag:=true
-		if(RegExMatch(moveVar,"S)^-+[^-]+.*"))
-			TrayTip,,移动根节点，只会互换节点名,2,17
 	}
-	return
+
 }
 ;~;[批量移动项目到指定树节点]
 TV_MoveMenu(moveMenuName){
