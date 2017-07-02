@@ -1,10 +1,10 @@
 ﻿/*
-╔═════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v3.3 树节点上下移动
+╔══════════════════════════════════════════════════
+║【RunAny】一劳永逸的快速启动工具 v4.0 @2017.7.2
+║ https://github.com/hui-Zz/RunAny
 ║ by Zz 建议：hui0.0713@gmail.com
-║ @2017.6.11 github.com/hui-Zz/RunAny
 ║ 讨论QQ群：[246308937]、3222783、493194474
-╚═════════════════════════════════
+╚══════════════════════════════════════════════════
 */
 #Persistent			;~让脚本持久运行
 #NoEnv					;~不检查空变量为环境变量
@@ -245,24 +245,14 @@ Menu_Add(menuName,menuItem,fast,menuRoot,menuWebRoot,menuWebList,webRootShow){
 	try {
 		item:=MenuObj[(menuItem)]
 		itemLen:=StrLen(item)
+		SplitPath, item,,, FileExt  ; 获取文件扩展名.
 		if(!fast)
 			Menu,%menuName%,add,%menuItem%,Menu_Run
-		if(Ext_Check(item,itemLen,".lnk")){
-			try{
-				FileGetShortcut, %item%, OutItem, , , , OutIcon, OutIconNum
-				if(OutIcon){
-					Menu,%menuName%,Icon,%menuItem%,%OutIcon%,%OutIconNum%
-				}else{
-					Menu,%menuName%,Icon,%menuItem%,%OutItem%
-				}
-			} catch e {
-				Menu,%menuName%,Icon,%menuItem%,% LNKIconS[1],% LNKIconS[2]
-			}
-		}else if(Ext_Check(item,itemLen,".ahk")){
-			Menu,%menuName%,Icon,%menuItem%,% AHKIconS[1],% AHKIconS[2]
-		}else if(Ext_Check(item,itemLen,".bat") || Ext_Check(item,itemLen,".cmd")){
-			Menu,%menuName%,Icon,%menuItem%,% BATIconS[1],% BATIconS[2]
-		}else if(RegExMatch(item,"iS)([\w-]+://?|www[.]).*")){
+		if(InStr(item,"\",,0,1)=itemLen){  ; 目录
+			Menu,%menuName%,Icon,%menuItem%,% FolderIconS[1],% FolderIconS[2]
+		}else if(InStr(item,";",,0,1)=itemLen){  ; 注释
+			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,2
+		}else if(RegExMatch(item,"iS)([\w-]+://?|www[.]).*")){  ; 网址
 			website:=RegExReplace(item,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
 			webIcon:=A_ScriptDir "\RunIcon\" website ".ico"
 			if(FileExist(webIcon)){
@@ -297,12 +287,31 @@ Menu_Add(menuName,menuItem,fast,menuRoot,menuWebRoot,menuWebList,webRootShow){
 			if(!menuWebSame){
 				menuWebRoot.Insert(menuName)
 			}
-		}else if(InStr(item,"\",,0,1)=itemLen){
-			Menu,%menuName%,Icon,%menuItem%,% FolderIconS[1],% FolderIconS[2]
-		}else if(InStr(item,";",,0,1)=itemLen){
-			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,2
-		}else{
+		}else if(Ext_Check(item,itemLen,".lnk")){  ; 快捷方式
+			try{
+				FileGetShortcut, %item%, OutItem, , , , OutIcon, OutIconNum
+				if(OutIcon){
+					Menu,%menuName%,Icon,%menuItem%,%OutIcon%,%OutIconNum%
+				}else{
+					Menu,%menuName%,Icon,%menuItem%,%OutItem%
+				}
+			} catch e {
+				Menu,%menuName%,Icon,%menuItem%,% LNKIconS[1],% LNKIconS[2]
+			}
+		}else if FileExt in EXE,ICO,ANI,CUR
+		{
 			Menu,%menuName%,Icon,%menuItem%,%item%
+		}else{  ; 处理未知的项目图标
+			If(FileExist(item)){
+				RegRead, regFileExt, HKEY_CLASSES_ROOT, .%FileExt%
+				RegRead, regFileIcon, HKEY_CLASSES_ROOT, %regFileExt%\DefaultIcon
+				regFileIconS:=StrSplit(regFileIcon,",")
+				Menu,%menuName%,Icon,%menuItem%,% regFileIconS[1],% regFileIconS[2]
+			}else if(!HideFail){
+				Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,124
+			}else{
+				Menu,%menuName%,Delete,%menuItem%
+			}
 		}
 	} catch e {
 		;应用路径错误或图标无法读取情况
@@ -491,6 +500,7 @@ Var_Set:
 	AutoRun:=AutoRun ? 1 : 0
 	global HideFail:=Var_Read("HideFail",0)
 	global HideUnSelect:=Var_Read("HideUnSelect",0)
+	global EvCommand:=Var_Read("EvCommand","!C:\*Windows* file:*.exe|*.lnk|*.ahk")
 	TcPath:=Var_Read("TcPath")
 	OnePath:=Var_Read("OnePath","https://www.baidu.com/s?wd=%s")
 	DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe")
@@ -539,10 +549,6 @@ Icon_Set:
 	global FolderIconS:=StrSplit(FolderIcon,",")
 	UrlIcon:=Var_Read("UrlIcon","shell32.dll,44")
 	global UrlIconS:=StrSplit(UrlIcon,",")
-	BATIcon:=Var_Read("BATIcon","shell32.dll,72")
-	global BATIconS:=StrSplit(BATIcon,",")
-	AHKIcon:=Var_Read("AHKIcon","shell32.dll,74")
-	global AHKIconS:=StrSplit(AHKIcon,",")
 	EXEIcon:=Var_Read("EXEIcon","shell32.dll,3")
 	global EXEIconS:=StrSplit(EXEIcon,",")
 	LNKIcon:="shell32.dll,264"
@@ -568,7 +574,7 @@ Icon_Set:
 	}
 	Menu,Tray,Icon,设置RunAny(&D),% AnyIconS[1],% AnyIconS[2]
 	Menu,Tray,Icon,关于RunAny(&A)...,% MenuIconS[1],% MenuIconS[2]
-	Menu,exeTestMenu,add,github	;只用于测试应用图标正常添加
+	Menu,exeTestMenu,add,SetCancel	;只用于测试应用图标正常添加
 return
 ;~;[调用判断]
 Run_Exist:
@@ -633,6 +639,7 @@ Get_Zz(){
 	Clipboard:=Candy_Saved
 	return CandySel
 }
+;~;[获取应用路径]
 Get_Obj_Path(Z_ReadLine){
 	if(InStr(Z_ReadLine,"|")){
 		menuDiy:=StrSplit(Z_ReadLine,"|")
@@ -803,7 +810,7 @@ Set_Icon(itemVar,editVar=true){
 			website:=RegExReplace(FileName,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
 			webIcon:=A_ScriptDir "\RunIcon\" website ".ico"
 			if(FileExist(webIcon)){
-				Menu,exeTestMenu,Icon,github,%webIcon%,0
+				Menu,exeTestMenu,Icon,SetCancel,%webIcon%,0
 				addNum:=IL_Add(ImageListID, webIcon, 0)
 				return "Icon" . addNum
 			}else{
@@ -1365,7 +1372,7 @@ Menu_Set:
 	Gui,66:Destroy
 	Gui,66:Font,,Microsoft YaHei
 	Gui,66:Margin,30,20
-	Gui,66:Add,Tab,x10 y10 w360 h360,RunAny设置|Everything+TC设置|一键搜索|图标设置
+	Gui,66:Add,Tab,x10 y10 w360 h370,RunAny设置|Everything设置|一键搜索|图标+TC设置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+5 w330 h70,RunAny
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+25 vvAutoRun,开机自动启动
@@ -1384,16 +1391,18 @@ Menu_Set:
 	Gui,66:Add,GroupBox,xm-10 y+25 w330 h85,屏蔽RunAny程序列表（逗号分隔）
 	Gui,66:Add,Edit,xm+10 yp+20 w300 r3 vvDisableApp,%DisableApp%
 	
-	Gui,66:Tab,Everything+TC设置,,Exact
+	Gui,66:Tab,Everything设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+20 w235 h55,一键Everything[搜索选中文字][激活][隐藏]
 	Gui,66:Add,Hotkey,xm+10 yp+20 w130 vvEvKey,%EvKey%
 	Gui,66:Add,Checkbox,Checked%EvWinKey% xm+150 yp+3 vvEvWinKey,Win
-	Gui,66:Add,GroupBox,xm-10 y+20 w340 h100,Everything安装路径
+	Gui,66:Add,GroupBox,xm-10 y+20 w340 h95,Everything安装路径
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp w260 r3 vvEvPath,%EvPath%
-	Gui,66:Add,GroupBox,xm-10 y+30 w340 h70,TotalCommander安装路径（TC打开RunAny中的文件夹）
-	Gui,66:Add,Button,xm yp+20 w50 GSetTcPath,选择
-	Gui,66:Add,Edit,xm+60 yp w260 r2 vvTcPath,%TcPath%
+	Gui,66:Add,GroupBox,xm-10 y+15 w330 h125,Everything搜索参数（搜索结果程序可无路径用RunAny运行）
+	Gui,66:Add,Button,xm yp+20 w50 GSetEvCommand,修改
+	Gui,66:Add,Text,xm+60 yp,!C:\*Windows*为排除系统缓存和系统程序
+	Gui,66:Add,Text,xm+60 yp+15,file:*.exe|*.lnk|后面以此格式类推增加后缀
+	Gui,66:Add,Edit,ReadOnly xm+10 yp+25 w300 r3 vvEvCommand,%EvCommand%
 	
 	Gui,66:Tab,一键搜索,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+20 w340 h230,一键搜索选中文字
@@ -1402,27 +1411,26 @@ Menu_Set:
 	Gui,66:Add,Text,xm yp+40 w250,一键搜索网址(`%s为选中文字的替代参数)
 	Gui,66:Add,Edit,xm yp+20 w325 r5 vvOnePath,%OnePath%
 	
-	Gui,66:Tab,图标设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+10 w340 h280,图标自定义设置（文件路径,序号）
+	Gui,66:Tab,图标+TC设置,,Exact
+	Gui,66:Add,GroupBox,xm-10 y+10 w340 h220,图标自定义设置（文件路径,序号）
 	Gui,66:Add,Text,xm yp+30 w80,树节点图标
 	Gui,66:Add,Edit,xm+70 yp w250 r1 vvTreeIcon,%TreeIcon%
 	Gui,66:Add,Text,xm yp+30 w80,文件夹图标
 	Gui,66:Add,Edit,xm+70 yp w250 r1 vvFolderIcon,%FolderIcon%
-	Gui,66:Add,Text,xm yp+30 w80,网址图标		
+	Gui,66:Add,Text,xm yp+30 w80,网址图标
 	Gui,66:Add,Edit,xm+70 yp w250 r1 vvUrlIcon,%UrlIcon%
-	Gui,66:Add,Text,xm yp+30 w80,批处理图标
-	Gui,66:Add,Edit,xm+70 yp w250 r1 vvBATIcon,%BATIcon%
-	Gui,66:Add,Text,xm yp+30 w80,AHK图标
-	Gui,66:Add,Edit,xm+70 yp w250 r1 vvAHKIcon,%AHKIcon%
 	Gui,66:Add,Text,xm yp+30 w80,EXE图标
 	Gui,66:Add,Edit,xm+70 yp w250 r1 vvEXEIcon,%EXEIcon%
 	Gui,66:Add,Text,xm yp+30 w80,准备图标
 	Gui,66:Add,Edit,xm+70 yp w250 r1 vvMenuIcon,%MenuIcon%
 	Gui,66:Add,Text,xm yp+30 w80,托盘图标
 	Gui,66:Add,Edit,xm+70 yp w250 r1 vvAnyIcon,%AnyIcon%
+	Gui,66:Add,GroupBox,xm-10 y+20 w340 h70,TotalCommander安装路径（TC打开RunAny中的文件夹）
+	Gui,66:Add,Button,xm yp+20 w50 GSetTcPath,选择
+	Gui,66:Add,Edit,xm+60 yp w260 r2 vvTcPath,%TcPath%
 	
 	Gui,66:Tab
-	Gui,66:Add,Button,Default xm y+25 w75 GSetOK,确定(&Y)
+	Gui,66:Add,Button,Default xm y+15 w75 GSetOK,确定(&Y)
 	Gui,66:Add,Button,x+5 w75 GSetCancel,取消(&C)
 	Gui,66:Add,Button,x+5 w75 GSetReSet,重置
 	Gui,66:Show,,%RunAnyZz%设置
@@ -1432,16 +1440,18 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v3.3 树节点上下移动
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v4.0 @2017.7.2
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
 	Gui,99:Add,Text,y+10
 	Gui,99:Font,,Consolas
-	Gui,99:Add,Text,y+10, by Zz @2017.6.11 建议：hui0.0713@gmail.com
-	Gui,99:Font,CBlue Underline
-	Gui,99:Add,Text,y+10 Ggithub, GitHub：https://github.com/hui-Zz/RunAny
-	Gui,99:Add,Text,y+10 GQQRunAny, 讨论QQ群：[246308937]、3222783、493194474
+	Gui,99:Add,Text,y+10, by Zz 建议：hui0.0713@gmail.com
+	Gui,99:Add,Link,y+10,<a href="https://github.com/hui-Zz/RunAny">GitHub：https://github.com/hui-Zz/RunAny</a>
+	Gui,99:Add,Text,y+10, 讨论QQ群：
+	Gui,99:Add,Link,y+10,<a href="https://jq.qq.com/?_wv=1027&k=445Ug7u">246308937【RunAny快速启动一劳永逸】</a>
+	Gui,99:Add,Link,y+10,<a href="https://jq.qq.com/?_wv=1027&k=43uBHer">3222783【AutoHotkey高级群】</a>
+	Gui,99:Add,Link,y+10,<a href="https://jq.qq.com/?_wv=1027&k=43trxF5">493194474【软客】</a>
 	Gui,99:Font
 	Gui,99:Show,,关于%RunAnyZz%
 	hCurs:=DllCall("LoadCursor","UInt",NULL,"Int",32649,"UInt") ;IDC_HAND
@@ -1454,6 +1464,10 @@ return
 SetTcPath:
 	FileSelectFile, tcFilePath, 3, , TC安装路径, (Totalcmd.exe;Totalcmd64.exe)
 	GuiControl,, vTcPath, %tcFilePath%
+return
+SetEvCommand:
+	MsgBox,Everything搜索参数语法请打开Everything参照`nEverything-帮助(H)-搜索语法`n`n编辑参数完后请务必复制参数到Everthing搜索`n检验是否达到预定效果，以免出现错误
+	GuiControl,-ReadOnly,vEvCommand
 return
 SetOK:
 	Gui,Submit
@@ -1475,6 +1489,7 @@ SetOK:
 	Reg_Set(vEvKey,EvKey,"EvKey")
 	Reg_Set(vEvWinKey,EvWinKey,"EvWinKey")
 	Reg_Set(vEvPath,EvPath,"EvPath")
+	Reg_Set(vEvCommand,EvCommand,"EvCommand")
 	Reg_Set(vOneKey,OneKey,"OneKey")
 	Reg_Set(vOneWinKey,OneWinKey,"OneWinKey")
 	Reg_Set(vOnePath,OnePath,"OnePath")
@@ -1482,8 +1497,6 @@ SetOK:
 	Reg_Set(vTreeIcon,TreeIcon,"TreeIcon")
 	Reg_Set(vFolderIcon,FolderIcon,"FolderIcon")
 	Reg_Set(vUrlIcon,UrlIcon,"UrlIcon")
-	Reg_Set(vBATIcon,BATIcon,"BATIcon")
-	Reg_Set(vAHKIcon,AHKIcon,"AHKIcon")
 	Reg_Set(vEXEIcon,EXEIcon,"EXEIcon")
 	Reg_Set(vAnyIcon,AnyIcon,"AnyIcon")
 	Reg_Set(vMenuIcon,MenuIcon,"MenuIcon")
@@ -1496,12 +1509,6 @@ SetReSet:
 	RegDelete, HKEY_CURRENT_USER, SOFTWARE\RunAny
 	RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 	Reload
-return
-github:
-	Run,https://github.com/hui-Zz/RunAny
-return
-QQRunAny:
-	Run,https://jq.qq.com/?_wv=1027&k=445Ug7u
 return
 setMenu2:
 	MsgBox,33,开启第2个菜单,确定开启第2个菜单吗？
@@ -1561,9 +1568,8 @@ return
 ;~;[使用everything搜索所有exe程序]
 everythingQuery(){
 	ev := new everything
-	str := "file:*.exe|*.lnk|*.ahk !C:\*Windows*"
 	;查询字串设为everything
-	ev.SetSearch(str)
+	ev.SetSearch(EvCommand)
 	;执行搜索
 	ev.Query()
 	sleep 100
