@@ -1,8 +1,8 @@
 ﻿/*
 ╔═════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v3.2.7 双重菜单
+║【RunAny】一劳永逸的快速启动工具 v3.3 树节点上下移动
 ║ by Zz 建议：hui0.0713@gmail.com
-║ @2017.6.10 github.com/hui-Zz/RunAny
+║ @2017.6.11 github.com/hui-Zz/RunAny
 ║ 讨论QQ群：[246308937]、3222783、493194474
 ╚═════════════════════════════════
 */
@@ -125,7 +125,7 @@ if(ini){
 	gosub,Menu_About
 	gosub,Menu_Show
 }
-;#如果有第2菜单则开始加载
+;~;[如果有第2菜单则开始加载]
 global menu2:=MENU2FLAG
 if(menu2){
 	menuRoot2:=Object()
@@ -159,58 +159,62 @@ return
 Menu_Read(iniFilePath,fast,menuRoot,menuLevel,menuWebRoot,menuWebList,webRootShow){
 	Loop, read, %iniFilePath%
 	{
-		Z_ReadLine=%A_LoopReadLine%
-		if(InStr(Z_ReadLine,"-")=1){
-			;~;[生成节点树层级结构]
-			menuItem:=RegExReplace(Z_ReadLine,"S)^-+")
-			menuLevel:=StrLen(RegExReplace(Z_ReadLine,"S)(^-+).*","$1"))
-			if(menuItem){
-				Menu,%menuItem%,add
-				Menu,% menuRoot[menuLevel],add,%menuItem%,:%menuItem%
-				Menu,% menuRoot[menuLevel],Icon,%menuItem%,% TreeIconS[1],% TreeIconS[2]
-				menuLevel+=1
-				menuRoot[menuLevel]:=menuItem
-			}else if(fast && menuRoot[menuLevel]){
-				Menu,% menuRoot[menuLevel],Add
-			}
-		}else if(InStr(Z_ReadLine,";")=1 || Z_ReadLine=""){
-			continue
-		}else if(InStr(Z_ReadLine,"|")){
-			;~;[生成有前缀备注的应用]
-			menuDiy:=StrSplit(Z_ReadLine,"|")
-			appName:=RegExReplace(menuDiy[2],"iS)\.(exe|lnk)$")
-			if(MenuObj[appName]){
-				MenuObj[menuDiy[1]]:=MenuObj[appName]
+		try{
+			Z_ReadLine=%A_LoopReadLine%
+			if(InStr(Z_ReadLine,"-")=1){
+				;~;[生成节点树层级结构]
+				menuItem:=RegExReplace(Z_ReadLine,"S)^-+")
+				menuLevel:=StrLen(RegExReplace(Z_ReadLine,"S)(^-+).*","$1"))
+				if(menuItem){
+					Menu,%menuItem%,add
+					Menu,% menuRoot[menuLevel],add,%menuItem%,:%menuItem%
+					Menu,% menuRoot[menuLevel],Icon,%menuItem%,% TreeIconS[1],% TreeIconS[2]
+					menuLevel+=1
+					menuRoot[menuLevel]:=menuItem
+				}else if((fast || menu2) && menuRoot[menuLevel]){
+					Menu,% menuRoot[menuLevel],Add
+				}
+			}else if(InStr(Z_ReadLine,";")=1 || Z_ReadLine=""){
+				continue
+			}else if(InStr(Z_ReadLine,"|")){
+				;~;[生成有前缀备注的应用]
+				menuDiy:=StrSplit(Z_ReadLine,"|")
+				appName:=RegExReplace(menuDiy[2],"iS)\.exe$")
+				if(MenuObj[appName]){
+					MenuObj[menuDiy[1]]:=MenuObj[appName]
+				}else{
+					MenuObj[menuDiy[1]]:=menuDiy[2]
+				}
+				if(fast){
+					Menu_Add_Fast(menuRoot[menuLevel],menuDiy[1])
+				}else{
+					Menu_Add(menuRoot[menuLevel],menuDiy[1],fast,menuRoot,menuWebRoot,menuWebList,webRootShow)
+				}
+			}else if(RegExMatch(Z_ReadLine,"iS)^(\\\\|.:\\).*?\.exe$")){
+				;~;[生成完全路径的应用]
+				SplitPath,Z_ReadLine,fileName,,,nameNotExt
+				MenuObj[nameNotExt]:=Z_ReadLine
+				if(fast){
+					Menu_Add_Fast(menuRoot[menuLevel],nameNotExt)
+				}else{
+					Menu_Add(menuRoot[menuLevel],nameNotExt,fast,menuRoot,menuWebRoot,menuWebList,webRootShow)
+				}
 			}else{
-				MenuObj[menuDiy[1]]:=menuDiy[2]
+				;~;[生成已取到的应用]
+				appName:=RegExReplace(Z_ReadLine,"iS)\.exe$")
+				if(!MenuObj[appName])
+					MenuObj[appName]:=Z_ReadLine
+				if(fast){
+					Menu_Add_Fast(menuRoot[menuLevel],appName)
+				}else{
+					Menu_Add(menuRoot[menuLevel],appName,fast,menuRoot,menuWebRoot,menuWebList,webRootShow)
+				}
 			}
-			if(fast){
-				Menu_Add_Fast(menuRoot[menuLevel],menuDiy[1])
-			}else{
-				Menu_Add(menuRoot[menuLevel],menuDiy[1],fast,menuRoot,menuWebRoot,menuWebList,webRootShow)
-			}
-		}else if(RegExMatch(Z_ReadLine,"iS)^(\\\\|.:\\).*?\.exe$")){
-			;~;[生成完全路径的应用]
-			SplitPath,Z_ReadLine,fileName,,,nameNotExt
-			MenuObj[nameNotExt]:=Z_ReadLine
-			if(fast){
-				Menu_Add_Fast(menuRoot[menuLevel],nameNotExt)
-			}else{
-				Menu_Add(menuRoot[menuLevel],nameNotExt,fast,menuRoot,menuWebRoot,menuWebList,webRootShow)
-			}
-		}else{
-			;~;[生成已取到的应用]
-			appName:=RegExReplace(Z_ReadLine,"iS)\.(exe|lnk)$")
-			if(!MenuObj[appName])
-				MenuObj[appName]:=Z_ReadLine
-			if(fast){
-				Menu_Add_Fast(menuRoot[menuLevel],appName)
-			}else{
-				Menu_Add(menuRoot[menuLevel],appName,fast,menuRoot,menuWebRoot,menuWebList,webRootShow)
-			}
+		} catch e {
+			MsgBox,16,构建菜单出错,% "菜单名：" menuRoot[menuLevel] "`n菜单项：" Z_ReadLine "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 		}
 	}
-	;#添加网址菜单的批量打开功能
+	;#添加网址菜单的批量搜索功能
 	Loop,% menuWebRoot.MaxIndex()
 	{
 		if(A_Index!=1){	;忽略比较menuWebRoot第1层web菜单
@@ -218,14 +222,17 @@ Menu_Read(iniFilePath,fast,menuRoot,menuLevel,menuWebRoot,menuWebList,webRootSho
 			if(webRoot = menuRoot[1]){
 				if(webRootShow){
 					Menu,% menuWebRoot[1],add
-					Menu,% menuWebRoot[1],add,&1批量打开,Web_Run
-					Menu,% menuWebRoot[1],Icon,&1批量打开,% UrlIconS[1],% UrlIconS[2]
+					Menu,% menuWebRoot[1],add,&1批量搜索,Web_Run
+					Menu,% menuWebRoot[1],Icon,&1批量搜索,% UrlIconS[1],% UrlIconS[2]
 				}else if(menu2){
 					Menu,% menuWebRoot[1],add	;避免菜单2无网址而报错
 				}
 			}else{
-				Menu,%webRoot%,add,&1批量打开%webRoot%,Web_Run
-				Menu,%webRoot%,Icon,&1批量打开%webRoot%,% UrlIconS[1],% UrlIconS[2]
+				if(menu2){
+					Menu,%webRoot%,add	;避免菜单2无网址而报错
+				}
+				Menu,%webRoot%,add,&1批量搜索%webRoot%,Web_Run
+				Menu,%webRoot%,Icon,&1批量搜索%webRoot%,% UrlIconS[1],% UrlIconS[2]
 			}
 		}
 	}
@@ -233,6 +240,8 @@ Menu_Read(iniFilePath,fast,menuRoot,menuLevel,menuWebRoot,menuWebList,webRootSho
 ;══════════════════════════════════════════════════════════════════
 ;~;[生成菜单(判断后缀创建图标)]
 Menu_Add(menuName,menuItem,fast,menuRoot,menuWebRoot,menuWebList,webRootShow){
+	if not menuName
+		return
 	try {
 		item:=MenuObj[(menuItem)]
 		itemLen:=StrLen(item)
@@ -297,14 +306,18 @@ Menu_Add(menuName,menuItem,fast,menuRoot,menuWebRoot,menuWebList,webRootShow){
 		}
 	} catch e {
 		;应用路径错误或图标无法读取情况
-		if(HideFail){
-			If(FileExist(item)){
-				Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,124
+		try{
+			if(HideFail){
+				If(FileExist(item)){
+					Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,124
+				}else{
+					Menu,%menuName%,Delete,%menuItem%
+				}
 			}else{
-				Menu,%menuName%,Delete,%menuItem%
+				Menu,%menuName%,Icon,%menuItem%,% EXEIconS[1],% EXEIconS[2]
 			}
-		}else{
-			Menu,%menuName%,Icon,%menuItem%,% EXEIconS[1],% EXEIconS[2]
+		} catch e {
+			MsgBox,16,创建菜单项出错,% "菜单名：" menuName "`n菜单项：" menuItem "`n路径：" item "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 		}
 	}
 }
@@ -384,8 +397,7 @@ Menu_Run:
 				}
 				return
 			}
-		} catch e {
-		}
+		} catch {}
 		If GetKeyState("Shift"){	;[按住Shift则是管理员身份运行]
 			Run,*RunAs %any%
 		}else{
@@ -420,13 +432,13 @@ Menu_Common:
 	}
 return
 Web_Run:
-	webName:=RegExReplace(A_ThisMenuItem,"iS)^&1批量打开")
+	webName:=RegExReplace(A_ThisMenuItem,"iS)^&1批量搜索")
 	if(webName){
 		webList:=(A_ThisHotkey=MenuHotKey2) ? menuWebList2[(webName)] : menuWebList[(webName)]
 	}else{
 		webList:=(A_ThisHotkey=MenuHotKey2) ? menuWebList2[(menuRoot2[1])] : menuWebList[(menuRoot[1])]
 	}
-	MsgBox,33,开始批量打开%webName%,确定用【%selectZz%】批量搜索以下网站：`n%webList%
+	MsgBox,33,开始批量搜索%webName%,确定用【%selectZz%】批量搜索以下网站：`n%webList%
 	IfMsgBox Ok
 	{
 		Loop,parse,webList,`n
@@ -628,7 +640,7 @@ Get_Obj_Path(Z_ReadLine){
 	}else if(RegExMatch(Z_ReadLine,"iS)^(\\\\|.:\\).*?\.exe$")){
 		return Z_ReadLine
 	}else{
-		appName:=RegExReplace(Z_ReadLine,"iS)\.(exe|lnk)$")
+		appName:=RegExReplace(Z_ReadLine,"iS)\.exe$")
 		return MenuObj[appName]
 	}
 }
@@ -709,6 +721,7 @@ return
 	F9::gosub,TVImportFolder
 	^s::gosub,TVSave
 	Esc::gosub,GuiClose
+	~F2::TVFlag:=true
 #If
 GuiContextMenu:
 	If (A_GuiControl = "RunAnyTV") {
@@ -1419,13 +1432,13 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v3.2.7 双重菜单
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v3.3 树节点上下移动
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
 	Gui,99:Add,Text,y+10
 	Gui,99:Font,,Consolas
-	Gui,99:Add,Text,y+10, by Zz @2017.6.10 建议：hui0.0713@gmail.com
+	Gui,99:Add,Text,y+10, by Zz @2017.6.11 建议：hui0.0713@gmail.com
 	Gui,99:Font,CBlue Underline
 	Gui,99:Add,Text,y+10 Ggithub, GitHub：https://github.com/hui-Zz/RunAny
 	Gui,99:Add,Text,y+10 GQQRunAny, 讨论QQ群：[246308937]、3222783、493194474
@@ -1548,7 +1561,7 @@ return
 ;~;[使用everything搜索所有exe程序]
 everythingQuery(){
 	ev := new everything
-	str := "file:*.exe|*.lnk !C:\*Windows*"
+	str := "file:*.exe|*.lnk|*.ahk !C:\*Windows*"
 	;查询字串设为everything
 	ev.SetSearch(str)
 	;执行搜索
@@ -1557,7 +1570,7 @@ everythingQuery(){
 	Loop,% ev.GetTotResults()
 	{
 		Z_Index:=A_Index-1
-		MenuObj[(RegExReplace(ev.GetResultFileName(Z_Index),"iS)\.(exe|lnk)$",""))]:=ev.GetResultFullPathName(Z_Index)
+		MenuObj[(RegExReplace(ev.GetResultFileName(Z_Index),"iS)\.exe$",""))]:=ev.GetResultFullPathName(Z_Index)
 	}
 }
 ;~;[使用everything搜索单个exe程序]
