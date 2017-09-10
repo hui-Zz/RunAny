@@ -84,7 +84,7 @@ while !WinExist("ahk_exe Everything.exe")
 			break
 		}else{
 			gosub,Menu_Set
-			MsgBox,17,,RunAny需要Everything快速识别程序的路径`n请设置正确安装路径或下载Everything：http://www.voidtools.com/
+			MsgBox,17,,RunAny需要Everything极速识别程序的路径`n请使用以下任意一种方式：`n* 运行Everything后重启RunAny`n* 设置RunAny中Everything正确安装路径`n* 下载Everything并安装后再运行RunAny：http://www.voidtools.com/
 			IfMsgBox Ok
 				Run,http://www.voidtools.com/
 			evExist:=false
@@ -102,7 +102,7 @@ If(evExist){
 }
 ;══════════════════════════════════════════════════════════════════
 ;~;[后缀图标初始化]
-Gosub,Icon_Set
+Gosub,Icon_FileExt_Set
 ;#应用菜单数组#网址菜单名数组及地址队列#
 menuRoot:=Object()
 menuWebRoot:=Object()
@@ -508,6 +508,11 @@ Var_Set:
 	{
 		GroupAdd,DisableGUI,ahk_exe %A_LoopField%
 	}
+	gosub,Icon_Set
+	global MenuCommonList:={}
+return
+;~;[图标初始化]
+Icon_Set:
 	iconAny:="shell32.dll,190"
 	iconMenu:="shell32.dll,195"
 	iconTree:="shell32.dll,53"
@@ -541,10 +546,9 @@ Var_Set:
 	global MoveIconS:=StrSplit(MoveIcon,",")
 	global UpIconS:=StrSplit(UpIcon,",")
 	global DownIconS:=StrSplit(DownIcon,",")
-	global MenuCommonList:={}
 return
 ;~;[后缀图标初始化]
-Icon_Set:
+Icon_FileExt_Set:
 	FolderIcon:=Var_Read("FolderIcon","shell32.dll,4")
 	global FolderIconS:=StrSplit(FolderIcon,",")
 	UrlIcon:=Var_Read("UrlIcon","shell32.dll,44")
@@ -596,7 +600,14 @@ Run_Exist:
 		everyDLL:=DllCall("LoadLibrary", str, "Everything64.dll") ? "Everything64.dll" : "Everything.dll"
 	}
 	IfNotExist,%A_ScriptDir%\%everyDLL%
-		MsgBox,16,,没有找到%everyDLL%，将不能识别菜单中程序的路径`n请复制%everyDLL%到%A_ScriptDir%`n目录下
+	{
+		MsgBox,17,,没有找到%everyDLL%，将不能识别菜单中程序的路径`n需要将%everyDLL%放到【%A_ScriptDir%】目录下`n是否需要从网上下载%everyDLL%？
+		IfMsgBox Ok
+		{
+			URLDownloadToFile,https://raw.githubusercontent.com/hui-Zz/RunAny/master/%everyDLL%,%A_ScriptDir%\%everyDLL%
+			Reload
+		}
+	}
 return
 ;~;[检查后缀名]
 Ext_Check(name,len,ext){
@@ -608,7 +619,10 @@ Ext_Check(name,len,ext){
 Var_Read(rValue,defVar=""){
 	RegRead, regVar, HKEY_CURRENT_USER, SOFTWARE\RunAny, %rValue%
 	if(regVar)
-		return regVar
+		if(InStr(regVar,"ZzIcon.dll") && !FileExist(A_ScriptDir "\ZzIcon.dll"))
+			return defVar
+		else
+			return regVar
 	else
 		return defVar
 }
@@ -836,7 +850,7 @@ Set_Icon(itemVar,editVar=true){
 	sfi_size := A_PtrSize + 8 + (A_IsUnicode ? 680 : 340)
 	VarSetCapacity(sfi, sfi_size)
 	;【下面开始处理未知的项目图标】
-    SplitPath, FileName, , , FileExt  ; 获取文件扩展名.
+    ;~ SplitPath, FileName, , , FileExt  ; 获取文件扩展名.
     if FileExt in EXE,ICO,ANI,CUR
     {
         ExtID := FileExt  ; 特殊 ID 作为占位符.
