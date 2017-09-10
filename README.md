@@ -1,4 +1,4 @@
-# 【RunAny】一劳永逸的快速启动工具 [v4.0 Run Anything! 尝鲜](#ver)
+# 【RunAny】一劳永逸的快速启动工具 [v4.0 Run Anything! 正式版](#ver)
 
 只需配置一个自定义程序菜单，结合Everything神器仅需软件名，无路径就可以快速运行exe程序、lnk快捷方式！
 
