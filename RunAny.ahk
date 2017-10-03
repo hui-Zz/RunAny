@@ -78,7 +78,7 @@ while !WinExist("ahk_exe Everything.exe")
 {
 	Sleep,100
 	if(A_Index>=20){
-		if(EvPath && RegExMatch(EvPath,"iS)^(\\\\|.:\\).*?\.exe$")){
+		if(EvPath && RegExMatch(EvPath,"iS)^.*?\.exe$")){
 			Run,%EvPath% -startup
 			Sleep,1000
 			break

@@ -8,9 +8,9 @@
 
 ## RunAny启动软件就跟打字一样高效方便（如<kbd>\`</kbd>为热键）：
 
-- \`ww就是work工作分类下的Word
-- \`aw就是app常用分类下的Wiz
-- \`fw就是file文件分类下的WinRAR
+- <kbd>\`</kbd><kbd>w</kbd><kbd>w</kbd>就是work工作分类下的Word
+- <kbd>\`</kbd><kbd>a</kbd><kbd>w</kbd>就是app常用分类下的Wiz
+- <kbd>\`</kbd><kbd>f</kbd><kbd>w</kbd>就是file文件分类下的WinRAR
 
 ---
 
@@ -68,7 +68,7 @@ RunAny演示批量搜索：
 
 * 以-开头+名称为1级目录名,--名称为2级以此类推，如：`-app`、`--img`
 * 单独一个-是1级分隔符，--2级亦是如此，如：`-`、`--`
-* 每个菜单名首字母(或用&指定任意)便是启动快捷键，如：`IE(&E)`快捷键是e
+* 每个菜单名首字母(或用&指定任意)便是启动快捷键，如：`IE(&E)|iexplore.exe`快捷键是e
 * 可用竖|添加别名前缀,菜单便会显示别名，如：`TC|Totalcmd.exe`会显示TC
 * 前加;可以注释暂时不需要用的，如：`;cmd.exe`
 * 末尾;识别为短语可以直接输出，如：`hui0.0713@gmail.com;`
