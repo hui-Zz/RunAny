@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v4.0 @2017.7.2
+║【RunAny】一劳永逸的快速启动工具 v4.1 @2017.10.06
 ║ https://github.com/hui-Zz/RunAny
 ║ by Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -32,6 +32,10 @@ EvKey:=Var_Read("EvKey")
 EvWinKey:=Var_Read("EvWinKey",0)
 OneKey:=Var_Read("OneKey")
 OneWinKey:=Var_Read("OneWinKey",0)
+TreeKey1:=Var_Read("TreeKey1")
+TreeWinKey1:=Var_Read("TreeWinKey1",0)
+TreeKey2:=Var_Read("TreeKey2")
+TreeWinKey2:=Var_Read("TreeWinKey2",0)
 ;~;[设定RunAny菜单自定义热键]
 try{
 	MenuHotKey:=MenuWinKey ? "#" . MenuKey : MenuKey
@@ -68,6 +72,24 @@ if(OneKey){
 	}catch{
 		gosub,Menu_Set
 		MsgBox,16,请设置正确热键,%OneHotKey%`n一键搜索热键设置不正确
+	}
+}
+if(TreeKey1){
+	try{
+		TreeHotKey1:=TreeWinKey1 ? "#" . TreeKey1 : TreeKey1
+		Hotkey,%TreeHotKey1%,Menu_Edit1,On
+	}catch{
+		gosub,Menu_Edit1
+		MsgBox,16,请设置正确热键,%TreeHotKey1%`n修改菜单(1)热键设置不正确
+	}
+}
+if(TreeKey2){
+	try{
+		TreeHotKey2:=TreeWinKey2 ? "#" . TreeKey2 : TreeKey2
+		Hotkey,%TreeHotKey2%,Menu_Edit2,On
+	}catch{
+		gosub,Menu_Edit1
+		MsgBox,16,请设置正确热键,%TreeHotKey2%`n修改菜单(2)热键设置不正确
 	}
 }
 ;══════════════════════════════════════════════════════════════════
@@ -485,10 +507,15 @@ return
 ;~;[一键搜索]
 One_Show:
 	selectZz:=Get_Zz()
-	if(InStr(OnePath,"%s")){
-		Run,% RegExReplace(OnePath,"%s",selectZz)
-	}else{
-		Run,% OnePath selectZz
+	Loop,parse,OnePath,`n
+	{
+		if(A_LoopField){
+			if(InStr(A_LoopField,"%s")){
+				Run,% RegExReplace(A_LoopField,"%s",selectZz)
+			}else{
+				Run,% A_LoopField selectZz
+			}
+		}
 	}
 return
 ;══════════════════════════════════════════════════════════════════
@@ -573,7 +600,7 @@ Icon_FileExt_Set:
 	Menu,Tray,Icon,修改菜单(&E),% EXEIconS[1],% EXEIconS[2]
 	Menu,Tray,Icon,修改文件(&F),SHELL32.dll,134
 	If(MENU2FLAG){
-		Menu,Tray,Icon,修改菜单2(&2),% EXEIconS[1],% EXEIconS[2]
+		Menu,Tray,Icon,修改菜单2(&S),% EXEIconS[1],% EXEIconS[2]
 		Menu,Tray,Icon,修改文件2(&G),SHELL32.dll,134
 	}
 	Menu,Tray,Icon,设置RunAny(&D),% AnyIconS[1],% AnyIconS[2]
@@ -640,10 +667,10 @@ Get_Zz(){
 	Candy_Saved:=ClipboardAll
 	Clipboard=
 	SendInput,^c
-	if WinActive("ahk_class TTOTAL_CMD")
-		ClipWait,0.5
-	else
-		ClipWait,0.2
+	;~ if WinActive("ahk_class TTOTAL_CMD")
+		;~ ClipWait,0.2
+	;~ else
+		ClipWait,0.1
 	If(ErrorLevel){
 		Clipboard:=Candy_Saved
 		return
@@ -716,7 +743,7 @@ Menu_Edit:
 	TVMenu("TVMenu")
 	TVMenu("GuiMenu")
 	Gui, Menu, GuiMenu
-	Gui, Show, , %RunAnyZz%菜单树管理(右键操作)
+	Gui, Show, , %RunAnyZz%菜单树管理(%both%)(右键操作)
 return
 Menu_Edit1:
 	both:=1
@@ -796,6 +823,8 @@ TVMenu(addMenu){
 	Menu, %addMenu%, Icon,桌面导入, SHELL32.dll,35
 	Menu, %addMenu%, Add,网站图标, Website_Icon
 	Menu, %addMenu%, Icon,网站图标, SHELL32.dll,14
+	Menu, %addMenu%, Add,快捷键菜单管理, TVKey
+	Menu, %addMenu%, Icon,快捷键菜单管理, SHELL32.dll,40
 }
 ;~;[后缀判断图标]
 Set_Icon(itemVar,editVar=true){
@@ -966,15 +995,37 @@ TVDel:
 	}
 return
 TVSave:
-	if(TVFlag){
-		MsgBox,33,菜单树保存,需要保存修改吗？
-		IfMsgBox Ok
-		{
-			gosub,Menu_Save
-		}
-	}else{
-		Gui,Destroy
+	MsgBox,33,菜单树保存,需要保存修改吗？
+	IfMsgBox Ok
+	{
+		gosub,Menu_Save
+		gosub,Menu_Edit
 	}
+return
+TvKey:
+	Gui,33:Destroy
+	Gui,33:Margin,30,20
+	Gui,33:Add,GroupBox,xm-10 y+5 w200 h55,快捷键打开%RunAnyZz%菜单树管理(1)
+	Gui,33:Add,Hotkey,xm+10 yp+25 w120 vvTreeKey1,%TreeKey1%
+	Gui,33:Add,Checkbox,Checked%TreeWinKey1% xm+140 yp+5 vvTreeWinKey1,Win
+	If(MENU2FLAG){
+		Gui,33:Add,GroupBox,xm-10 y+20 w200 h55,快捷键打开%RunAnyZz%菜单树管理(2)
+		Gui,33:Add,Hotkey,xm+10 yp+25 w120 vvTreeKey2,%TreeKey2%
+		Gui,33:Add,Checkbox,Checked%TreeWinKey2% xm+140 yp+5 vvTreeWinKey2,Win
+	}
+	Gui,33:Add,Button,Default xm+16 y+20 w75 GSetTreeOK,确定(&Y)
+	Gui,33:Add,Button,x+5 w75 GSetCancel,取消(&C)
+	Gui,33:Show,,%RunAnyZz%快捷键打开修改菜单
+return
+SetTreeOK:
+	Gui,Submit
+	Reg_Set(vTreeKey1,TreeKey1,"TreeKey1")
+	Reg_Set(vTreeWinKey1,TreeWinKey1,"TreeWinKey1")
+	Reg_Set(vTreeKey2,TreeKey2,"TreeKey2")
+	Reg_Set(vTreeWinKey2,TreeWinKey2,"TreeWinKey2")
+	MsgBox,65,,设置成功，是否要重新打开RunAny生效？
+	IfMsgBox Ok
+		Reload
 return
 Menu_Save:
 	ItemID = 0
@@ -1003,7 +1054,6 @@ Menu_Save:
 	}
 	FileDelete,%iniFile%
 	FileAppend,%saveText%,%iniFile%
-	Reload
 return
 ;~;[制表符设置]
 Set_Tab(tabNum){
@@ -1082,7 +1132,7 @@ Website_Icon:
 				if !ErrorLevel
 				{
 					URLDownloadToFile,%webSiteInput%,%webIcon%
-					MsgBox,65,,图标下载成功，是否要重启生效？
+					MsgBox,65,,图标下载成功，是否要重新打开RunAny生效？
 					IfMsgBox Ok
 						Reload
 				}
@@ -1105,7 +1155,7 @@ Website_Icon:
 			if(errDown!="")
 				WebsiteIconError(errDown)
 			GuiControl, Hide, MyProgress
-			MsgBox,65,,图标下载完成，是否要重启生效？
+			MsgBox,65,,图标下载完成，是否要重新打开RunAny生效？
 			IfMsgBox Ok
 				Reload
 		}
@@ -1128,7 +1178,7 @@ Website_Icon:
 		if(errDown!="")
 			WebsiteIconError(errDown)
 		GuiControl, Hide, MyProgress
-		MsgBox,65,,图标下载完成，是否要重启生效？
+		MsgBox,65,,图标下载完成，是否要重新打开RunAny生效？
 		IfMsgBox Ok
 			Reload
 	}
@@ -1218,7 +1268,7 @@ TV_MoveMenu(moveMenuName){
 	moveLevel:=StrLen(RegExReplace(moveMenuName,"S)(^-+).*","$1"))
 	Menu,%moveMenuName%,add,%moveMenuName%,Move_Menu
 	Menu,% moveRoot[moveLevel],add,%moveItem%, :%moveMenuName%
-	Menu,% moveRoot[moveLevel],Icon,%moveItem%,% TreeIconS[1],% TreeIconS[2]
+	try Menu,% moveRoot[moveLevel],Icon,%moveItem%,% TreeIconS[1],% TreeIconS[2]
 	moveLevel+=1
 	moveRoot[moveLevel]:=moveMenuName
 }
@@ -1422,7 +1472,7 @@ Menu_Set:
 	Gui,66:Add,GroupBox,xm-10 y+20 w340 h230,一键搜索选中文字
 	Gui,66:Add,Hotkey,xm yp+30 w130 vvOneKey,%OneKey%
 	Gui,66:Add,Checkbox,Checked%OneWinKey% xm+140 yp+3 vvOneWinKey,Win
-	Gui,66:Add,Text,xm yp+40 w250,一键搜索网址(`%s为选中文字的替代参数)
+	Gui,66:Add,Text,xm yp+40 w325,一键搜索网址(`%s为选中文字的替代参数，多行搜索多个网址)
 	Gui,66:Add,Edit,xm yp+20 w325 r5 vvOnePath,%OnePath%
 	
 	Gui,66:Tab,图标+TC设置,,Exact
@@ -1454,7 +1504,7 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v4.0 @2017.7.2
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v4.1 @2017.10.06
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
@@ -1548,14 +1598,15 @@ MenuTray(){
 	Menu,Tray,add,修改菜单(&E),Menu_Edit1
 	Menu,Tray,add,修改文件(&F),Menu_Ini
 	Menu,Tray,add
-	If(MENU2FLAG){
-		Menu,Tray,add,修改菜单2(&2),Menu_Edit2
-		Menu,Tray,add,修改文件2(&G),Menu_Ini2
-		Menu,Tray,add
-	}
 	Menu,Tray,add,设置RunAny(&D),Menu_Set
 	Menu,Tray,Add,关于RunAny(&A)...,Menu_About
 	Menu,Tray,add
+	If(MENU2FLAG){
+		Menu,Tray,add,启动菜单2(&2),Menu_Show2
+		Menu,Tray,add,修改菜单2(&S),Menu_Edit2
+		Menu,Tray,add,修改文件2(&G),Menu_Ini2
+		Menu,Tray,add
+	}
 	Menu,Tray,add,重启(&R),Menu_Reload
 	Menu,Tray,add,挂起(&S),Menu_Suspend
 	Menu,Tray,add,退出(&X),Menu_Exit

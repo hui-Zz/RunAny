@@ -1,4 +1,4 @@
-# 【RunAny】一劳永逸的快速启动工具 [v4.0 Run Anything! 正式版](#ver)
+# 【RunAny】一劳永逸的快速启动工具 [v4.1 Run Anything! 正式版](#ver)
 
 只需配置一个自定义程序菜单，结合Everything神器仅需软件名，无路径就可以快速运行exe程序、lnk快捷方式！
 
@@ -8,9 +8,9 @@
 
 ## RunAny启动软件就跟打字一样高效方便（如<kbd>\`</kbd>为热键）：
 
-- <kbd>\`</kbd><kbd>w</kbd><kbd>w</kbd>就是work工作分类下的Word
-- <kbd>\`</kbd><kbd>a</kbd><kbd>w</kbd>就是app常用分类下的Wiz
-- <kbd>\`</kbd><kbd>f</kbd><kbd>w</kbd>就是file文件分类下的WinRAR
+- <kbd>\`</kbd><kbd>w</kbd><kbd>w</kbd>就是启动work工作分类下的Word
+- <kbd>\`</kbd><kbd>a</kbd><kbd>w</kbd>就是启动app常用分类下的Wiz
+- <kbd>\`</kbd><kbd>f</kbd><kbd>w</kbd>就是启动file文件分类下的WinRAR
 
 ---
 
@@ -79,6 +79,11 @@ RunAny演示批量搜索：
 ---
 
 ## <a name="ver">【RunAny版本更新历史】</a>
+
+### 【RunAny】 v4.1 Run Anything!
++ 增加菜单1和2的树形快捷管理按键设置
++ 一键搜索网址现在支持一次搜索多个网址
+* **启动菜单显示速度加快100%**
 
 ### 【RunAny】 v4.0 Run Anything!
 + 程序菜单可显示任意后缀文件的图标
