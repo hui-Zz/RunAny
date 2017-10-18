@@ -526,6 +526,10 @@ Var_Set:
 	;~;[RunAny设置参数]
 	RegRead, AutoRun, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 	AutoRun:=AutoRun ? 1 : 0
+	global IniConfig:=0
+	if(FileExist(RunAnyConfig)){
+		IniRead,IniConfig,%RunAnyConfig%,Config,IniConfig
+	}
 	global HideFail:=Var_Read("HideFail",0)
 	global HideUnSelect:=Var_Read("HideUnSelect",0)
 	global EvCommand:=Var_Read("EvCommand","!C:\*Windows* file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
