@@ -16,7 +16,8 @@ SetBatchLines,-1		;~脚本全速执行
 SetWorkingDir,%A_ScriptDir%	;~脚本当前工作目录
 SplitPath,A_ScriptFullPath,,,,fileNotExt
 ;~ StartTick:=A_TickCount	;若要评估出menu时间
-RunAnyZz:="RunAny"
+global RunAnyZz:="RunAny"
+global RunAnyConfig:="RunAnyConfig.ini"
 global fast:=true
 Gosub,Var_Set
 Gosub,Run_Exist
@@ -270,10 +271,10 @@ Menu_Add(menuName,menuItem,fast,menuRoot,menuWebRoot,menuWebList,webRootShow){
 		SplitPath, item,,, FileExt  ; 获取文件扩展名.
 		if(!fast)
 			Menu,%menuName%,add,%menuItem%,Menu_Run
-		if(InStr(item,"\",,0,1)=itemLen){  ; 目录
-			Menu,%menuName%,Icon,%menuItem%,% FolderIconS[1],% FolderIconS[2]
-		}else if(InStr(item,";",,0,1)=itemLen){  ; 注释
+		if(InStr(item,";",,0,1)=itemLen){  ; 注释
 			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,2
+		}else if(InStr(item,"\",,0,1)=itemLen){  ; 目录
+			Menu,%menuName%,Icon,%menuItem%,% FolderIconS[1],% FolderIconS[2]
 		}else if(RegExMatch(item,"iS)([\w-]+://?|www[.]).*")){  ; 网址
 			website:=RegExReplace(item,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
 			webIcon:=A_ScriptDir "\RunIcon\" website ".ico"
@@ -527,7 +528,7 @@ Var_Set:
 	AutoRun:=AutoRun ? 1 : 0
 	global HideFail:=Var_Read("HideFail",0)
 	global HideUnSelect:=Var_Read("HideUnSelect",0)
-	global EvCommand:=Var_Read("EvCommand","!C:\*Windows* file:*.exe|*.lnk|*.ahk")
+	global EvCommand:=Var_Read("EvCommand","!C:\*Windows* file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
 	TcPath:=Var_Read("TcPath")
 	OnePath:=Var_Read("OnePath","https://www.baidu.com/s?wd=%s")
 	DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe")
@@ -600,7 +601,7 @@ Icon_FileExt_Set:
 	Menu,Tray,Icon,修改菜单(&E),% EXEIconS[1],% EXEIconS[2]
 	Menu,Tray,Icon,修改文件(&F),SHELL32.dll,134
 	If(MENU2FLAG){
-		Menu,Tray,Icon,修改菜单2(&S),% EXEIconS[1],% EXEIconS[2]
+		Menu,Tray,Icon,修改菜单2(&W),% EXEIconS[1],% EXEIconS[2]
 		Menu,Tray,Icon,修改文件2(&G),SHELL32.dll,134
 	}
 	Menu,Tray,Icon,设置RunAny(&D),% AnyIconS[1],% AnyIconS[2]
@@ -644,7 +645,11 @@ Ext_Check(name,len,ext){
 }
 ;~;[读取注册表]
 Var_Read(rValue,defVar=""){
-	RegRead, regVar, HKEY_CURRENT_USER, SOFTWARE\RunAny, %rValue%
+	if(IniConfig){
+		IniRead, regVar,%RunAnyConfig%, Config, %rValue%, %defVar%
+	}else{
+		RegRead, regVar, HKEY_CURRENT_USER, SOFTWARE\RunAny, %rValue%
+	}
 	if(regVar)
 		if(InStr(regVar,"ZzIcon.dll") && !FileExist(A_ScriptDir "\ZzIcon.dll"))
 			return defVar
@@ -755,7 +760,7 @@ Menu_Edit2:
 	iniFile:=iniPath2
 	gosub,Menu_Edit
 return
-#If WinActive(RunAnyZz "菜单树管理(右键操作)")
+#If WinActive(RunAnyZz "菜单树管理(" both ")(右键操作)")
 	F5::
 	PGDN::
 		gosub,TVDown
@@ -807,7 +812,7 @@ TVMenu(addMenu){
 	Menu, %addMenu%, Icon,% flag ? "编辑" : "编辑`tF2", SHELL32.dll,134
 	Menu, %addMenu%, Add,% flag ? "删除" : "删除`tDel", TVDel
 	Menu, %addMenu%, Icon,% flag ? "删除" : "删除`tDel", SHELL32.dll,132
-	Menu, %addMenu%, Add
+	;~ Menu, %addMenu%, Add
 	Menu, %addMenu%, Add,移动到..., :moveMenu%both%
 	Menu, %addMenu%, Icon,移动到...,% MoveIconS[1],% MoveIconS[2]
 	Menu, %addMenu%, Add,% flag ? "向下" : "向下`t(F5/PgDn)", TVDown
@@ -995,8 +1000,13 @@ TVDel:
 	}
 return
 TVSave:
-	MsgBox,33,菜单树保存,需要保存修改吗？
-	IfMsgBox Ok
+	MsgBox, 35, 菜单树保存, 是：保存后重启生效`n否：刷新后继续修改`n取消：取消保存
+	IfMsgBox Yes
+	{
+		gosub,Menu_Save
+		Reload
+	}
+	IfMsgBox No
 	{
 		gosub,Menu_Save
 		gosub,Menu_Edit
@@ -1019,6 +1029,7 @@ TvKey:
 return
 SetTreeOK:
 	Gui,Submit
+	global vIniConfig:=IniConfig
 	Reg_Set(vTreeKey1,TreeKey1,"TreeKey1")
 	Reg_Set(vTreeWinKey1,TreeWinKey1,"TreeWinKey1")
 	Reg_Set(vTreeKey2,TreeKey2,"TreeKey2")
@@ -1440,6 +1451,7 @@ Menu_Set:
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+5 w330 h70,RunAny
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+25 vvAutoRun,开机自动启动
+	Gui,66:Add,Checkbox,Checked%IniConfig% x+18 vvIniConfig,使用ini文件配置(默认为注册表)
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
 	Gui,66:Add,Checkbox,Checked%HideUnSelect% x+30 vvHideUnSelect,选中文字也显示应用菜单
 	Gui,66:Add,GroupBox,xm-10 y+10 w215 h55,RunAny菜单自定义热键
@@ -1543,6 +1555,10 @@ SetOK:
 			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		}
 	}
+	global vIniConfig
+	if(FileExist(RunAnyConfig)){
+		IniWrite,%vIniConfig%,%RunAnyConfig%,Config,IniConfig
+	}
 	Reg_Set(vDisableApp,DisableApp,"DisableApp")
 	Reg_Set(vHideFail,HideFail,"HideFail")
 	Reg_Set(vHideUnSelect,HideUnSelect,"HideUnSelect")
@@ -1564,6 +1580,10 @@ SetOK:
 	Reg_Set(vEXEIcon,EXEIcon,"EXEIcon")
 	Reg_Set(vAnyIcon,AnyIcon,"AnyIcon")
 	Reg_Set(vMenuIcon,MenuIcon,"MenuIcon")
+	Reg_Set(TreeKey1,"","TreeKey1")
+	Reg_Set(TreeWinKey1,0,"TreeWinKey1")
+	Reg_Set(TreeKey2,"","TreeKey2")
+	Reg_Set(TreeWinKey2,0,"TreeWinKey2")
 	Reload
 return
 SetCancel:
@@ -1584,9 +1604,12 @@ setMenu2:
 	}
 return
 Reg_Set(vGui, var, sz){
-	if(vGui!=var){
-		%sz%=%vGui%
-		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, %sz%, %vGui%
+	if(vIniConfig){
+		IniWrite,%vGui%,%RunAnyConfig%,Config,%sz%
+	}else{
+		if(vGui!=var){
+			RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, %sz%, %vGui%
+		}
 	}
 }
 ;══════════════════════════════════════════════════════════════════
@@ -1603,7 +1626,7 @@ MenuTray(){
 	Menu,Tray,add
 	If(MENU2FLAG){
 		Menu,Tray,add,启动菜单2(&2),Menu_Show2
-		Menu,Tray,add,修改菜单2(&S),Menu_Edit2
+		Menu,Tray,add,修改菜单2(&W),Menu_Edit2
 		Menu,Tray,add,修改文件2(&G),Menu_Ini2
 		Menu,Tray,add
 	}

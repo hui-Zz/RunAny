@@ -1,4 +1,4 @@
-# 【RunAny】一劳永逸的快速启动工具 [v4.1 Run Anything! 正式版](#ver)
+# 【RunAny】一劳永逸的快速启动工具 [v4.2 Run Anything! 正式版](#ver)
 
 只需配置一个自定义程序菜单，结合Everything神器仅需软件名，无路径就可以快速运行exe程序、lnk快捷方式！
 
@@ -79,6 +79,10 @@ RunAny演示批量搜索：
 ---
 
 ## <a name="ver">【RunAny版本更新历史】</a>
+
+### 【RunAny】 v4.2 Run Anything!
+* 修复不能注释目录的情况
+* 新增使用ini文件配置绿色化，方便U盘便携
 
 ### 【RunAny】 v4.1 Run Anything!
 + 增加菜单1和2的树形快捷管理按键设置
