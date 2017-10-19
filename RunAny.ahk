@@ -9,7 +9,10 @@
 #Persistent			;~让脚本持久运行
 #NoEnv					;~不检查空变量为环境变量
 #SingleInstance,Force	;~运行替换旧实例
+#WinActivateForce		;~强制激活窗口
+#ClipboardTimeout 200	;~尝试访问剪贴板的持续时间
 DetectHiddenWindows,on	;~显示隐藏窗口
+Process Priority,,High	;~进程优先级高
 ListLines,Off			;~不显示最近执行的脚本行
 CoordMode,Menu			;~相对于整个屏幕
 SetBatchLines,-1		;~脚本全速执行
@@ -96,7 +99,7 @@ if(TreeKey2){
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化everything安装路径]
 evExist:=true
-RegRead, EvPath, HKEY_CURRENT_USER, SOFTWARE\RunAny, EvPath
+EvPath:=Var_Read("EvPath")
 while !WinExist("ahk_exe Everything.exe")
 {
 	Sleep,100
@@ -184,7 +187,9 @@ Menu_Read(iniFilePath,fast,menuRoot,menuLevel,menuWebRoot,menuWebList,webRootSho
 	{
 		try{
 			Z_ReadLine=%A_LoopReadLine%
-			if(InStr(Z_ReadLine,"-")=1){
+			if(InStr(Z_ReadLine,";")=1 || Z_ReadLine=""){
+				continue
+			}else if(InStr(Z_ReadLine,"-")=1){
 				;~;[生成节点树层级结构]
 				menuItem:=RegExReplace(Z_ReadLine,"S)^-+")
 				menuLevel:=StrLen(RegExReplace(Z_ReadLine,"S)(^-+).*","$1"))
@@ -197,8 +202,6 @@ Menu_Read(iniFilePath,fast,menuRoot,menuLevel,menuWebRoot,menuWebList,webRootSho
 				}else if((fast || menu2) && menuRoot[menuLevel]){
 					Menu,% menuRoot[menuLevel],Add
 				}
-			}else if(InStr(Z_ReadLine,";")=1 || Z_ReadLine=""){
-				continue
 			}else if(InStr(Z_ReadLine,"|")){
 				;~;[生成有前缀备注的应用]
 				menuDiy:=StrSplit(Z_ReadLine,"|")
@@ -271,11 +274,18 @@ Menu_Add(menuName,menuItem,fast,menuRoot,menuWebRoot,menuWebList,webRootShow){
 		SplitPath, item,,, FileExt  ; 获取文件扩展名.
 		if(!fast)
 			Menu,%menuName%,add,%menuItem%,Menu_Run
-		if(InStr(item,";",,0,1)=itemLen){  ; 注释
+		if(InStr(item,";",,0,1)=itemLen){  ; {短语}
 			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,2
-		}else if(InStr(item,"\",,0,1)=itemLen){  ; 目录
+			if(menuName = menuRoot[1]){
+				Menu,% menuWebRoot[1],Add,%menuItem%,Menu_Run
+				Menu,% menuWebRoot[1],Icon,%menuItem%,SHELL32.dll,2
+				webRootShow:=true
+			}else{
+				Menu,% menuWebRoot[1],Add,%menuName%, :%menuName%
+			}
+		}else if(InStr(item,"\",,0,1)=itemLen){  ; {目录}
 			Menu,%menuName%,Icon,%menuItem%,% FolderIconS[1],% FolderIconS[2]
-		}else if(RegExMatch(item,"iS)([\w-]+://?|www[.]).*")){  ; 网址
+		}else if(RegExMatch(item,"iS)([\w-]+://?|www[.]).*")){  ; {网址}
 			website:=RegExReplace(item,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
 			webIcon:=A_ScriptDir "\RunIcon\" website ".ico"
 			if(FileExist(webIcon)){
@@ -298,7 +308,8 @@ Menu_Add(menuName,menuItem,fast,menuRoot,menuWebRoot,menuWebList,webRootShow){
 			}else{
 				Menu,% menuWebRoot[1],Add,%menuName%, :%menuName%
 			}
-			menuWebList[(menuName)].=menuItem "`n"
+			menuWebList[(menuName)].=menuItem "`n"	; 添加到批量搜索
+			;~ [创建网址所在的不重复菜单节点]
 			menuWebSame:=false
 			Loop,% menuWebRoot.MaxIndex()
 			{
@@ -310,7 +321,7 @@ Menu_Add(menuName,menuItem,fast,menuRoot,menuWebRoot,menuWebList,webRootShow){
 			if(!menuWebSame){
 				menuWebRoot.Insert(menuName)
 			}
-		}else if(Ext_Check(item,itemLen,".lnk")){  ; 快捷方式
+		}else if(Ext_Check(item,itemLen,".lnk")){  ; {快捷方式}
 			try{
 				FileGetShortcut, %item%, OutItem, , , , OutIcon, OutIconNum
 				if(OutIcon){
@@ -324,7 +335,7 @@ Menu_Add(menuName,menuItem,fast,menuRoot,menuWebRoot,menuWebList,webRootShow){
 		}else if FileExt in EXE,ICO,ANI,CUR
 		{
 			Menu,%menuName%,Icon,%menuItem%,%item%
-		}else{  ; 处理未知的项目图标
+		}else{  ; {处理未知的项目图标}
 			If(FileExist(item)){
 				RegRead, regFileExt, HKEY_CLASSES_ROOT, .%FileExt%
 				RegRead, regFileIcon, HKEY_CLASSES_ROOT, %regFileExt%\DefaultIcon
@@ -394,8 +405,8 @@ Menu_Run:
 	anyLen:=StrLen(any)
 	SplitPath, any, , dir
 	SetWorkingDir,%dir%
-	if(!RegExMatch(A_ThisMenuItem,"S)^&1|2"))
-		gosub,Menu_Common
+	if(!HideRecent && !RegExMatch(A_ThisMenuItem,"S)^&1|2"))
+		gosub,Menu_Recent
 	try {
 		If(InStr(any,";",,0,1)=anyLen){
 			StringLeft, any, any, anyLen-1
@@ -441,7 +452,7 @@ Menu_Run:
 	SetWorkingDir,%A_ScriptDir%
 return
 ;~;[菜单最近运行]
-Menu_Common:
+Menu_Recent:
 	if(!MenuCommonList[1]){
 		MenuCommonList[1]:="&1 " A_ThisMenuItem
 		MenuObj[MenuCommonList[1]]:=any
@@ -532,6 +543,7 @@ Var_Set:
 	}
 	global HideFail:=Var_Read("HideFail",0)
 	global HideUnSelect:=Var_Read("HideUnSelect",0)
+	global HideRecent:=Var_Read("HideRecent",0)
 	global EvCommand:=Var_Read("EvCommand","!C:\*Windows* file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
 	TcPath:=Var_Read("TcPath")
 	OnePath:=Var_Read("OnePath","https://www.baidu.com/s?wd=%s")
@@ -1453,10 +1465,11 @@ Menu_Set:
 	Gui,66:Margin,30,20
 	Gui,66:Add,Tab,x10 y10 w360 h370,RunAny设置|Everything设置|一键搜索|图标+TC设置
 	Gui,66:Tab,RunAny设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+5 w330 h70,RunAny
+	Gui,66:Add,GroupBox,xm-10 y+5 w330 h70,RunAny应用菜单
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+25 vvAutoRun,开机自动启动
 	Gui,66:Add,Checkbox,Checked%IniConfig% x+18 vvIniConfig,使用ini文件配置(默认为注册表)
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
+	Gui,66:Add,Checkbox,Checked%HideRecent% xm yp+20 vvHideRecent,隐藏最近运行
 	Gui,66:Add,Checkbox,Checked%HideUnSelect% x+30 vvHideUnSelect,选中文字也显示应用菜单
 	Gui,66:Add,GroupBox,xm-10 y+10 w215 h55,RunAny菜单自定义热键
 	Gui,66:Add,Hotkey,xm+10 yp+20 w130 vvMenuKey,%MenuKey%
@@ -1566,6 +1579,7 @@ SetOK:
 	Reg_Set(vDisableApp,DisableApp,"DisableApp")
 	Reg_Set(vHideFail,HideFail,"HideFail")
 	Reg_Set(vHideUnSelect,HideUnSelect,"HideUnSelect")
+	Reg_Set(vHideRecent,HideRecent,"HideRecent")
 	Reg_Set(vMenuKey,MenuKey,"MenuKey")
 	Reg_Set(vMenuWinKey,MenuWinKey,"MenuWinKey")
 	Reg_Set(vMenuKey2,MenuKey2,"MenuKey2")
