@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v4.1 @2017.10.06
+║【RunAny】一劳永逸的快速启动工具 v4.2 @2017.10.20 一键直达
 ║ https://github.com/hui-Zz/RunAny
 ║ by Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -17,7 +17,6 @@ ListLines,Off			;~不显示最近执行的脚本行
 CoordMode,Menu			;~相对于整个屏幕
 SetBatchLines,-1		;~脚本全速执行
 SetWorkingDir,%A_ScriptDir%	;~脚本当前工作目录
-SplitPath,A_ScriptFullPath,,,,fileNotExt
 ;~ StartTick:=A_TickCount	;若要评估出menu时间
 global RunAnyZz:="RunAny"
 global RunAnyConfig:="RunAnyConfig.ini"
@@ -272,32 +271,42 @@ Menu_Add(menuName,menuItem,fast,menuRoot,menuWebRoot,menuWebList,webRootShow){
 		item:=MenuObj[(menuItem)]
 		itemLen:=StrLen(item)
 		SplitPath, item,,, FileExt  ; 获取文件扩展名.
-		if(!fast)
+		if(HideUnSelect)
 			Menu,%menuName%,add,%menuItem%,Menu_Run
 		if(InStr(item,";",,0,1)=itemLen){  ; {短语}
+			Menu,%menuName%,add,%menuItem%,Menu_Run
+			Menu,%menuName%:,add,%menuItem%,Menu_Run
 			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,2
+			Menu,%menuName%:,Icon,%menuItem%,SHELL32.dll,2
 			if(menuName = menuRoot[1]){
 				Menu,% menuWebRoot[1],Add,%menuItem%,Menu_Run
 				Menu,% menuWebRoot[1],Icon,%menuItem%,SHELL32.dll,2
 				webRootShow:=true
 			}else{
-				Menu,% menuWebRoot[1],Add,%menuName%, :%menuName%
+				Menu,% menuWebRoot[1],Add,%menuName%:, :%menuName%:
 			}
-		}else if(InStr(item,"\",,0,1)=itemLen){  ; {目录}
-			Menu,%menuName%,Icon,%menuItem%,% FolderIconS[1],% FolderIconS[2]
-		}else if(RegExMatch(item,"iS)([\w-]+://?|www[.]).*")){  ; {网址}
+			if(HideSend)
+				Menu,%menuName%,Delete,%menuItem%
+			return
+		}
+		if(RegExMatch(item,"iS)([\w-]+://?|www[.]).*")){  ; {网址}
 			website:=RegExReplace(item,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
 			webIcon:=A_ScriptDir "\RunIcon\" website ".ico"
+			Menu,%menuName%,add,%menuItem%,Menu_Run
+			Menu,%menuName%:,add,%menuItem%,Menu_Run
 			if(FileExist(webIcon)){
 				try{
 					Menu,%menuName%,Icon,%menuItem%,%webIcon%,0
+					Menu,%menuName%:,Icon,%menuItem%,%webIcon%,0
 					IL_Add(ImageListID, webIcon, 0)
 				} catch e {
 					Menu,%menuName%,Icon,%menuItem%,% UrlIconS[1],% UrlIconS[2]
+					Menu,%menuName%:,Icon,%menuItem%,% UrlIconS[1],% UrlIconS[2]
 					IL_Add(ImageListID, UrlIconS[1], UrlIconS[2])
 				}
 			}else{
 				Menu,%menuName%,Icon,%menuItem%,% UrlIconS[1],% UrlIconS[2]
+				Menu,%menuName%:,Icon,%menuItem%,% UrlIconS[1],% UrlIconS[2]
 				IL_Add(ImageListID, UrlIconS[1], UrlIconS[2])
 			}
 			;~ [添加到网址菜单]
@@ -306,21 +315,29 @@ Menu_Add(menuName,menuItem,fast,menuRoot,menuWebRoot,menuWebList,webRootShow){
 				Menu,% menuWebRoot[1],Icon,%menuItem%,%webIcon%,0
 				webRootShow:=true
 			}else{
-				Menu,% menuWebRoot[1],Add,%menuName%, :%menuName%
+				Menu,% menuWebRoot[1],Add,%menuName%:, :%menuName%:
 			}
-			menuWebList[(menuName)].=menuItem "`n"	; 添加到批量搜索
+			menuWebList[(menuName ":")].=menuItem "`n"	; 添加到批量搜索
 			;~ [创建网址所在的不重复菜单节点]
 			menuWebSame:=false
 			Loop,% menuWebRoot.MaxIndex()
 			{
-				if(menuWebRoot[A_Index]=menuName){
+				if(menuWebRoot[A_Index]=menuName ":"){
 					menuWebSame:=true
 					break
 				}
 			}
 			if(!menuWebSame){
-				menuWebRoot.Insert(menuName)
+				menuWebRoot.Insert(menuName ":")
 			}
+			if(HideWeb)
+				Menu,%menuName%,Delete,%menuItem%
+			return
+		}
+		if(!fast)
+			Menu,%menuName%,add,%menuItem%,Menu_Run
+		if(InStr(item,"\",,0,1)=itemLen){  ; {目录}
+			Menu,%menuName%,Icon,%menuItem%,% FolderIconS[1],% FolderIconS[2]
 		}else if(Ext_Check(item,itemLen,".lnk")){  ; {快捷方式}
 			try{
 				FileGetShortcut, %item%, OutItem, , , , OutIcon, OutIconNum
@@ -380,12 +397,36 @@ Menu_Add_Fast(menuName,menuItem){
 Menu_Show:
 	try{
 		global selectZz:=Get_Zz()
-		;#选中文本弹出网址菜单，其他弹出应用菜单#
-		if(selectZz && !HideUnSelect && Candy_isFile!=1){
-			Menu,% menuWebRoot[1],Show
-		}else{
-			Menu,% menuRoot[1],Show
+		if(selectZz && Candy_isFile!=1){
+			;一键打开网址
+			if(OneKeyWeb && RegExMatch(selectZz,"iS)([\w-]+://?|www[.]).*")){
+				Run,%selectZz%
+				return
+			}
+			if(RegExMatch(selectZz,"S)^(\\\\|.:\\)")){
+				;一键打开目录
+				if(OneKeyFolder && InStr(FileExist(selectZz), "D")){
+					If(TcPath){
+						Run,%TcPath%%A_Space%"%selectZz%"
+					}else{
+						Run,%selectZz%
+					}
+					return
+				}
+				;一键打开文件
+				if(OneKeyFile && Fileexist(selectZz)){
+					Run,%selectZz%
+					return
+				}
+			}
+			;#选中文本弹出网址菜单#
+			if(!HideUnSelect){
+				Menu,% menuWebRoot[1],Show
+				return
+			}
 		}
+		;#其他弹出应用菜单#
+		Menu,% menuRoot[1],Show
 	}catch{}
 return
 Menu_Show2:
@@ -423,7 +464,7 @@ Menu_Run:
 		}
 		try {
 			if(selectZz){
-				if(Candy_isFile=1){
+				if(Candy_isFile=1 || Fileexist(selectZz)){
 					if(GetKeyState("Shift")){
 						Run,*RunAs %any%%A_Space%"%selectZz%"
 					}else{
@@ -544,6 +585,11 @@ Var_Set:
 	global HideFail:=Var_Read("HideFail",0)
 	global HideUnSelect:=Var_Read("HideUnSelect",0)
 	global HideRecent:=Var_Read("HideRecent",0)
+	global HideWeb:=Var_Read("HideWeb",0)
+	global HideSend:=Var_Read("HideSend",0)
+	global OneKeyWeb:=Var_Read("OneKeyWeb",1)
+	global OneKeyFolder:=Var_Read("OneKeyFolder",1)
+	global OneKeyFile:=Var_Read("OneKeyFile",1)
 	global EvCommand:=Var_Read("EvCommand","!C:\*Windows* file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
 	TcPath:=Var_Read("TcPath")
 	OnePath:=Var_Read("OnePath","https://www.baidu.com/s?wd=%s")
@@ -626,8 +672,8 @@ Icon_FileExt_Set:
 return
 ;~;[调用判断]
 Run_Exist:
-	global iniPath:=A_ScriptDir "\" fileNotExt ".ini"
-	global iniPath2:=A_ScriptDir "\" fileNotExt "2.ini"
+	global iniPath:=A_ScriptDir "\" RunAnyZz ".ini"
+	global iniPath2:=A_ScriptDir "\" RunAnyZz "2.ini"
 	global iniFile:=iniPath
 	global both:=1
 	;#判断初始化#
@@ -714,7 +760,7 @@ Get_Obj_Path(Z_ReadLine){
 	}
 }
 ;══════════════════════════════════════════════════════════════════
-;~;[菜单配置]
+;~;[菜单配置Gui]
 ;══════════════════════════════════════════════════════════════════
 Menu_Edit:
 	global TVFlag:=false
@@ -847,7 +893,7 @@ TVMenu(addMenu){
 	Menu, %addMenu%, Add,快捷键菜单管理, TVKey
 	Menu, %addMenu%, Icon,快捷键菜单管理, SHELL32.dll,40
 }
-;~;[后缀判断图标]
+;~;[后缀判断图标Gui]
 Set_Icon(itemVar,editVar=true){
 	SplitPath, itemVar,,, FileExt  ; 获取文件扩展名.
 	itemLen:=StrLen(itemVar)
@@ -1410,7 +1456,7 @@ TV_CheckUncheckWalk(_GuiEvent, _EventInfo, _GuiControl)
 		TV_SuspendEvents := True												;在工作时停止对功能的进一步调用
 		Gui, TreeView, %_GuiControl% 											;激活正确的TV
 		TV_Modify(_EventInfo, "Select")										;选择项目反正...这一行可能在这里取消和分散进一步
-		If TV_Get( _EventInfo, "Checked" )										;项目的复选标记
+		If TV_Get( _EventInfo, "Checked" )									;项目的复选标记
 		{
 			If TV_GetChild( _EventInfo )										;项目的节点
 				ToggleAllTheWay( _EventInfo, False )							;复选标记所有的孩子一路下来
@@ -1418,14 +1464,14 @@ TV_CheckUncheckWalk(_GuiEvent, _EventInfo, _GuiControl)
 		Else																	;它未被选中
 		{
 			If TV_GetChild( _EventInfo )										;它是一个节点
-				ToggleAllTheWay( _EventInfo, True )								;取消选中所有的孩子一直向下
+				ToggleAllTheWay( _EventInfo, True )							;取消选中所有的孩子一直向下
 			If TV_Get( TV_GetParent( _EventInfo ), "Checked") 				;父节点选中怎么样？
 			{
 				locItemId := TV_GetParent( _EventInfo )						;父节点检查标记：获取父ID
 				While locItemId													;循环一路向上
 				{
 					TV_Modify( locItemId , "-Check" )							;它的未选中：检查！
-					locItemId := TV_GetParent( locItemId )						;获取下一个父ID
+					locItemId := TV_GetParent( locItemId )					;获取下一个父ID
 				}
 			}
 		}
@@ -1463,67 +1509,74 @@ Menu_Set:
 	Gui,66:Destroy
 	Gui,66:Font,,Microsoft YaHei
 	Gui,66:Margin,30,20
-	Gui,66:Add,Tab,x10 y10 w360 h370,RunAny设置|Everything设置|一键搜索|图标+TC设置
+	Gui,66:Add,Tab,x10 y10 w420 h420,RunAny设置|Everything设置|一键搜索|图标+TC设置
 	Gui,66:Tab,RunAny设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+5 w330 h70,RunAny应用菜单
+	Gui,66:Add,GroupBox,xm-10 y+5 w400 h50,RunAny设置
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+25 vvAutoRun,开机自动启动
 	Gui,66:Add,Checkbox,Checked%IniConfig% x+18 vvIniConfig,使用ini文件配置(默认为注册表)
+	Gui,66:Add,GroupBox,xm-10 y+10 w400 h65,RunAny应用菜单
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
-	Gui,66:Add,Checkbox,Checked%HideRecent% xm yp+20 vvHideRecent,隐藏最近运行
-	Gui,66:Add,Checkbox,Checked%HideUnSelect% x+30 vvHideUnSelect,选中文字也显示应用菜单
-	Gui,66:Add,GroupBox,xm-10 y+10 w215 h55,RunAny菜单自定义热键
-	Gui,66:Add,Hotkey,xm+10 yp+20 w130 vvMenuKey,%MenuKey%
-	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+150 yp+3 vvMenuWinKey,Win
+	Gui,66:Add,Checkbox,Checked%HideRecent% x+30 vvHideRecent,隐藏最近运行
+	Gui,66:Add,Checkbox,Checked%HideWeb% xm yp+20 vvHideWeb,隐藏网址
+	Gui,66:Add,Checkbox,Checked%HideSend% x+42 vvHideSend,隐藏短语(仅选中后显示)
+	Gui,66:Add,GroupBox,xm-10 y+10 w400 h65,RunAny选中文字菜单
+	Gui,66:Add,Checkbox,Checked%OneKeyWeb% xm yp+20 vvOneKeyWeb,网址一键打开
+	Gui,66:Add,Checkbox,Checked%OneKeyFolder% x+18 vvOneKeyFolder,文件夹路径一键打开
+	Gui,66:Add,Checkbox,Checked%OneKeyFile% xm yp+20 vvOneKeyFile,文件路径一键
+	Gui,66:Add,Checkbox,Checked%HideUnSelect% x+18 vvHideUnSelect gUnCheckWebSend,显示应用菜单
+	Gui,66:Add,GroupBox,xm-10 y+10 w195 h55,RunAny菜单自定义热键
+	Gui,66:Add,Hotkey,xm yp+20 w130 vvMenuKey,%MenuKey%
+	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+135 yp+3 vvMenuWinKey,Win
 	If(MENU2FLAG){
-		Gui,66:Add,GroupBox,xm-10 y+15 w215 h55,菜单2自定义热键
-		Gui,66:Add,Hotkey,xm+10 yp+20 w130 vvMenuKey2,%MenuKey2%
-		Gui,66:Add,Checkbox,Checked%MenuWinKey2% xm+150 yp+3 vvMenuWinKey2,Win
+		Gui,66:Add,GroupBox,x+15 yp-23 w195 h55,菜单2自定义热键
+		Gui,66:Add,Hotkey,xp+10 yp+20 w130 vvMenuKey2,%MenuKey2%
+		Gui,66:Add,Checkbox,Checked%MenuWinKey2% xp+135 yp+3 vvMenuWinKey2,Win
 	}else{
-		Gui,66:Add,Button,xm yp+50 w150 GSetMenu2,开启第2个菜单
+		Gui,66:Add,Button,x+15 yp-5 w150 GSetMenu2,开启第2个菜单
 	}
-	Gui,66:Add,GroupBox,xm-10 y+25 w330 h85,屏蔽RunAny程序列表（逗号分隔）
-	Gui,66:Add,Edit,xm+10 yp+20 w300 r3 vvDisableApp,%DisableApp%
+	Gui,66:Add,GroupBox,xm-10 y+20 w400 h100,屏蔽RunAny程序列表（逗号分隔）
+	Gui,66:Add,Edit,xm yp+25 w380 r3 vvDisableApp,%DisableApp%
 	
 	Gui,66:Tab,Everything设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+20 w235 h55,一键Everything[搜索选中文字][激活][隐藏]
+	Gui,66:Add,GroupBox,xm-10 y+20 w400 h55,一键Everything [搜索选中文字、激活、隐藏]
 	Gui,66:Add,Hotkey,xm+10 yp+20 w130 vvEvKey,%EvKey%
 	Gui,66:Add,Checkbox,Checked%EvWinKey% xm+150 yp+3 vvEvWinKey,Win
-	Gui,66:Add,GroupBox,xm-10 y+20 w340 h95,Everything安装路径
+	Gui,66:Add,GroupBox,xm-10 y+20 w400 h100,Everything安装路径
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
-	Gui,66:Add,Edit,xm+60 yp w260 r3 vvEvPath,%EvPath%
-	Gui,66:Add,GroupBox,xm-10 y+15 w330 h125,Everything搜索参数（搜索结果程序可无路径用RunAny运行）
+	Gui,66:Add,Edit,xm+60 yp w320 r3 vvEvPath,%EvPath%
+	Gui,66:Add,GroupBox,xm-10 y+20 w400 h140,Everything搜索参数（搜索结果程序可无路径用RunAny运行）
 	Gui,66:Add,Button,xm yp+20 w50 GSetEvCommand,修改
 	Gui,66:Add,Text,xm+60 yp,!C:\*Windows*为排除系统缓存和系统程序
 	Gui,66:Add,Text,xm+60 yp+15,file:*.exe|*.lnk|后面以此格式类推增加后缀
-	Gui,66:Add,Edit,ReadOnly xm+10 yp+25 w300 r3 vvEvCommand,%EvCommand%
+	Gui,66:Add,Edit,ReadOnly xm+10 yp+25 w370 r3 vvEvCommand,%EvCommand%
 	
 	Gui,66:Tab,一键搜索,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+20 w340 h230,一键搜索选中文字
+	Gui,66:Add,GroupBox,xm-10 y+20 w400 h260,一键搜索选中文字
 	Gui,66:Add,Hotkey,xm yp+30 w130 vvOneKey,%OneKey%
 	Gui,66:Add,Checkbox,Checked%OneWinKey% xm+140 yp+3 vvOneWinKey,Win
 	Gui,66:Add,Text,xm yp+40 w325,一键搜索网址(`%s为选中文字的替代参数，多行搜索多个网址)
-	Gui,66:Add,Edit,xm yp+20 w325 r5 vvOnePath,%OnePath%
+	Gui,66:Add,Edit,xm yp+20 w385 r8 vvOnePath,%OnePath%
 	
 	Gui,66:Tab,图标+TC设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+10 w340 h220,图标自定义设置（文件路径,序号）
+	Gui,66:Add,GroupBox,xm-10 y+10 w400 h220,图标自定义设置（文件路径,序号）
 	Gui,66:Add,Text,xm yp+30 w80,树节点图标
-	Gui,66:Add,Edit,xm+70 yp w250 r1 vvTreeIcon,%TreeIcon%
+	Gui,66:Add,Edit,xm+70 yp w310 r1 vvTreeIcon,%TreeIcon%
 	Gui,66:Add,Text,xm yp+30 w80,文件夹图标
-	Gui,66:Add,Edit,xm+70 yp w250 r1 vvFolderIcon,%FolderIcon%
+	Gui,66:Add,Edit,xm+70 yp w310 r1 vvFolderIcon,%FolderIcon%
 	Gui,66:Add,Text,xm yp+30 w80,网址图标
-	Gui,66:Add,Edit,xm+70 yp w250 r1 vvUrlIcon,%UrlIcon%
+	Gui,66:Add,Edit,xm+70 yp w310 r1 vvUrlIcon,%UrlIcon%
 	Gui,66:Add,Text,xm yp+30 w80,EXE图标
-	Gui,66:Add,Edit,xm+70 yp w250 r1 vvEXEIcon,%EXEIcon%
+	Gui,66:Add,Edit,xm+70 yp w310 r1 vvEXEIcon,%EXEIcon%
 	Gui,66:Add,Text,xm yp+30 w80,准备图标
-	Gui,66:Add,Edit,xm+70 yp w250 r1 vvMenuIcon,%MenuIcon%
+	Gui,66:Add,Edit,xm+70 yp w310 r1 vvMenuIcon,%MenuIcon%
 	Gui,66:Add,Text,xm yp+30 w80,托盘图标
-	Gui,66:Add,Edit,xm+70 yp w250 r1 vvAnyIcon,%AnyIcon%
-	Gui,66:Add,GroupBox,xm-10 y+20 w340 h70,TotalCommander安装路径（TC打开RunAny中的文件夹）
+	Gui,66:Add,Edit,xm+70 yp w310 r1 vvAnyIcon,%AnyIcon%
+	Gui,66:Add,GroupBox,xm-10 y+25 w400 h90,TotalCommander安装路径（TC打开RunAny中的文件夹）
 	Gui,66:Add,Button,xm yp+20 w50 GSetTcPath,选择
-	Gui,66:Add,Edit,xm+60 yp w260 r2 vvTcPath,%TcPath%
+	Gui,66:Add,Edit,xm+60 yp w320 r3 vvTcPath,%TcPath%
 	
 	Gui,66:Tab
-	Gui,66:Add,Button,Default xm y+15 w75 GSetOK,确定(&Y)
+	Gui,66:Add,Button,Default xm y+35 w75 GSetOK,确定(&Y)
 	Gui,66:Add,Button,x+5 w75 GSetCancel,取消(&C)
 	Gui,66:Add,Button,x+5 w75 GSetReSet,重置
 	Gui,66:Show,,%RunAnyZz%设置
@@ -1533,7 +1586,7 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v4.1 @2017.10.06
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v4.2 @2017.10.20 一键直达
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
@@ -1548,7 +1601,7 @@ Menu_About:
 	Gui,99:Font
 	Gui,99:Show,,关于%RunAnyZz%
 	hCurs:=DllCall("LoadCursor","UInt",NULL,"Int",32649,"UInt") ;IDC_HAND
-	OnMessage(0x200,"WM_MOUSEMOVE") 
+	OnMessage(0x200,"WM_MOUSEMOVE")
 	return
 SetEvPath:
 	FileSelectFile, evFilePath, 3, Everything.exe, Everything安装路径, (Everything.exe)
@@ -1573,13 +1626,15 @@ SetOK:
 		}
 	}
 	global vIniConfig
-	if(FileExist(RunAnyConfig)){
+	if(vIniConfig){
 		IniWrite,%vIniConfig%,%RunAnyConfig%,Config,IniConfig
 	}
 	Reg_Set(vDisableApp,DisableApp,"DisableApp")
 	Reg_Set(vHideFail,HideFail,"HideFail")
 	Reg_Set(vHideUnSelect,HideUnSelect,"HideUnSelect")
 	Reg_Set(vHideRecent,HideRecent,"HideRecent")
+	Reg_Set(vHideWeb,HideWeb,"HideWeb")
+	Reg_Set(vHideSend,HideSend,"HideSend")
 	Reg_Set(vMenuKey,MenuKey,"MenuKey")
 	Reg_Set(vMenuWinKey,MenuWinKey,"MenuWinKey")
 	Reg_Set(vMenuKey2,MenuKey2,"MenuKey2")
@@ -1591,6 +1646,9 @@ SetOK:
 	Reg_Set(vOneKey,OneKey,"OneKey")
 	Reg_Set(vOneWinKey,OneWinKey,"OneWinKey")
 	Reg_Set(vOnePath,OnePath,"OnePath")
+	Reg_Set(vOneKeyWeb,OneKeyWeb,"OneKeyWeb")
+	Reg_Set(vOneKeyFolder,OneKeyFolder,"OneKeyFolder")
+	Reg_Set(vOneKeyFile,OneKeyFile,"OneKeyFile")
 	Reg_Set(vTcPath,TcPath,"TcPath")
 	Reg_Set(vTreeIcon,TreeIcon,"TreeIcon")
 	Reg_Set(vFolderIcon,FolderIcon,"FolderIcon")
@@ -1619,6 +1677,13 @@ setMenu2:
 		text2=;这里添加第2菜单内容
 		FileAppend,%text2%,%iniPath2%
 		gosub,Menu_Edit2
+	}
+return
+UnCheckWebSend:
+	GuiControlGet, outPutVar, , vHideUnSelect
+	If(outPutVar){
+		GuiControl,, vHideWeb, 0
+		GuiControl,, vHideSend, 0
 	}
 return
 Reg_Set(vGui, var, sz){
