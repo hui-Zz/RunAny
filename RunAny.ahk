@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v4.2 @2017.10.20 一键直达
+║【RunAny】一劳永逸的快速启动工具 v4.6 @2017.10.26 透明启动，热键直达
 ║ https://github.com/hui-Zz/RunAny
 ║ by Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -11,20 +11,22 @@
 #SingleInstance,Force	;~运行替换旧实例
 #WinActivateForce		;~强制激活窗口
 #ClipboardTimeout 200	;~尝试访问剪贴板的持续时间
-DetectHiddenWindows,on	;~显示隐藏窗口
+;~ DetectHiddenWindows,on	;~显示隐藏窗口
 Process Priority,,High	;~进程优先级高
 ListLines,Off			;~不显示最近执行的脚本行
 CoordMode,Menu			;~相对于整个屏幕
 SetBatchLines,-1		;~脚本全速执行
 SetWorkingDir,%A_ScriptDir%	;~脚本当前工作目录
 ;~ StartTick:=A_TickCount	;若要评估出menu时间
-global RunAnyZz:="RunAny"
-global RunAnyConfig:="RunAnyConfig.ini"
-global fast:=true
-Gosub,Var_Set
-Gosub,Run_Exist
-MenuTray()
-global MenuObj:=Object()
+global RunAnyZz:="RunAny"	;名称
+global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
+global fast:=true	;~启用预先快速无图标
+Gosub,Var_Set		;~参数初始化
+Gosub,Run_Exist		;~调用判断依赖
+MenuTray()			;~托盘菜单
+global MenuObj:=Object()		;~程序全径
+global MenuObjKey:=Object()	;~程序热键
+global MenuObjName:=Object()	;~程序别名
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化菜单显示热键]
 MenuKey:=Var_Read("MenuKey","``")
@@ -101,11 +103,9 @@ evExist:=true
 EvPath:=Var_Read("EvPath")
 while !WinExist("ahk_exe Everything.exe")
 {
-	Sleep,100
-	if(A_Index>=20){
+	if(A_Index>10){
 		if(EvPath && RegExMatch(EvPath,"iS)^.*?\.exe$")){
 			Run,%EvPath% -startup
-			Sleep,1000
 			break
 		}else{
 			gosub,Menu_Set
@@ -210,6 +210,16 @@ Menu_Read(iniFilePath,fast,menuRoot,menuLevel,menuWebRoot,menuWebList,webRootSho
 				}else{
 					MenuObj[menuDiy[1]]:=menuDiy[2]
 				}
+				;~;[分割Tab获取应用自定义热键]
+				if(InStr(menuDiy[1],"`t")){
+					menuKeyStr:=RegExReplace(menuDiy[1], "S)\t+", A_Tab)
+					menuKeys:=StrSplit(menuKeyStr,"`t")
+					if(menuKeys[2]){
+						MenuObjKey[menuKeys[2]]:=MenuObj[menuDiy[1]]
+						MenuObjName[menuKeys[2]]:=menuKeys[1]
+						Hotkey,% menuKeys[2],Menu_Key_Run,On
+					}
+				}
 				if(fast){
 					Menu_Add_Fast(menuRoot[menuLevel],menuDiy[1])
 				}else{
@@ -312,22 +322,28 @@ Menu_Add(menuName,menuItem,fast,menuRoot,menuWebRoot,menuWebList,webRootShow){
 			;~ [添加到网址菜单]
 			if(menuName = menuRoot[1]){
 				Menu,% menuWebRoot[1],Add,%menuItem%,Menu_Run
-				Menu,% menuWebRoot[1],Icon,%menuItem%,%webIcon%,0
+				if(FileExist(webIcon)){
+					Menu,% menuWebRoot[1],Icon,%menuItem%,%webIcon%,0
+				}else{
+					Menu,% menuWebRoot[1],Icon,%menuItem%,% UrlIconS[1],% UrlIconS[2]
+				}
 				webRootShow:=true
 			}else{
 				Menu,% menuWebRoot[1],Add,%menuName%:, :%menuName%:
 			}
+			menuWebList[(menuName)].=menuItem "`n"	; 添加到批量搜索
 			menuWebList[(menuName ":")].=menuItem "`n"	; 添加到批量搜索
 			;~ [创建网址所在的不重复菜单节点]
 			menuWebSame:=false
 			Loop,% menuWebRoot.MaxIndex()
 			{
-				if(menuWebRoot[A_Index]=menuName ":"){
+				if(menuWebRoot[A_Index]=menuName || menuWebRoot[A_Index]=menuName ":"){
 					menuWebSame:=true
 					break
 				}
 			}
 			if(!menuWebSame){
+				menuWebRoot.Insert(menuName)
 				menuWebRoot.Insert(menuName ":")
 			}
 			if(HideWeb)
@@ -443,18 +459,18 @@ return
 ;~;[菜单运行]
 Menu_Run:
 	any:=MenuObj[(A_ThisMenuItem)]
-	anyLen:=StrLen(any)
 	SplitPath, any, , dir
 	SetWorkingDir,%dir%
 	if(!HideRecent && !RegExMatch(A_ThisMenuItem,"S)^&1|2"))
 		gosub,Menu_Recent
 	try {
+		anyLen:=StrLen(any)
 		If(InStr(any,";",,0,1)=anyLen){
 			StringLeft, any, any, anyLen-1
 			Send_Zz(any)	;[输出短语]
 			return
 		}
-		If GetKeyState("Ctrl"){	;[按住Ctrl是打开应用目录]
+		If(GetKeyState("Ctrl")){	;[按住Ctrl是打开应用目录]
 			If(TcPath && InStr(any,"\",,0,1)=anyLen){
 				Run,%TcPath%%A_Space%"%any%"
 			}else{
@@ -472,7 +488,7 @@ Menu_Run:
 					}
 				}else if(RegExMatch(any,"iS)([\w-]+://?|www[.]).*")){
 					if(InStr(any,"%s")){
-						Run,% RegExReplace(any,"%s",selectZz)
+						Run,% RegExReplace(any,"S)%s",selectZz)
 					}else{
 						Run,%any%%selectZz%
 					}
@@ -482,15 +498,65 @@ Menu_Run:
 				return
 			}
 		} catch {}
-		If GetKeyState("Shift"){	;[按住Shift则是管理员身份运行]
+		If(GetKeyState("Shift")){	;[按住Shift则是管理员身份运行]
 			Run,*RunAs %any%
 		}else{
-			Run,%any%
+			menuKeys:=StrSplit(A_ThisMenuItem,"`t")
+			thisMenuName:=menuKeys[1]
+			if(thisMenuName && RegExMatch(thisMenuName,"S).*?_:(\d{1,2})$")){
+				menuTrNum:=RegExReplace(thisMenuName,"S).*?_:(\d{1,2})$","$1")
+				Run_Tr(any,menuTrNum,true)
+			}else{
+				Run,%any%
+			}
 		}
 	} catch e {
 		MsgBox,16,%A_ThisMenuItem%运行出错,% "运行路径：" any "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+	}finally{
+		SetWorkingDir,%A_ScriptDir%
 	}
-	SetWorkingDir,%A_ScriptDir%
+return
+;~;[菜单热键运行]
+Menu_Key_Run:
+	selectZz:=Get_Zz()
+	any:=menuObjkey[(A_ThisHotkey)]
+	thisMenuName:=MenuObjName[(A_ThisHotkey)]
+	SplitPath, any, , dir
+	SetWorkingDir,%dir%
+	try {
+		anyLen:=StrLen(any)
+		If(InStr(any,";",,0,1)=anyLen){
+			StringLeft, any, any, anyLen-1
+			Send_Zz(any)	;[输出短语]
+			return
+		}
+		try {
+			if(selectZz){
+				if(Candy_isFile=1 || Fileexist(selectZz)){
+					Run,%any%%A_Space%"%selectZz%"
+				}else if(RegExMatch(any,"iS)([\w-]+://?|www[.]).*")){
+					if(InStr(any,"%s")){
+						Run,% RegExReplace(any,"S)%s",selectZz)
+					}else{
+						Run,%any%%selectZz%
+					}
+				}else{
+					Run_Zz(any)
+				}
+			}else{
+				if(thisMenuName && RegExMatch(thisMenuName,"S).*?_:(\d{1,2})$")){
+					menuTrNum:=RegExReplace(thisMenuName,"S).*?_:(\d{1,2})$","$1")
+					Run_Tr(any,menuTrNum)
+				}else{
+					Run_Zz(any)
+				}
+			}
+		} catch {}
+	} catch e {
+		MsgBox,16,%thisMenuName%运行出错,% "运行路径：" any "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+	}finally{
+		SetWorkingDir,%A_ScriptDir%
+	}
 return
 ;~;[菜单最近运行]
 Menu_Recent:
@@ -538,6 +604,31 @@ Web_Run:
 		}
 	}
 return
+Run_Zz(program){
+	If !WinExist("ahk_exe" program)
+		Run,%program%
+	else
+		WinGet,l,List,ahk_exe %program%
+		if l=1
+			If WinActive("ahk_exe" program)
+				WinMinimize
+			else
+				WinActivate
+		else
+			WinActivateBottom,ahk_exe %program%
+	return
+}
+Run_Tr(program,trNum,newOpen=false){
+	If(newOpen || !WinExist("ahk_exe" program)){
+		Run,%program%
+		WinWait,ahk_exe %program%
+		;~ WinSet,Style,-0xC00000,
+		WinSet,Style,-0x40000,ahk_exe %program%
+		WinSet,Transparent,% trNum/100*255,ahk_exe %program%
+	}else
+		Run_Zz(program)
+	return
+}
 ;══════════════════════════════════════════════════════════════════
 ;~;[一键Everything][搜索选中文字][激活][隐藏]
 Ev_Show:
@@ -837,6 +928,7 @@ return
 	^s::gosub,TVSave
 	Esc::gosub,GuiClose
 	~F2::TVFlag:=true
+	Tab::Send_Zz(A_Tab)
 #If
 GuiContextMenu:
 	If (A_GuiControl = "RunAnyTV") {
@@ -1513,7 +1605,7 @@ Menu_Set:
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+5 w400 h50,RunAny设置
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+25 vvAutoRun,开机自动启动
-	Gui,66:Add,Checkbox,Checked%IniConfig% x+18 vvIniConfig,使用ini文件配置(默认为注册表)
+	Gui,66:Add,Checkbox,Checked%IniConfig% x+18 vvIniConfig,RunAnyConfig.ini移动盘绿色配置
 	Gui,66:Add,GroupBox,xm-10 y+10 w400 h65,RunAny应用菜单
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
 	Gui,66:Add,Checkbox,Checked%HideRecent% x+30 vvHideRecent,隐藏最近运行
@@ -1586,7 +1678,7 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v4.2 @2017.10.20 一键直达
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v4.6 @2017.10.26 透明启动，热键直达
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
@@ -1626,7 +1718,7 @@ SetOK:
 		}
 	}
 	global vIniConfig
-	if(vIniConfig){
+	if(vIniConfig || FileExist(RunAnyConfig)){
 		IniWrite,%vIniConfig%,%RunAnyConfig%,Config,IniConfig
 	}
 	Reg_Set(vDisableApp,DisableApp,"DisableApp")
@@ -1743,7 +1835,6 @@ everythingQuery(){
 	ev.SetSearch(EvCommand)
 	;执行搜索
 	ev.Query()
-	sleep 100
 	Loop,% ev.GetTotResults()
 	{
 		Z_Index:=A_Index-1
