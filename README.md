@@ -79,7 +79,7 @@ RunAny演示批量搜索：
 
 * 【4.6版本新增应用的透明化和热键配置】
 * 在应用别名后面添加_:数字形式来透明启动应用(默认不透明,0-100是全透明到不透明)，如88%透明度：Notepad_:88|Notepad.exe
-* 在别名最末尾添加Tab符+热键(热键格式参考AHK写法:^代表<kbd>Ctrl</kbd> !代表<kbd>Alt</kbd> #代表<kbd>Win</kbd>)，如按Alt+b百度：百度(&B)	#b|https://www.baidu.com/s?wd=
+* 在别名最末尾添加<kbd>Tab</kbd>制表符+热键(热键格式参考AHK写法:^代表<kbd>Ctrl</kbd> !代表<kbd>Alt</kbd> #代表<kbd>Win</kbd>)，如按Alt+b百度：百度(&B)<kbd>Tab</kbd>!b|https://www.baidu.com/s?wd=
 * 可以在选中文件情况下按热键，就可以直接用该热键的应用打开该文件；在选中文字的情况下按热键，可以直接用搜索网址搜索选中文字~
 ---
 
