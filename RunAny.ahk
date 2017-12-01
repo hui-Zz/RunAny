@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v4.8 @2017.11.06 不同后缀不同菜单
+║【RunAny】一劳永逸的快速启动工具 v4.9 @2017.12.01 启动软件支持带参数
 ║ https://github.com/hui-Zz/RunAny
 ║ by Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -21,7 +21,6 @@ global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global fast:=true	;~启用预先快速无图标
 Gosub,Var_Set		;~参数初始化
 Gosub,Run_Exist		;~调用判断依赖
-MenuTray()			;~托盘菜单
 global MenuObj:=Object()		;~程序全径
 global MenuObjKey:=Object()	;~程序热键
 global MenuObjName:=Object()	;~程序别名
@@ -41,59 +40,38 @@ TreeWinKey1:=Var_Read("TreeWinKey1",0)
 TreeKey2:=Var_Read("TreeKey2")
 TreeWinKey2:=Var_Read("TreeWinKey2",0)
 ;~;[设定RunAny菜单自定义热键]
-try{
-	MenuHotKey:=MenuWinKey ? "#" . MenuKey : MenuKey
-	Hotkey, IfWinNotActive, ahk_group DisableGUI
-	Hotkey,%MenuHotKey%,Menu_Show,On
-}catch{
-	gosub,Menu_Set
-	MsgBox,16,请设置正确热键,%MenuHotKey%`nRunAny菜单自定义热键设置不正确
-}
+global MenuHotKey:=MenuWinKey ? "#" . MenuKey : MenuKey
+Hotkey, IfWinNotActive, ahk_group DisableGUI
+Key_Set(MenuHotKey,"Menu_Show","Menu_Set",MenuHotKey "`nRunAny菜单自定义热键设置不正确")
 if(MenuKey2 && MENU2FLAG){
-	try{
-		MenuHotKey2:=MenuWinKey2 ? "#" . MenuKey2 : MenuKey2
-		Hotkey,%MenuHotKey2%,Menu_Show2,On
-	}catch{
-		gosub,Menu_Set
-		MsgBox,16,请设置正确热键,%MenuHotKey2%`n菜单2自定义热键设置不正确
-	}
+	global MenuHotKey2:=MenuWinKey2 ? "#" . MenuKey2 : MenuKey2
+	Key_Set(MenuHotKey2,"Menu_Show2","Menu_Set",MenuHotKey2 "`n菜单2自定义热键设置不正确")
 }
 if(EvKey){
-	try{
-		EvHotKey:=EvWinKey ? "#" . EvKey : EvKey
-		Hotkey,%EvHotKey%,Ev_Show,On
-	}catch{
-		gosub,Menu_Set
-		MsgBox,16,请设置正确热键,%EvHotKey%`n一键Everything热键设置不正确
-	}
+	EvHotKey:=EvWinKey ? "#" . EvKey : EvKey
+	Key_Set(EvHotKey,"Ev_Show","Menu_Set",EvHotKey "`n一键Everything热键设置不正确")
 }
 if(OneKey){
-	try{
-		OneHotKey:=OneWinKey ? "#" . OneKey : OneKey
-		Hotkey,%OneHotKey%,One_Show,On
-	}catch{
-		gosub,Menu_Set
-		MsgBox,16,请设置正确热键,%OneHotKey%`n一键搜索热键设置不正确
-	}
+	OneHotKey:=OneWinKey ? "#" . OneKey : OneKey
+	Key_Set(OneHotKey,"One_Show","Menu_Set",OneHotKey "`n一键搜索热键设置不正确")
 }
 if(TreeKey1){
-	try{
-		TreeHotKey1:=TreeWinKey1 ? "#" . TreeKey1 : TreeKey1
-		Hotkey,%TreeHotKey1%,Menu_Edit1,On
-	}catch{
-		gosub,Menu_Edit1
-		MsgBox,16,请设置正确热键,%TreeHotKey1%`n修改菜单(1)热键设置不正确
-	}
+	TreeHotKey1:=TreeWinKey1 ? "#" . TreeKey1 : TreeKey1
+	Key_Set(TreeHotKey1,"Menu_Edit1","Menu_Edit1",TreeHotKey1 "`n修改菜单(1)热键设置不正确")
 }
 if(TreeKey2){
+	TreeHotKey2:=TreeWinKey2 ? "#" . TreeKey2 : TreeKey2
+	Key_Set(TreeHotKey2,"Menu_Edit2","Menu_Edit1",TreeHotKey2 "`n修改菜单(2)热键设置不正确")
+}
+Key_Set(keyName,menuName,errSet,errMsg){
 	try{
-		TreeHotKey2:=TreeWinKey2 ? "#" . TreeKey2 : TreeKey2
-		Hotkey,%TreeHotKey2%,Menu_Edit2,On
+		Hotkey,%keyName%,%menuName%,On
 	}catch{
-		gosub,Menu_Edit1
-		MsgBox,16,请设置正确热键,%TreeHotKey2%`n修改菜单(2)热键设置不正确
+		gosub,%errSet%
+		MsgBox,16,请设置正确热键后重启RunAny,%errMsg%
 	}
 }
+MenuTray()			;~托盘菜单
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化everything安装路径]
 evExist:=true
@@ -105,7 +83,7 @@ while !WinExist("ahk_exe Everything.exe")
 	if(A_Index>10){
 		if(EvPath && RegExMatch(EvPath,"iS)^.*?\.exe$")){
 			Run,%EvPath% -startup
-			Sleep,1000
+			Sleep,300
 			break
 		}else{
 			gosub,Menu_Set
@@ -779,7 +757,7 @@ Icon_FileExt_Set:
 		LNKIcon:="shell32.dll,30"
 	}
 	global LNKIconS:=StrSplit(LNKIcon,",")
-	Menu,Tray,Icon,启动菜单(&Z),% TreeIconS[1],% TreeIconS[2]
+	Menu,Tray,Icon,启动菜单(&Z)`t%MenuHotKey%,% TreeIconS[1],% TreeIconS[2]
 	Menu,Tray,Icon,修改菜单(&E),% EXEIconS[1],% EXEIconS[2]
 	Menu,Tray,Icon,修改文件(&F),SHELL32.dll,134
 	If(MENU2FLAG){
@@ -1713,7 +1691,7 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v4.8 @2017.11.06 不同后缀不同菜单
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v4.9 @2017.12.01 启动软件支持带参数
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
@@ -1828,7 +1806,7 @@ Reg_Set(vGui, var, sz){
 MenuTray(){
 	Menu,Tray,NoStandard
 	Menu,Tray,Icon,% MenuIconS[1],% MenuIconS[2]
-	Menu,Tray,add,启动菜单(&Z),Menu_Show
+	Menu,Tray,add,启动菜单(&Z)`t%MenuHotKey%,Menu_Show
 	Menu,Tray,add,修改菜单(&E),Menu_Edit1
 	Menu,Tray,add,修改文件(&F),Menu_Ini
 	Menu,Tray,add
@@ -1836,7 +1814,7 @@ MenuTray(){
 	Menu,Tray,Add,关于RunAny(&A)...,Menu_About
 	Menu,Tray,add
 	If(MENU2FLAG){
-		Menu,Tray,add,启动菜单2(&2),Menu_Show2
+		Menu,Tray,add,启动菜单2(&2)`t%MenuHotKey2%,Menu_Show2
 		Menu,Tray,add,修改菜单2(&W),Menu_Edit2
 		Menu,Tray,add,修改文件2(&G),Menu_Ini2
 		Menu,Tray,add
