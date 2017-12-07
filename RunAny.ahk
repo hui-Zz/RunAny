@@ -10,7 +10,7 @@
 #NoEnv					;~不检查空变量为环境变量
 #SingleInstance,Force	;~运行替换旧实例
 #WinActivateForce		;~强制激活窗口
-Process Priority,,High	;~进程优先级高
+;~ Process Priority,,High	;~进程优先级高
 ListLines,Off			;~不显示最近执行的脚本行
 CoordMode,Menu			;~相对于整个屏幕
 SetBatchLines,-1		;~脚本全速执行
@@ -24,6 +24,7 @@ Gosub,Run_Exist		;~调用判断依赖
 global MenuObj:=Object()		;~程序全径
 global MenuObjKey:=Object()	;~程序热键
 global MenuObjName:=Object()	;~程序别名
+global MenuObjParam:=Object()	;~程序参数
 global MenuObjExt:=Object()	;~后缀对应菜单
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化菜单显示热键]
@@ -190,9 +191,11 @@ Menu_Read(iniReadVar,fast,menuRoot,menuLevel,menuWebRoot,menuWebList,webRootShow
 					}
 				}
 				if(menuItem){
-					Menu,%menuItem%,add
-					Menu,% menuRoot[menuLevel],add,%menuItem%,:%menuItem%
-					Menu,% menuRoot[menuLevel],Icon,%menuItem%,% TreeIconS[1],% TreeIconS[2]
+					if(fast){
+						Menu,%menuItem%,add
+						Menu,% menuRoot[menuLevel],add,%menuItem%,:%menuItem%
+						Menu,% menuRoot[menuLevel],Icon,%menuItem%,% TreeIconS[1],% TreeIconS[2]
+					}
 					menuLevel+=1
 					menuRoot[menuLevel]:=menuItem
 				}else if((fast || menu2) && menuRoot[menuLevel]){
@@ -203,11 +206,13 @@ Menu_Read(iniReadVar,fast,menuRoot,menuLevel,menuWebRoot,menuWebList,webRootShow
 			if(InStr(Z_ReadLine,"|")){
 				;~;[生成有前缀备注的应用]
 				menuDiy:=StrSplit(Z_ReadLine,"|")
-				appName:=RegExReplace(menuDiy[2],"iS)\.exe$")
+				appName:=RegExReplace(menuDiy[2],"iS)\.exe($| .*)")	;去掉后缀或参数，取应用名
+				item:=MenuObj[appName]
 				if(MenuObj[appName]){
-					MenuObj[menuDiy[1]]:=MenuObj[appName]
+					MenuObj[menuDiy[1]]:=RegExReplace(menuDiy[2],"S)^" appName "\.exe",MenuObj[appName])
 				}else{
 					MenuObj[menuDiy[1]]:=menuDiy[2]
+					item:=menuDiy[2]
 				}
 				;~;[分割Tab获取应用自定义热键]
 				if(InStr(menuDiy[1],"`t")){
@@ -222,27 +227,29 @@ Menu_Read(iniReadVar,fast,menuRoot,menuLevel,menuWebRoot,menuWebList,webRootShow
 				if(fast){
 					Menu_Add_Fast(menuRoot[menuLevel],menuDiy[1])
 				}else{
-					Menu_Add(menuRoot[menuLevel],menuDiy[1],fast,menuRoot,menuWebRoot,menuWebList,webRootShow)
+					Menu_Add(menuRoot[menuLevel],menuDiy[1],item,fast,menuRoot,menuWebRoot,menuWebList,webRootShow)
 				}
-			}else if(RegExMatch(Z_ReadLine,"iS)^(\\\\|.:\\).*?\.exe$")){
+				continue
+			}
+			if(RegExMatch(Z_ReadLine,"iS)^(\\\\|.:\\).*?\.exe$")){
 				;~;[生成完全路径的应用]
 				SplitPath,Z_ReadLine,fileName,,,nameNotExt
 				MenuObj[nameNotExt]:=Z_ReadLine
 				if(fast){
 					Menu_Add_Fast(menuRoot[menuLevel],nameNotExt)
 				}else{
-					Menu_Add(menuRoot[menuLevel],nameNotExt,fast,menuRoot,menuWebRoot,menuWebList,webRootShow)
+					Menu_Add(menuRoot[menuLevel],nameNotExt,Z_ReadLine,fast,menuRoot,menuWebRoot,menuWebList,webRootShow)
 				}
+				continue
+			}
+			;~;[生成已取到的应用]
+			appName:=RegExReplace(Z_ReadLine,"iS)\.exe$")
+			if(!MenuObj[appName])
+				MenuObj[appName]:=Z_ReadLine
+			if(fast){
+				Menu_Add_Fast(menuRoot[menuLevel],appName)
 			}else{
-				;~;[生成已取到的应用]
-				appName:=RegExReplace(Z_ReadLine,"iS)\.exe$")
-				if(!MenuObj[appName])
-					MenuObj[appName]:=Z_ReadLine
-				if(fast){
-					Menu_Add_Fast(menuRoot[menuLevel],appName)
-				}else{
-					Menu_Add(menuRoot[menuLevel],appName,fast,menuRoot,menuWebRoot,menuWebList,webRootShow)
-				}
+				Menu_Add(menuRoot[menuLevel],appName,MenuObj[appName],fast,menuRoot,menuWebRoot,menuWebList,webRootShow)
 			}
 		} catch e {
 			MsgBox,16,构建菜单出错,% "菜单名：" menuRoot[menuLevel] "`n菜单项：" Z_ReadLine "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
@@ -273,16 +280,16 @@ Menu_Read(iniReadVar,fast,menuRoot,menuLevel,menuWebRoot,menuWebList,webRootShow
 }
 ;══════════════════════════════════════════════════════════════════
 ;~;[生成菜单(判断后缀创建图标)]
-Menu_Add(menuName,menuItem,fast,menuRoot,menuWebRoot,menuWebList,webRootShow){
+Menu_Add(menuName,menuItem,item,fast,menuRoot,menuWebRoot,menuWebList,webRootShow){
 	if not menuName
 		return
 	try {
-		item:=MenuObj[(menuItem)]
+		;~ item:=MenuObj[(menuItem)]
 		itemLen:=StrLen(item)
 		SplitPath, item,,, FileExt  ; 获取文件扩展名.
 		if(HideUnSelect)
 			Menu,%menuName%,add,%menuItem%,Menu_Run
-		if(InStr(item,";",,0,1)=itemLen){  ; {短语}
+		if(item && InStr(item,";",,0,1)=itemLen){  ; {短语}
 			Menu,%menuName%,add,%menuItem%,Menu_Run
 			Menu,%menuName%:,add,%menuItem%,Menu_Run
 			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,2
@@ -350,7 +357,7 @@ Menu_Add(menuName,menuItem,fast,menuRoot,menuWebRoot,menuWebList,webRootShow){
 		}
 		if(!fast)
 			Menu,%menuName%,add,%menuItem%,Menu_Run
-		if(InStr(item,"\",,0,1)=itemLen){  ; {目录}
+		if(item && InStr(item,"\",,0,1)=itemLen){  ; {目录}
 			Menu,%menuName%,Icon,%menuItem%,% FolderIconS[1],% FolderIconS[2]
 		}else if(Ext_Check(item,itemLen,".lnk")){  ; {快捷方式}
 			try{
@@ -363,7 +370,7 @@ Menu_Add(menuName,menuItem,fast,menuRoot,menuWebRoot,menuWebList,webRootShow){
 			} catch e {
 				Menu,%menuName%,Icon,%menuItem%,% LNKIconS[1],% LNKIconS[2]
 			}
-		}else if FileExt in EXE,ICO,ANI,CUR
+		}else if FileExt in EXE,ICO
 		{
 			Menu,%menuName%,Icon,%menuItem%,%item%
 		}else{  ; {处理未知的项目图标}
@@ -757,6 +764,10 @@ Icon_FileExt_Set:
 		LNKIcon:="shell32.dll,30"
 	}
 	global LNKIconS:=StrSplit(LNKIcon,",")
+	;[使系统程序不被无全路径而误隐藏图标]
+	MenuObj["cmd"]:="cmd.exe"
+	MenuObj["explorer"]:="explorer.exe"
+	;[RunAny菜单图标初始化]
 	Menu,Tray,Icon,启动菜单(&Z)`t%MenuHotKey%,% TreeIconS[1],% TreeIconS[2]
 	Menu,Tray,Icon,修改菜单(&E),% EXEIconS[1],% EXEIconS[2]
 	Menu,Tray,Icon,修改文件(&F),SHELL32.dll,134
