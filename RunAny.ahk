@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v4.9 @2017.12.01 启动软件支持带参数
+║【RunAny】一劳永逸的快速启动工具 v4.9 @2017.12.07 启动软件支持带参数，增加RunAny所有配置热键
 ║ https://github.com/hui-Zz/RunAny
 ║ by Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -28,51 +28,39 @@ global MenuObjParam:=Object()	;~程序参数
 global MenuObjExt:=Object()	;~后缀对应菜单
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化菜单显示热键]
-MenuKey:=Var_Read("MenuKey","``")
-MenuWinKey:=Var_Read("MenuWinKey",0)
-MenuKey2:=Var_Read("MenuKey2")
-MenuWinKey2:=Var_Read("MenuWinKey2",0)
-EvKey:=Var_Read("EvKey")
-EvWinKey:=Var_Read("EvWinKey",0)
-OneKey:=Var_Read("OneKey")
-OneWinKey:=Var_Read("OneWinKey",0)
-TreeKey1:=Var_Read("TreeKey1")
-TreeWinKey1:=Var_Read("TreeWinKey1",0)
-TreeKey2:=Var_Read("TreeKey2")
-TreeWinKey2:=Var_Read("TreeWinKey2",0)
-;~;[设定RunAny菜单自定义热键]
-global MenuHotKey:=MenuWinKey ? "#" . MenuKey : MenuKey
 Hotkey, IfWinNotActive, ahk_group DisableGUI
-Key_Set(MenuHotKey,"Menu_Show","Menu_Set",MenuHotKey "`nRunAny菜单自定义热键设置不正确")
-if(MenuKey2 && MENU2FLAG){
-	global MenuHotKey2:=MenuWinKey2 ? "#" . MenuKey2 : MenuKey2
-	Key_Set(MenuHotKey2,"Menu_Show2","Menu_Set",MenuHotKey2 "`n菜单2自定义热键设置不正确")
-}
-if(EvKey){
-	EvHotKey:=EvWinKey ? "#" . EvKey : EvKey
-	Key_Set(EvHotKey,"Ev_Show","Menu_Set",EvHotKey "`n一键Everything热键设置不正确")
-}
-if(OneKey){
-	OneHotKey:=OneWinKey ? "#" . OneKey : OneKey
-	Key_Set(OneHotKey,"One_Show","Menu_Set",OneHotKey "`n一键搜索热键设置不正确")
-}
-if(TreeKey1){
-	TreeHotKey1:=TreeWinKey1 ? "#" . TreeKey1 : TreeKey1
-	Key_Set(TreeHotKey1,"Menu_Edit1","Menu_Edit1",TreeHotKey1 "`n修改菜单(1)热键设置不正确")
-}
-if(TreeKey2){
-	TreeHotKey2:=TreeWinKey2 ? "#" . TreeKey2 : TreeKey2
-	Key_Set(TreeHotKey2,"Menu_Edit2","Menu_Edit1",TreeHotKey2 "`n修改菜单(2)热键设置不正确")
-}
-Key_Set(keyName,menuName,errSet,errMsg){
-	try{
-		Hotkey,%keyName%,%menuName%,On
-	}catch{
-		gosub,%errSet%
-		MsgBox,16,请设置正确热键后重启RunAny,%errMsg%
+HotKeyList:=["MenuHotKey","MenuHotKey2","EvHotKey","OneHotKey","TreeHotKey1","TreeHotKey2","TreeIniHotKey1","TreeIniHotKey2","RunASetHotKey","RunAReloadHotKey","RunASuspendHotKey","RunAExitHotKey"]
+RunList:=["Menu_Show","Menu_Show2","Ev_Show","One_Show","Menu_Edit1","Menu_Edit2","Menu_Ini","Menu_Ini2","Menu_Set","Menu_Reload","Menu_Suspend","Menu_Exit"]
+For ki, kv in HotKeyList
+{
+	StringReplace,keyV,kv,Hot
+	%keyV%:=Var_Read(keyV)
+	StringReplace,winkeyV,kv,Hot,Win
+	%winkeyV%:=Var_Read(winkeyV,0)
+	if(ki=1 && !%keyV%){
+		%keyV%:="``"
 	}
 }
-MenuTray()			;~托盘菜单
+For ki, kv in HotKeyList
+{
+	StringReplace,keyV,kv,Hot
+	StringReplace,winkeyV,kv,Hot,Win
+	if(%keyV%){
+		if(!MENU2FLAG && ki in 2,6,8){
+			continue
+		}
+		%kv%:=%winkeyV% ? "#" . %keyV% : %keyV%
+		try{
+			Hotkey,% %kv%,% RunList[ki],On
+		}catch{
+			gosub,Menu_Set
+			if(ki!=1 && ki!=2)
+				SendInput,^{Tab}
+			MsgBox,16,RunAny热键配置不正确,% "热键错误：" %kv% "`n请设置正确热键后重启RunAny"
+		}
+	}
+}
+Gosub,MenuTray	;~托盘菜单
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化everything安装路径]
 evExist:=true
@@ -191,11 +179,9 @@ Menu_Read(iniReadVar,fast,menuRoot,menuLevel,menuWebRoot,menuWebList,webRootShow
 					}
 				}
 				if(menuItem){
-					if(fast){
-						Menu,%menuItem%,add
-						Menu,% menuRoot[menuLevel],add,%menuItem%,:%menuItem%
-						Menu,% menuRoot[menuLevel],Icon,%menuItem%,% TreeIconS[1],% TreeIconS[2]
-					}
+					Menu,%menuItem%,add
+					Menu,% menuRoot[menuLevel],add,%menuItem%,:%menuItem%
+					Menu,% menuRoot[menuLevel],Icon,%menuItem%,% TreeIconS[1],% TreeIconS[2]
 					menuLevel+=1
 					menuRoot[menuLevel]:=menuItem
 				}else if((fast || menu2) && menuRoot[menuLevel]){
@@ -769,13 +755,13 @@ Icon_FileExt_Set:
 	MenuObj["explorer"]:="explorer.exe"
 	;[RunAny菜单图标初始化]
 	Menu,Tray,Icon,启动菜单(&Z)`t%MenuHotKey%,% TreeIconS[1],% TreeIconS[2]
-	Menu,Tray,Icon,修改菜单(&E),% EXEIconS[1],% EXEIconS[2]
-	Menu,Tray,Icon,修改文件(&F),SHELL32.dll,134
+	Menu,Tray,Icon,修改菜单(&E)`t%TreeHotKey1%,% EXEIconS[1],% EXEIconS[2]
+	Menu,Tray,Icon,修改文件(&F)`t%TreeIniHotKey1%,SHELL32.dll,134
 	If(MENU2FLAG){
-		Menu,Tray,Icon,修改菜单2(&W),% EXEIconS[1],% EXEIconS[2]
-		Menu,Tray,Icon,修改文件2(&G),SHELL32.dll,134
+		Menu,Tray,Icon,修改菜单2(&W)`t%TreeHotKey2%,% EXEIconS[1],% EXEIconS[2]
+		Menu,Tray,Icon,修改文件2(&G)`t%TreeIniHotKey2%,SHELL32.dll,134
 	}
-	Menu,Tray,Icon,设置RunAny(&D),% AnyIconS[1],% AnyIconS[2]
+	Menu,Tray,Icon,设置RunAny(&D)`t%RunASetHotKey%,% AnyIconS[1],% AnyIconS[2]
 	Menu,Tray,Icon,关于RunAny(&A)...,% MenuIconS[1],% MenuIconS[2]
 	Menu,exeTestMenu,add,SetCancel	;只用于测试应用图标正常添加
 return
@@ -1009,8 +995,6 @@ TVMenu(addMenu){
 	Menu, %addMenu%, Icon,桌面导入, SHELL32.dll,35
 	Menu, %addMenu%, Add,网站图标, Website_Icon
 	Menu, %addMenu%, Icon,网站图标, SHELL32.dll,14
-	Menu, %addMenu%, Add,快捷键菜单管理, TVKey
-	Menu, %addMenu%, Icon,快捷键菜单管理, SHELL32.dll,40
 }
 ;~;[后缀判断图标Gui]
 Set_Icon(itemVar,editVar=true){
@@ -1188,32 +1172,6 @@ TVSave:
 		gosub,Menu_Save
 		gosub,Menu_Edit
 	}
-return
-TvKey:
-	Gui,33:Destroy
-	Gui,33:Margin,30,20
-	Gui,33:Add,GroupBox,xm-10 y+5 w200 h55,快捷键打开%RunAnyZz%菜单树管理(1)
-	Gui,33:Add,Hotkey,xm+10 yp+25 w120 vvTreeKey1,%TreeKey1%
-	Gui,33:Add,Checkbox,Checked%TreeWinKey1% xm+140 yp+5 vvTreeWinKey1,Win
-	If(MENU2FLAG){
-		Gui,33:Add,GroupBox,xm-10 y+20 w200 h55,快捷键打开%RunAnyZz%菜单树管理(2)
-		Gui,33:Add,Hotkey,xm+10 yp+25 w120 vvTreeKey2,%TreeKey2%
-		Gui,33:Add,Checkbox,Checked%TreeWinKey2% xm+140 yp+5 vvTreeWinKey2,Win
-	}
-	Gui,33:Add,Button,Default xm+16 y+20 w75 GSetTreeOK,确定(&Y)
-	Gui,33:Add,Button,x+5 w75 GSetCancel,取消(&C)
-	Gui,33:Show,,%RunAnyZz%快捷键打开修改菜单
-return
-SetTreeOK:
-	Gui,Submit
-	global vIniConfig:=IniConfig
-	Reg_Set(vTreeKey1,TreeKey1,"TreeKey1")
-	Reg_Set(vTreeWinKey1,TreeWinKey1,"TreeWinKey1")
-	Reg_Set(vTreeKey2,TreeKey2,"TreeKey2")
-	Reg_Set(vTreeWinKey2,TreeWinKey2,"TreeWinKey2")
-	MsgBox,65,,设置成功，是否要重新打开RunAny生效？
-	IfMsgBox Ok
-		Reload
 return
 Menu_Save:
 	ItemID = 0
@@ -1624,7 +1582,7 @@ Menu_Set:
 	Gui,66:Destroy
 	Gui,66:Font,,Microsoft YaHei
 	Gui,66:Margin,30,20
-	Gui,66:Add,Tab,x10 y10 w420 h420,RunAny设置|Everything设置|一键搜索|图标+TC设置
+	Gui,66:Add,Tab,x10 y10 w420 h420,RunAny设置|配置热键|Everything设置|一键搜索|图标+TC设置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+5 w400 h50,RunAny设置
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+25 vvAutoRun,开机自动启动
@@ -1639,11 +1597,11 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%OneKeyFolder% x+18 vvOneKeyFolder,文件夹路径一键打开
 	Gui,66:Add,Checkbox,Checked%OneKeyFile% xm yp+20 vvOneKeyFile,文件路径一键
 	Gui,66:Add,Checkbox,Checked%HideUnSelect% x+18 vvHideUnSelect gUnCheckWebSend,显示应用菜单
-	Gui,66:Add,GroupBox,xm-10 y+10 w195 h55,RunAny菜单自定义热键
+	Gui,66:Add,GroupBox,xm-10 y+10 w195 h55,RunAny菜单自定义热键 %MenuHotKey%
 	Gui,66:Add,Hotkey,xm yp+20 w130 vvMenuKey,%MenuKey%
 	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+135 yp+3 vvMenuWinKey,Win
 	If(MENU2FLAG){
-		Gui,66:Add,GroupBox,x+15 yp-23 w195 h55,菜单2自定义热键
+		Gui,66:Add,GroupBox,x+15 yp-23 w195 h55,菜单2自定义热键 %MenuHotKey2%
 		Gui,66:Add,Hotkey,xp+10 yp+20 w130 vvMenuKey2,%MenuKey2%
 		Gui,66:Add,Checkbox,Checked%MenuWinKey2% xp+135 yp+3 vvMenuWinKey2,Win
 	}else{
@@ -1651,6 +1609,37 @@ Menu_Set:
 	}
 	Gui,66:Add,GroupBox,xm-10 y+20 w400 h100,屏蔽RunAny程序列表（逗号分隔）
 	Gui,66:Add,Edit,xm yp+25 w380 r3 vvDisableApp,%DisableApp%
+	
+	Gui,66:Tab,配置热键,,Exact
+	Gui,66:Add,GroupBox,xm-10 y+10 w195 h55,修改菜单管理(1)：%TreeHotKey1%
+	Gui,66:Add,Hotkey,xm yp+20 w130 vvTreeKey1,%TreeKey1%
+	Gui,66:Add,Checkbox,Checked%TreeWinKey1% xm+135 yp+3 vvTreeWinKey1,Win
+	If(MENU2FLAG){
+		Gui,66:Add,GroupBox,x+15 yp-23 w195 h55,修改菜单管理(2)：%TreeHotKey2%
+		Gui,66:Add,Hotkey,xp+10 yp+20 w130 vvTreeKey2,%TreeKey2%
+		Gui,66:Add,Checkbox,Checked%TreeWinKey2% xp+135 yp+3 vvTreeWinKey2,Win
+	}
+	Gui,66:Add,GroupBox,xm-10 y+20 w195 h55,修改菜单文件(1)：%TreeIniHotKey1%
+	Gui,66:Add,Hotkey,xm yp+20 w130 vvTreeIniKey1,%TreeIniKey1%
+	Gui,66:Add,Checkbox,Checked%TreeIniWinKey1% xm+135 yp+3 vvTreeIniWinKey1,Win
+	If(MENU2FLAG){
+		Gui,66:Add,GroupBox,x+15 yp-23 w195 h55,修改菜单文件(2)：%TreeIniHotKey2%
+		Gui,66:Add,Hotkey,xp+10 yp+20 w130 vvTreeIniKey2,%TreeIniKey2%
+		Gui,66:Add,Checkbox,Checked%TreeIniWinKey2% xp+135 yp+3 vvTreeIniWinKey2,Win
+	}
+	
+	Gui,66:Add,GroupBox,xm-10 y+30 w195 h55,设置RunAny：%RunASetHotKey%
+	Gui,66:Add,Hotkey,xm yp+20 w130 vvRunASetKey,%RunASetKey%
+	Gui,66:Add,Checkbox,Checked%RunASetWinKey% xm+135 yp+3 vvRunASetWinKey,Win
+	Gui,66:Add,GroupBox,x+15 yp-23 w195 h55,重启RunAny：%RunAReloadHotKey%
+	Gui,66:Add,Hotkey,xp+10 yp+20 w130 vvRunAReloadKey,%RunAReloadKey%
+	Gui,66:Add,Checkbox,Checked%RunAReloadWinKey% xp+135 yp+3 vvRunAReloadWinKey,Win
+	Gui,66:Add,GroupBox,xm-10 y+20 w195 h55,挂起RunAny：%RunASuspendHotKey%
+	Gui,66:Add,Hotkey,xm yp+20 w130 vvRunASuspendKey,%RunASuspendKey%
+	Gui,66:Add,Checkbox,Checked%RunASuspendWinKey% xm+135 yp+3 vvRunASuspendWinKey,Win
+	Gui,66:Add,GroupBox,x+15 yp-23 w195 h55,退出RunAny：%RunAExitHotKey%
+	Gui,66:Add,Hotkey,xp+10 yp+20 w130 vvRunAExitKey,%RunAExitKey%
+	Gui,66:Add,Checkbox,Checked%RunAExitWinKey% xp+135 yp+3 vvRunAExitWinKey,Win
 	
 	Gui,66:Tab,Everything设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+20 w400 h55,一键Everything [搜索选中文字、激活、隐藏]
@@ -1702,7 +1691,7 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v4.9 @2017.12.01 启动软件支持带参数
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v4.9 @2017.12.07 `n启动软件支持带参数，增加RunAny所有配置热键
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
@@ -1773,10 +1762,22 @@ SetOK:
 	Reg_Set(vEXEIcon,EXEIcon,"EXEIcon")
 	Reg_Set(vAnyIcon,AnyIcon,"AnyIcon")
 	Reg_Set(vMenuIcon,MenuIcon,"MenuIcon")
-	Reg_Set(TreeKey1,"","TreeKey1")
-	Reg_Set(TreeWinKey1,0,"TreeWinKey1")
-	Reg_Set(TreeKey2,"","TreeKey2")
-	Reg_Set(TreeWinKey2,0,"TreeWinKey2")
+	Reg_Set(vTreeKey1,TreeKey1,"TreeKey1")
+	Reg_Set(vTreeWinKey1,TreeWinKey1,"TreeWinKey1")
+	Reg_Set(vTreeKey2,TreeKey2,"TreeKey2")
+	Reg_Set(vTreeWinKey2,TreeWinKey2,"TreeWinKey2")
+	Reg_Set(vTreeIniKey1,TreeIniKey1,"TreeIniKey1")
+	Reg_Set(vTreeIniWinKey1,TreeIniWinKey1,"TreeIniWinKey1")
+	Reg_Set(vTreeIniKey2,TreeIniKey2,"TreeIniKey2")
+	Reg_Set(vTreeIniWinKey2,TreeIniWinKey2,"TreeIniWinKey2")
+	Reg_Set(vRunASetKey,RunASetKey,"RunASetKey")
+	Reg_Set(vRunASetWinKey,RunASetWinKey,"RunASetWinKey")
+	Reg_Set(vRunAReloadKey,RunAReloadKey,"RunAReloadKey")
+	Reg_Set(vRunAReloadWinKey,RunAReloadWinKey,"RunAReloadWinKey")
+	Reg_Set(vRunASuspendKey,RunASuspendKey,"RunASuspendKey")
+	Reg_Set(vRunASuspendWinKey,RunASuspendWinKey,"RunASuspendWinKey")
+	Reg_Set(vRunAExitKey,RunAExitKey,"RunAExitKey")
+	Reg_Set(vRunAExitWinKey,RunAExitWinKey,"RunAExitWinKey")
 	Reload
 return
 SetCancel:
@@ -1814,28 +1815,28 @@ Reg_Set(vGui, var, sz){
 }
 ;══════════════════════════════════════════════════════════════════
 ;~;[托盘菜单]
-MenuTray(){
+MenuTray:
 	Menu,Tray,NoStandard
 	Menu,Tray,Icon,% MenuIconS[1],% MenuIconS[2]
 	Menu,Tray,add,启动菜单(&Z)`t%MenuHotKey%,Menu_Show
-	Menu,Tray,add,修改菜单(&E),Menu_Edit1
-	Menu,Tray,add,修改文件(&F),Menu_Ini
+	Menu,Tray,add,修改菜单(&E)`t%TreeHotKey1%,Menu_Edit1
+	Menu,Tray,add,修改文件(&F)`t%TreeIniHotKey1%,Menu_Ini
 	Menu,Tray,add
-	Menu,Tray,add,设置RunAny(&D),Menu_Set
+	Menu,Tray,add,设置RunAny(&D)`t%RunASetHotKey%,Menu_Set
 	Menu,Tray,Add,关于RunAny(&A)...,Menu_About
 	Menu,Tray,add
 	If(MENU2FLAG){
 		Menu,Tray,add,启动菜单2(&2)`t%MenuHotKey2%,Menu_Show2
-		Menu,Tray,add,修改菜单2(&W),Menu_Edit2
-		Menu,Tray,add,修改文件2(&G),Menu_Ini2
+		Menu,Tray,add,修改菜单2(&W)`t%TreeHotKey2%,Menu_Edit2
+		Menu,Tray,add,修改文件2(&G)`t%TreeIniHotKey2%,Menu_Ini2
 		Menu,Tray,add
 	}
-	Menu,Tray,add,重启(&R),Menu_Reload
-	Menu,Tray,add,挂起(&S),Menu_Suspend
-	Menu,Tray,add,退出(&X),Menu_Exit
+	Menu,Tray,add,重启(&R)`t%RunAReloadHotKey%,Menu_Reload
+	Menu,Tray,add,挂起(&S)`t%RunASuspendHotKey%,Menu_Suspend
+	Menu,Tray,add,退出(&X)`t%RunAExitHotKey%,Menu_Exit
 	Menu,Tray,Default,启动菜单(&Z)
 	Menu,Tray,Click,1
-}
+return
 Menu_Ini:
 	Run,%iniPath%
 return
