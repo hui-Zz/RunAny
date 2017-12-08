@@ -1,31 +1,49 @@
-# 【RunAny】一劳永逸的快速启动工具 v2.5
+# 【RunAny】一劳永逸的快速启动工具 [v5.0 @2017.12.08 Logic重构计划(去GUI)](#ver)
 
-只需配置一个自定义程序菜单，就可以快速启动任何电脑任何路径的程序😎
+只需配置一个自定义程序菜单，结合Everything神器仅需软件名，无路径就可以快速运行exe程序、lnk快捷方式！
 
-家里和公司电脑还是笔记本都使用同一套配置，云端同步就更是如虎添翼！
+不用考虑在哪台电脑、哪个路径的程序，家里和公司电脑都用同一套配置，云端同步更是如虎添翼😎
 
+---
+
+## RunAny启动软件就跟打字一样高效方便（如<kbd>\`</kbd>为热键）：
+
+- <kbd>\`</kbd><kbd>w</kbd><kbd>w</kbd>就是启动work工作分类下的Word
+- <kbd>\`</kbd><kbd>a</kbd><kbd>w</kbd>就是启动app常用分类下的Wiz
+- <kbd>\`</kbd><kbd>f</kbd><kbd>w</kbd>就是启动file文件分类下的WinRAR
+
+---
+
+## RunAny让你告别繁琐的右键打开文件！
+只要先选中文件，然后再启动RunAny中的软件，即可用该软件打开选中文件，**就是这么方便！**
+
+---
+
+## RunAny除了运行还能搜索！
+在菜单配置添加搜索网址，先选中任意文字，然后用RunAny运行网址即可搜索，更有一次批量搜索功能，**就是这么高效！**
+
+---
 
 RunAny追求就是：<u>**一劳永逸**</u>
 ---
 
-RunAny启动软件就跟打字一样高效方便（如<kbd>\`</kbd>为热键）：
-
-- \`ww就是work工作分类下的Word
-- \`aw就是app常用分类下的Wiz
-- \`fw就是file文件分类下的WinRAR
-
-(PS:输入\`可以<kbd>Win</kbd>+<kbd>\`</kbd>输入)
-
----
-
-
-RunAny演示：<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/RunAny%E6%BC%94%E7%A4%BA.gif" alt="RunAny演示" style="max-width:60%;">
----
+[首次使用请阅读：【自定义树形菜单配置方法】](#tree)
 
 [【RunAny版本更新历史】](#ver)
 
+---
 
-[【自定义树形菜单配置方法：】](#tree)
+RunAny演示：
+
+<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/RunAny%E6%BC%94%E7%A4%BA.gif" alt="RunAny演示" style="max-width:50%;">
+
+RunAny演示打开文件：
+
+<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/RunAny%E6%BC%94%E7%A4%BA%E6%89%93%E5%BC%80%E6%96%87%E4%BB%B6.gif" alt="RunAny演示打开文件">
+
+RunAny演示批量搜索：
+
+<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/RunAny%E6%BC%94%E7%A4%BA%E6%89%B9%E9%87%8F%E6%90%9C%E7%B4%A2.gif" alt="RunAny演示批量搜索">
 
 ---
 
@@ -35,26 +53,96 @@ RunAny演示：<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/
 
 支持RunAny：![支付宝](https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.jpg)
 
+**在此特别感谢 AHK-工兵、Balance、☆☆天甜 等对RunAny的大力支持，欢迎大家多多提出建议！**
+
 > 这里是隐藏功能：
+
 > 按住Ctrl打开软件会打开软件所在的目录
 > 按住Shift打开软件会以管理员身份来运行
 
+> (PS:输入\`可以<kbd>Win</kbd>+<kbd>\`</kbd>输入)
+
 ---
 
-## <a name="tree">【自定义树形菜单配置方法：】</a>
+## <a name="tree">【自定义树形菜单配置方法】</a>
 
 * 以-开头+名称为1级目录名,--名称为2级以此类推，如：`-app`、`--img`
 * 单独一个-是1级分隔符，--2级亦是如此，如：`-`、`--`
-* 每个菜单名首字母(或用&指定任意)便是启动快捷键，如：`IE(&E)`快捷键是e
+* 每个菜单名首字母(或用&指定任意)便是启动快捷键，如：`IE(&E)|iexplore.exe`快捷键是e
 * 可用竖|添加别名前缀,菜单便会显示别名，如：`TC|Totalcmd.exe`会显示TC
 * 前加;可以注释暂时不需要用的，如：`;cmd.exe`
 * 末尾;识别为短语可以直接输出，如：`hui0.0713@gmail.com;`
-* 如果电脑上有多个同名程序，加上全路径指定运行其中一个
-* 运行除exe、lnk后缀之外的，也可用全路径或者创建快捷方式来放入RunAny菜单
 
+* 如果电脑上有多个同名程序，加上全路径指定运行其中一个
+* 运行除exe、lnk后缀之外的可以创建快捷方式变为lnk来放入RunAny菜单，也可以修改Everything搜索参数
+* 搜索网址的关键字，如果在中间而不是在末尾，用%s表示，默认不加就是加在末尾来搜索
+
+* 【4.6版本新增应用的透明化和热键配置】
+* 在应用别名后面添加_:数字形式来透明启动应用(默认不透明,0-100是全透明到不透明)，如88%透明度：Notepad_:88|Notepad.exe
+* 在别名最末尾添加<kbd>Tab</kbd>制表符+热键(热键格式参考AHK写法:^代表<kbd>Ctrl</kbd> !代表<kbd>Alt</kbd> #代表<kbd>Win</kbd>)，如按Alt+b百度：百度(&B)<kbd>Tab</kbd>!b|https://www.baidu.com/s?wd=
+* 可以在选中文件情况下按热键，就可以直接用该热键的应用打开该文件；在选中文字的情况下按热键，可以直接用搜索网址搜索选中文字~
 ---
 
 ## <a name="ver">【RunAny版本更新历史】</a>
+
+### 【RunAny】 v4.7 ~ 4.9
++ **增加RunAny所有配置热键**
++ **启动软件支持带参数**
++ **选中不同后缀文件，出现不同菜单**
+
+### 【RunAny】 v4.3 ~ 4.6 热键直达,透明启动
++ **新增所有软件、网址、短语等自定义热键设置**
++ **新增所有软件的透明化启动方式**
+* 优化加快重启RunAny的速度
+
+### 【RunAny】 v4.2 一键直达，一步到位
++ **新增选中网址、目录、文件路径文字后一键直达**
++ 新增使用ini文件配置绿色化，方便U盘便携
++ 选中文字后菜单增加短语，方便替换文本
++ 现在可自定义菜单里显示不同类型的项目
+* 修复不能注释目录的情况
+
+### 【RunAny】 v4.1 Run Anything!
++ 增加菜单1和2的树形快捷管理按键设置
++ 一键搜索网址现在支持一次搜索多个网址
+* **启动菜单显示速度加快100%**
+
+### 【RunAny】 v4.0 Run Anything!
++ 程序菜单可显示任意后缀文件的图标
++ [修改菜单]也可显示任意后缀文件图标
++ 在已有一个菜单再增加一个菜单，更加强大
++ 现在可以自定义Everything的搜索参数！
+  在参数中添加任意后缀，该后缀文件便无需路径在RunAny中运行
+
+### 【RunAny】 v3.1 ~ v3.9
++ v3.2 双重菜单➿
++ 新增[修改菜单]中树节点上下移动功能，便捷大提升
+* 重新设计了[设置RunAny]的Gui界面
+* 优化了初始菜单的名称
+* 修复运行一些软件工作目录变为RunAny目录的问题
+* 修复单个搜索关键词没与%s替代而在末尾的问题
+
+### 【RunAny】v3.0 批量搜索🔍
++ 选中文本只弹出网址菜单搜索(也可在配置中取消)
++ **增加批量打开网址和选中文字批量搜索功能！**
++ 菜单配置中添加/修改/移动后通过Everything显示应用图标
+
+### 【RunAny】v2.9
+* 修复选中某些情况下选中文字文件RunAny未提取到的问题
+* 批量网址下载失败情况，可单选某个网址修改下载地址再重新下载
+
+### 【RunAny】v2.8
+* 显示"多选导入"和"批量导入"的应用图标
++ 可以多选下载指定网址的图标
+
+### 【RunAny】v2.7 极速🚀
++ 初始打开即可用，后台渐步加载应用图标，重启RunAny毫秒级加载
+
+### 【RunAny】v2.6 图标优化🖼
++ 现在菜单配置中程序将显示自己的图标！
++ 在菜单配置加入"网站图标"功能，点击即可下载菜单中所有网站图标
+  + 下载完成后网站无论是快捷启动还是菜单配置都将显示自己的图标
++ ZzIcon.dll中加入树节点、移动、上、下4个图标，更好的支持xp系统
 
 ### 【RunAny】v2.5 组合功能🔩
 + **先选中文件，然后RunAny中运行程序将打开选中的文件**
