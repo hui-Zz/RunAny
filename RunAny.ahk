@@ -1834,7 +1834,7 @@ MenuTray:
 	Menu,Tray,add,重启(&R)`t%RunAReloadHotKey%,Menu_Reload
 	Menu,Tray,add,挂起(&S)`t%RunASuspendHotKey%,Menu_Suspend
 	Menu,Tray,add,退出(&X)`t%RunAExitHotKey%,Menu_Exit
-	Menu,Tray,Default,启动菜单(&Z)
+	Menu,Tray,Default,启动菜单(&Z)`t%MenuHotKey%
 	Menu,Tray,Click,1
 return
 Menu_Ini:
@@ -1847,7 +1847,7 @@ Menu_Reload:
 	Reload
 return
 Menu_Suspend:
-	Menu,tray,ToggleCheck,挂起(&S)
+	Menu,tray,ToggleCheck,挂起(&S)`t%RunASuspendHotKey%
 	Suspend
 return
 Menu_Exit:
