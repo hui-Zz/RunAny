@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v4.9 @2017.12.07 启动软件支持带参数，增加RunAny所有配置热键
+║【RunAny】一劳永逸的快速启动工具 v4.9 @2017.12.11 启动软件支持带参数，增加RunAny所有配置热键
 ║ https://github.com/hui-Zz/RunAny
 ║ by Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -194,8 +194,10 @@ Menu_Read(iniReadVar,fast,menuRoot,menuLevel,menuWebRoot,menuWebList,webRootShow
 				menuDiy:=StrSplit(Z_ReadLine,"|")
 				appName:=RegExReplace(menuDiy[2],"iS)\.exe($| .*)")	;去掉后缀或参数，取应用名
 				item:=MenuObj[appName]
-				if(MenuObj[appName]){
-					MenuObj[menuDiy[1]]:=RegExReplace(menuDiy[2],"S)^" appName "\.exe",MenuObj[appName])
+				SplitPath, item,,, FileExt  ; 获取文件扩展名.
+				appParm:=RegExReplace(menuDiy[2],"iS).*?\." FileExt "($| .*)","$1")	;去掉应用名，取参数
+				if(item){
+					MenuObj[menuDiy[1]]:=item . appParm
 				}else{
 					MenuObj[menuDiy[1]]:=menuDiy[2]
 					item:=menuDiy[2]
@@ -610,26 +612,28 @@ Web_Run:
 	}
 return
 Run_Zz(program){
-	If !WinExist("ahk_exe" program)
+	path:=RegExReplace(program,"iS)(\.exe)($| .*)","$1")	;去掉参数，取路径
+	If !WinExist("ahk_exe" path)
 		Run,%program%
 	else
-		WinGet,l,List,ahk_exe %program%
+		WinGet,l,List,ahk_exe %path%
 		if l=1
-			If WinActive("ahk_exe" program)
+			If WinActive("ahk_exe" path)
 				WinMinimize
 			else
 				WinActivate
 		else
-			WinActivateBottom,ahk_exe %program%
+			WinActivateBottom,ahk_exe %path%
 	return
 }
 Run_Tr(program,trNum,newOpen=false){
-	If(newOpen || !WinExist("ahk_exe" program)){
+	path:=RegExReplace(program,"iS)(\.exe)($| .*)","$1")	;去掉参数，取路径
+	If(newOpen || !WinExist("ahk_exe" path)){
 		Run,%program%
-		WinWait,ahk_exe %program%
+		WinWait,ahk_exe %path%
 		;~ WinSet,Style,-0xC00000,
-		try WinSet,Style,-0x40000,ahk_exe %program%
-		WinSet,Transparent,% trNum/100*255,ahk_exe %program%
+		try WinSet,Style,-0x40000,ahk_exe %path%
+		WinSet,Transparent,% trNum/100*255,ahk_exe %path%
 	}else
 		Run_Zz(program)
 	return
@@ -1691,7 +1695,7 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v4.9 @2017.12.07 `n启动软件支持带参数，增加RunAny所有配置热键
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v4.9 @2017.12.11 `n启动软件支持带参数，增加RunAny所有配置热键
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
