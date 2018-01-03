@@ -480,9 +480,12 @@ Menu_Run:
 			Send_Zz(any)	;[输出短语]
 			return
 		}
-		If(GetKeyState("Ctrl") || InStr(any,"\",,0,1)=anyLen){	;[按住Ctrl是打开应用目录]
+		;[按住Ctrl键打开应用所在目录，只有目录则直接打开]
+		If(GetKeyState("Ctrl") || InStr(any,"\",,0,1)=anyLen){
 			If(TcPath){
 				Run,%TcPath%%A_Space%"%any%"
+			}else if(InStr(any,"\",,0,1)=anyLen){
+				Run,%any%
 			}else{
 				Run,% "explorer.exe /select," any
 			}
