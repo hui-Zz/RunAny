@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v4.9 @2017.12.11 启动软件支持带参数，增加RunAny所有配置热键
+║【RunAny】一劳永逸的快速启动工具 v4.9 @2018.01.03 启动软件支持带参数，增加RunAny所有配置热键
 ║ https://github.com/hui-Zz/RunAny
 ║ by Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -46,8 +46,11 @@ For ki, kv in HotKeyList
 	StringReplace,keyV,kv,Hot
 	StringReplace,winkeyV,kv,Hot,Win
 	if(%keyV%){
-		if(!MENU2FLAG && ki in 2,6,8){
-			continue
+		if(!MENU2FLAG){
+			if ki in 2,6,8
+			{
+				continue
+			}
 		}
 		%kv%:=%winkeyV% ? "#" . %keyV% : %keyV%
 		try{
@@ -781,6 +784,7 @@ Run_Exist:
 		gosub,First_Run
 	FileRead, iniVar1, %iniPath%
 	;#判断第2菜单ini#
+	global MENU2FLAG:=false
 	IfExist,%iniPath2%
 	{
 		global iniVar2:=""
@@ -1695,7 +1699,7 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v4.9 @2017.12.11 `n启动软件支持带参数，增加RunAny所有配置热键
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v4.9 @2018.01.03 `n启动软件支持带参数，增加RunAny所有配置热键
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
