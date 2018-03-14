@@ -1,4 +1,4 @@
-# 【RunAny】一劳永逸的快速启动工具 [v4.9 @2018.01.03 启动软件支持带参数，增加RunAny所有配置热键](#ver)
+# 【RunAny】一劳永逸的快速启动工具 [v5.0 @2018.01.14 重构代码加快菜单初始化速度 启动软件支持带参数，增加RunAny所有配置热键](#ver)
 
 只需配置一个自定义程序菜单，结合Everything神器仅需软件名，无路径就可以快速运行exe程序、lnk快捷方式！
 
@@ -35,15 +35,15 @@ RunAny追求就是：<u>**一劳永逸**</u>
 
 RunAny演示：
 
-<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/RunAny%E6%BC%94%E7%A4%BA.gif" alt="RunAny演示" style="max-width:50%;">
+<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/help/RunAny%E6%BC%94%E7%A4%BA.gif" alt="RunAny演示" style="max-width:50%;">
 
 RunAny演示打开文件：
 
-<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/RunAny%E6%BC%94%E7%A4%BA%E6%89%93%E5%BC%80%E6%96%87%E4%BB%B6.gif" alt="RunAny演示打开文件">
+<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/help/RunAny%E6%BC%94%E7%A4%BA%E6%89%93%E5%BC%80%E6%96%87%E4%BB%B6.gif" alt="RunAny演示打开文件">
 
 RunAny演示批量搜索：
 
-<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/RunAny%E6%BC%94%E7%A4%BA%E6%89%B9%E9%87%8F%E6%90%9C%E7%B4%A2.gif" alt="RunAny演示批量搜索">
+<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/help/RunAny%E6%BC%94%E7%A4%BA%E6%89%B9%E9%87%8F%E6%90%9C%E7%B4%A2.gif" alt="RunAny演示批量搜索">
 
 ---
 
@@ -53,7 +53,7 @@ RunAny演示批量搜索：
 
 支持RunAny：![支付宝](https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.jpg)
 
-**在此特别感谢 AHK-工兵、Balance、☆☆天甜 等对RunAny的大力支持，欢迎大家多多提出建议！**
+**在此特别感谢 AHK-工兵、Balance、☆☆天甜 等等对RunAny的大力支持，欢迎大家多多提出建议！**
 
 > 这里是隐藏功能：
 
@@ -84,6 +84,10 @@ RunAny演示批量搜索：
 ---
 
 ## <a name="ver">【RunAny版本更新历史】</a>
+
+### 【RunAny】 v5.0 重构代码加快菜单初始化速度
++ 内置Everything，便于新手使用
+* 优化修复了一些问题
 
 ### 【RunAny】 v4.7 ~ 4.9
 * 修复只有菜单1时热键失效的BUG
