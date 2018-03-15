@@ -397,7 +397,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 			return
 		}
 		Menu,%menuName%,add,%menuItem%,Menu_Run
-		if(item && InStr(item,"\",,0,1)=itemLen){  ; {目录}
+		if(item && InStr(FileExist(item), "D")){  ; {目录}
 			Menu,%menuName%,Icon,%menuItem%,% FolderIconS[1],% FolderIconS[2]
 		}else if(Ext_Check(item,itemLen,".lnk")){  ; {快捷方式}
 			try{
@@ -411,7 +411,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 				Menu,%menuName%,Icon,%menuItem%,% LNKIconS[1],% LNKIconS[2]
 			}
 		}else{  ; {处理未知的项目图标}
-			If(FileExist(item)){
+			If(FileExist(item) && FileExt){
 				RegRead, regFileExt, HKEY_CLASSES_ROOT, .%FileExt%
 				RegRead, regFileIcon, HKEY_CLASSES_ROOT, %regFileExt%\DefaultIcon
 				regFileIconS:=StrSplit(regFileIcon,",")
@@ -423,7 +423,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 			}
 		}
 	} catch e {
-		MsgBox,16,创建菜单项出错,% "菜单名：" menuName "`n菜单项：" menuItem "`n路径：" item "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+		MsgBox,16,判断后缀创建菜单项出错,% "菜单名：" menuName "`n菜单项：" menuItem "`n路径：" item "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 	}
 }
 ;~;[显示菜单]
@@ -502,10 +502,10 @@ Menu_Run:
 			return
 		}
 		;[按住Ctrl键打开应用所在目录，只有目录则直接打开]
-		If(GetKeyState("Ctrl") || InStr(any,"\",,0,1)=anyLen){
+		If(GetKeyState("Ctrl") || InStr(FileExist(any), "D")){
 			If(TcPath){
 				Run,%TcPath%%A_Space%"%any%"
-			}else if(InStr(any,"\",,0,1)=anyLen){
+			}else if(InStr(FileExist(any), "D")){
 				Run,%any%
 			}else{
 				Run,% "explorer.exe /select," any
@@ -1059,7 +1059,7 @@ Set_Icon(itemVar,editVar=true){
 		return "Icon8"
 	if(InStr(itemVar,";")=1 || itemVar="")
 		return "Icon2"
-	if(InStr(itemVar,"\",,0,1)=itemLen)
+	if(InStr(FileExist(itemVar), "D"))
 		return "Icon4"
 	;~;[获取全路径]
 	FileName:=Get_Obj_Path(itemVar)
