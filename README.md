@@ -1,4 +1,4 @@
-# 【RunAny】一劳永逸的快速启动工具 [v5.0 @2018.03.15 重构代码加快菜单初始化速度 启动软件支持带参数，增加RunAny所有配置热键](#ver)
+# 【RunAny】一劳永逸的快速启动工具 [v5.0 @2018.04.16 重构代码加快菜单初始化速度 启动软件支持带参数，增加RunAny所有配置热键](#ver)
 
 只需配置一个自定义程序菜单，结合Everything神器仅需软件名，无路径就可以快速运行exe程序、lnk快捷方式！
 
@@ -12,6 +12,7 @@
 - <kbd>\`</kbd><kbd>a</kbd><kbd>w</kbd>就是启动app常用分类下的Wiz
 - <kbd>\`</kbd><kbd>f</kbd><kbd>w</kbd>就是启动file文件分类下的WinRAR
 
+**4.6版本后支持RunAny内所有应用独立热键启动、激活，已激活时按热键会最小化，见配置方法**
 ---
 
 ## RunAny让你告别繁琐的右键打开文件！
@@ -20,7 +21,10 @@
 ---
 
 ## RunAny除了运行还能搜索！
-在菜单配置添加搜索网址，先选中任意文字，然后用RunAny运行网址即可搜索，更有一次批量搜索功能，**就是这么高效！**
+在菜单中添加搜索网址，先选中任意文字，按<kbd>\`</kbd>后就可以选择想用的搜索（任意网站、购物、视频等），更有一次批量搜索功能。
+
+如果选中的文字就是网址，那按<kbd>\`</kbd>直接用浏览器打开！如果是文件夹目录、文件路径，一样一键打开！
+**就是这么高效！**
 
 ---
 
@@ -51,7 +55,7 @@ RunAny演示批量搜索：
 
 讨论QQ群：[246308937【RunAny快速启动一劳永逸】](https://jq.qq.com/?_wv=1027&k=445Ug7u)、[3222783【AutoHotkey高级群】](https://jq.qq.com/?_wv=1027&k=43uBHer)、[493194474【软客】](https://jq.qq.com/?_wv=1027&k=43trxF5)
 
-支持RunAny：![支付宝](https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.jpg)
+**你的支持是我最大的动力！：**<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.jpg" alt="支持RunAny" width="300" height="300">
 
 **在此特别感谢 AHK-工兵、Balance、☆☆天甜 等等对RunAny的大力支持，欢迎大家多多提出建议！**
 
@@ -74,13 +78,16 @@ RunAny演示批量搜索：
 * 末尾;识别为短语可以直接输出，如：`hui0.0713@gmail.com;`
 
 * 如果电脑上有多个同名程序，加上全路径指定运行其中一个
-* 运行除exe、lnk后缀之外的可以创建快捷方式变为lnk来放入RunAny菜单，也可以修改Everything搜索参数
+* 运行除exe、lnk后缀之外的可以创建快捷方式变为lnk来放入RunAny菜单，也可以修改Everything搜索参数,如支持ahk、doc文档无路径识别
 * 搜索网址的关键字，如果在中间而不是在末尾，用%s表示，默认不加就是加在末尾来搜索
 
 * 【4.6版本新增应用的透明化和热键配置】
 * 在应用别名后面添加_:数字形式来透明启动应用(默认不透明,0-100是全透明到不透明)，如88%透明度：Notepad_:88|Notepad.exe
 * 在别名最末尾添加<kbd>Tab</kbd>制表符+热键(热键格式参考AHK写法:^代表<kbd>Ctrl</kbd> !代表<kbd>Alt</kbd> #代表<kbd>Win</kbd>)，如按Alt+b百度：百度(&B)<kbd>Tab</kbd>!b|https://www.baidu.com/s?wd=
 * 可以在选中文件情况下按热键，就可以直接用该热键的应用打开该文件；在选中文字的情况下按热键，可以直接用搜索网址搜索选中文字~
+
+* 开启菜单2后，可以绑定菜单1为一键搜索，这样选中文字一按<kbd>\`</kbd>就默认搜索，想用其他搜索再使用菜单2热键搜索
+
 ---
 
 ## <a name="ver">【RunAny版本更新历史】</a>

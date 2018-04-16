@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.0 @2018.01.14 重构代码加快菜单初始化速度
+║【RunAny】一劳永逸的快速启动工具 v5.0 @2018.04.16 重构代码加快菜单初始化速度
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -222,7 +222,7 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow)
 							Menu,% menuRootFn[menuLevel],Icon,% menuDiy[1],SHELL32.dll,124
 					}
 				}else{
-					Menu_Add(menuRootFn[menuLevel],menuDiy[1],menuDiy[2],menuRootFn,menuWebRootFn,menuWebList,webRootShow)
+					Menu_Add(menuRootFn[menuLevel],menuDiy[1],MenuObjParam[menuDiy[1]],menuRootFn,menuWebRootFn,menuWebList,webRootShow)
 				}
 				;~;[分割Tab获取应用自定义热键]
 				if(InStr(menuDiy[1],"`t")){
@@ -722,7 +722,7 @@ Var_Set:
 	global EvCommand:=Var_Read("EvCommand","!C:\*Windows* file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
 	TcPath:=Var_Read("TcPath")
 	OnePath:=Var_Read("OnePath","https://www.baidu.com/s?wd=%s")
-	DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe")
+	DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe,War3.exe,dota2.exe,League of Legends.exe")
 	Loop,parse,DisableApp,`,
 	{
 		GroupAdd,DisableGUI,ahk_exe %A_LoopField%
@@ -1753,7 +1753,7 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v5.0 @2018.01.14 `n重构代码加快菜单初始化速度
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v5.0 @2018.04.03 `n重构代码加快菜单初始化速度
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
