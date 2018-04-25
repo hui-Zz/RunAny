@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.1 @2018.04.25 重构代码加快菜单初始化速度
+║【RunAny】一劳永逸的快速启动工具 v5.1 @2018.04.25 增加更新版本功能
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -892,6 +892,8 @@ Auto_Update:
 				shell.run(A_Temp "\RunAny_Update.bat",0)
 				ExitApp
 			}
+		}else{
+			MsgBox,RunAny已经是最新版本。
 		}
 	}
 return
@@ -1827,7 +1829,7 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v%RunAny_update_version% @%RunAny_update_time% `n重构代码加快菜单初始化速度
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v%RunAny_update_version% @%RunAny_update_time% `n增加更新版本功能
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
