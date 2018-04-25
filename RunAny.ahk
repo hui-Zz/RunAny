@@ -88,7 +88,7 @@ while !WinExist("ahk_exe Everything.exe")
 			gosub,Menu_Set
 			MsgBox,17,,RunAny需要Everything极速识别程序的路径`n请使用以下任意一种方式：`n
 				(
-				* 运行Everything后重启RunAny`n* 设置RunAny中Everything正确安装路径`n* 下载Everything并安装后再运行RunAny：http://www.voidtools.com/
+* 运行Everything后重启RunAny`n* 设置RunAny中Everything正确安装路径`n* 下载Everything并安装后再运行RunAny：http://www.voidtools.com/
 				)
 			IfMsgBox Ok
 				Run,http://www.voidtools.com/
