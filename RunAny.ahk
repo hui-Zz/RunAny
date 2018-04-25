@@ -893,7 +893,8 @@ Auto_Update:
 				ExitApp
 			}
 		}else{
-			MsgBox,RunAny已经是最新版本。
+			FileDelete, %A_Temp%\temp_RunAny.ahk
+			TrayTip,,RunAny已经是最新版本。,5,1
 		}
 	}
 return
