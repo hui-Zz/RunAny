@@ -2,14 +2,13 @@
 
 **RunAny区别一般的启动工具，在任意电脑上仅需软件名就能直接找到并运行，特别适合使用家里、公司、学校多台电脑的你**
 
-__【你只需配置一个自定义程序菜单，就能到处运行，网盘同步更是如虎添翼，达到一劳永逸！😎】__
+__【你只需配置一个自定义程序菜单，就能到处运行，网盘同步更是如虎添翼，达到一劳永逸！】😎__
 
 另外更有  [快捷打开文件]、[透明化启动]、[全局热键]、[一键批量搜索]...等你使用
 
-__【RunAny下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.1.zip __
+【RunAny下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.1.zip
 
 [【RunAny版本更新历史】](https://github.com/hui-Zz/RunAny/wiki/RunAny版本更新历史)
-
 
 > RunAny使用Everything神器来知道所有软件的位置，Everything可以秒搜Windows下任何文件
 
@@ -17,17 +16,16 @@ __【RunAny下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.1.zip _
 
 ## RunAny启动软件就跟五笔打字一样高效方便，3键直达（如<kbd>\`</kbd>为热键）：
 
-- <kbd>\`</kbd><kbd>w</kbd><kbd>w</kbd>就是启动work工作分类下的Word
-- <kbd>\`</kbd><kbd>a</kbd><kbd>w</kbd>就是启动app常用分类下的Wiz
-- <kbd>\`</kbd><kbd>f</kbd><kbd>w</kbd>就是启动file文件分类下的WinRAR
-
-> **4.6版本后支持RunAny内所有应用独立热键启动、激活，已激活时按热键会最小化，见配置方法**
+- <kbd>\`</kbd><kbd>w</kbd><kbd>w</kbd>就是启动"work工作"分类下的Word
+- <kbd>\`</kbd><kbd>a</kbd><kbd>w</kbd>就是启动"app常用"分类下的Wiz
+- <kbd>\`</kbd><kbd>f</kbd><kbd>w</kbd>就是启动"file文件"分类下的WinRAR
 
 <img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/help/RunAny%E6%BC%94%E7%A4%BA.gif" alt="RunAny演示" style="max-width:50%;">
 
 ---
 
 ## RunAny让你告别繁琐的右键打开文件！
+
 只要先选中文件，然后再按<kbd>\`</kbd>启动RunAny中的软件，即可用该软件打开选中文件，**就是这么方便！**
 
 <img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/help/RunAny%E6%BC%94%E7%A4%BA%E6%89%93%E5%BC%80%E6%96%87%E4%BB%B6.gif" alt="RunAny演示打开文件">
@@ -35,6 +33,7 @@ __【RunAny下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.1.zip _
 ---
 
 ## RunAny除了运行还能搜索！
+
 在菜单中添加搜索网址，先选中任意文字，按<kbd>\`</kbd>后就可以选择想用的搜索（任意网站、购物、视频等），更有一次批量搜索功能。
 
 如果选中的文字就是网址，那按<kbd>\`</kbd>直接会在浏览器打开。如果是文件夹目录、文件路径，一样一键打开，**就是这么高效！**
@@ -70,6 +69,8 @@ __【RunAny下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.1.zip _
 
 - 在选中文字的情况下按热键，可以直接用搜索网址搜索选中文字~
 - 在选中文件情况下按热键，就可以直接用该热键的应用打开该文件；
+
+> **4.6版本后支持RunAny内所有应用独立热键启动、激活，已激活时按热键会最小化，见配置方法**
 
 > 开启菜单2功能后，可以绑定菜单1为一键搜索，这样选中文字一按<kbd>\`</kbd>就默认搜索，想用其他搜索再使用菜单2热键搜索
 
