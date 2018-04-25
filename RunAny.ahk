@@ -866,8 +866,8 @@ Auto_Update:
 	if(FileExist(A_Temp "\RunAny_Update.bat"))
 		FileDelete, %A_Temp%\RunAny_Update.bat
 	;[下载最新的更新脚本]
+	RunAnyGithubDir:="https://raw.githubusercontent.com/hui-Zz/RunAny/master"
 	URLDownloadToFile,%RunAnyGithubDir%/RunAny.ahk ,%A_Temp%\temp_RunAny.ahk
-	URLDownloadToFile,%RunAnyGithubDir%/RunAny.exe ,%A_Temp%\temp_RunAny.exe
 	versionReg=iS)^\t*\s*global RunAny_update_version:="([\d\.]*)"
 	Loop, read, %A_Temp%\temp_RunAny.ahk
 	{
@@ -885,6 +885,8 @@ Auto_Update:
 			MsgBox,33,RunAny检查更新,检测到RunAny有新版本`n`n%RunAny_update_version%`t版本更新后=>`t%versionStr%`n`n是否更新到最新版本？`n覆盖老版本文件，如有修改过RunAny.ahk请注意备份！
 			IfMsgBox Ok
 			{
+				TrayTip,,RunAny下载最新版本并替换老版本...,5,1
+				URLDownloadToFile,%RunAnyGithubDir%/RunAny.exe ,%A_Temp%\temp_RunAny.exe
 				gosub,RunAny_Update
 				shell := ComObjCreate("WScript.Shell")
 				shell.run(A_Temp "\RunAny_Update.bat",0)
