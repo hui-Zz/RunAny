@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.0 @2018.04.16 重构代码加快菜单初始化速度
+║【RunAny】一劳永逸的快速启动工具 v5.1 @2018.04.25 重构代码加快菜单初始化速度
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -17,6 +17,8 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 ;~ StartTick:=A_TickCount   ;若要评估出menu初始化时间
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
+global RunAny_update_version:="5.1"
+global RunAny_update_time:="2018.04.25"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 global MenuObj:=Object()        ;~程序全径
@@ -180,6 +182,7 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow)
 			}
 			MenuObjEXE:=Object()	;~软件对象
 			flagEXE:=false			;~添加exe菜单项目
+			IconFail:=false		;~是否显示无效项图标
 			if(InStr(A_LoopField,"|")){
 				;~;[生成有前缀备注的应用]
 				menuDiy:=StrSplit(A_LoopField,"|")
@@ -412,10 +415,12 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 			}
 		}else{  ; {处理未知的项目图标}
 			If(FileExist(item) && FileExt){
-				RegRead, regFileExt, HKEY_CLASSES_ROOT, .%FileExt%
-				RegRead, regFileIcon, HKEY_CLASSES_ROOT, %regFileExt%\DefaultIcon
-				regFileIconS:=StrSplit(regFileIcon,",")
-				Menu,%menuName%,Icon,%menuItem%,% regFileIconS[1],% regFileIconS[2]
+				try{
+					RegRead, regFileExt, HKEY_CLASSES_ROOT, .%FileExt%
+					RegRead, regFileIcon, HKEY_CLASSES_ROOT, %regFileExt%\DefaultIcon
+					regFileIconS:=StrSplit(regFileIcon,",")
+					Menu,%menuName%,Icon,%menuItem%,% regFileIconS[1],% regFileIconS[2]
+				}catch{}
 			}else if(!HideFail){
 				Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,124
 			}else{
@@ -729,6 +734,9 @@ Var_Set:
 	}
 	gosub,Icon_Set
 	global MenuCommonList:={}
+	if(A_DD=01){
+		Gosub,Auto_Update
+	}
 return
 ;~;[图标初始化]
 Icon_Set:
@@ -854,6 +862,70 @@ GuiIcon_Set:
 		}
 	}
 return
+Auto_Update:
+	if(FileExist(A_Temp "\RunAny_Update.bat"))
+		FileDelete, %A_Temp%\RunAny_Update.bat
+	;[下载最新的更新脚本]
+	URLDownloadToFile,%RunAnyGithubDir%/RunAny.ahk ,%A_Temp%\temp_RunAny.ahk
+	URLDownloadToFile,%RunAnyGithubDir%/RunAny.exe ,%A_Temp%\temp_RunAny.exe
+	versionReg=iS)^\t*\s*global RunAny_update_version:="([\d\.]*)"
+	Loop, read, %A_Temp%\temp_RunAny.ahk
+	{
+		if(RegExMatch(A_LoopReadLine,versionReg)){
+			versionStr:=RegExReplace(A_LoopReadLine,versionReg,"$1")
+			break
+		}
+		if(A_LoopReadLine="404: Not Found"){
+			MsgBox,"网络异常，更新下载失败"
+			return
+		}
+	}
+	if(versionStr){
+		if(RunAny_update_version<versionStr){
+			MsgBox,33,RunAny检查更新,检测到RunAny有新版本`n`n%RunAny_update_version%`t版本更新后=>`t%versionStr%`n`n是否更新到最新版本？`n覆盖老版本文件，如有修改过RunAny.ahk请注意备份！
+			IfMsgBox Ok
+			{
+				gosub,RunAny_Update
+				shell := ComObjCreate("WScript.Shell")
+				shell.run(A_Temp "\RunAny_Update.bat",0)
+				ExitApp
+			}
+		}
+	}
+return
+RunAny_Update:
+Run,https://github.com/hui-Zz/RunAny/wiki/RunAny版本更新历史
+FileAppend,
+(
+@ECHO OFF & setlocal enabledelayedexpansion & TITLE RunAny更新版本
+set /a x=1
+:BEGIN
+set /a x+=1
+ping -n 2 127.1>nul
+if exist "%A_Temp%\temp_RunAny.ahk" `(
+  MOVE /y "%A_Temp%\temp_RunAny.ahk" "%A_ScriptDir%\RunAny.ahk"
+`)
+if exist "%A_Temp%\temp_RunAny.exe" `(
+  MOVE /y "%A_Temp%\temp_RunAny.exe" "%A_ScriptDir%\RunAny.exe"
+`)
+goto INDEX
+:INDEX
+if !x! GTR 10 `(
+  exit
+`)
+if exist "%A_Temp%\temp_RunAny.ahk" `(
+  goto BEGIN
+`)
+if exist "%A_Temp%\temp_RunAny.exe" `(
+  if !x! EQU 5 `(
+    taskkill /f /im %A_ScriptName%
+  `)
+  goto BEGIN
+`)
+start "" "%A_ScriptDir%\%A_ScriptName%"
+exit
+),%A_Temp%\RunAny_Update.bat
+return
 ;~;[检查后缀名]
 Ext_Check(name,len,ext){
 	len_ext:=StrLen(ext)
@@ -890,7 +962,7 @@ Get_Zz(){
 	Clipboard=
 	SendInput,^c
 	if WinActive("ahk_class TTOTAL_CMD")
-		ClipWait,0.2
+		ClipWait,0.5
 	else
 		ClipWait,0.1
 	If(ErrorLevel){
@@ -1753,7 +1825,7 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v5.0 @2018.04.03 `n重构代码加快菜单初始化速度
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v%RunAny_update_version% @%RunAny_update_time% `n重构代码加快菜单初始化速度
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
@@ -1858,6 +1930,7 @@ MenuTray:
 	Menu,Tray,add
 	Menu,Tray,add,设置RunAny(&D)`t%RunASetHotKey%,Menu_Set
 	Menu,Tray,Add,关于RunAny(&A)...,Menu_About
+	Menu,Tray,Add,检查更新(&U),Auto_Update
 	Menu,Tray,add
 	If(MENU2FLAG){
 		Menu,Tray,add,启动菜单2(&2)`t%MenuHotKey2%,Menu_Show2
@@ -2019,7 +2092,7 @@ FileAppend,
 	--
 	Wiz.exe
 -编辑(&Edit)
-	;在别名后面添加_:数字形式来透明启动应用(默认不透明,0-100是全透明到不透明)
+	;在别名后面添加_:数字形式来透明启动应用(默认不透明,1-100是全透明到不透明)
 	记事本(&N)_:88|notepad.exe
 	--
 	winword.exe
@@ -2031,15 +2104,18 @@ FileAppend,
 	XnView.exe
 	IrfanView.exe
 -影音(&Video)
-	cloudmusic.exe
+	云音乐(&C)|cloudmusic.exe
 	--
 	QQPlayer.exe
 	PotPlayer.exe
 -网址(&Web)
-	;在别名最末尾添加Tab制表符+热键(参考AHK写法:^代表Ctrl !代表Alt #代表Win)，如选中文字按Alt+b百度
-	百度(&B)	!b|https://www.baidu.com/s?wd=
-	翻译(&F)|http://translate.google.cn/#auto/zh-CN/
+	;在别名最末尾添加Tab制表符+热键(参考AHK写法:^代表Ctrl !代表Alt #代表Win +代表Shift)，如选中文字按Alt+z百度
+	百度(&B)	!z|https://www.baidu.com/s?wd=
+	翻译(&F)	#z|http://translate.google.cn/#auto/zh-CN/
 	淘宝(&T)|https://s.taobao.com/search?q=
+	京东(&D)|http://search.jd.com/Search?keyword=
+	知乎(&Z)|https://www.zhihu.com/search?type=content&q=
+	B站|http://search.bilibili.com/all?keyword=
 	--
 	RunAny地址|https://github.com/hui-Zz/RunAny
 -文件(&File)
