@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.1 @2018.04.25 增加更新版本功能
+║【RunAny】一劳永逸的快速启动工具 v5.2 @2018.04.26 增加更新版本功能
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -17,8 +17,8 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 ;~ StartTick:=A_TickCount   ;若要评估出menu初始化时间
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
-global RunAny_update_version:="5.1"
-global RunAny_update_time:="2018.04.25"
+global RunAny_update_version:="5.2"
+global RunAny_update_time:="2018.04.26"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 global MenuObj:=Object()        ;~程序全径
@@ -1973,6 +1973,15 @@ everythingQuery(){
 	ev.SetSearch(EvCommand)
 	;执行搜索
 	ev.Query()
+	while,% !ev.GetTotResults()
+	{
+		if(A_Index>300){
+			MsgBox,16,Everything启动异常,Everything不能读取磁盘文件，`n请打开Everything设置以下其中一项：`n* 以管理员身份运行(A)`n* 安装Everything服务(S)
+			break
+		}
+		Sleep, 100
+		ev.Query()
+	}
 	Loop,% ev.GetTotResults()
 	{
 		Z_Index:=A_Index-1
