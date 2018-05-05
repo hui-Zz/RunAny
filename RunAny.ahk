@@ -866,7 +866,13 @@ Auto_Update:
 	if(FileExist(A_Temp "\RunAny_Update.bat"))
 		FileDelete, %A_Temp%\RunAny_Update.bat
 	;[下载最新的更新脚本]
-	RunAnyGithubDir:="https://raw.githubusercontent.com/hui-Zz/RunAny/master"
+	lpszUrl:="https://raw.githubusercontent.com"
+	RunAnyGithubDir:=lpszUrl . "/hui-Zz/RunAny/master"
+	network:=DllCall("Wininet.dll\InternetCheckConnection", "Ptr", &lpszUrl, "UInt", 0x1, "UInt", 0x0, "Int")
+	if(!network){
+		MsgBox,网络异常，无法从https://github.com/hui-Zz/RunAny上读取最新版本文件
+		return
+	}
 	URLDownloadToFile,%RunAnyGithubDir%/RunAny.ahk ,%A_Temp%\temp_RunAny.ahk
 	versionReg=iS)^\t*\s*global RunAny_update_version:="([\d\.]*)"
 	Loop, read, %A_Temp%\temp_RunAny.ahk
@@ -876,7 +882,7 @@ Auto_Update:
 			break
 		}
 		if(A_LoopReadLine="404: Not Found"){
-			MsgBox,"网络异常，更新下载失败"
+			MsgBox,文件下载异常，更新失败！
 			return
 		}
 	}
