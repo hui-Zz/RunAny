@@ -16,9 +16,9 @@ __【多台电脑你只需配置一套软件列表，就能到处运行，网盘
 
 ## RunAny启动软件就跟五笔打字一样高效方便，3键直达（如<kbd>\`</kbd>为热键）：
 
-- <kbd>\`</kbd><kbd>w</kbd><kbd>w</kbd>就是启动"work工作"分类下的Word
-- <kbd>\`</kbd><kbd>a</kbd><kbd>w</kbd>就是启动"app常用"分类下的Wiz
-- <kbd>\`</kbd><kbd>f</kbd><kbd>w</kbd>就是启动"file文件"分类下的WinRAR
+- <kbd>\`</kbd><kbd>w</kbd><kbd>w</kbd>就是启动『work工作』分类下的Word
+- <kbd>\`</kbd><kbd>a</kbd><kbd>w</kbd>就是启动『app常用』分类下的Wiz
+- <kbd>\`</kbd><kbd>f</kbd><kbd>w</kbd>就是启动『file文件』分类下的WinRAR
 
 <img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/help/RunAny%E6%BC%94%E7%A4%BA.gif" alt="RunAny演示" style="max-width:50%;">
 
@@ -44,33 +44,34 @@ __【多台电脑你只需配置一套软件列表，就能到处运行，网盘
 
 ## <a name="tree">首次使用请阅读：【自定义树形菜单配置方法】</a>
 
-1. 以-开头+名称为1级目录名,--名称为2级以此类推，如：`-app应用`、`--img图像处理`
-2. 单独一个-是1级分隔符，--2级亦是如此，如：`-`、`--`
-3. 可用竖|添加别名前缀,菜单便会显示别名，如：`TC|Totalcmd.exe`会显示TC为菜单名
-4. 前加;可以注释暂时不需要用的，如：`;cmd.exe`
-5. 末尾;识别为短语可以直接输出，如：`hui0.0713@gmail.com;`
-6. 如果电脑上有多个同名程序，加上全路径指定运行其中一个，如：`IE(32位)|C:\Program Files (x86)\Internet Explorer\iexplore.exe`
+1.  **分类/目录：**以 `-`开头为1级目录名， `--`名称为2级，以此类推，如：`-app应用`、`-work办公`、`--img图像处理`
+2.  **分隔符：**单独一个 `-`是1级分隔符， `--`2级分隔符，如：`-`、`--`
+3.  **菜单别名：**在竖 `|` 前面添加程序的别名，如：`word|winword.exe`菜单上只会显示word
+4.  **注释：**前加 `;`可以注释暂时不用的，如：`;cmd.exe`
+5.  **快捷短语：**末尾分号 `;`识别为短语，会直接打字输出，如：`hui0.0713@gmail.com;` 用于注册时输出邮箱
+6.  **区分同名程序：**如果电脑上有多个同名程序，加上全路径指定运行其中一个，如：`IE(32位)|C:\Program Files (x86)\Internet Explorer\iexplore.exe`
 > 每个菜单名首字母(或用&指定任意)便是启动快捷键，如：`IE(&E)|iexplore.exe`快捷键是e
 >
-> 默认支持exe、lnk、ahk、bat、cmd文件的无路径识别，其他后缀可以在RunAny设置中的Everything搜索参数，如支持doc文档无路径识别
+> 默认支持exe、lnk、ahk、bat、cmd文件的无路径识别，其他后缀可以在RunAny设置中的Everything搜索参数，如支持doc文档免设路径识别
 
-7. 在目录名后加|和后缀，选中不同文件出不同菜单，如：`-编辑(&Edit)|txt ini bat md ahk`选中txt文件RunAny只弹出编辑软件菜单
+## 【进阶配置：透明化启动应用和全局自定义热键配置】
 
-#### 【4.6之后版本新增应用的透明化和全局自定义热键配置】
+7. **不同后缀不同菜单：**在分类/目录名后加 `|`和后缀，选中不同文件出不同菜单，如：`-编辑(&Edit)|txt ini bat md ahk`选中txt文件RunAny只会弹出`编辑(&Edit)`菜单的内容
 
-8. 在应用别名后面添加_:数字形式来透明启动应用（默认不透明,1-100是全透明到不透明），如88%透明度：
+8. **半透明启动程序：**在应用别名后面添加 `_:数字`形式来透明启动应用（默认不透明,1-100是全透明到不透明），如88%透明度：
 ```ini
 记事本(&N)_:88|Notepad.exe
 ```
-9. 在别名最末尾添加<kbd>Tab</kbd>制表符+热键（热键格式参考AHK写法:^代表<kbd>Ctrl</kbd> !代表<kbd>Alt</kbd> #代表<kbd>Win</kbd>+代表<kbd>Shift</kbd>），如按Alt+z一键百度、Win+z一键翻译：
+9. **全局热键：**在别名最末尾添加<kbd>Tab</kbd>制表符+热键（热键格式参考AHK写法:^代表<kbd>Ctrl</kbd> !代表<kbd>Alt</kbd> #代表<kbd>Win</kbd>+代表<kbd>Shift</kbd>），如按 `Alt+b`一键百度、 `Win+z`一键翻译、按 `Alt+z`启动或激活浏览器：
 ```ini
-百度(&B)	!z|https://www.baidu.com/s?wd=%s
+百度(&B)	!b|https://www.baidu.com/s?wd=%s
 翻译(&F)	#z|http://translate.google.cn/#auto/zh-CN/
+浏览器(&Z)	!z|chrome.exe
 ```
 > 搜索网址的关键字，如果在中间而不是在末尾，用%s表示，默认不加就是加在末尾来搜索
 
-- 在选中文字的情况下按热键，可以直接用搜索网址搜索选中文字~
-- 在选中文件情况下按热键，就可以直接用该热键的应用打开该文件；
+- 在选中文字的情况下按全局热键，可以直接用搜索网址搜索选中文字~
+- 在选中文件情况下按全局热键，就可以直接用该热键的应用打开该文件；
 
 > **所有应用独立热键集启动、最小化时激活，已激活时最小化功能于一体**
 
