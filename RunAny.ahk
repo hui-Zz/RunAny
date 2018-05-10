@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.2 @2018.04.26 增加更新版本功能
+║【RunAny】一劳永逸的快速启动工具 v5.3 @2018.05.10
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -17,8 +17,8 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 ;~ StartTick:=A_TickCount   ;若要评估出menu初始化时间
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
-global RunAny_update_version:="5.2"
-global RunAny_update_time:="2018.04.26"
+global RunAny_update_version:="5.3"
+global RunAny_update_time:="2018.05.10"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 global MenuObj:=Object()        ;~程序全径
@@ -44,6 +44,7 @@ For ki, kv in HotKeyList
 		%keyV%:="``"
 	}
 }
+errorKeyStr:=""
 For ki, kv in HotKeyList
 {
 	StringReplace,keyV,kv,Hot
@@ -59,14 +60,18 @@ For ki, kv in HotKeyList
 		try{
 			Hotkey,% %kv%,% RunList[ki],On
 		}catch{
-			gosub,Menu_Set
-			if(ki!=1 && ki!=2)
-				SendInput,^{Tab}
-			MsgBox,16,RunAny热键配置不正确,% "热键错误：" %kv% "`n请设置正确热键后重启RunAny"
+			errorKeyStr.=kv "`n"
 		}
 	}
 }
 Gosub,MenuTray	;~托盘菜单
+if(errorKeyStr){
+	gosub,Menu_Set
+	if(ki!=1 && ki!=2)
+		SendInput,^{Tab}
+	MsgBox,16,RunAny热键配置不正确,% "热键错误：`n" errorKeyStr "`n请设置正确热键后重启RunAny"
+	return
+}
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化everything安装路径]
 evExist:=true
@@ -82,6 +87,7 @@ while !WinExist("ahk_exe Everything.exe")
 			break
 		}else if(FileExist(A_ScriptDir "\Everything\Everything.exe")){
 			Run,%A_ScriptDir%\Everything\Everything.exe -startup
+			EvPath=%A_ScriptDir%\Everything\Everything.exe
 			Sleep,2000
 			break
 		}else{
@@ -105,6 +111,9 @@ If(evExist){
 		WinGet, EvPath, ProcessPath, ahk_exe Everything.exe
 	}
 }
+;~;[如果需要自动关闭everything]
+if(EvAutoClose && EvPath)
+	Run,%EvPath% -exit
 DetectHiddenWindows,Off
 ;══════════════════════════════════════════════════════════════════
 ;~;[后缀图标初始化]
@@ -328,12 +337,12 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow)
 ;══════════════════════════════════════════════════════════════════
 ;~;[生成菜单(判断后缀创建图标)]
 Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow){
-	if not menuName
+	if(!menuName || !item)
 		return
 	try {
 		itemLen:=StrLen(item)
 		SplitPath, item,,, FileExt  ; 获取文件扩展名.
-		if(item && InStr(item,";",,0,1)=itemLen){  ; {短语}
+		if(InStr(item,";",,0,1)=itemLen){  ; {短语}
 			Menu,%menuName%,add,%menuItem%,Menu_Run
 			Menu,%menuName%:,add,%menuItem%,Menu_Run
 			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,2
@@ -347,6 +356,11 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 			}
 			if(HideSend)
 				Menu,%menuName%,Delete,%menuItem%
+			return
+		}
+		if(InStr(item,"::",,0,1)=itemLen-1){	; {发送热键}
+			Menu,%menuName%,add,%menuItem%,Menu_Run
+			Menu,%menuName%,Icon,%menuItem%,SHELL32.dll,100
 			return
 		}
 		if(RegExMatch(item,"iS)([\w-]+://?|www[.]).*")){  ; {网址}
@@ -400,7 +414,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 			return
 		}
 		Menu,%menuName%,add,%menuItem%,Menu_Run
-		if(item && InStr(FileExist(item), "D")){  ; {目录}
+		if(InStr(FileExist(item), "D")){  ; {目录}
 			Menu,%menuName%,Icon,%menuItem%,% FolderIconS[1],% FolderIconS[2]
 		}else if(Ext_Check(item,itemLen,".lnk")){  ; {快捷方式}
 			try{
@@ -503,7 +517,12 @@ Menu_Run:
 		anyLen:=StrLen(any)
 		If(InStr(any,";",,0,1)=anyLen){
 			StringLeft, any, any, anyLen-1
-			Send_Zz(any)	;[输出短语]
+			Send_Str_Zz(any)	;[输出短语]
+			return
+		}
+		If(InStr(any,"::",,0,1)=anyLen-1){
+			StringLeft, any, any, anyLen-2
+			Send_Key_Zz(any)	;[输出热键]
 			return
 		}
 		;[按住Ctrl键打开应用所在目录，只有目录则直接打开]
@@ -566,7 +585,12 @@ Menu_Key_Run:
 		anyLen:=StrLen(any)
 		If(InStr(any,";",,0,1)=anyLen){
 			StringLeft, any, any, anyLen-1
-			Send_Zz(any)	;[输出短语]
+			Send_Str_Zz(any)	;[输出短语]
+			return
+		}
+		If(InStr(any,"::",,0,1)=anyLen-1){
+			StringLeft, any, any, anyLen-2
+			Send_Key_Zz(any)	;[输出热键]
 			return
 		}
 		if(selectZz){
@@ -693,7 +717,7 @@ One_Show:
 	gosub,One_Search
 return
 One_Search:
-	Loop,parse,OnePath,`n
+	Loop,parse,OneKeyUrl,`n
 	{
 		if(A_LoopField){
 			if(InStr(A_LoopField,"%s")){
@@ -704,267 +728,23 @@ One_Search:
 		}
 	}
 return
-;══════════════════════════════════════════════════════════════════
-;~;[初始化]
-;══════════════════════════════════════════════════════════════════
-Var_Set:
-	;~;[RunAny设置参数]
-	RegRead, AutoRun, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
-	AutoRun:=AutoRun ? 1 : 0
-	global IniConfig:=0
-	if(FileExist(RunAnyConfig)){
-		IniRead,IniConfig,%RunAnyConfig%,Config,IniConfig
-	}
-	global HideFail:=Var_Read("HideFail",0)
-	global HideUnSelect:=Var_Read("HideUnSelect",0)
-	global HideRecent:=Var_Read("HideRecent",0)
-	global HideWeb:=Var_Read("HideWeb",0)
-	global HideSend:=Var_Read("HideSend",0)
-	global OneKeyWeb:=Var_Read("OneKeyWeb",1)
-	global OneKeyFolder:=Var_Read("OneKeyFolder",1)
-	global OneKeyFile:=Var_Read("OneKeyFile",1)
-	global OneKeyMenu:=Var_Read("OneKeyMenu",0)
-	global EvCommand:=Var_Read("EvCommand","!C:\*Windows* file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
-	TcPath:=Var_Read("TcPath")
-	OnePath:=Var_Read("OnePath","https://www.baidu.com/s?wd=%s")
-	DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe,War3.exe,dota2.exe,League of Legends.exe")
-	Loop,parse,DisableApp,`,
-	{
-		GroupAdd,DisableGUI,ahk_exe %A_LoopField%
-	}
-	gosub,Icon_Set
-	global MenuCommonList:={}
-	if(A_DD=01){
-		Gosub,Auto_Update
-	}
-return
-;~;[图标初始化]
-Icon_Set:
-	iconAny:="shell32.dll,190"
-	iconMenu:="shell32.dll,195"
-	iconTree:="shell32.dll,53"
-	if(A_OSVersion="WIN_XP"){
-		MoveIcon:="shell32.dll,53"
-		UpIcon:="shell32.dll,53"
-		DownIcon:="shell32.dll,53"
-	}else{
-		MoveIcon:="shell32.dll,246"
-		UpIcon:="shell32.dll,247"
-		DownIcon:="shell32.dll,248"
-	}
-	if(Ext_Check(A_ScriptName,StrLen(A_ScriptName),".exe")){
-		iconAny:=A_ScriptName ",1"
-		iconMenu:=A_ScriptName ",2"
-	}
-	if(FileExist(A_ScriptDir "\ZzIcon.dll")){
-		iconAny:="ZzIcon.dll,1"
-		iconMenu:="ZzIcon.dll,2"
-		iconTree:="ZzIcon.dll,3"
-		MoveIcon:="ZzIcon.dll,4"
-		UpIcon:="ZzIcon.dll,5"
-		DownIcon:="ZzIcon.dll,6"
-	}
-	global AnyIcon:=Var_Read("AnyIcon",iconAny)
-	global AnyIconS:=StrSplit(AnyIcon,",")
-	global MenuIcon:=Var_Read("MenuIcon",iconMenu)
-	global MenuIconS:=StrSplit(MenuIcon,",")
-	global TreeIcon:=Var_Read("TreeIcon",iconTree)
-	global TreeIconS:=StrSplit(TreeIcon,",")
-	global MoveIconS:=StrSplit(MoveIcon,",")
-	global UpIconS:=StrSplit(UpIcon,",")
-	global DownIconS:=StrSplit(DownIcon,",")
-return
-;~;[后缀图标初始化]
-Icon_FileExt_Set:
-	FolderIcon:=Var_Read("FolderIcon","shell32.dll,4")
-	global FolderIconS:=StrSplit(FolderIcon,",")
-	UrlIcon:=Var_Read("UrlIcon","shell32.dll,44")
-	global UrlIconS:=StrSplit(UrlIcon,",")
-	EXEIcon:=Var_Read("EXEIcon","shell32.dll,3")
-	global EXEIconS:=StrSplit(EXEIcon,",")
-	LNKIcon:="shell32.dll,264"
-	if(A_OSVersion="WIN_XP"){
-		LNKIcon:="shell32.dll,30"
-	}
-	global LNKIconS:=StrSplit(LNKIcon,",")
-	;[RunAny菜单图标初始化]
-	Menu,Tray,Icon,启动菜单(&Z)`t%MenuHotKey%,% TreeIconS[1],% TreeIconS[2]
-	Menu,Tray,Icon,修改菜单(&E)`t%TreeHotKey1%,% EXEIconS[1],% EXEIconS[2]
-	Menu,Tray,Icon,修改文件(&F)`t%TreeIniHotKey1%,SHELL32.dll,134
-	If(MENU2FLAG){
-		Menu,Tray,Icon,修改菜单2(&W)`t%TreeHotKey2%,% EXEIconS[1],% EXEIconS[2]
-		Menu,Tray,Icon,修改文件2(&G)`t%TreeIniHotKey2%,SHELL32.dll,134
-	}
-	Menu,Tray,Icon,设置RunAny(&D)`t%RunASetHotKey%,% AnyIconS[1],% AnyIconS[2]
-	Menu,Tray,Icon,关于RunAny(&A)...,% MenuIconS[1],% MenuIconS[2]
-	Menu,exeTestMenu,add,SetCancel	;只用于测试应用图标正常添加
-return
-;~;[调用判断]
-Run_Exist:
-	;#判断菜单配置文件初始化#
-	global iniPath:=A_ScriptDir "\" RunAnyZz ".ini"
-	global iniPath2:=A_ScriptDir "\" RunAnyZz "2.ini"
-	global iniFile:=iniPath
-	global iniVar1:=""
-	global both:=1
-	IfNotExist,%iniFile%
-	{
-		TrayTip,,RunAny初始化中...,2,1
-		gosub,First_Run
-	}
-	FileRead, iniVar1, %iniPath%
-	;#判断第2菜单ini#
-	global MENU2FLAG:=false
-	IfExist,%iniPath2%
-	{
-		global iniVar2:=""
-		global MENU2FLAG:=true
-		FileRead, iniVar2, %iniPath2%
-	}
-	global iniFileVar:=iniVar1
-	;#判断Everything拓展DLL文件#
-	global everyDLL:="Everything.dll"
-	if(FileExist(A_ScriptDir "\Everything.dll")){
-		everyDLL:=DllCall("LoadLibrary", str, "Everything.dll") ? "Everything.dll" : "Everything64.dll"
-	}else if(FileExist(A_ScriptDir "\Everything64.dll")){
-		everyDLL:=DllCall("LoadLibrary", str, "Everything64.dll") ? "Everything64.dll" : "Everything.dll"
-	}
-	IfNotExist,%A_ScriptDir%\%everyDLL%
-	{
-		MsgBox,17,,没有找到%everyDLL%，将不能识别菜单中程序的路径`n需要将%everyDLL%放到【%A_ScriptDir%】目录下`n是否需要从网上下载%everyDLL%？
-		IfMsgBox Ok
-		{
-			URLDownloadToFile,https://raw.githubusercontent.com/hui-Zz/RunAny/master/%everyDLL%,%A_ScriptDir%\%everyDLL%
-			Reload
-		}
-	}
-return
-GuiIcon_Set:
-	;~;[树型菜单图标集]
-	global ImageListID := IL_Create(8)
-	IL_Add(ImageListID, "shell32.dll", 1)
-	IL_Add(ImageListID, "shell32.dll", 2)
-	IL_Add(ImageListID, EXEIconS[1], EXEIconS[2])
-	IL_Add(ImageListID, FolderIconS[1], FolderIconS[2])
-	IL_Add(ImageListID, LNKIconS[1], LNKIconS[2])
-	IL_Add(ImageListID, TreeIconS[1], TreeIconS[2])
-	IL_Add(ImageListID, UrlIconS[1], UrlIconS[2])
-	IL_Add(ImageListID, "shell32.dll", 50)
-	;#菜单加载完后，预读完成"修改菜单"的GUI图标
-	Loop, parse, iniVar1, `n, `r, %A_Space%%A_Tab%
-	{
-		Set_Icon(A_LoopField,false)
-	}
-	if(menu2){
-		Loop, parse, iniVar2, `n, `r, %A_Space%%A_Tab%
-		{
-			Set_Icon(A_LoopField,false)
-		}
-	}
-return
-Auto_Update:
-	if(FileExist(A_Temp "\RunAny_Update.bat"))
-		FileDelete, %A_Temp%\RunAny_Update.bat
-	;[下载最新的更新脚本]
-	lpszUrl:="https://raw.githubusercontent.com"
-	RunAnyGithubDir:=lpszUrl . "/hui-Zz/RunAny/master"
-	network:=DllCall("Wininet.dll\InternetCheckConnection", "Ptr", &lpszUrl, "UInt", 0x1, "UInt", 0x0, "Int")
-	if(!network){
-		MsgBox,网络异常，无法从https://github.com/hui-Zz/RunAny上读取最新版本文件
-		return
-	}
-	URLDownloadToFile,%RunAnyGithubDir%/RunAny.ahk ,%A_Temp%\temp_RunAny.ahk
-	versionReg=iS)^\t*\s*global RunAny_update_version:="([\d\.]*)"
-	Loop, read, %A_Temp%\temp_RunAny.ahk
-	{
-		if(RegExMatch(A_LoopReadLine,versionReg)){
-			versionStr:=RegExReplace(A_LoopReadLine,versionReg,"$1")
-			break
-		}
-		if(A_LoopReadLine="404: Not Found"){
-			MsgBox,文件下载异常，更新失败！
-			return
-		}
-	}
-	if(versionStr){
-		if(RunAny_update_version<versionStr){
-			MsgBox,33,RunAny检查更新,检测到RunAny有新版本`n`n%RunAny_update_version%`t版本更新后=>`t%versionStr%`n`n是否更新到最新版本？`n覆盖老版本文件，如有修改过RunAny.ahk请注意备份！
-			IfMsgBox Ok
-			{
-				TrayTip,,RunAny下载最新版本并替换老版本...,5,1
-				URLDownloadToFile,%RunAnyGithubDir%/RunAny.exe ,%A_Temp%\temp_RunAny.exe
-				gosub,RunAny_Update
-				shell := ComObjCreate("WScript.Shell")
-				shell.run(A_Temp "\RunAny_Update.bat",0)
-				ExitApp
-			}
-		}else{
-			FileDelete, %A_Temp%\temp_RunAny.ahk
-			TrayTip,,RunAny已经是最新版本。,5,1
-		}
-	}
-return
-RunAny_Update:
-Run,https://github.com/hui-Zz/RunAny/wiki/RunAny版本更新历史
-FileAppend,
-(
-@ECHO OFF & setlocal enabledelayedexpansion & TITLE RunAny更新版本
-set /a x=1
-:BEGIN
-set /a x+=1
-ping -n 2 127.1>nul
-if exist "%A_Temp%\temp_RunAny.ahk" `(
-  MOVE /y "%A_Temp%\temp_RunAny.ahk" "%A_ScriptDir%\RunAny.ahk"
-`)
-if exist "%A_Temp%\temp_RunAny.exe" `(
-  MOVE /y "%A_Temp%\temp_RunAny.exe" "%A_ScriptDir%\RunAny.exe"
-`)
-goto INDEX
-:INDEX
-if !x! GTR 10 `(
-  exit
-`)
-if exist "%A_Temp%\temp_RunAny.ahk" `(
-  goto BEGIN
-`)
-if exist "%A_Temp%\temp_RunAny.exe" `(
-  if !x! EQU 5 `(
-    taskkill /f /im %A_ScriptName%
-  `)
-  goto BEGIN
-`)
-start "" "%A_ScriptDir%\%A_ScriptName%"
-exit
-),%A_Temp%\RunAny_Update.bat
-return
 ;~;[检查后缀名]
 Ext_Check(name,len,ext){
 	len_ext:=StrLen(ext)
 	site:=InStr(name,ext,,0,1)
 	return site!=0 && site=len-len_ext+1
 }
-;~;[读取注册表]
-Var_Read(rValue,defVar=""){
-	if(IniConfig){
-		IniRead, regVar,%RunAnyConfig%, Config, %rValue%, %defVar%
-	}else{
-		RegRead, regVar, HKEY_CURRENT_USER, SOFTWARE\RunAny, %rValue%
-	}
-	if(regVar!="")
-		if(InStr(regVar,"ZzIcon.dll") && !FileExist(A_ScriptDir "\ZzIcon.dll"))
-			return defVar
-		else
-			return regVar
-	else
-		return defVar
-}
 ;~;[输出短语]
-Send_Zz(strZz){
+Send_Str_Zz(strZz){
 	Candy_Saved:=ClipboardAll
 	Clipboard:=strZz
 	SendInput,^v
 	Sleep,200
 	Clipboard:=Candy_Saved
+}
+;~;[输出热键]
+Send_Key_Zz(keyZz){
+	SendInput,%keyZz%
 }
 ;~;[获取选中]
 Get_Zz(){
@@ -1077,7 +857,7 @@ return
 	^s::gosub,TVSave
 	Esc::gosub,GuiClose
 	~F2::TVFlag:=true
-	Tab::Send_Zz(A_Tab)
+	Tab::Send_Str_Zz(A_Tab)
 #If
 GuiContextMenu:
 	If (A_GuiControl = "RunAnyTV") {
@@ -1790,6 +1570,7 @@ Menu_Set:
 	Gui,66:Add,GroupBox,xm-10 y+20 w500 h55,一键Everything [搜索选中文字、激活、隐藏]
 	Gui,66:Add,Hotkey,xm+10 yp+20 w150 vvEvKey,%EvKey%
 	Gui,66:Add,Checkbox,Checked%EvWinKey% xm+170 yp+3 vvEvWinKey,Win
+	Gui,66:Add,Checkbox,Checked%EvAutoClose% x+38 vvEvAutoClose,Everything自动关闭(不常驻)
 	Gui,66:Add,GroupBox,xm-10 y+20 w500 h100,Everything安装路径（支持相对路径..\为RunAny相对上级目录）
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp w420 r3 vvEvPath,%EvPath%
@@ -1805,7 +1586,7 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%OneWinKey% xm+155 yp+3 vvOneWinKey,Win
 	Gui,66:Add,Checkbox,Checked%OneKeyMenu% x+38 vvOneKeyMenu,绑定菜单1为一键搜索
 	Gui,66:Add,Text,xm yp+40 w325,一键搜索网址(`%s为选中文字的替代参数，多行搜索多个网址)
-	Gui,66:Add,Edit,xm yp+20 w485 r8 vvOnePath,%OnePath%
+	Gui,66:Add,Edit,xm yp+20 w485 r8 vvOneKeyUrl,%OneKeyUrl%
 	
 	Gui,66:Tab,图标+TC设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+20 w500 h220,图标自定义设置（文件路径,序号）
@@ -1836,13 +1617,13 @@ Menu_About:
 	Gui,99:Destroy
 	Gui,99:Margin,20,20
 	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v%RunAny_update_version% @%RunAny_update_time% `n增加更新版本功能
+	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v%RunAny_update_version% @%RunAny_update_time% 
 	Gui,99:Font
 	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键)
 	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
 	Gui,99:Add,Text,y+10
 	Gui,99:Font,,Consolas
-	Gui,99:Add,Text,y+10, by Zz 建议：hui0.0713@gmail.com
+	Gui,99:Add,Text,y+10, 作者：hui-Zz 建议：hui0.0713@gmail.com
 	Gui,99:Add,Link,y+10,<a href="https://github.com/hui-Zz/RunAny">GitHub：https://github.com/hui-Zz/RunAny</a>
 	Gui,99:Add,Text,y+10, 讨论QQ群：
 	Gui,99:Add,Link,y+10,<a href="https://jq.qq.com/?_wv=1027&k=445Ug7u">246308937【RunAny快速启动一劳永逸】</a>
@@ -1878,15 +1659,14 @@ SetOK:
 			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		}
 	}
-	global vIniConfig
-	if(vIniConfig || FileExist(RunAnyConfig)){
+	if(FileExist(RunAnyConfig)){
 		IniWrite,%vIniConfig%,%RunAnyConfig%,Config,IniConfig
 	}
 	SetValueList:=["DisableApp"]
 	SetValueList.Push("HideFail", "HideUnSelect", "HideRecent", "HideWeb", "HideSend")
 	SetValueList.Push("MenuKey", "MenuWinKey", "MenuKey2", "MenuWinKey2")
-	SetValueList.Push("EvKey", "EvWinKey", "EvPath","EvCommand")
-	SetValueList.Push("OneKey", "OneWinKey", "OnePath", "OneKeyWeb", "OneKeyFolder", "OneKeyFile", "OneKeyMenu")
+	SetValueList.Push("EvKey", "EvWinKey", "EvPath","EvCommand","EvAutoClose")
+	SetValueList.Push("OneKey", "OneWinKey", "OneKeyUrl", "OneKeyWeb", "OneKeyFolder", "OneKeyFile", "OneKeyMenu")
 	SetValueList.Push("TcPath", "TreeIcon", "FolderIcon", "UrlIcon", "EXEIcon", "AnyIcon", "MenuIcon")
 	SetValueList.Push("TreeKey1", "TreeWinKey1", "TreeKey2", "TreeWinKey2", "TreeIniKey1", "TreeIniWinKey1", "TreeIniKey2", "TreeIniWinKey2")
 	SetValueList.Push("RunASetKey", "RunASetWinKey", "RunAReloadKey", "RunAReloadWinKey", "RunASuspendKey", "RunASuspendWinKey", "RunAExitKey", "RunAExitWinKey")
@@ -1906,7 +1686,7 @@ SetReSet:
 	Reload
 return
 setMenu2:
-	MsgBox,33,开启第2个菜单,确定开启第2个菜单吗？
+	MsgBox,33,开启第2个菜单,确定开启第2个菜单吗？`n会在目录生成RunAny2.ini（还原1个菜单可以删除或重命名RunAny2.ini）
 	IfMsgBox Ok
 	{
 		text2=;这里添加第2菜单内容
@@ -1922,14 +1702,261 @@ UnCheckWebSend:
 	}
 return
 Reg_Set(vGui, var, sz){
-	if(vIniConfig){
+	if(vGui!=var){
+		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, %sz%, %vGui%
 		IniWrite,%vGui%,%RunAnyConfig%,Config,%sz%
-	}else{
-		if(vGui!=var){
-			RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, %sz%, %vGui%
-		}
 	}
 }
+;~;[读取注册表]
+Var_Read(rValue,defVar=""){
+	if(IniConfig){
+		IniRead, regVar,%RunAnyConfig%, Config, %rValue%, %defVar%
+	}else{
+		RegRead, regVar, HKEY_CURRENT_USER, SOFTWARE\RunAny, %rValue%
+	}
+	if(regVar!=""){
+		if(InStr(regVar,"ZzIcon.dll") && !FileExist(A_ScriptDir "\ZzIcon.dll"))
+			return defVar
+		else
+			return regVar
+	}else{
+		return defVar
+	}
+}
+;══════════════════════════════════════════════════════════════════
+;~;[初始化]
+;══════════════════════════════════════════════════════════════════
+Var_Set:
+	;~;[RunAny设置参数]
+	RegRead, AutoRun, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
+	AutoRun:=AutoRun ? 1 : 0
+	global IniConfig:=1
+	if(FileExist(RunAnyConfig)){
+		IniRead,IniConfig,%RunAnyConfig%,Config,IniConfig,1
+	}
+	global HideFail:=Var_Read("HideFail",0)
+	global HideUnSelect:=Var_Read("HideUnSelect",0)
+	global HideRecent:=Var_Read("HideRecent",0)
+	global HideWeb:=Var_Read("HideWeb",0)
+	global HideSend:=Var_Read("HideSend",0)
+	global OneKeyWeb:=Var_Read("OneKeyWeb",1)
+	global OneKeyFolder:=Var_Read("OneKeyFolder",1)
+	global OneKeyFile:=Var_Read("OneKeyFile",1)
+	global OneKeyMenu:=Var_Read("OneKeyMenu",0)
+	global EvCommand:=Var_Read("EvCommand","!C:\*Windows* file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
+	global EvAutoClose:=Var_Read("EvAutoClose",0)
+	global TcPath:=Var_Read("TcPath")
+	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
+	DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe,War3.exe,dota2.exe,League of Legends.exe")
+	Loop,parse,DisableApp,`,
+	{
+		GroupAdd,DisableGUI,ahk_exe %A_LoopField%
+	}
+	gosub,Icon_Set
+	global MenuCommonList:={}
+	if(A_DD=01 || A_DD=15){
+		Gosub,Auto_Update
+	}
+return
+;~;[图标初始化]
+Icon_Set:
+	iconAny:="shell32.dll,190"
+	iconMenu:="shell32.dll,195"
+	iconTree:="shell32.dll,53"
+	if(A_OSVersion="WIN_XP"){
+		MoveIcon:="shell32.dll,53"
+		UpIcon:="shell32.dll,53"
+		DownIcon:="shell32.dll,53"
+	}else{
+		MoveIcon:="shell32.dll,246"
+		UpIcon:="shell32.dll,247"
+		DownIcon:="shell32.dll,248"
+	}
+	if(Ext_Check(A_ScriptName,StrLen(A_ScriptName),".exe")){
+		iconAny:=A_ScriptName ",1"
+		iconMenu:=A_ScriptName ",2"
+	}
+	if(FileExist(A_ScriptDir "\ZzIcon.dll")){
+		iconAny:="ZzIcon.dll,1"
+		iconMenu:="ZzIcon.dll,2"
+		iconTree:="ZzIcon.dll,3"
+		MoveIcon:="ZzIcon.dll,4"
+		UpIcon:="ZzIcon.dll,5"
+		DownIcon:="ZzIcon.dll,6"
+	}
+	global AnyIcon:=Var_Read("AnyIcon",iconAny)
+	global AnyIconS:=StrSplit(AnyIcon,",")
+	global MenuIcon:=Var_Read("MenuIcon",iconMenu)
+	global MenuIconS:=StrSplit(MenuIcon,",")
+	global TreeIcon:=Var_Read("TreeIcon",iconTree)
+	global TreeIconS:=StrSplit(TreeIcon,",")
+	global MoveIconS:=StrSplit(MoveIcon,",")
+	global UpIconS:=StrSplit(UpIcon,",")
+	global DownIconS:=StrSplit(DownIcon,",")
+return
+;~;[后缀图标初始化]
+Icon_FileExt_Set:
+	FolderIcon:=Var_Read("FolderIcon","shell32.dll,4")
+	global FolderIconS:=StrSplit(FolderIcon,",")
+	UrlIcon:=Var_Read("UrlIcon","shell32.dll,44")
+	global UrlIconS:=StrSplit(UrlIcon,",")
+	EXEIcon:=Var_Read("EXEIcon","shell32.dll,3")
+	global EXEIconS:=StrSplit(EXEIcon,",")
+	LNKIcon:="shell32.dll,264"
+	if(A_OSVersion="WIN_XP"){
+		LNKIcon:="shell32.dll,30"
+	}
+	global LNKIconS:=StrSplit(LNKIcon,",")
+	;[RunAny菜单图标初始化]
+	Menu,Tray,Icon,启动菜单(&Z)`t%MenuHotKey%,% TreeIconS[1],% TreeIconS[2]
+	Menu,Tray,Icon,修改菜单(&E)`t%TreeHotKey1%,% EXEIconS[1],% EXEIconS[2]
+	Menu,Tray,Icon,修改文件(&F)`t%TreeIniHotKey1%,SHELL32.dll,134
+	If(MENU2FLAG){
+		Menu,Tray,Icon,修改菜单2(&W)`t%TreeHotKey2%,% EXEIconS[1],% EXEIconS[2]
+		Menu,Tray,Icon,修改文件2(&G)`t%TreeIniHotKey2%,SHELL32.dll,134
+	}
+	Menu,Tray,Icon,设置RunAny(&D)`t%RunASetHotKey%,% AnyIconS[1],% AnyIconS[2]
+	Menu,Tray,Icon,关于RunAny(&A)...,% MenuIconS[1],% MenuIconS[2]
+	Menu,exeTestMenu,add,SetCancel	;只用于测试应用图标正常添加
+return
+;~;[调用判断]
+Run_Exist:
+	;#判断菜单配置文件初始化#
+	global iniPath:=A_ScriptDir "\" RunAnyZz ".ini"
+	global iniPath2:=A_ScriptDir "\" RunAnyZz "2.ini"
+	global iniFile:=iniPath
+	global iniVar1:=""
+	global both:=1
+	IfNotExist,%iniFile%
+	{
+		TrayTip,,RunAny初始化中...,2,1
+		gosub,First_Run
+	}
+	FileRead, iniVar1, %iniPath%
+	;#判断第2菜单ini#
+	global MENU2FLAG:=false
+	IfExist,%iniPath2%
+	{
+		global iniVar2:=""
+		global MENU2FLAG:=true
+		FileRead, iniVar2, %iniPath2%
+	}
+	global iniFileVar:=iniVar1
+	;#判断Everything拓展DLL文件#
+	global everyDLL:="Everything.dll"
+	if(FileExist(A_ScriptDir "\Everything.dll")){
+		everyDLL:=DllCall("LoadLibrary", str, "Everything.dll") ? "Everything.dll" : "Everything64.dll"
+	}else if(FileExist(A_ScriptDir "\Everything64.dll")){
+		everyDLL:=DllCall("LoadLibrary", str, "Everything64.dll") ? "Everything64.dll" : "Everything.dll"
+	}
+	IfNotExist,%A_ScriptDir%\%everyDLL%
+	{
+		MsgBox,17,,没有找到%everyDLL%，将不能识别菜单中程序的路径`n需要将%everyDLL%放到【%A_ScriptDir%】目录下`n是否需要从网上下载%everyDLL%？
+		IfMsgBox Ok
+		{
+			URLDownloadToFile,https://raw.githubusercontent.com/hui-Zz/RunAny/master/%everyDLL%,%A_ScriptDir%\%everyDLL%
+			Reload
+		}
+	}
+return
+GuiIcon_Set:
+	;~;[树型菜单图标集]
+	global ImageListID := IL_Create(8)
+	IL_Add(ImageListID, "shell32.dll", 1)
+	IL_Add(ImageListID, "shell32.dll", 2)
+	IL_Add(ImageListID, EXEIconS[1], EXEIconS[2])
+	IL_Add(ImageListID, FolderIconS[1], FolderIconS[2])
+	IL_Add(ImageListID, LNKIconS[1], LNKIconS[2])
+	IL_Add(ImageListID, TreeIconS[1], TreeIconS[2])
+	IL_Add(ImageListID, UrlIconS[1], UrlIconS[2])
+	IL_Add(ImageListID, "shell32.dll", 50)
+	;#菜单加载完后，预读完成"修改菜单"的GUI图标
+	Loop, parse, iniVar1, `n, `r, %A_Space%%A_Tab%
+	{
+		Set_Icon(A_LoopField,false)
+	}
+	if(menu2){
+		Loop, parse, iniVar2, `n, `r, %A_Space%%A_Tab%
+		{
+			Set_Icon(A_LoopField,false)
+		}
+	}
+return
+Auto_Update:
+	if(FileExist(A_Temp "\RunAny_Update.bat"))
+		FileDelete, %A_Temp%\RunAny_Update.bat
+	;[下载最新的更新脚本]
+	lpszUrl:="https://raw.githubusercontent.com"
+	RunAnyGithubDir:=lpszUrl . "/hui-Zz/RunAny/master"
+	network:=DllCall("Wininet.dll\InternetCheckConnection", "Ptr", &lpszUrl, "UInt", 0x1, "UInt", 0x0, "Int")
+	if(!network){
+		MsgBox,网络异常，无法从https://github.com/hui-Zz/RunAny上读取最新版本文件
+		return
+	}
+	URLDownloadToFile,%RunAnyGithubDir%/RunAny.ahk ,%A_Temp%\temp_RunAny.ahk
+	versionReg=iS)^\t*\s*global RunAny_update_version:="([\d\.]*)"
+	Loop, read, %A_Temp%\temp_RunAny.ahk
+	{
+		if(RegExMatch(A_LoopReadLine,versionReg)){
+			versionStr:=RegExReplace(A_LoopReadLine,versionReg,"$1")
+			break
+		}
+		if(A_LoopReadLine="404: Not Found"){
+			MsgBox,文件下载异常，更新失败！
+			return
+		}
+	}
+	if(versionStr){
+		if(RunAny_update_version<versionStr){
+			MsgBox,33,RunAny检查更新,检测到RunAny有新版本`n`n%RunAny_update_version%`t版本更新后=>`t%versionStr%`n`n是否更新到最新版本？`n覆盖老版本文件，如有修改过RunAny.ahk请注意备份！
+			IfMsgBox Ok
+			{
+				TrayTip,,RunAny下载最新版本并替换老版本...,5,1
+				URLDownloadToFile,%RunAnyGithubDir%/RunAny.exe ,%A_Temp%\temp_RunAny.exe
+				gosub,RunAny_Update
+				shell := ComObjCreate("WScript.Shell")
+				shell.run(A_Temp "\RunAny_Update.bat",0)
+				ExitApp
+			}
+		}else{
+			FileDelete, %A_Temp%\temp_RunAny.ahk
+			TrayTip,,RunAny已经是最新版本。,5,1
+		}
+	}
+return
+RunAny_Update:
+Run,https://github.com/hui-Zz/RunAny/wiki/RunAny版本更新历史
+FileAppend,
+(
+@ECHO OFF & setlocal enabledelayedexpansion & TITLE RunAny更新版本
+set /a x=1
+:BEGIN
+set /a x+=1
+ping -n 2 127.1>nul
+if exist "%A_Temp%\temp_RunAny.ahk" `(
+  MOVE /y "%A_Temp%\temp_RunAny.ahk" "%A_ScriptDir%\RunAny.ahk"
+`)
+if exist "%A_Temp%\temp_RunAny.exe" `(
+  MOVE /y "%A_Temp%\temp_RunAny.exe" "%A_ScriptDir%\RunAny.exe"
+`)
+goto INDEX
+:INDEX
+if !x! GTR 10 `(
+  exit
+`)
+if exist "%A_Temp%\temp_RunAny.ahk" `(
+  goto BEGIN
+`)
+if exist "%A_Temp%\temp_RunAny.exe" `(
+  if !x! EQU 5 `(
+    taskkill /f /im %A_ScriptName%
+  `)
+  goto BEGIN
+`)
+start "" "%A_ScriptDir%\%A_ScriptName%"
+exit
+),%A_Temp%\RunAny_Update.bat
+return
 ;══════════════════════════════════════════════════════════════════
 ;~;[托盘菜单]
 MenuTray:
@@ -2095,54 +2122,63 @@ First_Run:
 FileAppend,
 (
 ;以【;】开头代表注释
-;以【-】开头+名称表示1级节点
+;以【-】开头+名称表示1级分类
 -常用(&App)
-	;以【--】开头+名称表示2级节点树
-	--佳软
-		;在【|】前加上TC的简称显示
-		TC|Totalcmd.exe
-		StrokesPlus.exe
-		Everything.exe
-		Ditto.exe
-	--
 	chrome.exe
 	;多个同名iexplore.exe用全路径指定运行32位IE
-	I&E|C:\Program Files (x86)\Internet Explorer\iexplore.exe
+	;在【|】前加上IE(&E)的简称显示
+	IE(&E)|C:\Program Files (x86)\Internet Explorer\iexplore.exe
 	;2级分隔符【--】
 	--
 	Wiz.exe
--编辑(&Edit)
-	;在别名后面添加_:数字形式来透明启动应用(默认不透明,1-100是全透明到不透明)
-	记事本(&N)_:88|notepad.exe
+-办公(&Work)
+	word(&W)|winword.exe
+	Excel(&E)|excel.exe
+	PPT(&T)|powerpnt.exe
+	;以【--】开头名称表示2级分类
+	--WPS
+		WPS(&W)|WPS.exe
+		ET(&E)|et.exe
+		WPP(&P)|wpp.exe
 	--
-	winword.exe
-	excel.exe
-	powerpnt.exe
--图片(im&G)
-	画图(&T)|mspaint.exe
-	ACDSee.exe
-	XnView.exe
-	IrfanView.exe
--影音(&Video)
-	云音乐(&C)|cloudmusic.exe
-	--
-	QQPlayer.exe
-	PotPlayer.exe
 -网址(&Web)
 	;在别名最末尾添加Tab制表符+热键(参考AHK写法:^代表Ctrl !代表Alt #代表Win +代表Shift)，如选中文字按Alt+z百度
 	百度(&B)	!z|https://www.baidu.com/s?wd=
 	翻译(&F)	#z|http://translate.google.cn/#auto/zh-CN/
+	异次元软件|http://www.iplaysoft.com/search/?s=548512288484505211&q=
 	淘宝(&T)|https://s.taobao.com/search?q=
 	京东(&D)|http://search.jd.com/Search?keyword=
 	知乎(&Z)|https://www.zhihu.com/search?type=content&q=
 	B站|http://search.bilibili.com/all?keyword=
 	--
 	RunAny地址|https://github.com/hui-Zz/RunAny
+-图片(im&G)
+	画图(&T)|mspaint.exe
+	ACDSee.exe
+	XnView.exe
+	IrfanView.exe
+-影音(&Video)|avi mkv mp4 rm rmvb flv wmv swf mp3
+	QQPlayer.exe
+	PotPlayer.exe
+	XMP.exe
+	--
+	云音乐(&C)|cloudmusic.exe
+	QQ音乐|QQMusic.exe
+-编辑(&Edit)
+	;在别名后面添加_:数字形式来透明启动应用(默认不透明,1-100是全透明到不透明)
+	记事本(&N)_:88|notepad.exe
 -文件(&File)
 	WinRAR.exe
 -系统(&Sys)
 	cmd.exe
 	控制面板(&S)|Control.exe
+	;在程序名后空格+带参数启动
+	hosts文件|notepad.exe C:\Windows\System32\drivers\etc\hosts
+--佳软(&R)
+	TC|Totalcmd.exe
+	StrokesPlus.exe
+	Everything.exe
+	Ditto.exe
 ),%iniFile%
 Gosub,Desktop_Append
 FileAppend,
