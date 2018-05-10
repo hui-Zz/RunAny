@@ -1710,7 +1710,7 @@ Reg_Set(vGui, var, sz){
 ;~;[读取注册表]
 Var_Read(rValue,defVar=""){
 	if(IniConfig){
-		IniRead, regVar,%RunAnyConfig%, Config, %rValue%, %defVar%
+		IniRead, regVar,%RunAnyConfig%, Config, %rValue%,% defVar ? defVar : A_Space
 	}else{
 		RegRead, regVar, HKEY_CURRENT_USER, SOFTWARE\RunAny, %rValue%
 	}
@@ -1840,6 +1840,10 @@ Run_Exist:
 		global iniVar2:=""
 		global MENU2FLAG:=true
 		FileRead, iniVar2, %iniPath2%
+	}
+	;#判断配置文件
+	if(!FileExist(RunAnyConfig)){
+		IniWrite,%IniConfig%,%RunAnyConfig%,Config,IniConfig
 	}
 	global iniFileVar:=iniVar1
 	;#判断Everything拓展DLL文件#
@@ -2124,19 +2128,20 @@ FileAppend,
 ;以【;】开头代表注释
 ;以【-】开头+名称表示1级分类
 -常用(&App)
-	chrome.exe
+	Chrome浏览器|chrome.exe
 	;多个同名iexplore.exe用全路径指定运行32位IE
 	;在【|】前加上IE(&E)的简称显示
 	IE(&E)|C:\Program Files (x86)\Internet Explorer\iexplore.exe
 	;2级分隔符【--】
 	--
-	Wiz.exe
--办公(&Work)
+	StrokesPlus鼠标手势|StrokesPlus.exe
+	Ditto剪贴板|Ditto.exe
+-办公(Wo&rk)
 	word(&W)|winword.exe
 	Excel(&E)|excel.exe
 	PPT(&T)|powerpnt.exe
 	;以【--】开头名称表示2级分类
-	--WPS
+	--WPS(&S)
 		WPS(&W)|WPS.exe
 		ET(&E)|et.exe
 		WPP(&P)|wpp.exe
@@ -2169,16 +2174,13 @@ FileAppend,
 	记事本(&N)_:88|notepad.exe
 -文件(&File)
 	WinRAR.exe
+	TC文件管理|Totalcmd.exe
+	Everything文件秒搜|Everything.exe
 -系统(&Sys)
 	cmd.exe
 	控制面板(&S)|Control.exe
 	;在程序名后空格+带参数启动
 	hosts文件|notepad.exe C:\Windows\System32\drivers\etc\hosts
---佳软(&R)
-	TC|Totalcmd.exe
-	StrokesPlus.exe
-	Everything.exe
-	Ditto.exe
 ),%iniFile%
 Gosub,Desktop_Append
 FileAppend,
