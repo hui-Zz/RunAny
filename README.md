@@ -68,7 +68,8 @@ __【多台电脑你只需配置一套软件列表，就能到处运行，网盘
 ```
 9. **全局热键：** 在别名最末尾添加<kbd>Tab</kbd>制表符+热键（热键格式参考AHK写法:^代表<kbd>Ctrl</kbd> !代表<kbd>Alt</kbd> #代表<kbd>Win</kbd>+代表<kbd>Shift</kbd>），如按 `Alt+b`一键百度、 `Win+z`一键翻译、按 `Alt+z`启动或激活浏览器：
 ```ini
-百度(&B)	!b|https://www.baidu.com/s?wd=%s
+百度(&B)	!b|https://www.baidu.com/s?wd=
+谷歌(&G)	!g|http://www.google.com/search?q=%s&gws_rd=ssl
 翻译(&F)	#z|http://translate.google.cn/#auto/zh-CN/
 浏览器(&Z)	!z|chrome.exe
 ```

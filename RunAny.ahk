@@ -2388,6 +2388,7 @@ FileAppend,
 -网址(&Web)
 	;在别名最末尾添加Tab制表符+热键(参考AHK写法:^代表Ctrl !代表Alt #代表Win +代表Shift)，如选中文字按Alt+z百度
 	百度(&B)	!z|https://www.baidu.com/s?wd=
+	谷歌(&G)	!g|http://www.google.com/search?q=`%s&gws_rd=ssl
 	翻译(&F)	#z|http://translate.google.cn/#auto/zh-CN/
 	异次元软件|http://www.iplaysoft.com/search/?s=548512288484505211&q=
 	淘宝(&T)|https://s.taobao.com/search?q=
