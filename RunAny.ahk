@@ -745,89 +745,6 @@ Run_Tr(program,trNum,newOpen=false){
 	return
 }
 ;══════════════════════════════════════════════════════════════════
-;~;[添加编辑新添加的菜单项]
-Menu_Add_File_Item:
-	if(iniFile=iniPath){
-		iniFileVar:=iniVar1
-		TREENO:=1
-	}else{
-		iniFileVar:=iniVar2
-		TREENO:=2
-	}
-	SplitPath,selectZz,fileName,,,itemName
-	any:=MenuObj[itemName] ? MenuObj[itemName] : MenuObj[fileName]
-	if(any && any!=selectZz){
-		fileName:=selectZz
-	}
-	Z_ThisMenu:=A_ThisMenu
-	Z_ThisMenuItem:=A_ThisMenuItem
-	if(Z_ThisMenuItem="0【添加到此菜单】"){
-		X_ThisMenuItem:=Z_ThisMenuItem
-		itemContent:=MenuObjTree%TREENO%[Z_ThisMenu][(MenuObjTree%TREENO%[Z_ThisMenu].MaxIndex())]
-		Z_ThisMenuItem:=Get_Obj_Name(itemContent)
-	}
-	if(!Z_ThisMenuItem)
-		return
-	menuGuiFlag:=false
-	thisMenuItemStr:=X_ThisMenuItem="0【添加到此菜单】" ? "" : "菜单项（" Z_ThisMenuItem "）的上面"
-	thisMenuStr:=Z_ThisMenu=RunAnyZz ? "新增项会在『根目录』分类下" : "新增项会在『" Z_ThisMenu "』分类下"
-	itemGlobalWinKey:=itemGlobalWinKey ? itemGlobalWinKey : 0
-	gosub,Menu_Item_Edit
-return
-;~;[保存新添加的菜单项]
-SetSaveItem:
-	Gui,SaveItem:Submit
-	saveText:=tabText:=itemGlobalKeyStr:=""
-	menuFlag:=false	;判断是否定位到要插入的菜单位置
-	endFlag:=false		;判断是否插入到末尾
-	rootFlag:=true		;判断是否为根目录
-	itemIndex:=0
-	splitStr:=vitemName && vfileName ? "|" : ""
-	if(vitemGlobalKey){
-		itemGlobalKey:=vitemGlobalWinKey ? "#" . vitemGlobalKey : vitemGlobalKey
-		itemGlobalKeyStr:=A_Tab . itemGlobalKey
-	}
-	;~;[读取菜单内容插入新菜单项到RunAny.ini]
-	Loop, parse, iniFileVar, `n, `r
-	{
-		itemContent=%A_LoopField%
-		if(InStr(itemContent,"-")=1){
-			rootFlag:=false
-			if(itemContent="-")
-				rootFlag:=true
-			if(RegExMatch(itemContent,"S)^-+" Z_ThisMenu)){
-				menuFlag:=true
-				;已定位到要插入的菜单位置，计算出前面添加的制表符数量
-				treeLevel:=StrLen(RegExReplace(itemContent,"S)(^-+).+","$1"))
-				tabText:=Set_Tab(treeLevel)
-			}
-		}else if(rootFlag && Z_ThisMenu=RunAnyZz){	;如果要添加到根目录
-			menuFlag:=true
-		}
-		if(menuFlag){
-			menuItem:=Get_Obj_Name(itemContent)
-			if(menuItem=Z_ThisMenuItem){
-				if(!X_ThisMenuItem="0【添加到此菜单】"){
-					saveText.=tabText . vitemName . itemGlobalKeyStr . splitStr . vfileName . "`n"
-				}else{
-					endFind:=true
-				}
-				menuFlag:=false
-			}
-		}
-		saveText.=A_LoopField . "`n"
-		if(endFind){
-			saveText.=tabText . vitemName . itemGlobalKeyStr . splitStr . vfileName . "`n"
-			endFind:=false
-		}
-	}
-	if(saveText){
-		FileDelete,%iniFile%
-		FileAppend,%saveText%,%iniFile%
-		Reload
-	}
-return
-;══════════════════════════════════════════════════════════════════
 ;~;[一键Everything][搜索选中文字][激活][隐藏]
 Ev_Show:
 	selectZz:=Get_Zz()
@@ -900,6 +817,18 @@ Get_Zz(){
 	Clipboard:=Candy_Saved
 	return CandySel
 }
+Get_Tree_Name(z_item,ig_tab=false){
+	if(InStr(z_item,"|")){
+		menuDiy:=StrSplit(z_item,"|")
+		z_item:=menuDiy[1]
+		if(!ig_tab && InStr(menuDiy[1],"`t")){
+			menuKeyStr:=RegExReplace(menuDiy[1], "S)\t+", A_Tab)
+			menuKeys:=StrSplit(menuKeyStr,"`t")
+			z_item:=menuKeys[1]
+		}
+	}
+	return RegExReplace(z_item,"S)^-+")
+}
 ;~;[获取应用名称]
 Get_Obj_Name(z_item){
 	if(InStr(z_item,"|")){
@@ -924,6 +853,101 @@ Get_Obj_Path(z_item){
 		return MenuObj[appName]
 	}
 }
+;══════════════════════════════════════════════════════════════════
+;~;[添加编辑新添加的菜单项]
+Menu_Add_File_Item:
+	if(iniFile=iniPath){
+		iniFileVar:=iniVar1
+		TREENO:=1
+	}else{
+		iniFileVar:=iniVar2
+		TREENO:=2
+	}
+	SplitPath,selectZz,fileName,,,itemName
+	any:=MenuObj[itemName] ? MenuObj[itemName] : MenuObj[fileName]
+	if(any && any!=selectZz){
+		fileName:=selectZz
+	}
+	;初始化要添加的内容
+	itemGlobalWinKey:=0
+	itemGlobalHotKey:=itemGlobalKey:=X_ThisMenuItem:=""
+	Z_ThisMenu:=A_ThisMenu
+	Z_ThisMenuItem:=A_ThisMenuItem
+	if(Z_ThisMenuItem="0【添加到此菜单】"){
+		X_ThisMenuItem:=Z_ThisMenuItem
+		itemContent:=MenuObjTree%TREENO%[Z_ThisMenu][(MenuObjTree%TREENO%[Z_ThisMenu].MaxIndex())]
+		Z_ThisMenuItem:=Get_Obj_Name(itemContent)
+	}
+	if(!Z_ThisMenu)
+		return
+	menuGuiFlag:=false
+	thisMenuItemStr:=X_ThisMenuItem="0【添加到此菜单】" ? "" : "菜单项（" Z_ThisMenuItem "）的上面"
+	thisMenuStr:=Z_ThisMenu=RunAnyZz ? "新增项会在『根目录』分类下" : "新增项会在『" Z_ThisMenu "』分类下"
+	gosub,Menu_Item_Edit
+return
+;~;[保存新添加的菜单项]
+SetSaveItem:
+	Gui,SaveItem:Submit,NoHide
+	saveText:=tabText:=itemGlobalKeyStr:=""
+	menuFlag:=false	;判断是否定位到要插入的菜单位置
+	endFlag:=false		;判断是否插入到末尾
+	rootFlag:=true		;判断是否为根目录
+	itemIndex:=0
+	splitStr:=vitemName && vfileName ? "|" : ""
+	if(vitemGlobalKey){
+		if(!vitemName){
+			MsgBox, 48, ,设置热键后必须填写菜单项名
+			return
+		}
+		itemGlobalKey:=vitemGlobalWinKey ? "#" . vitemGlobalKey : vitemGlobalKey
+		itemGlobalKeyStr:=A_Tab . itemGlobalKey
+	}
+	Gui,SaveItem:Destroy
+	;~;[读取菜单内容插入新菜单项到RunAny.ini]
+	Loop, parse, iniFileVar, `n, `r
+	{
+		itemContent=%A_LoopField%
+		if(InStr(itemContent,"-")=1){
+			rootFlag:=false
+			treeContent:=Get_Tree_Name(itemContent,true)
+			if(itemContent="-")
+				rootFlag:=true
+			if(treeContent=Z_ThisMenu){	;定位到要插入的菜单位置
+				menuFlag:=true
+				;计算出前面添加的制表符数量
+				treeLevel:=StrLen(RegExReplace(itemContent,"S)(^-+).+","$1"))
+				tabText:=Set_Tab(treeLevel)
+			}
+		}else if(rootFlag && Z_ThisMenu=RunAnyZz){	;如果要添加到根目录
+			menuFlag:=true
+		}
+		if(menuFlag){
+			menuItem:=Get_Obj_Name(itemContent)
+			if(menuItem=Z_ThisMenuItem){
+				if(X_ThisMenuItem!="0【添加到此菜单】"){
+					saveText.=tabText . vitemName . itemGlobalKeyStr . splitStr . vfileName . "`n"
+				}else{
+					endFind:=true
+				}
+				menuFlag:=false
+			}else if (Z_ThisMenuItem="" && (X_ThisMenuItem="" || X_ThisMenuItem="0【添加到此菜单】")){
+				endFind:=true
+				menuFlag:=false
+			}
+		}
+		saveText.=A_LoopField . "`n"
+		if(endFind){
+			saveText.=tabText . vitemName . itemGlobalKeyStr . splitStr . vfileName . "`n"
+			endFind:=false
+		}
+	}
+	if(saveText){
+		stringtrimright, saveText, saveText, 1
+		FileDelete,%iniFile%
+		FileAppend,%saveText%,%iniFile%
+		Reload
+	}
+return
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 ;~;[菜单配置Gui]
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -1131,31 +1155,39 @@ Menu_Item_Edit:
 	Gui,SaveItem:Font,,Microsoft YaHei
 	Gui,SaveItem:Add, GroupBox,xm y+10 w500 h210,新增菜单项
 	Gui,SaveItem:Add, Text, xm+10 y+30 y35 w60, 菜单项名：
-	Gui,SaveItem:Add, Edit, x+5 yp-3 w250 vvitemName, %itemName%
+	Gui,SaveItem:Add, Edit, x+5 yp-3 w250 vvitemName GFileNameChange, %itemName%
 	Gui,SaveItem:Add, Text, x+20 yp+3 w80, Tab制表符
 	Gui,SaveItem:Add, Text, xm+10 y+15 w60, 全局热键：
 	Gui,SaveItem:Add, Hotkey,x+5 yp-3 w150 vvitemGlobalKey,%itemGlobalKey%
 	Gui,SaveItem:Add, Checkbox,Checked%itemGlobalWinKey% x+5 yp+3 vvitemGlobalWinKey,Win
 	Gui,SaveItem:Add, Text, x+20 yp w200, %itemGlobalHotKey%
-	Gui,SaveItem:Add, Text, xm+10 y+10 w120, 分 隔 符 ：  |
+	Gui,SaveItem:Add, Text, xm+10 y+10 w100, 分 隔 符 ：  |
+	Gui,SaveItem:Add, Text, x+10 yp w350 cRed vvPrompt GSetSaveItemFullPath, 注意：RunAny不支持当前后缀无路径运行，请使用全路径
 	Gui,SaveItem:Add, Text, xm+10 y+10 w60,% InStr(itemName,"-") ? "文件后缀：" : "启动路径："
-	Gui,SaveItem:Add, Edit, x+5 yp w400 r3 vvfileName, %fileName%
+	Gui,SaveItem:Add, Edit, x+5 yp w400 r3 vvfileName GFileNameChange, %fileName%
 	Gui,SaveItem:Font
 	Gui,SaveItem:Add,Button,Default xm+150 y+10 w75 G%SaveLabel%,保存(&Y)
 	Gui,SaveItem:Add,Button,x+20 w75 GSetCancel,取消(&C)
 	Gui,SaveItem:Add, Text, xm y+25, %thisMenuStr% %thisMenuItemStr%
 	Gui,SaveItem:Show,,新增菜单项 - %RunAnyZz%
+	GuiControl,SaveItem:Hide, vPrompt
+	thisMenuStr:=thisMenuItemStr:=""
 return
 SetSaveItemGui:
-	Gui,SaveItem:Submit
-	Gui,1:Default
-	splitStr:=vitemName && vfileName ? "|" : ""
+	Gui,SaveItem:Submit,NoHide
 	itemGlobalKeyStr:=""
 	if(vitemGlobalKey){
+		if(!vitemName){
+			MsgBox, 48, ,设置热键后必须填写菜单项名
+			return
+		}
 		itemGlobalKey:=vitemGlobalWinKey ? "#" . vitemGlobalKey : vitemGlobalKey
 		itemGlobalKeyStr:=A_Tab . itemGlobalKey
 	}
+	splitStr:=vitemName && vfileName ? "|" : ""
 	saveText:=vitemName . itemGlobalKeyStr . splitStr . vfileName
+	Gui,SaveItem:Destroy
+	Gui,1:Default
 	TV_Modify(selID, , saveText)
 	TV_Modify(selID, "Select Vis")
 	TV_Modify(selID, Set_Icon(saveText))
@@ -1169,6 +1201,30 @@ SetSaveItemGui:
 		addID:=
 		TV_MoveMenuClean()
 	}
+return
+FileNameChange:
+	Gui,SaveItem:Submit, NoHide
+	EvExtFalg:=false
+	filePath:=!vfileName && vitemName ? vitemName : vfileName
+	if(filePath){
+		fileValue:=RegExReplace(filePath,"iS)(.*?\..*?)($| .*)","$1")	;去掉参数
+		SplitPath, fileValue, fName,, fExt  ; 获取扩展名
+		Loop,% EvCommandExtList.MaxIndex()
+		{
+			EvCommandExtStr:=StrReplace(EvCommandExtList[A_Index],"*.")
+			if(fExt=EvCommandExtStr){
+				EvExtFalg:=true
+			}
+		}
+		if(!EvExtFalg && fExt)
+			GuiControl, SaveItem:Show, vPrompt
+		else
+			GuiControl, SaveItem:Hide, vPrompt
+	}
+return
+SetSaveItemFullPath:
+	if(selectZz)
+		GuiControl, SaveItem:, vfileName, %selectZz%
 return
 TVDown:
 	TV_Move(true)
@@ -1985,6 +2041,8 @@ Var_Set:
 	global TcPath:=Var_Read("TcPath")
 	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
 	DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe,War3.exe,dota2.exe,League of Legends.exe")
+	EvCommandVar:=RegExReplace(EvCommand,"i).*file:(\*\.[^\s]*).*","$1")
+	global EvCommandExtList:=StrSplit(EvCommandVar,"|")
 	Loop,parse,DisableApp,`,
 	{
 		GroupAdd,DisableGUI,ahk_exe %A_LoopField%
