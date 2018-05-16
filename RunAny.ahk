@@ -182,7 +182,7 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 					;~;[读取菜单关联后缀]
 					Loop, parse,% menuItems[2],%A_Space%
 					{
-						MenuObjExt[(Z_LoopField)]:=menuItem
+						MenuObjExt[(A_LoopField)]:=menuItem
 					}
 				}
 				if(menuItem){
@@ -478,13 +478,19 @@ Menu_Show:
 				try{
 					extMenuName:=MenuObjExt[FileExt]
 					if(extMenuName){
-						if(!HideAddItem){
-							Menu,%extMenuName%,Insert, ,0【添加到此菜单】,Menu_Add_File_Item
-							Menu,%extMenuName%,Icon,0【添加到此菜单】,SHELL32.dll,166
+						if(MenuObjTree1[extMenuName].MaxIndex()=1){
+							itemContent:=MenuObjTree1[extMenuName][1]
+							MenuShowMenuRun:=Get_Obj_Name(itemContent)
+							gosub,Menu_Run
+						}else{
+							if(!HideAddItem){
+								Menu,%extMenuName%,Insert, ,0【添加到此菜单】,Menu_Add_File_Item
+								Menu,%extMenuName%,Icon,0【添加到此菜单】,SHELL32.dll,166
+							}
+							Menu,%extMenuName%,Show
+							if(!HideAddItem)
+								Menu,%extMenuName%,Delete,0【添加到此菜单】
 						}
-						Menu,%extMenuName%,Show
-						if(!HideAddItem)
-							Menu,%extMenuName%,Delete,0【添加到此菜单】
 					}else{
 						if(!HideAddItem)
 							Menu_Add_Del_Temp(1,1,"0【添加到此菜单】","Menu_Add_File_Item","SHELL32.dll","166")
@@ -554,6 +560,10 @@ return
 ;~;[菜单运行]
 Menu_Run:
 	any:=MenuObj[(A_ThisMenuItem)]
+	if(MenuShowMenuRun){
+		any:=MenuObj[(MenuShowMenuRun)]
+		MenuShowMenuRun:=""
+	}
 	SplitPath, any, , dir
 	if(dir)
 		SetWorkingDir,%dir%
