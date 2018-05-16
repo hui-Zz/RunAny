@@ -582,11 +582,7 @@ Menu_Run:
 				}
 				Run,%any%%A_Space%"%selectZz%"
 			}else if(RegExMatch(any,"iS)([\w-]+://?|www[.]).*")){
-				if(InStr(any,"%s")){
-					Run,% RegExReplace(any,"S)%s",selectZz)
-				}else{
-					Run,%any%%selectZz%
-				}
+				Run_Search(any,selectZz)
 			}else{
 				Run,%any%
 			}
@@ -634,11 +630,7 @@ Menu_Key_Run:
 			if(Candy_isFile=1 || Fileexist(selectZz)){
 				Run,%any%%A_Space%"%selectZz%"
 			}else if(RegExMatch(any,"iS)([\w-]+://?|www[.]).*")){
-				if(InStr(any,"%s")){
-					Run,% RegExReplace(any,"S)%s",selectZz)
-				}else{
-					Run,%any%%selectZz%
-				}
+				Run_Search(any,selectZz)
 			}else{
 				Run_Zz(any)
 			}
@@ -708,11 +700,7 @@ Web_Run:
 		{
 			if(A_LoopField){
 				any:=MenuObj[(A_LoopField)]
-				if(InStr(any,"%s")){
-					Run,% RegExReplace(any,"S)%s",selectZz)
-				}else{
-					Run,%any%%selectZz%
-				}
+				Run_Search(any,selectZz)
 			}
 		}
 	}
@@ -744,6 +732,15 @@ Run_Tr(program,trNum,newOpen=false){
 		Run_Zz(program)
 	return
 }
+Run_Search(any,selectZz=""){
+	if(InStr(any,"%s",true)){
+		Run,% StrReplace(any,"%s",selectZz)
+	}else if(InStr(any,"%S",true)){
+		Run,% StrReplace(any,"%S",SkSub_UrlEncode(selectZz))
+	}else{
+		Run,%any%%selectZz%
+	}
+}
 ;══════════════════════════════════════════════════════════════════
 ;~;[一键Everything][搜索选中文字][激活][隐藏]
 Ev_Show:
@@ -772,11 +769,7 @@ One_Search:
 	Loop,parse,OneKeyUrl,`n
 	{
 		if(A_LoopField){
-			if(InStr(A_LoopField,"%s")){
-				Run,% RegExReplace(A_LoopField,"%s",selectZz)
-			}else{
-				Run,% A_LoopField selectZz
-			}
+			Run_Search(A_LoopField,selectZz)
 		}
 	}
 return
@@ -817,11 +810,24 @@ Get_Zz(){
 	Clipboard:=Candy_Saved
 	return CandySel
 }
-Get_Tree_Name(z_item,ig_tab=false){
+;~;[文本转换为URL编码]
+SkSub_UrlEncode(str, enc="UTF-8")
+{
+    enc:=trim(enc)
+    If enc=
+        Return str
+   hex := "00", func := "msvcrt\" . (A_IsUnicode ? "swprintf" : "sprintf")
+   VarSetCapacity(buff, size:=StrPut(str, enc)), StrPut(str, &buff, enc)
+   While (code := NumGet(buff, A_Index - 1, "UChar")) && DllCall(func, "Str", hex, "Str", "%%%02X", "UChar", code, "Cdecl")
+   encoded .= hex
+   Return encoded
+}
+;~;[获取分类名称]
+Get_Tree_Name(z_item,show_key=true){
 	if(InStr(z_item,"|")){
 		menuDiy:=StrSplit(z_item,"|")
 		z_item:=menuDiy[1]
-		if(!ig_tab && InStr(menuDiy[1],"`t")){
+		if(show_key && InStr(menuDiy[1],"`t")){
 			menuKeyStr:=RegExReplace(menuDiy[1], "S)\t+", A_Tab)
 			menuKeys:=StrSplit(menuKeyStr,"`t")
 			z_item:=menuKeys[1]
@@ -909,7 +915,7 @@ SetSaveItem:
 		itemContent=%A_LoopField%
 		if(InStr(itemContent,"-")=1){
 			rootFlag:=false
-			treeContent:=Get_Tree_Name(itemContent,true)
+			treeContent:=Get_Tree_Name(itemContent,false)
 			if(itemContent="-")
 				rootFlag:=true
 			if(treeContent=Z_ThisMenu){	;定位到要插入的菜单位置
@@ -2049,7 +2055,7 @@ Var_Set:
 	}
 	gosub,Icon_Set
 	global MenuCommonList:={}
-	if(A_DD=01 || A_DD=13){
+	if(A_DD=01 || A_DD=15){
 		Gosub,Auto_Update
 	}
 return
