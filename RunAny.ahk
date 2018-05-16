@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.3.1 @2018.05.15
+║【RunAny】一劳永逸的快速启动工具 v5.3.2 @2018.05.16
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -17,8 +17,8 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 ;~ StartTick:=A_TickCount   ;若要评估出menu初始化时间
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
-global RunAny_update_version:="5.3.1"
-global RunAny_update_time:="2018.05.15"
+global RunAny_update_version:="5.3.2"
+global RunAny_update_time:="2018.05.16"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 global MenuObj:=Object()        ;~程序全径
@@ -2134,6 +2134,7 @@ Run_Exist:
 		gosub,First_Run
 	}
 	FileRead, iniVar1, %iniPath%
+	try Transform,iniVar1,Deref,%iniVar1%
 	;#判断第2菜单ini#
 	global MENU2FLAG:=false
 	IfExist,%iniPath2%
@@ -2141,6 +2142,7 @@ Run_Exist:
 		global iniVar2:=""
 		global MENU2FLAG:=true
 		FileRead, iniVar2, %iniPath2%
+		try Transform,iniVar2,Deref,%iniVar2%
 	}
 	;#判断配置文件
 	if(!FileExist(RunAnyConfig)){
