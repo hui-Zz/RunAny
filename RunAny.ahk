@@ -11,6 +11,7 @@
 #WinActivateForce       ;~强制激活窗口
 #SingleInstance,Force   ;~运行替换旧实例
 ListLines,Off           ;~不显示最近执行的脚本行
+AutoTrim,On             ;~自动去除变量中前导和尾随空格制表符
 CoordMode,Menu          ;~相对于整个屏幕
 SetBatchLines,-1        ;~脚本全速执行
 SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
@@ -164,23 +165,24 @@ return
 ;~;[读取配置并开始创建菜单]
 ;══════════════════════════════════════════════════════════════════
 Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,TREENO){
-	Loop, parse, iniReadVar, `n, `r, %A_Space%%A_Tab%
+	Loop, parse, iniReadVar, `n, `r
 	{
 		try{
-			if(InStr(A_LoopField,";")=1 || A_LoopField=""){
+			Z_LoopField=%A_LoopField%
+			if(InStr(Z_LoopField,";")=1 || Z_LoopField=""){
 				continue
 			}
-			if(InStr(A_LoopField,"-")=1){
+			if(InStr(Z_LoopField,"-")=1){
 				;~;[生成节点树层级结构]
-				menuItem:=RegExReplace(A_LoopField,"S)^-+")
-				menuLevel:=StrLen(RegExReplace(A_LoopField,"S)(^-+).*","$1"))
+				menuItem:=RegExReplace(Z_LoopField,"S)^-+")
+				menuLevel:=StrLen(RegExReplace(Z_LoopField,"S)(^-+).*","$1"))
 				if(InStr(menuItem,"|")){
 					menuItems:=StrSplit(menuItem,"|")
 					menuItem:=menuItems[1]
 					;~;[读取菜单关联后缀]
 					Loop, parse,% menuItems[2],%A_Space%
 					{
-						MenuObjExt[(A_LoopField)]:=menuItem
+						MenuObjExt[(Z_LoopField)]:=menuItem
 					}
 				}
 				if(menuItem){
@@ -194,18 +196,28 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 						MenuObjTree%TREENO%[menuItem]:=Object()
 				}else if(menuRootFn[menuLevel]){
 					Menu,% menuRootFn[menuLevel],Add
-					MenuObjTree%TREENO%[(menuRootFn[menuLevel])].Push(A_LoopField)
+					MenuObjTree%TREENO%[(menuRootFn[menuLevel])].Push(Z_LoopField)
 				}
 				continue
 			}
+			;除短语和网址以外的项目转换配置中%%的变量
+			itemLen:=StrLen(Z_LoopField)
+			if(InStr(Z_LoopField,";",,0,1)!=itemLen && !RegExMatch(Z_LoopField,"iS)([\w-]+://?|www[.]).*")){
+				try{
+					Transform,itemVarTemp,Deref,%Z_LoopField%
+				}catch{
+					itemVarTemp:=Z_LoopField
+				}
+				Z_LoopField:=itemVarTemp
+			}
 			;~添加到分类目录程序全数据
-			MenuObjTree%TREENO%[(menuRootFn[menuLevel])].Push(A_LoopField)
+			MenuObjTree%TREENO%[(menuRootFn[menuLevel])].Push(Z_LoopField)
 			MenuObjEXE:=Object()	;~软件对象
 			flagEXE:=false			;~添加exe菜单项目
 			IconFail:=false			;~是否显示无效项图标
-			if(InStr(A_LoopField,"|")){
+			if(InStr(Z_LoopField,"|")){
 				;~;[生成有前缀备注的应用]
-				menuDiy:=StrSplit(A_LoopField,"|")
+				menuDiy:=StrSplit(Z_LoopField,"|")
 				appName:=RegExReplace(menuDiy[2],"iS)\.exe($| .*)")	;去掉后缀或参数，取应用名
 				item:=MenuObj[appName]
 				if(item){
@@ -260,13 +272,13 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 				continue
 			}
 			;~;[生成完全路径的应用]
-			if(RegExMatch(A_LoopField,"iS)^(\\\\|.:\\).*?\.exe$")){
-				SplitPath,A_LoopField,fileName,,,nameNotExt
-				MenuObj[nameNotExt]:=A_LoopField
-				if(FileExist(A_LoopField)){
+			if(RegExMatch(Z_LoopField,"iS)^(\\\\|.:\\).*?\.exe$")){
+				SplitPath,Z_LoopField,fileName,,,nameNotExt
+				MenuObj[nameNotExt]:=Z_LoopField
+				if(FileExist(Z_LoopField)){
 					MenuObjEXE["menuName"]:=menuRootFn[menuLevel]
 					MenuObjEXE["menuItem"]:=nameNotExt
-					MenuObjEXE["itemPath"]:=A_LoopField
+					MenuObjEXE["itemPath"]:=Z_LoopField
 					MenuExeList.Insert(MenuObjEXE)
 					flagEXE:=true
 				}else{
@@ -283,15 +295,15 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 				continue
 			}
 			;~;[生成已取到的应用]
-			if(RegExMatch(A_LoopField,"iS)\.exe$")){
-				appName:=RegExReplace(A_LoopField,"iS)\.exe$")
+			if(RegExMatch(Z_LoopField,"iS)\.exe$")){
+				appName:=RegExReplace(Z_LoopField,"iS)\.exe$")
 				if(MenuObj[appName]){
 					flagEXE:=true
-				}else if(FileExist(A_WinDir "\" A_LoopField) || FileExist(A_WinDir "\system32\" A_LoopField)){
+				}else if(FileExist(A_WinDir "\" Z_LoopField) || FileExist(A_WinDir "\system32\" Z_LoopField)){
 					flagEXE:=true
-					MenuObj[appName]:=A_LoopField
+					MenuObj[appName]:=Z_LoopField
 				}else if(!HideFail){
-					MenuObj[appName]:=A_LoopField
+					MenuObj[appName]:=Z_LoopField
 				}
 				if(flagEXE){
 					MenuObjEXE["menuName"]:=menuRootFn[menuLevel]
@@ -310,9 +322,9 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 						Menu,% menuRootFn[menuLevel],Icon,% appName,SHELL32.dll,124
 				}
 			}else{
-				if(!MenuObj[A_LoopField])
-					MenuObj[A_LoopField]:=A_LoopField
-				Menu_Add(menuRootFn[menuLevel],A_LoopField,MenuObj[A_LoopField],menuRootFn,menuWebRootFn,menuWebList,webRootShow)
+				if(!MenuObj[Z_LoopField])
+					MenuObj[Z_LoopField]:=Z_LoopField
+				Menu_Add(menuRootFn[menuLevel],Z_LoopField,MenuObj[Z_LoopField],menuRootFn,menuWebRootFn,menuWebList,webRootShow)
 			}
 		} catch e {
 			MsgBox,16,构建菜单出错,% "菜单名：" menuRootFn[menuLevel] "`n菜单项：" A_LoopField "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
@@ -551,7 +563,7 @@ Menu_Run:
 		anyLen:=StrLen(any)
 		If(InStr(any,";",,0,1)=anyLen){
 			StringLeft, any, any, anyLen-1
-			Send_Str_Zz(any)	;[输出短语]
+			Send_Str_Zz(any,true)	;[输出短语]
 			return
 		}
 		If(InStr(any,"::",,0,1)=anyLen-1){
@@ -618,7 +630,7 @@ Menu_Key_Run:
 		anyLen:=StrLen(any)
 		If(InStr(any,";",,0,1)=anyLen){
 			StringLeft, any, any, anyLen-1
-			Send_Str_Zz(any)	;[输出短语]
+			Send_Str_Zz(any,true)	;[输出短语]
 			return
 		}
 		If(InStr(any,"::",,0,1)=anyLen-1){
@@ -780,7 +792,16 @@ Ext_Check(name,len,ext){
 	return site!=0 && site=len-len_ext+1
 }
 ;~;[输出短语]
-Send_Str_Zz(strZz){
+Send_Str_Zz(strZz,tf=false){
+	if(tf){
+		;变量转换
+		try{
+			Transform,str,Deref,%strZz%
+		}catch{
+			str:=strZz
+		}
+		strZz:=str
+	}
 	Candy_Saved:=ClipboardAll
 	Clipboard:=strZz
 	SendInput,^v
@@ -849,15 +870,54 @@ Get_Obj_Name(z_item){
 }
 ;~;[获取应用路径]
 Get_Obj_Path(z_item){
+	obj_path:=""
 	if(InStr(z_item,"|")){
 		menuDiy:=StrSplit(z_item,"|")
-		return MenuObj[menuDiy[1]]
+		obj_path:=MenuObj[menuDiy[1]]
 	}else if(RegExMatch(z_item,"iS)^(\\\\|.:\\).*?\.exe$")){
-		return z_item
+		obj_path:=z_item
 	}else{
 		appName:=RegExReplace(z_item,"iS)\.exe$")
-		return MenuObj[appName]
+		obj_path:=MenuObj[appName]
 	}
+	if(!InStr(obj_path,"..\")){
+		return obj_path
+	}else{
+		val:=RegExReplace(obj_path,"\.\.\\.*?$")
+		path:=StrReplace(obj_path,val)
+		absolute:=funcPath2AbsoluteZz(path,val)
+		return absolute ? absolute : obj_path
+	}
+}
+/*
+【相对路径转换为绝对路径 by hui-Zz】
+aPath 被转换的相对路径，可带文件名
+ahkPath 相对参照的执行脚本完整全路径，带文件名
+return -1 路径参数有误
+*/
+funcPath2AbsoluteZz(aPath,ahkPath){
+	SplitPath, aPath, fname, fdir, fext, , fdrive
+	SplitPath, ahkPath, name, dir, ext, , drive
+	if(!aPath || !ahkPath)
+		return -1
+	;下级目录直接加上参照目录路径
+	if(!fdrive && !InStr(aPath,"..")){
+		return dir . "\" . aPath
+	}
+	pathList:=StrSplit(dir,"\")
+	;上级目录根据层级递进添加多级路径
+	if(InStr(aPath,"..\")=1){
+		aPathStr:=RegExReplace(aPath, "\.\.\\", , PointCount)
+		pathStr:=""
+		;每次向上递进，找到添加与启动项相匹配路径段
+		Loop,% pathList.MaxIndex()-PointCount
+		{
+			pathStr.=pathList[A_Index] . "\"
+		}
+		filePath:=pathStr . aPathStr
+		return filePath
+	}
+	return false
 }
 ;══════════════════════════════════════════════════════════════════
 ;~;[添加编辑新添加的菜单项]
@@ -1632,14 +1692,23 @@ Move_Menu:
 return
 ;~;[后缀判断图标Gui]
 Set_Icon(itemVar,editVar=true){
+	;变量转换实际值
+	try{
+		Transform,itemVarTemp,Deref,%itemVar%
+	}catch{
+		itemVarTemp:=itemVar
+	}
+	itemVar:=itemVarTemp
 	SplitPath, itemVar,,, FileExt  ; 获取文件扩展名.
 	itemLen:=StrLen(itemVar)
+	if(InStr(itemVar,";")=1 || itemVar="")
+		return "Icon0"
+	if(InStr(itemVar,";",,0,1)=itemLen)
+		return "Icon2"
 	if(RegExMatch(itemVar,"S)^-+[^-]+.*"))
 		return "Icon6"
 	if(RegExMatch(itemVar,"S)^-+"))
 		return "Icon8"
-	if(InStr(itemVar,";")=1 || itemVar="")
-		return "Icon2"
 	if(InStr(FileExist(itemVar), "D"))
 		return "Icon4"
 	;~;[获取全路径]
@@ -2134,7 +2203,6 @@ Run_Exist:
 		gosub,First_Run
 	}
 	FileRead, iniVar1, %iniPath%
-	try Transform,iniVar1,Deref,%iniVar1%
 	;#判断第2菜单ini#
 	global MENU2FLAG:=false
 	IfExist,%iniPath2%
@@ -2142,7 +2210,6 @@ Run_Exist:
 		global iniVar2:=""
 		global MENU2FLAG:=true
 		FileRead, iniVar2, %iniPath2%
-		try Transform,iniVar2,Deref,%iniVar2%
 	}
 	;#判断配置文件
 	if(!FileExist(RunAnyConfig)){
