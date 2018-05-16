@@ -48,13 +48,17 @@ __【多台电脑你只需配置一套软件列表，就能到处运行，网盘
 2.  **分隔符：** 单独一个 `-`是1级分隔符， `--`2级分隔符，如：`-`、`--`
 3.  **菜单别名：** 在竖 `|` 前面添加程序的别名，如：`word|winword.exe`菜单上只会显示word
 4.  **注释：** 前加 `;`可以注释暂时不用的，如：`;cmd.exe`
-5.  **快捷短语：** 末尾分号 `;`识别为短语，会直接打字输出，如：`hui0.0713@gmail.com;` 用于注册时输出邮箱
+5.  **快捷短语：** 末尾分号 `;`识别为短语，会直接打字输出，如：`hui0.0713@gmail.com;` 用于注册时输出邮箱，
+
+   `%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%;` 输出 `2018-08-08 08:08:08` 当前时间（变量语法参考[AHK文档](https://wyagd001.github.io/zh-cn/docs/Variables.htm)）
+
 6.  **区分同名程序：** 如果电脑上有多个同名程序，加上全路径指定运行其中一个，如：`IE(32位)|C:\Program Files (x86)\Internet Explorer\iexplore.exe`
+
 > 每个菜单名首字母(或用&指定任意)便是启动快捷键，如：`IE(&E)|iexplore.exe`快捷键是e
 >
 > 默认支持exe、lnk、ahk、bat、cmd文件的无路径识别，其他后缀可以在RunAny设置中的Everything搜索参数，如支持doc文档免设路径识别
 
-## 【进阶配置：】
+## 【进阶配置】：
 
 7. **不同后缀不同菜单：** 在分类/目录名后加 `|`和后缀，选中不同文件出不同菜单
 
@@ -78,11 +82,19 @@ __【多台电脑你只需配置一套软件列表，就能到处运行，网盘
 - 在选中文字的情况下按全局热键，可以直接用搜索网址搜索选中文字~
 - 在选中文件情况下按全局热键，就可以直接用该热键的应用打开该文件；
 
-> **所有应用独立热键集启动、最小化时激活，已激活时最小化功能于一体**
-
-> 开启菜单2功能后，可以绑定菜单1为一键搜索，这样选中文字一按<kbd>\`</kbd>就默认搜索，想用其他搜索再使用菜单2热键搜索
-
 ---
+
+## 【RunAny其他功能】：
+
+> **所有应用独立全局热键集启动、最小化时激活，已激活时最小化、同应用多窗口切换功能于一体**
+
+> 按住Ctrl打开软件会打开软件所在的目录
+> 按住Shift打开软件会以管理员身份来运行
+
+> 开启菜单2功能后，可在设置"绑定菜单1为一键搜索"，这样选中文字按<kbd>\`</kbd>就一键搜索，想用其他搜索再使用菜单2热键搜索
+
+> (PS:输入\`可以<kbd>Win</kbd>+<kbd>\`</kbd>输入)
+
 RunAny追求就是：<u>**一劳永逸**</u>
 ---
 
@@ -90,16 +102,19 @@ RunAny追求就是：<u>**一劳永逸**</u>
 
 讨论QQ群：[246308937【RunAny快速启动一劳永逸】](https://jq.qq.com/?_wv=1027&k=445Ug7u)、[3222783【AutoHotkey高级群】](https://jq.qq.com/?_wv=1027&k=43uBHer)、[493194474【软客】](https://jq.qq.com/?_wv=1027&k=43trxF5)
 
+**欢迎大家多多提出建议！**
+
 **你的支持是我最大的动力！(金额随意)：**
-<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.jpg" alt="支持RunAny" width="300" height="300">
+<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.jpg" alt="支持RunAny" width="300" height="300"><img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.png" alt="支持RunAny" width="300" height="300">
 
-**在此特别感谢 AHK-工兵、Balance、☆☆天甜 等等对RunAny的大力支持，欢迎大家多多提出建议！**
+**在此感谢各位网友和群里的AHK-工兵、Balance、☆☆天甜 等等对RunAny的大力支持**
 
-> 这里是隐藏功能：
+## 【特别感谢以下朋友对RunAny的捐助】
 
-> 按住Ctrl打开软件会打开软件所在的目录
-> 按住Shift打开软件会以管理员身份来运行
-
-> (PS:输入\`可以<kbd>Win</kbd>+<kbd>\`</kbd>输入)
+| AHK-工兵 | Balance        |
+| -------- | -------------- |
+| Nicked   | °～童年不懂事° |
+| 声仔     |                |
+|          |                |
 
 ---
