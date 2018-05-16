@@ -102,14 +102,14 @@ RunAny追求就是：<u>**一劳永逸**</u>
 
 讨论QQ群：[246308937【RunAny快速启动一劳永逸】](https://jq.qq.com/?_wv=1027&k=445Ug7u)、[3222783【AutoHotkey高级群】](https://jq.qq.com/?_wv=1027&k=43uBHer)、[493194474【软客】](https://jq.qq.com/?_wv=1027&k=43trxF5)
 
-**欢迎大家多多提出建议！**
+**欢迎大家多多提出建议！谢谢各位网友和群里的AHK-工兵、Balance、☆☆天甜 等等对RunAny的大力支持**
 
 **你的支持是我最大的动力！(金额随意)：**
 <img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.jpg" alt="支持RunAny" width="300" height="300"><img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.png" alt="支持RunAny" width="300" height="300">
 
-**在此感谢各位网友和群里的AHK-工兵、Balance、☆☆天甜 等等对RunAny的大力支持**
 
-## 【特别感谢以下朋友对RunAny的捐助】
+
+## 【特别感谢以下朋友对RunAny的赞助！有你们RunAny会越来越好！】
 
 | AHK-工兵 | Balance        |
 | -------- | -------------- |
