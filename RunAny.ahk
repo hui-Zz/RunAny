@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.3.2 @2018.05.16
+║【RunAny】一劳永逸的快速启动工具 v5.3.3 @2018.05.17
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -18,8 +18,8 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 ;~ StartTick:=A_TickCount   ;若要评估出menu初始化时间
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
-global RunAny_update_version:="5.3.2"
-global RunAny_update_time:="2018.05.16"
+global RunAny_update_version:="5.3.3"
+global RunAny_update_time:="2018.05.17"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 global MenuObj:=Object()        ;~程序全径
@@ -28,6 +28,7 @@ global MenuObjName:=Object()    ;~程序别名
 global MenuObjParam:=Object()   ;~程序参数
 global MenuObjExt:=Object()     ;~后缀对应菜单
 global MenuExeList:=Object()    ;~程序数据数组
+global MenuTreeKey:=Object()    ;~分类热键
 global MenuObjTree1:=Object()   ;~分类目录程序全数据1
 global MenuObjTree2:=Object()   ;~分类目录程序全数据2
 MenuObj.SetCapacity(10240)
@@ -124,9 +125,9 @@ Gosub,Icon_FileExt_Set
 ;#应用菜单数组#网址菜单名数组及地址队列#
 menuRoot:=Object(),menuWebRoot:=Object(),menuWebList:=Object()
 ;菜单级别：初始为根菜单RunAny
-menuRoot.Insert(RunAnyZz)
-menuWebRoot.Insert(RunAnyZz . "Web")
-menuWebRoot.Insert(RunAnyZz)
+menuRoot.Push(RunAnyZz)
+menuWebRoot.Push(RunAnyZz . "Web")
+menuWebRoot.Push(RunAnyZz)
 MenuObjTree1[RunAnyZz]:=Object()
 global menu2:=MENU2FLAG
 ;~;[读取带图标的自定义应用菜单]
@@ -135,9 +136,9 @@ Menu,% menuRoot[1],Add
 ;~;[如果有第2菜单则开始加载]
 if(menu2){
 	menuRoot2:=Object(),menuWebRoot2:=Object(),menuWebList2:=Object()
-	menuRoot2.Insert(RunAnyZz . "2")
-	menuWebRoot2.Insert(RunAnyZz . "Web2")
-	menuWebRoot2.Insert(RunAnyZz . "2")
+	menuRoot2.Push(RunAnyZz . "2")
+	menuWebRoot2.Push(RunAnyZz . "Web2")
+	menuWebRoot2.Push(RunAnyZz . "2")
 	MenuObjTree2[RunAnyZz . "2"]:=Object()
 	Menu_Read(iniVar2,menuRoot2,1,menuWebRoot2,menuWebList2,false,2)
 }
@@ -194,6 +195,15 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 					menuRootFn[menuLevel]:=menuItem		;从这之后内容项都添加到该级别菜单中
 					if(!IsObject(MenuObjTree%TREENO%[menuItem]))
 						MenuObjTree%TREENO%[menuItem]:=Object()
+					;~;[分割Tab获取菜单自定义热键]
+					if(InStr(menuItem,"`t")){
+						menuKeyStr:=RegExReplace(menuItem, "S)\t+", A_Tab)
+						menuKeys:=StrSplit(menuKeyStr,"`t")
+						if(menuKeys[2]){
+							MenuTreeKey[menuKeys[2]]:=menuItem
+							Hotkey,% menuKeys[2],Menu_Key_Show,On
+						}
+					}
 				}else if(menuRootFn[menuLevel]){
 					Menu,% menuRootFn[menuLevel],Add
 					MenuObjTree%TREENO%[(menuRootFn[menuLevel])].Push(Z_LoopField)
@@ -244,7 +254,7 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 						MenuObjEXE["menuName"]:=menuRootFn[menuLevel]
 						MenuObjEXE["menuItem"]:=menuDiy[1]
 						MenuObjEXE["itemPath"]:=item
-						MenuExeList.Insert(MenuObjEXE)
+						MenuExeList.Push(MenuObjEXE)
 					}else{
 						IconFail:=true
 					}
@@ -279,7 +289,7 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 					MenuObjEXE["menuName"]:=menuRootFn[menuLevel]
 					MenuObjEXE["menuItem"]:=nameNotExt
 					MenuObjEXE["itemPath"]:=Z_LoopField
-					MenuExeList.Insert(MenuObjEXE)
+					MenuExeList.Push(MenuObjEXE)
 					flagEXE:=true
 				}else{
 					IconFail:=true
@@ -309,7 +319,7 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 					MenuObjEXE["menuName"]:=menuRootFn[menuLevel]
 					MenuObjEXE["menuItem"]:=appName
 					MenuObjEXE["itemPath"]:=MenuObj[appName]
-					MenuExeList.Insert(MenuObjEXE)
+					MenuExeList.Push(MenuObjEXE)
 				}else{
 					IconFail:=true
 				}
@@ -428,9 +438,9 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 				}
 			}
 			if(!menuWebSame){
-				menuWebRootFn.Insert(menuName ":")
+				menuWebRootFn.Push(menuName ":")
 				if(!HideWeb)
-					menuWebRootFn.Insert(menuName)
+					menuWebRootFn.Push(menuName)
 			}
 			if(HideWeb)
 				Menu,%menuName%,Delete,%menuItem%
@@ -555,6 +565,14 @@ Menu_Show2:
 			Menu,% menuRoot2[1],Show
 		}
 		iniFile:=iniPath2
+	}catch{}
+return
+;~;[菜单热键显示]
+Menu_Key_Show:
+	global selectZz:=Get_Zz()
+	try {
+		thisMenuName:=menuTreekey[(A_ThisHotkey)]
+		Menu,% thisMenuName,Show
 	}catch{}
 return
 ;~;[菜单运行]
@@ -1055,9 +1073,9 @@ Menu_Edit:
 			treeLevel:=StrLen(RegExReplace(A_LoopField,"S)(^-+).+","$1"))
 			if(RegExMatch(A_LoopField,"S)^-+[^-]+.*")){
 				if(treeLevel=1){
-					treeRoot.Insert(treeLevel,TV_Add(A_LoopField,,"Bold Icon6"))
+					treeRoot.InsertAt(treeLevel,TV_Add(A_LoopField,,"Bold Icon6"))
 				}else{
-					treeRoot.Insert(treeLevel,TV_Add(A_LoopField,treeRoot[treeLevel-1],"Bold Icon6"))
+					treeRoot.InsertAt(treeLevel,TV_Add(A_LoopField,treeRoot[treeLevel-1],"Bold Icon6"))
 				}
 				TV_MoveMenu(A_LoopField)
 			}else if(A_LoopField="-"){
@@ -1319,7 +1337,7 @@ TVDel:
 			break
 		TV_GetText(ItemText, CheckID)
 		selText.=ItemText "`n"
-		DelListID.Insert(CheckID)
+		DelListID.Push(CheckID)
 	}
 	if(!selText){
 		MsgBox,请最少勾选一项
@@ -1446,7 +1464,7 @@ Website_Icon:
 			break
 		TV_GetText(ItemText, CheckID)
 		selText.=ItemText "`n"
-		selTextList.Insert(ItemText)
+		selTextList.Push(ItemText)
 	}
 	if(selTextList.MaxIndex()=1){
 		try {
@@ -1549,8 +1567,8 @@ TV_Move(moveMode = true){
 				if(ItemID=selNextID)	; 如果遍历到树末节点则跳出
 					break
 				TV_GetText(ItemText, ItemID)
-				selTextList.Insert(ItemText)
-				DelListID.Insert(ItemID)
+				selTextList.Push(ItemText)
+				DelListID.Push(ItemID)
 			}
 			ItemID:=moveID
 			Loop
@@ -1559,8 +1577,8 @@ TV_Move(moveMode = true){
 				if(ItemID=moveNextID)	; 如果遍历到树末节点则跳出
 					break
 				TV_GetText(ItemText, ItemID)
-				moveTextList.Insert(ItemText)
-				DelListID.Insert(ItemID)
+				moveTextList.Push(ItemText)
+				DelListID.Push(ItemID)
 			}
 			; 遍历旧节点数组删除
 			Loop,% DelListID.MaxIndex()
@@ -1686,7 +1704,7 @@ Move_Menu:
 			}else{
 				moveLevelID:=TV_Add(ItemText,MoveID,Set_Icon(ItemText))
 			}
-			DelListID.Insert(CheckID)
+			DelListID.Push(CheckID)
 			TVFlag:=true
 		}
 		;[删除原先节点]
@@ -2058,7 +2076,7 @@ SetReSet:
 	Reload
 return
 setMenu2:
-	MsgBox,33,开启第2个菜单,确定开启第2个菜单吗？`n会在目录生成RunAny2.ini（还原1个菜单可以删除或重命名RunAny2.ini）
+	MsgBox,33,开启第2个菜单,确定开启第2个菜单吗？`n会在目录生成RunAny2.ini`n（还原1个菜单可以删除或重命名RunAny2.ini）
 	IfMsgBox Ok
 	{
 		text2=;这里添加第2菜单内容
@@ -2518,7 +2536,7 @@ FileAppend,
 	--
 	StrokesPlus鼠标手势|StrokesPlus.exe
 	Ditto剪贴板|Ditto.exe
--办公(Wo&rk)
+-办公(Wo&rk)|doc docx xls xlsx ppt pptx wps et dps
 	word(&W)|winword.exe
 	Excel(&E)|excel.exe
 	PPT(&T)|powerpnt.exe
@@ -2540,7 +2558,7 @@ FileAppend,
 	B站|http://search.bilibili.com/all?keyword=
 	--
 	RunAny地址|https://github.com/hui-Zz/RunAny
--图片(im&G)
+-图片(im&G)|bmp gif jpeg jpg png
 	画图(&T)|mspaint.exe
 	ACDSee.exe
 	XnView.exe
@@ -2552,7 +2570,7 @@ FileAppend,
 	--
 	云音乐(&C)|cloudmusic.exe
 	QQ音乐|QQMusic.exe
--编辑(&Edit)
+-编辑(&Edit)|txt ini cmd bat md ahk html
 	;在别名后面添加_:数字形式来透明启动应用(默认不透明,1-100是全透明到不透明)
 	记事本(&N)_:88|notepad.exe
 -文件(&File)
@@ -2563,7 +2581,7 @@ FileAppend,
 	cmd.exe
 	控制面板(&S)|Control.exe
 	;在程序名后空格+带参数启动
-	hosts文件|notepad.exe C:\Windows\System32\drivers\etc\hosts
+	hosts文件|notepad.exe `%A_WinDir`%\System32\drivers\etc\hosts
 ),%iniFile%
 Gosub,Desktop_Append
 FileAppend,
