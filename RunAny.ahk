@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.3.3 @2018.05.17
+║【RunAny】一劳永逸的快速启动工具 v5.3.4 @2018.05.18
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -18,8 +18,8 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 ;~ StartTick:=A_TickCount   ;若要评估出menu初始化时间
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
-global RunAny_update_version:="5.3.3"
-global RunAny_update_time:="2018.05.17"
+global RunAny_update_version:="5.3.4"
+global RunAny_update_time:="2018.05.18"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 global MenuObj:=Object()        ;~程序全径
@@ -173,6 +173,11 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 			if(InStr(Z_LoopField,";")=1 || Z_LoopField=""){
 				continue
 			}
+			if(menuTempFalg){
+				;~;[删除临时菜单项]
+				try Menu,% menuRootFn[menuLevel], Delete,% Chr(3)
+				menuTempFalg:=false
+			}
 			if(InStr(Z_LoopField,"-")=1){
 				;~;[生成节点树层级结构]
 				menuItem:=RegExReplace(Z_LoopField,"S)^-+")
@@ -187,8 +192,9 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 					}
 				}
 				if(menuItem){
-					;因为逐行读取不能保证子菜单后面有内容，所以添加子菜单前先添加分隔符
-					Menu,%menuItem%,add
+					;因为逐行读取不能保证子菜单后面有内容，所以添加子菜单前先添加临时菜单
+					menuTempFalg:=true
+					Menu,%menuItem%,add,% Chr(3),SetCancel
 					Menu,% menuRootFn[menuLevel],add,%menuItem%,:%menuItem%
 					Menu,% menuRootFn[menuLevel],Icon,%menuItem%,% TreeIconS[1],% TreeIconS[2]
 					menuLevel+=1	;比初始根菜单加一级
@@ -957,10 +963,14 @@ Menu_Add_File_Item:
 		iniFileVar:=iniVar2
 		TREENO:=2
 	}
-	SplitPath,selectZz,fileName,,,itemName
-	any:=MenuObj[itemName] ? MenuObj[itemName] : MenuObj[fileName]
-	if(any && any!=selectZz){
+	if(InStr(FileExist(selectZz), "D")){
 		fileName:=selectZz
+	}else{
+		SplitPath,selectZz,fileName,,,itemName
+		any:=MenuObj[itemName] ? MenuObj[itemName] : MenuObj[fileName]
+		if(any && any!=selectZz){
+			fileName:=selectZz
+		}
 	}
 	;初始化要添加的内容
 	itemGlobalWinKey:=0
@@ -1287,7 +1297,7 @@ SetSaveItemGui:
 	TV_Modify(selID, Set_Icon(saveText))
 	if(ItemText!=saveText)
 		TVFlag:=true
-	if(selID && RegExMatch(saveText,"S)^-+[^-]+.*")){
+	if(!itemName && selID && RegExMatch(saveText,"S)^-+[^-]+.*")){
 		insertID:=TV_Add("",selID)
 		TV_Modify(selID, "Bold Expand")
 		TV_Modify(insertID, "Select Vis")
@@ -1741,11 +1751,13 @@ Set_Icon(itemVar,editVar=true){
 		return "Icon4"
 	;~;[获取全路径]
 	FileName:=Get_Obj_Path(itemVar)
-	if(!FileName && !InStr(itemVar, "|") && InStr(FileExt, "exe", false))
+	if(!FileName && InStr(FileExt, "exe", false))
 		return "Icon3"
 	if(RegExMatch(FileName,"iS).*?\.exe .*")){
 		FileExt:="exe"
 		FileName:=RegExReplace(FileName,"iS)(.*?\.exe) .*","$1")	;只去参数
+		if(FileName="cmd.exe")
+			FileName=%A_WinDir%\system32\cmd.exe
 	}
 	;~;[获取网址图标]
 	if(RegExMatch(FileName,"iS)([\w-]+://?|www[.]).*")){
