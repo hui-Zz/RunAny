@@ -1266,7 +1266,7 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add, Checkbox,Checked%itemGlobalWinKey% x+5 yp+3 vvitemGlobalWinKey,Win
 	Gui,SaveItem:Add, Text, x+20 yp w200, %itemGlobalHotKey%
 	Gui,SaveItem:Add, Text, xm+10 y+10 w100, 分 隔 符 ：  |
-	Gui,SaveItem:Add, Text, x+10 yp w350 cRed vvPrompt GSetSaveItemFullPath, 注意：RunAny不支持当前后缀无路径运行，请使用全路径
+	Gui,SaveItem:Add, Text, x+10 yp w350 cRed vvPrompt GSetSaveItemFullPath, 注意：RunAny不支持当前后缀无路径运行，请点击此使用全路径
 	Gui,SaveItem:Add, Text, xm+10 y+10 w60,% InStr(itemName,"-") ? "文件后缀：" : "启动路径："
 	Gui,SaveItem:Add, Edit, x+5 yp w400 r3 vvfileName GFileNameChange, %fileName%
 	Gui,SaveItem:Font
