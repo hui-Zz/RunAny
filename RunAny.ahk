@@ -2296,6 +2296,10 @@ GuiIcon_Set:
 		}
 	}
 return
+Check_Update:
+	checkUpdateFlag:=true
+	gosub,Auto_Update
+return
 Auto_Update:
 	if(FileExist(A_Temp "\RunAny_Update.bat"))
 		FileDelete, %A_Temp%\RunAny_Update.bat
@@ -2333,9 +2337,12 @@ Auto_Update:
 				shell.run(A_Temp "\RunAny_Update.bat",0)
 				ExitApp
 			}
-		}else{
+		}else if(checkUpdateFlag){
 			FileDelete, %A_Temp%\temp_RunAny.ahk
 			TrayTip,,RunAny已经是最新版本。,5,1
+			checkUpdateFlag:=false
+		}else{
+			FileDelete, %A_Temp%\temp_RunAny.ahk
 		}
 	}
 return
@@ -2389,7 +2396,7 @@ MenuTray:
 	Menu,Tray,add
 	Menu,Tray,add,设置RunAny(&D)`t%RunASetHotKey%,Menu_Set
 	Menu,Tray,Add,关于RunAny(&A)...,Menu_About
-	Menu,Tray,Add,检查更新(&U),Auto_Update
+	Menu,Tray,Add,检查更新(&U),Check_Update
 	Menu,Tray,add
 	If(MENU2FLAG){
 		Menu,Tray,add,启动菜单2(&2)`t%MenuHotKey2%,Menu_Show2
