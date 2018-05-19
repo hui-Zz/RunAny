@@ -998,10 +998,10 @@ Menu_Add_File_Item:
 		iniFileVar:=iniVar2
 		TREENO:=2
 	}
+	SplitPath,selectZz,fileName,,,itemName
 	if(InStr(FileExist(selectZz), "D")){
 		fileName:=selectZz
 	}else{
-		SplitPath,selectZz,fileName,,,itemName
 		any:=MenuObj[itemName] ? MenuObj[itemName] : MenuObj[fileName]
 		if(any && any!=selectZz){
 			fileName:=selectZz
