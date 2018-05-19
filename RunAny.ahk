@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.3.4 @2018.05.18
+║【RunAny】一劳永逸的快速启动工具 v5.3.5 @2018.05.19
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -18,8 +18,8 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 ;~ StartTick:=A_TickCount   ;若要评估出menu初始化时间
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
-global RunAny_update_version:="5.3.4"
-global RunAny_update_time:="2018.05.18"
+global RunAny_update_version:="5.3.5"
+global RunAny_update_time:="2018.05.19"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 global MenuObj:=Object()        ;~程序全径
@@ -159,6 +159,10 @@ if(ini){
 	gosub,Menu_Show
 }
 Gosub,GuiIcon_Set
+if(ReloadEditFlag){
+	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, ReloadEditFlag, 0
+	gosub,Menu_Edit
+}
 
 return
 
@@ -252,10 +256,10 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 					else if(FileExist(A_WinDir "\" item) || FileExist(A_WinDir "\system32\" item))
 						flagEXE:=true
 					;~;如果是有效程序、不隐藏失效、不是exe程序则添加该菜单项功能
-					if(flagEXE || !HideFail || !InStr(FileExt, "exe", false))
+					if(flagEXE || !HideFail || FileExt!="exe")
 						MenuObjParam[menuDiy[1]]:=menuDiy[2]
 				}
-				if(InStr(FileExt, "exe", false)){
+				if(FileExt="exe"){
 					if(flagEXE){
 						MenuObjEXE["menuName"]:=menuRootFn[menuLevel]
 						MenuObjEXE["menuItem"]:=menuDiy[1]
@@ -1205,6 +1209,8 @@ TVMenu(addMenu){
 	Menu, %addMenu%, Icon,% flag ? "编辑" : "编辑`tF2", SHELL32.dll,134
 	Menu, %addMenu%, Add,% flag ? "删除" : "删除`tDel", TVDel
 	Menu, %addMenu%, Icon,% flag ? "删除" : "删除`tDel", SHELL32.dll,132
+	if(!flag)
+		Menu, %addMenu%, Add,注释, TVComments
 	;~ Menu, %addMenu%, Add
 	Menu, %addMenu%, Add,移动到..., :moveMenu%both%
 	Menu, %addMenu%, Icon,移动到...,% MoveIconS[1],% MoveIconS[2]
@@ -1406,8 +1412,24 @@ TVDel:
 		TVFlag:=true
 	}
 return
+TVComments:
+	CheckID = 0
+	Loop
+	{
+		CheckID := TV_GetNext(CheckID, "Checked")
+		if not CheckID
+			break
+		TV_GetText(ItemText, CheckID)
+		if(InStr(ItemText,";")=1){
+			StringTrimLeft, ItemText, ItemText, 1
+		}else{
+			ItemText:=";" ItemText
+		}
+		TV_Modify(CheckID, ,ItemText)
+	}
+return
 TVSave:
-	MsgBox, 35, 菜单树保存, 是：保存后重启生效`n否：刷新后继续修改`n取消：取消保存
+	MsgBox, 35, 菜单树保存, 是：保存后重启生效`n否：保存重启后继续修改`n取消：取消保存
 	IfMsgBox Yes
 	{
 		gosub,Menu_Save
@@ -1416,7 +1438,8 @@ TVSave:
 	IfMsgBox No
 	{
 		gosub,Menu_Save
-		gosub,Menu_Edit
+		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, ReloadEditFlag, 1
+		Reload
 	}
 return
 Menu_Save:
@@ -1790,7 +1813,7 @@ Set_Icon(itemVar,editVar=true){
 		return "Icon4"
 	;~;[获取全路径]
 	FileName:=Get_Obj_Path(itemVar)
-	if(!FileName && InStr(FileExt, "exe", false))
+	if(!editVar && !FileName && FileExt = "exe")
 		return "Icon3"
 	if(RegExMatch(FileName,"iS).*?\.exe .*")){
 		FileExt:="exe"
@@ -2122,9 +2145,14 @@ SetCancel:
 	Gui,Destroy
 return
 SetReSet:
-	RegDelete, HKEY_CURRENT_USER, SOFTWARE\RunAny
-	RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
-	Reload
+	MsgBox,49,重置RunAny配置,此操作会删除RunAny所有注册表配置，以及删除本地配置文件%RunAnyConfig%，确认删除重置吗？
+	IfMsgBox Ok
+	{
+		RegDelete, HKEY_CURRENT_USER, SOFTWARE\RunAny
+		RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
+		FileDelete, %RunAnyConfig%
+		Reload
+	}
 return
 setMenu2:
 	MsgBox,33,开启第2个菜单,确定开启第2个菜单吗？`n会在目录生成RunAny2.ini`n（还原1个菜单可以删除或重命名RunAny2.ini）
@@ -2171,6 +2199,8 @@ Var_Set:
 	;~;[RunAny设置参数]
 	RegRead, AutoRun, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 	AutoRun:=AutoRun ? 1 : 0
+	RegRead, ReloadEditFlag, HKEY_CURRENT_USER, Software\RunAny, ReloadEditFlag
+	ReloadEditFlag:=ReloadEditFlag ? 1 : 0
 	;优先读取配置文件，后读注册表
 	global IniConfig:=1
 	if(FileExist(RunAnyConfig)){
