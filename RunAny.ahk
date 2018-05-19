@@ -501,6 +501,7 @@ Menu_Show:
 						}else{
 							if(!HideAddItem){
 								Menu,%extMenuName%,Insert, ,0【添加到此菜单】,Menu_Add_File_Item
+								Menu,%extMenuName%,Default,0【添加到此菜单】
 								Menu,%extMenuName%,Icon,0【添加到此菜单】,SHELL32.dll,166
 							}
 							Menu,%extMenuName%,Show
@@ -519,32 +520,44 @@ Menu_Show:
 				}
 				return
 			}
-			;一键打开网址
-			if(OneKeyWeb && RegExMatch(selectZz,"iS)([\w-]+://?|www[.]).*")){
-				Run,%selectZz%
-				return
-			}
-			;一键磁力下载
-			if(OneKeyMagnet && InStr(selectZz,"magnet:?xt=urn:btih:")=1){
-				Run,%selectZz%
-				return
-			}
-			if(RegExMatch(selectZz,"S)^(\\\\|.:\\)")){
-				;一键打开目录
-				if(OneKeyFolder && InStr(FileExist(selectZz), "D")){
-					If(TcPath){
-						Run,%TcPath%%A_Space%"%selectZz%"
-					}else{
-						Run,%selectZz%
+			openFlag:=false
+			Loop, parse, selectZz, `n, `r, %A_Space%%A_Tab%
+			{
+				if(!A_LoopField)
+					continue
+				;一键打开网址
+				if(OneKeyWeb && RegExMatch(A_LoopField,"iS)([\w-]+://?|www[.]).*")){
+					Run,%A_LoopField%
+					openFlag:=true
+					continue
+				}
+				;一键磁力下载
+				if(OneKeyMagnet && InStr(A_LoopField,"magnet:?xt=urn:btih:")=1){
+					Run,%A_LoopField%
+					openFlag:=true
+					continue
+				}
+				if(RegExMatch(A_LoopField,"S)^(\\\\|.:\\)")){
+					;一键打开目录
+					if(OneKeyFolder && InStr(FileExist(A_LoopField), "D")){
+						If(TcPath){
+							Run,%TcPath%%A_Space%"%A_LoopField%"
+						}else{
+							Run,%A_LoopField%
+						}
+						openFlag:=true
+						continue
 					}
-					return
-				}
-				;一键打开文件
-				if(OneKeyFile && Fileexist(selectZz)){
-					Run,%selectZz%
-					return
+					;一键打开文件
+					if(OneKeyFile && Fileexist(A_LoopField)){
+						Run,%A_LoopField%
+						openFlag:=true
+						continue
+					}
 				}
 			}
+			if(openFlag)
+				return
 			;#绑定菜单1为一键搜索
 			if(OneKeyMenu){
 				gosub,One_Search
@@ -617,16 +630,25 @@ Menu_Run:
 			return
 		}
 		if(selectZz){
-			if(Candy_isFile=1 || Fileexist(selectZz)){
-				if(GetKeyState("Shift")){
-					Run,*RunAs %any%%A_Space%"%selectZz%"
-					return
-				}
+			firstFile:=RegExReplace(selectZz,"(.*)(\n|\r).*","$1")  ;取第一行
+			if(Candy_isFile=1 || Fileexist(selectZz) || Fileexist(firstFile)){
 				if(GetKeyState("Ctrl")){
 					gosub,Menu_Add_File_Item
 					return
 				}
-				Run,%any%%A_Space%"%selectZz%"
+				selectZzStr:=""
+				Loop, parse, selectZz, `n, `r, %A_Space%%A_Tab%
+				{
+					if(!A_LoopField)
+						continue
+					selectZzStr.="""" . A_LoopField . """" . A_Space
+				}
+				StringTrimRight, selectZzStr, selectZzStr, 1
+				if(GetKeyState("Shift")){
+					Run,*RunAs %any%%A_Space%%selectZzStr%
+					return
+				}
+				Run,%any%%A_Space%%selectZzStr%
 			}else if(RegExMatch(any,"iS)([\w-]+://?|www[.]).*")){
 				Run_Search(any,selectZz)
 			}else{
@@ -673,8 +695,17 @@ Menu_Key_Run:
 			return
 		}
 		if(selectZz){
-			if(Candy_isFile=1 || Fileexist(selectZz)){
-				Run,%any%%A_Space%"%selectZz%"
+			firstFile:=RegExReplace(selectZz,"(.*)(\n|\r).*","$1")  ;取第一行
+			if(Candy_isFile=1 || Fileexist(selectZz) || Fileexist(firstFile)){
+				selectZzStr:=""
+				Loop, parse, selectZz, `n, `r, %A_Space%%A_Tab%
+				{
+					if(!A_LoopField)
+						continue
+					selectZzStr.="""" . A_LoopField . """" . A_Space
+				}
+				StringTrimRight, selectZzStr, selectZzStr, 1
+				Run,%any%%A_Space%%selectZzStr%
 			}else if(RegExMatch(any,"iS)([\w-]+://?|www[.]).*")){
 				Run_Search(any,selectZz)
 			}else{
@@ -853,7 +884,7 @@ Get_Zz(){
 	Clipboard=
 	SendInput,^c
 	if WinActive("ahk_class TTOTAL_CMD")
-		ClipWait,0.5
+		ClipWait,0.3
 	else
 		ClipWait,0.1
 	If(ErrorLevel){
@@ -1001,6 +1032,10 @@ SetSaveItem:
 	if(vitemGlobalKey){
 		if(!vitemName){
 			MsgBox, 48, ,设置热键后必须填写菜单项名
+			return
+		}
+		if(!vfileName && InStr(vitemName,"-")!=1){
+			MsgBox, 48, ,应用设置热键后必须填写启动路径
 			return
 		}
 		itemGlobalKey:=vitemGlobalWinKey ? "#" . vitemGlobalKey : vitemGlobalKey
@@ -1283,6 +1318,10 @@ SetSaveItemGui:
 	if(vitemGlobalKey){
 		if(!vitemName){
 			MsgBox, 48, ,设置热键后必须填写菜单项名
+			return
+		}
+		if(!vfileName && InStr(vitemName,"-")!=1){
+			MsgBox, 48, ,应用设置热键后必须填写启动路径
 			return
 		}
 		itemGlobalKey:=vitemGlobalWinKey ? "#" . vitemGlobalKey : vitemGlobalKey
@@ -1916,7 +1955,7 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%HideRecent% x+130 vvHideRecent,隐藏最近运行
 	Gui,66:Add,Checkbox,Checked%HideWeb% xm yp+20 vvHideWeb,隐藏网址（选中文字显示）
 	Gui,66:Add,Checkbox,Checked%HideSend% x+46 vvHideSend,隐藏短语（选中文字显示）
-	Gui,66:Add,Checkbox,Checked%HideAddItem% xm yp+20 vvHideAddItem,隐藏添加到此菜单
+	Gui,66:Add,Checkbox,Checked%HideAddItem% xm yp+20 vvHideAddItem,隐藏【添加到此菜单】
 	Gui,66:Add,GroupBox,xm-10 y+15 w500 h70,RunAny选中文字菜单
 	Gui,66:Add,Checkbox,Checked%HideUnSelect% xm yp+20 vvHideUnSelect gUnCheckWebSend,选中文字依然显示应用菜单
 	Gui,66:Add,Text,xm yp+25 w120,选中后直接一键打开：
@@ -2460,6 +2499,7 @@ exeQuery(exeName){
 	ev.Query()
 	return ev.GetResultFullPathName(0)
 }
+;~;[修改于AHK论坛，IPC方式和everything进行通讯]
 class everything
 {
 	__New(){
