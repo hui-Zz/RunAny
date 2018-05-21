@@ -2053,19 +2053,19 @@ Menu_Set:
 	Gui,66:Add,Edit,xm yp+20 w485 r8 vvOneKeyUrl,%OneKeyUrl%
 	
 	Gui,66:Tab,图标+TC设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+20 w500 h220,图标自定义设置（文件路径,序号）
-	Gui,66:Add,Text,xm yp+30 w80,RunAny图标
-	Gui,66:Add,Edit,xm+75 yp w400 r1 vvAnyIcon,%AnyIcon%
-	Gui,66:Add,Text,xm yp+30 w80,准备图标
-	Gui,66:Add,Edit,xm+75 yp w400 r1 vvMenuIcon,%MenuIcon%
-	Gui,66:Add,Text,xm yp+30 w80,分类图标
-	Gui,66:Add,Edit,xm+75 yp w400 r1 vvTreeIcon,%TreeIcon%
-	Gui,66:Add,Text,xm yp+30 w80,文件夹图标
-	Gui,66:Add,Edit,xm+75 yp w400 r1 vvFolderIcon,%FolderIcon%
-	Gui,66:Add,Text,xm yp+30 w80,网址图标
-	Gui,66:Add,Edit,xm+75 yp w400 r1 vvUrlIcon,%UrlIcon%
-	Gui,66:Add,Text,xm yp+30 w80,EXE图标
-	Gui,66:Add,Edit,xm+75 yp w400 r1 vvEXEIcon,%EXEIcon%
+	Gui,66:Add,GroupBox,xm-10 y+20 w500 h230,图标自定义设置（图片或图标文件路径 , 序号不填默认1）
+	Gui,66:Add,Button,xm yp+30 w80 GSetAnyIcon,RunAny图标
+	Gui,66:Add,Edit,xm+80 yp+2 w400 r1 vvAnyIcon,%AnyIcon%
+	Gui,66:Add,Button,xm yp+30 w80 GSetMenuIcon,准备图标
+	Gui,66:Add,Edit,xm+80 yp+2 w400 r1 vvMenuIcon,%MenuIcon%
+	Gui,66:Add,Button,xm yp+30 w80 GSetTreeIcon,分类图标
+	Gui,66:Add,Edit,xm+80 yp+2 w400 r1 vvTreeIcon,%TreeIcon%
+	Gui,66:Add,Button,xm yp+30 w80 GSetFolderIcon,文件夹图标
+	Gui,66:Add,Edit,xm+80 yp+2 w400 r1 vvFolderIcon,%FolderIcon%
+	Gui,66:Add,Button,xm yp+30 w80 GSetUrlIcon,网址图标
+	Gui,66:Add,Edit,xm+80 yp+2 w400 r1 vvUrlIcon,%UrlIcon%
+	Gui,66:Add,Button,xm yp+30 w80 GSetEXEIcon,EXE图标
+	Gui,66:Add,Edit,xm+80 yp+2 w400 r1 vvEXEIcon,%EXEIcon%
 	Gui,66:Add,GroupBox,xm-10 y+30 w500 h100,TotalCommander安装路径（TC打开RunAny中的文件夹）
 	Gui,66:Add,Button,xm yp+20 w50 GSetTcPath,选择
 	Gui,66:Add,Edit,xm+60 yp w420 r3 vvTcPath,%TcPath%
@@ -2100,11 +2100,24 @@ Menu_About:
 	return
 SetEvPath:
 	FileSelectFile, evFilePath, 3, Everything.exe, Everything安装路径, (Everything.exe)
-	GuiControl,, vEvPath, %evFilePath%
+	if(evFilePath)
+		GuiControl,, vEvPath, %evFilePath%
 return
 SetTcPath:
 	FileSelectFile, tcFilePath, 3, , TC安装路径, (Totalcmd.exe;Totalcmd64.exe)
-	GuiControl,, vTcPath, %tcFilePath%
+	if(tcFilePath)
+		GuiControl,, vTcPath, %tcFilePath%
+return
+SetAnyIcon:
+SetMenuIcon:
+SetTreeIcon:
+SetFolderIcon:
+SetUrlIcon:
+SetEXEIcon:
+	setEdit:=StrReplace(A_ThisLabel, "Set", "v")
+	FileSelectFile, filePath, 3, , 图标图片路径
+	if(filePath)
+		GuiControl,, %setEdit%, %filePath%
 return
 SetEvCommand:
 	MsgBox,Everything搜索参数语法请打开Everything参照`nEverything-帮助(H)-搜索语法`n
