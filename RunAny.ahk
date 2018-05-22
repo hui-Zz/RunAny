@@ -1266,7 +1266,7 @@ TVEdit:
 	TV_GetText(ItemText, selID)
 	;分解已有菜单项到编辑框中
 	itemGlobalWinKey:=0
-	itemName:=fileName:=itemGlobalHotKey:=itemGlobalKey:=""
+	itemName:=fileName:=itemGlobalHotKey:=itemGlobalKey:=selectZz:=""
 	if(InStr(ItemText,"|") || InStr(ItemText,"-")=1){
 		menuDiy:=StrSplit(ItemText,"|")
 		itemName:=menuDiy[1]
