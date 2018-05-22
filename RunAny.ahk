@@ -1267,7 +1267,7 @@ TVEdit:
 	;分解已有菜单项到编辑框中
 	itemGlobalWinKey:=0
 	itemName:=fileName:=itemGlobalHotKey:=itemGlobalKey:=""
-	if(InStr(ItemText,"|")){
+	if(InStr(ItemText,"|") || InStr(ItemText,"-")=1){
 		menuDiy:=StrSplit(ItemText,"|")
 		itemName:=menuDiy[1]
 		fileName:=menuDiy[2]
@@ -1285,8 +1285,6 @@ TVEdit:
 				}
 			}
 		}
-	}else if(InStr(ItemText,"-")=1){
-		itemName:=ItemText
 	}else{
 		fileName:=ItemText
 	}
