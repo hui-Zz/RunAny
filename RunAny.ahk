@@ -1257,7 +1257,7 @@ return
 TVAdd:
 	selID:=TV_Add("",TV_GetParent(TV_GetSelection()),TV_GetSelection())
 	itemGlobalWinKey:=0
-	itemName:=fileName:=itemGlobalHotKey:=itemGlobalKey:=""
+	itemName:=fileName:=itemGlobalHotKey:=itemGlobalKey:=selectZz:=""
 	menuGuiFlag:=true
 	gosub,Menu_Item_Edit
 return
@@ -1293,6 +1293,7 @@ TVEdit:
 return
 Menu_Item_Edit:
 	SaveLabel:=menuGuiFlag ? "SetSaveItemGui" : "SetSaveItem"
+	PromptStr:=menuGuiFlag ? "" : "点击此"
 	SplitPath, fileName, fName,, fExt  ; 获取扩展名
 	Gui,SaveItem:Destroy
 	Gui,SaveItem:Margin,20,20
@@ -1306,7 +1307,7 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add, Checkbox,Checked%itemGlobalWinKey% x+5 yp+3 vvitemGlobalWinKey,Win
 	Gui,SaveItem:Add, Text, x+20 yp w200, %itemGlobalHotKey%
 	Gui,SaveItem:Add, Text, xm+10 y+10 w100, 分 隔 符 ：  |
-	Gui,SaveItem:Add, Text, x+10 yp w350 cRed vvPrompt GSetSaveItemFullPath, 注意：RunAny不支持当前后缀无路径运行，请点击此使用全路径
+	Gui,SaveItem:Add, Text, x+10 yp w350 cRed vvPrompt GSetSaveItemFullPath, 注意：RunAny不支持当前后缀无路径运行，请%PromptStr%使用全路径
 	Gui,SaveItem:Add, Text, xm+10 y+10 w60,% InStr(itemName,"-") ? "文件后缀：" : "启动路径："
 	if(fExt="lnk"){
 		Gui,SaveItem:Add, Button, xm+5 y+2 w60 GSetShortcut,快捷目标
@@ -1321,6 +1322,7 @@ Menu_Item_Edit:
 	Gui,SaveItem:Show,,新增菜单项 - %RunAnyZz%
 	GuiControl,SaveItem:Hide, vPrompt
 	thisMenuStr:=thisMenuItemStr:=""
+	gosub,FileNameChange
 return
 SetSaveItemGui:
 	Gui,SaveItem:Submit,NoHide
@@ -1376,20 +1378,23 @@ FileNameChange:
 	}
 return
 SetSaveItemFullPath:
-	if(selectZz)
+	if(selectZz){
 		GuiControl, SaveItem:, vfileName, %selectZz%
+		GuiControl, SaveItem:Hide, vPrompt
+	}
 return
 SetShortcut:
 	Gui,SaveItem:Submit, NoHide
 	filePath:=!vfileName && vitemName ? vitemName : vfileName
-	filePath:=Get_Obj_Path(filePath)
-	if(!filePath)
+	filePath:=Get_Obj_Path(filePath)	;补全路径
+	if(!filePath)	;如果没补全，还原原选中文件地址
 		filePath:=selectZz
 	SplitPath, filePath, ,, fExt  ; 获取扩展名
 	if(filePath && fExt="lnk"){
 		FileGetShortcut, %filePath%, exePath, OutDir, exeArgs
 		exeArgs:=exeArgs ? A_Space exeArgs : ""
-		GuiControl, SaveItem:, vfileName, %exePath%%exeArgs%
+		if(exePath)
+			GuiControl, SaveItem:, vfileName, %exePath%%exeArgs%
 	}else{
 		gosub,SetSaveItemFullPath
 	}
