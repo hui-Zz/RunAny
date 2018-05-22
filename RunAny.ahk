@@ -1293,6 +1293,7 @@ TVEdit:
 return
 Menu_Item_Edit:
 	SaveLabel:=menuGuiFlag ? "SetSaveItemGui" : "SetSaveItem"
+	SplitPath, fileName, fName,, fExt  ; 获取扩展名
 	Gui,SaveItem:Destroy
 	Gui,SaveItem:Margin,20,20
 	Gui,SaveItem:Font,,Microsoft YaHei
@@ -1307,7 +1308,12 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add, Text, xm+10 y+10 w100, 分 隔 符 ：  |
 	Gui,SaveItem:Add, Text, x+10 yp w350 cRed vvPrompt GSetSaveItemFullPath, 注意：RunAny不支持当前后缀无路径运行，请点击此使用全路径
 	Gui,SaveItem:Add, Text, xm+10 y+10 w60,% InStr(itemName,"-") ? "文件后缀：" : "启动路径："
-	Gui,SaveItem:Add, Edit, x+5 yp w400 r3 vvfileName GFileNameChange, %fileName%
+	if(fExt="lnk"){
+		Gui,SaveItem:Add, Button, xm+5 y+2 w60 GSetShortcut,快捷目标
+		Gui,SaveItem:Add, Edit, x+10 yp-18 w400 r3 vvfileName GFileNameChange, %fileName%
+	}else{
+		Gui,SaveItem:Add, Edit, x+5 yp w400 r3 vvfileName GFileNameChange, %fileName%
+	}
 	Gui,SaveItem:Font
 	Gui,SaveItem:Add,Button,Default xm+150 y+10 w75 G%SaveLabel%,保存(&Y)
 	Gui,SaveItem:Add,Button,x+20 w75 GSetCancel,取消(&C)
@@ -1372,6 +1378,21 @@ return
 SetSaveItemFullPath:
 	if(selectZz)
 		GuiControl, SaveItem:, vfileName, %selectZz%
+return
+SetShortcut:
+	Gui,SaveItem:Submit, NoHide
+	filePath:=!vfileName && vitemName ? vitemName : vfileName
+	filePath:=Get_Obj_Path(filePath)
+	if(!filePath)
+		filePath:=selectZz
+	SplitPath, filePath, ,, fExt  ; 获取扩展名
+	if(filePath && fExt="lnk"){
+		FileGetShortcut, %filePath%, exePath, OutDir, exeArgs
+		exeArgs:=exeArgs ? A_Space exeArgs : ""
+		GuiControl, SaveItem:, vfileName, %exePath%%exeArgs%
+	}else{
+		gosub,SetSaveItemFullPath
+	}
 return
 TVDown:
 	TV_Move(true)
