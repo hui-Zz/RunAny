@@ -37,7 +37,7 @@ MenuExeList.SetCapacity(1024)
 ;~;[初始化菜单显示热键]
 Hotkey, IfWinNotActive, ahk_group DisableGUI
 HotKeyList:=["MenuHotKey","MenuHotKey2","EvHotKey","OneHotKey","TreeHotKey1","TreeHotKey2","TreeIniHotKey1","TreeIniHotKey2","RunASetHotKey","RunAReloadHotKey","RunASuspendHotKey","RunAExitHotKey"]
-RunList:=["Menu_Show","Menu_Show2","Ev_Show","One_Show","Menu_Edit1","Menu_Edit2","Menu_Ini","Menu_Ini2","Menu_Set","Menu_Reload","Menu_Suspend","Menu_Exit"]
+RunList:=["Menu_Show1","Menu_Show2","Ev_Show","One_Show","Menu_Edit1","Menu_Edit2","Menu_Ini","Menu_Ini2","Menu_Set","Menu_Reload","Menu_Suspend","Menu_Exit"]
 For ki, kv in HotKeyList
 {
 	StringReplace,keyV,kv,Hot
@@ -123,16 +123,16 @@ DetectHiddenWindows,Off
 ;~;[后缀图标初始化]
 Gosub,Icon_FileExt_Set
 ;#应用菜单数组#网址菜单名数组及地址队列#
-menuRoot:=Object(),menuWebRoot:=Object(),menuWebList:=Object()
+menuRoot1:=Object(),menuWebRoot1:=Object(),menuWebList1:=Object()
 ;菜单级别：初始为根菜单RunAny
-menuRoot.Push(RunAnyZz)
-menuWebRoot.Push(RunAnyZz . "Web")
-menuWebRoot.Push(RunAnyZz)
+menuRoot1.Push(RunAnyZz)
+menuWebRoot1.Push(RunAnyZz . "Web")
+menuWebRoot1.Push(RunAnyZz)
 MenuObjTree1[RunAnyZz]:=Object()
 global menu2:=MENU2FLAG
 ;~;[读取带图标的自定义应用菜单]
-Menu_Read(iniVar1,menuRoot,1,menuWebRoot,menuWebList,false,1)
-Menu,% menuRoot[1],Add
+Menu_Read(iniVar1,menuRoot1,1,menuWebRoot1,menuWebList1,false,1)
+Menu,% menuRoot1[1],Add
 ;~;[如果有第2菜单则开始加载]
 if(menu2){
 	menuRoot2:=Object(),menuWebRoot2:=Object(),menuWebList2:=Object()
@@ -156,7 +156,7 @@ if(ini){
 	ini:=false
 	TrayTip,,RunAny菜单初始化完成`n右击任务栏图标设置,3,1
 	gosub,Menu_About
-	gosub,Menu_Show
+	gosub,Menu_Show1
 }
 Gosub,GuiIcon_Set
 if(ReloadEditFlag){
@@ -169,18 +169,13 @@ return
 ;══════════════════════════════════════════════════════════════════
 ;~;[读取配置并开始创建菜单]
 ;══════════════════════════════════════════════════════════════════
-Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,TREENO){
+Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,TREE_NO){
 	Loop, parse, iniReadVar, `n, `r
 	{
 		try{
 			Z_LoopField=%A_LoopField%
 			if(InStr(Z_LoopField,";")=1 || Z_LoopField=""){
 				continue
-			}
-			if(menuTempFalg){
-				;~;[删除临时菜单项]
-				try Menu,% menuRootFn[menuLevel], Delete,% Chr(3)
-				menuTempFalg:=false
 			}
 			if(InStr(Z_LoopField,"-")=1){
 				;~;[生成节点树层级结构]
@@ -196,15 +191,14 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 					}
 				}
 				if(menuItem){
-					;因为逐行读取不能保证子菜单后面有内容，所以添加子菜单前先添加临时菜单
-					menuTempFalg:=true
-					Menu,%menuItem%,add,% Chr(3),SetCancel
+					Menu,%menuItem%,add
 					Menu,% menuRootFn[menuLevel],add,%menuItem%,:%menuItem%
 					Menu,% menuRootFn[menuLevel],Icon,%menuItem%,% TreeIconS[1],% TreeIconS[2]
+					Menu,%menuItem%,Delete, 1&
 					menuLevel+=1	;比初始根菜单加一级
 					menuRootFn[menuLevel]:=menuItem		;从这之后内容项都添加到该级别菜单中
-					if(!IsObject(MenuObjTree%TREENO%[menuItem]))
-						MenuObjTree%TREENO%[menuItem]:=Object()
+					if(!IsObject(MenuObjTree%TREE_NO%[menuItem]))
+						MenuObjTree%TREE_NO%[menuItem]:=Object()
 					;~;[分割Tab获取菜单自定义热键]
 					if(InStr(menuItem,"`t")){
 						menuKeyStr:=RegExReplace(menuItem, "S)\t+", A_Tab)
@@ -216,7 +210,7 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 					}
 				}else if(menuRootFn[menuLevel]){
 					Menu,% menuRootFn[menuLevel],Add
-					MenuObjTree%TREENO%[(menuRootFn[menuLevel])].Push(Z_LoopField)
+					MenuObjTree%TREE_NO%[(menuRootFn[menuLevel])].Push(Z_LoopField)
 				}
 				continue
 			}
@@ -231,7 +225,7 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 				Z_LoopField:=itemVarTemp
 			}
 			;~添加到分类目录程序全数据
-			MenuObjTree%TREENO%[(menuRootFn[menuLevel])].Push(Z_LoopField)
+			MenuObjTree%TREE_NO%[(menuRootFn[menuLevel])].Push(Z_LoopField)
 			MenuObjEXE:=Object()	;~软件对象
 			flagEXE:=false			;~添加exe菜单项目
 			IconFail:=false			;~是否显示无效项图标
@@ -488,18 +482,28 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 		MsgBox,16,判断后缀创建菜单项出错,% "菜单名：" menuName "`n菜单项：" menuItem "`n路径：" item "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 	}
 }
+Menu_Show1:
+	MENU_NO:=1
+	iniFile:=iniPath
+	gosub,Menu_Show
+return
+Menu_Show2:
+	MENU_NO:=2
+	iniFile:=iniPath2
+	gosub,Menu_Show
+return
 ;~;[显示菜单]
 Menu_Show:
 	try{
 		global selectZz:=Get_Zz()
-		if(selectZz){
+		if(selectZz!=""){
 			if(Candy_isFile){
 				SplitPath, selectZz,,, FileExt  ; 获取文件扩展名.
 				try{
 					extMenuName:=MenuObjExt[FileExt]
 					if(extMenuName){
-						if(MenuObjTree1[extMenuName].MaxIndex()=1){
-							itemContent:=MenuObjTree1[extMenuName][1]
+						if(MenuObjTree%MENU_NO%[extMenuName].MaxIndex()=1){
+							itemContent:=MenuObjTree%MENU_NO%[extMenuName][1]
 							MenuShowMenuRun:=Get_Obj_Name(itemContent)
 							gosub,Menu_Run
 						}else{
@@ -514,13 +518,13 @@ Menu_Show:
 						}
 					}else{
 						if(!HideAddItem)
-							Menu_Add_Del_Temp(1,1,"0【添加到此菜单】","Menu_Add_File_Item","SHELL32.dll","166")
-						Menu,% menuRoot[1],Show
+							Menu_Add_Del_Temp(1,MENU_NO,"0【添加到此菜单】","Menu_Add_File_Item","SHELL32.dll","166")
+						Menu,% menuRoot%MENU_NO%[1],Show
 						if(!HideAddItem)
-							Menu_Add_Del_Temp(0,1,"0【添加到此菜单】")
+							Menu_Add_Del_Temp(0,MENU_NO,"0【添加到此菜单】")
 					}
 				}catch{
-					Menu,% menuRoot[1],Show
+					Menu,% menuRoot%MENU_NO%[1],Show
 				}
 				return
 			}
@@ -563,31 +567,18 @@ Menu_Show:
 			if(openFlag)
 				return
 			;#绑定菜单1为一键搜索
-			if(OneKeyMenu){
+			if(MENU_NO=1 && OneKeyMenu){
 				gosub,One_Search
 				return
 			}
 			;#选中文本弹出网址菜单#
 			if(!HideUnSelect){
-				Menu,% menuWebRoot[1],Show
+				Menu,% menuWebRoot%MENU_NO%[1],Show
 				return
 			}
 		}
 		;#其他弹出应用菜单#
-		Menu,% menuRoot[1],Show
-		iniFile:=iniPath
-	}catch{}
-return
-Menu_Show2:
-	try{
-		global selectZz:=Get_Zz()
-		;#选中文本弹出网址菜单，其他弹出应用菜单#
-		if(selectZz && !HideUnSelect && Candy_isFile!=1){
-			Menu,% menuWebRoot2[1],Show
-		}else{
-			Menu,% menuRoot2[1],Show
-		}
-		iniFile:=iniPath2
+		Menu,% menuRoot%MENU_NO%[1],Show
 	}catch{}
 return
 ;~;[菜单热键显示]
@@ -633,7 +624,7 @@ Menu_Run:
 			}
 			return
 		}
-		if(selectZz){
+		if(selectZz!=""){
 			firstFile:=RegExReplace(selectZz,"(.*)(\n|\r).*","$1")  ;取第一行
 			if(Candy_isFile=1 || Fileexist(selectZz) || Fileexist(firstFile)){
 				if(GetKeyState("Ctrl")){
@@ -734,12 +725,12 @@ Menu_Recent:
 	if(!MenuCommonList[1]){
 		MenuCommonList[1]:="&1 " A_ThisMenuItem
 		MenuObj[MenuCommonList[1]]:=any
-		Menu,% menuRoot[1],Add,% MenuCommonList[1],Menu_Run
+		Menu,% menuRoot1[1],Add,% MenuCommonList[1],Menu_Run
 	}else if(MenuCommonList[1]!="&1" A_Space A_ThisMenuItem){
 		if(!MenuCommonList[2]){
 			MenuCommonList[2]:="&2" A_Space A_ThisMenuItem
 			MenuObj[MenuCommonList[2]]:=any
-			Menu,% menuRoot[1],Add,% MenuCommonList[2],Menu_Run
+			Menu,% menuRoot1[1],Add,% MenuCommonList[2],Menu_Run
 		}else if(MenuCommonList[1] && MenuCommonList[2]){
 			MenuCommon1:=MenuCommonList[1]
 			MenuCommon2:=MenuCommonList[2]
@@ -747,16 +738,16 @@ Menu_Recent:
 			MenuCommonList[2]:=RegExReplace(MenuCommon1,"&1","&2")
 			MenuObj[MenuCommonList[1]]:=any
 			MenuObj[MenuCommonList[2]]:=MenuObj[(MenuCommon1)]
-			Menu,% menuRoot[1],Rename,% MenuCommon1,% MenuCommonList[1]
-			Menu,% menuRoot[1],Rename,% MenuCommon2,% MenuCommonList[2]
+			Menu,% menuRoot1[1],Rename,% MenuCommon1,% MenuCommonList[1]
+			Menu,% menuRoot1[1],Rename,% MenuCommon2,% MenuCommonList[2]
 		}
 	}
 return
 ;~;[所有菜单(添加/删除)临时项]
-Menu_Add_Del_Temp(addDel=1,TREENO=1,mName="",LabelName="",mIcon="",mIconNum=""){
+Menu_Add_Del_Temp(addDel=1,TREE_NO=1,mName="",LabelName="",mIcon="",mIconNum=""){
 	if(!mName)
 		return
-	For kk, vv in MenuObjTree%TREENO%
+	For kk, vv in MenuObjTree%TREE_NO%
 	{
 		if(addDel){
 			Menu,%kk%,Insert, ,%mName%,%LabelName%
@@ -770,9 +761,9 @@ Menu_Add_Del_Temp(addDel=1,TREENO=1,mName="",LabelName="",mIcon="",mIconNum=""){
 Web_Run:
 	webName:=RegExReplace(A_ThisMenuItem,"iS)^&1批量搜索")
 	if(webName){
-		webList:=(A_ThisHotkey=MenuHotKey2) ? menuWebList2[(webName)] : menuWebList[(webName)]
+		webList:=(A_ThisHotkey=MenuHotKey2) ? menuWebList2[(webName)] : menuWebList1[(webName)]
 	}else{
-		webList:=(A_ThisHotkey=MenuHotKey2) ? menuWebList2[(menuRoot2[1])] : menuWebList[(menuRoot[1])]
+		webList:=(A_ThisHotkey=MenuHotKey2) ? menuWebList2[(menuRoot2[1])] : menuWebList1[(menuRoot1[1])]
 	}
 	MsgBox,33,开始批量搜索%webName%,确定用【%selectZz%】批量搜索以下网站：`n%webList%
 	IfMsgBox Ok
@@ -887,10 +878,7 @@ Get_Zz(){
 	Candy_Saved:=ClipboardAll
 	Clipboard=
 	SendInput,^c
-	if WinActive("ahk_class TTOTAL_CMD")
-		ClipWait,0.3
-	else
-		ClipWait,0.1
+	ClipWait,%ClipWaitTime%
 	If(ErrorLevel){
 		Clipboard:=Candy_Saved
 		return
@@ -993,10 +981,10 @@ funcPath2AbsoluteZz(aPath,ahkPath){
 Menu_Add_File_Item:
 	if(iniFile=iniPath){
 		iniFileVar:=iniVar1
-		TREENO:=1
+		TREE_NO:=1
 	}else{
 		iniFileVar:=iniVar2
-		TREENO:=2
+		TREE_NO:=2
 	}
 	SplitPath,selectZz,fileName,,,itemName
 	if(InStr(FileExist(selectZz), "D")){
@@ -1014,7 +1002,7 @@ Menu_Add_File_Item:
 	Z_ThisMenuItem:=A_ThisMenuItem
 	if(Z_ThisMenuItem="0【添加到此菜单】"){
 		X_ThisMenuItem:=Z_ThisMenuItem
-		itemContent:=MenuObjTree%TREENO%[Z_ThisMenu][(MenuObjTree%TREENO%[Z_ThisMenu].MaxIndex())]
+		itemContent:=MenuObjTree%TREE_NO%[Z_ThisMenu][(MenuObjTree%TREE_NO%[Z_ThisMenu].MaxIndex())]
 		Z_ThisMenuItem:=Get_Obj_Name(itemContent)
 	}
 	if(!Z_ThisMenu)
@@ -1989,6 +1977,10 @@ ToggleAllTheWay(_ItemID=0, _ChkUchk=True ) {
 ;══════════════════════════════════════════════════════════════════
 ;~;[设置选项]
 Menu_Set:
+	if(GetKeyState("Ctrl")){
+		gosub,Menu_Config
+		return
+	}
 	Gui,66:Destroy
 	Gui,66:Font,,Microsoft YaHei
 	Gui,66:Margin,30,20
@@ -2098,6 +2090,7 @@ Menu_Set:
 	Gui,66:Add,Button,Default xm+100 y+90 w75 GSetOK,确定(&Y)
 	Gui,66:Add,Button,x+15 w75 GSetCancel,取消(&C)
 	Gui,66:Add,Button,x+15 w75 GSetReSet,重置
+	Gui,66:Add,Text,x+40 yp+5 w75 GMenu_Config,RunAnyConfig.ini
 	Gui,66:Show,,%RunAnyZz%设置
 	return
 ;~;[关于]
@@ -2261,6 +2254,7 @@ Var_Set:
 	global EvAutoClose:=Var_Read("EvAutoClose",0)
 	global TcPath:=Var_Read("TcPath")
 	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
+	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)
 	DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe,War3.exe,dota2.exe,League of Legends.exe")
 	EvCommandVar:=RegExReplace(EvCommand,"i).*file:(\*\.[^\s]*).*","$1")
 	global EvCommandExtList:=StrSplit(EvCommandVar,"|")
@@ -2496,7 +2490,7 @@ return
 MenuTray:
 	Menu,Tray,NoStandard
 	Menu,Tray,Icon,% MenuIconS[1],% MenuIconS[2]
-	Menu,Tray,add,启动菜单(&Z)`t%MenuHotKey%,Menu_Show
+	Menu,Tray,add,启动菜单(&Z)`t%MenuHotKey%,Menu_Show1
 	Menu,Tray,add,修改菜单(&E)`t%TreeHotKey1%,Menu_Edit1
 	Menu,Tray,add,修改文件(&F)`t%TreeIniHotKey1%,Menu_Ini
 	Menu,Tray,add
@@ -2521,6 +2515,9 @@ Menu_Ini:
 return
 Menu_Ini2:
 	Run,%iniPath2%
+return
+Menu_Config:
+	Run,%RunAnyConfig%
 return
 Menu_Reload:
 	Reload
