@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.3.5 @2018.05.22
+║【RunAny】一劳永逸的快速启动工具 v5.3.6 @2018.05.24
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -18,8 +18,8 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 ;~ StartTick:=A_TickCount   ;若要评估出menu初始化时间
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
-global RunAny_update_version:="5.3.5"
-global RunAny_update_time:="2018.05.22"
+global RunAny_update_version:="5.3.6"
+global RunAny_update_time:="2018.05.24"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 global MenuObj:=Object()        ;~程序全径
@@ -778,13 +778,15 @@ Web_Run:
 	}
 return
 Run_Zz(program){
-	path:=RegExReplace(program,"iS)(\.exe)($| .*)","$1")	;去掉参数，取路径
-	If !WinExist("ahk_exe" path)
+	fullPath:=Get_Obj_Path(program)
+	path:=fullPath ? fullPath : program
+	DetectHiddenWindows, Off
+	If !WinExist("ahk_exe" . path)
 		Run,%program%
 	else
 		WinGet,l,List,ahk_exe %path%
 		if l=1
-			If WinActive("ahk_exe" path)
+			If WinActive("ahk_exe" . path)
 				WinMinimize
 			else
 				WinActivate
@@ -793,8 +795,10 @@ Run_Zz(program){
 	return
 }
 Run_Tr(program,trNum,newOpen=false){
-	path:=RegExReplace(program,"iS)(\.exe)($| .*)","$1")	;去掉参数，取路径
-	If(newOpen || !WinExist("ahk_exe" path)){
+	fullPath:=Get_Obj_Path(program)
+	path:=fullPath ? fullPath : program
+	DetectHiddenWindows, Off
+	If(newOpen || !WinExist("ahk_exe" . path)){
 		Run,%program%
 		WinWait,ahk_exe %path%
 		;~ WinSet,Style,-0xC00000,
@@ -931,11 +935,17 @@ Get_Obj_Path(z_item){
 	if(InStr(z_item,"|")){
 		menuDiy:=StrSplit(z_item,"|")
 		obj_path:=MenuObj[menuDiy[1]]
-	}else if(RegExMatch(z_item,"iS)^(\\\\|.:\\).*?\.exe$")){
-		obj_path:=z_item
 	}else{
-		appName:=RegExReplace(z_item,"iS)\.exe$")
-		obj_path:=MenuObj[appName]
+		z_item:=RegExReplace(z_item,"iS)(\.exe)($| .*)","$1")	;去掉参数，取路径
+		if(RegExMatch(z_item,"iS)^(\\\\|.:\\).*?\.exe$")){
+			obj_path:=z_item
+		}else{
+			appName:=RegExReplace(z_item,"iS)\.exe$")
+			obj_path:=MenuObj[appName]
+		}
+	}
+	if(RegExMatch(obj_path,"iS).*?\.exe .*")){
+		obj_path:=RegExReplace(obj_path,"iS)(\.exe)($| .*)","$1")
 	}
 	if(!InStr(obj_path,"..\")){
 		return obj_path
@@ -1825,14 +1835,10 @@ Set_Icon(itemVar,editVar=true){
 		return "Icon4"
 	;~;[获取全路径]
 	FileName:=Get_Obj_Path(itemVar)
-	if(!editVar && !FileName && FileExt = "exe")
+	if(!editVar && FileName="" && FileExt = "exe")
 		return "Icon3"
-	if(RegExMatch(FileName,"iS).*?\.exe .*")){
-		FileExt:="exe"
-		FileName:=RegExReplace(FileName,"iS)(.*?\.exe) .*","$1")	;只去参数
-		if(FileName="cmd.exe")
-			FileName=%A_WinDir%\system32\cmd.exe
-	}
+	if(FileName="cmd.exe")
+		FileName=%A_WinDir%\system32\cmd.exe
 	;~;[获取网址图标]
 	if(RegExMatch(FileName,"iS)([\w-]+://?|www[.]).*")){
 		if(editVar){
