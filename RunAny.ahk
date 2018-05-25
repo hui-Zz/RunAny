@@ -190,10 +190,10 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 						MenuObjExt[(A_LoopField)]:=menuItem
 					}
 				}
-				if(menuItem){
+				if(menuItem!=""){
 					Menu,%menuItem%,add
-					Menu,% menuRootFn[menuLevel],add,%menuItem%,:%menuItem%
-					Menu,% menuRootFn[menuLevel],Icon,%menuItem%,% TreeIconS[1],% TreeIconS[2]
+					try Menu,% menuRootFn[menuLevel],add,%menuItem%,:%menuItem%
+					try Menu,% menuRootFn[menuLevel],Icon,%menuItem%,% TreeIconS[1],% TreeIconS[2]
 					Menu,%menuItem%,Delete, 1&
 					menuLevel+=1	;比初始根菜单加一级
 					menuRootFn[menuLevel]:=menuItem		;从这之后内容项都添加到该级别菜单中
@@ -214,6 +214,8 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 				}
 				continue
 			}
+			if(menuRootFn[menuLevel]="")
+				continue
 			;除短语和网址以外的项目转换配置中%%的变量
 			itemLen:=StrLen(Z_LoopField)
 			if(InStr(Z_LoopField,";",,0,1)!=itemLen && !RegExMatch(Z_LoopField,"iS)([\w-]+://?|www[.]).*")){
@@ -528,48 +530,50 @@ Menu_Show:
 				}
 				return
 			}
-			openFlag:=false
-			Loop, parse, selectZz, `n, `r, %A_Space%%A_Tab%
-			{
-				if(!A_LoopField)
-					continue
-				;一键打开网址
-				if(OneKeyWeb && RegExMatch(A_LoopField,"iS)([\w-]+://?|www[.]).*")){
-					Run,%A_LoopField%
-					openFlag:=true
-					continue
-				}
-				;一键磁力下载
-				if(OneKeyMagnet && InStr(A_LoopField,"magnet:?xt=urn:btih:")=1){
-					Run,%A_LoopField%
-					openFlag:=true
-					continue
-				}
-				if(RegExMatch(A_LoopField,"S)^(\\\\|.:\\)")){
-					;一键打开目录
-					if(OneKeyFolder && InStr(FileExist(A_LoopField), "D")){
-						If(TcPath){
-							Run,%TcPath%%A_Space%"%A_LoopField%"
-						}else{
-							Run,%A_LoopField%
-						}
-						openFlag:=true
+			if(MENU_NO=1){
+				openFlag:=false
+				Loop, parse, selectZz, `n, `r, %A_Space%%A_Tab%
+				{
+					if(!A_LoopField)
 						continue
-					}
-					;一键打开文件
-					if(OneKeyFile && Fileexist(A_LoopField)){
+					;一键打开网址
+					if(OneKeyWeb && RegExMatch(A_LoopField,"iS)([\w-]+://?|www[.]).*")){
 						Run,%A_LoopField%
 						openFlag:=true
 						continue
 					}
+					;一键磁力下载
+					if(OneKeyMagnet && InStr(A_LoopField,"magnet:?xt=urn:btih:")=1){
+						Run,%A_LoopField%
+						openFlag:=true
+						continue
+					}
+					if(RegExMatch(A_LoopField,"S)^(\\\\|.:\\)")){
+						;一键打开目录
+						if(OneKeyFolder && InStr(FileExist(A_LoopField), "D")){
+							If(TcPath){
+								Run,%TcPath%%A_Space%"%A_LoopField%"
+							}else{
+								Run,%A_LoopField%
+							}
+							openFlag:=true
+							continue
+						}
+						;一键打开文件
+						if(OneKeyFile && Fileexist(A_LoopField)){
+							Run,%A_LoopField%
+							openFlag:=true
+							continue
+						}
+					}
 				}
-			}
-			if(openFlag)
-				return
-			;#绑定菜单1为一键搜索
-			if(MENU_NO=1 && OneKeyMenu){
-				gosub,One_Search
-				return
+				if(openFlag)
+					return
+				;#绑定菜单1为一键搜索
+				if(OneKeyMenu){
+					gosub,One_Search
+					return
+				}
 			}
 			;#选中文本弹出网址菜单#
 			if(!HideUnSelect){
@@ -1706,7 +1710,7 @@ TV_MoveMenu(moveMenuName){
 	moveItem:=RegExReplace(moveMenuName,"S)^-+")
 	moveLevel:=StrLen(RegExReplace(moveMenuName,"S)(^-+).*","$1"))
 	Menu,%moveMenuName%,add,%moveMenuName%,Move_Menu
-	Menu,% moveRoot[moveLevel],add,%moveItem%, :%moveMenuName%
+	try Menu,% moveRoot[moveLevel],add,%moveItem%, :%moveMenuName%
 	try Menu,% moveRoot[moveLevel],Icon,%moveItem%,% TreeIconS[1],% TreeIconS[2]
 	moveLevel+=1
 	moveRoot[moveLevel]:=moveMenuName
@@ -2077,17 +2081,17 @@ Menu_Set:
 	Gui,66:Tab,图标+TC设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+20 w500 h230,图标自定义设置（图片或图标文件路径 , 序号不填默认1）
 	Gui,66:Add,Button,xm yp+30 w80 GSetAnyIcon,RunAny图标
-	Gui,66:Add,Edit,xm+80 yp+2 w400 r1 vvAnyIcon,%AnyIcon%
+	Gui,66:Add,Edit,xm+82 yp+2 w400 r1 vvAnyIcon,%AnyIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetMenuIcon,准备图标
-	Gui,66:Add,Edit,xm+80 yp+2 w400 r1 vvMenuIcon,%MenuIcon%
+	Gui,66:Add,Edit,xm+82 yp+2 w400 r1 vvMenuIcon,%MenuIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetTreeIcon,分类图标
-	Gui,66:Add,Edit,xm+80 yp+2 w400 r1 vvTreeIcon,%TreeIcon%
+	Gui,66:Add,Edit,xm+82 yp+2 w400 r1 vvTreeIcon,%TreeIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetFolderIcon,文件夹图标
-	Gui,66:Add,Edit,xm+80 yp+2 w400 r1 vvFolderIcon,%FolderIcon%
+	Gui,66:Add,Edit,xm+82 yp+2 w400 r1 vvFolderIcon,%FolderIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetUrlIcon,网址图标
-	Gui,66:Add,Edit,xm+80 yp+2 w400 r1 vvUrlIcon,%UrlIcon%
+	Gui,66:Add,Edit,xm+82 yp+2 w400 r1 vvUrlIcon,%UrlIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetEXEIcon,EXE图标
-	Gui,66:Add,Edit,xm+80 yp+2 w400 r1 vvEXEIcon,%EXEIcon%
+	Gui,66:Add,Edit,xm+82 yp+2 w400 r1 vvEXEIcon,%EXEIcon%
 	Gui,66:Add,GroupBox,xm-10 y+30 w500 h100,TotalCommander安装路径（TC打开RunAny中的文件夹）
 	Gui,66:Add,Button,xm yp+20 w50 GSetTcPath,选择
 	Gui,66:Add,Edit,xm+60 yp w420 r3 vvTcPath,%TcPath%
