@@ -6,11 +6,12 @@ __【多台电脑你只需配置一套软件列表，就能到处运行，网盘
 
 另外更有  [快捷打开文件]、[透明化启动]、[全局热键]、[一键批量搜索]...等你使用
 
-【RunAny下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.2.zip
+【RunAny稳定版下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.2.zip
 
 [【RunAny版本更新历史】](https://github.com/hui-Zz/RunAny/wiki/RunAny版本更新历史)
 
 > RunAny使用Everything神器来知道所有软件的位置，Everything可以秒搜Windows下任何文件
+> RunAny可以左键右鼠操作，也可以全键盘、全鼠标操作（配合鼠标手势软件更佳）
 
 ---
 
