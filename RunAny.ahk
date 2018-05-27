@@ -2481,6 +2481,8 @@ Config_Update:
 		vEvCommand:=StrReplace(EvCommand,"!C:\*Windows* file:*.exe","!C:\*Windows* !?:\$RECYCLE.BIN* file:*.exe")
 		Reg_Set(vEvCommand,EvCommand,"EvCommand")
 	}
+	IfNotExist %A_ScriptDir%\实用配置
+		FileCreateDir,%A_ScriptDir%\实用配置
 	configDownList:=["实用命令.ini","搜索网址.ini","热键映射.ini"]
 	For i, v in configDownList
 	{
