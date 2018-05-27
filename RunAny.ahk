@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.3.6 @2018.05.24
+║【RunAny】一劳永逸的快速启动工具 v5.3.6 @2018.05.27
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -19,7 +19,7 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_update_version:="5.3.6"
-global RunAny_update_time:="2018.05.24"
+global RunAny_update_time:="2018.05.27"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 global MenuObj:=Object()        ;~程序全径
@@ -86,7 +86,8 @@ while !WinExist("ahk_exe Everything.exe")
 	Sleep,100
 	if(A_Index>10){
 		if(EvPath && RegExMatch(EvPath,"iS)^.*?\.exe$")){
-			Run,%EvPath% -startup
+			EvPathRun:=Get_Transform_Val(EvPath)
+			Run,%EvPathRun% -startup
 			Sleep,300
 			break
 		}else if(FileExist(A_ScriptDir "\Everything\Everything.exe")){
@@ -125,10 +126,10 @@ Gosub,Icon_FileExt_Set
 ;#应用菜单数组#网址菜单名数组及地址队列#
 menuRoot1:=Object(),menuWebRoot1:=Object(),menuWebList1:=Object()
 ;菜单级别：初始为根菜单RunAny
-menuRoot1.Push(RunAnyZz)
-menuWebRoot1.Push(RunAnyZz . "Web")
-menuWebRoot1.Push(RunAnyZz)
-MenuObjTree1[RunAnyZz]:=Object()
+menuRoot1.Push(RunAnyZz . "1")
+menuWebRoot1.Push(RunAnyZz . "Web1")
+menuWebRoot1.Push(RunAnyZz . "1")
+MenuObjTree1[RunAnyZz . "1"]:=Object()
 global menu2:=MENU2FLAG
 ;~;[读取带图标的自定义应用菜单]
 Menu_Read(iniVar1,menuRoot1,1,menuWebRoot1,menuWebList1,false,1)
@@ -219,12 +220,7 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 			;除短语和网址以外的项目转换配置中%%的变量
 			itemLen:=StrLen(Z_LoopField)
 			if(InStr(Z_LoopField,";",,0,1)!=itemLen && !RegExMatch(Z_LoopField,"iS)([\w-]+://?|www[.]).*")){
-				try{
-					Transform,itemVarTemp,Deref,%Z_LoopField%
-				}catch{
-					itemVarTemp:=Z_LoopField
-				}
-				Z_LoopField:=itemVarTemp
+				Z_LoopField:=Get_Transform_Val(Z_LoopField)
 			}
 			;~添加到分类目录程序全数据
 			MenuObjTree%TREE_NO%[(menuRootFn[menuLevel])].Push(Z_LoopField)
@@ -551,8 +547,8 @@ Menu_Show:
 					if(RegExMatch(A_LoopField,"S)^(\\\\|.:\\)")){
 						;一键打开目录
 						if(OneKeyFolder && InStr(FileExist(A_LoopField), "D")){
-							If(TcPath){
-								Run,%TcPath%%A_Space%"%A_LoopField%"
+							If(TcPathRun){
+								Run,%TcPathRun%%A_Space%"%A_LoopField%"
 							}else{
 								Run,%A_LoopField%
 							}
@@ -619,8 +615,8 @@ Menu_Run:
 		}
 		;[按住Ctrl键打开应用所在目录，只有目录则直接打开]
 		If(!selectZz && !Candy_isFile && (GetKeyState("Ctrl") || InStr(FileExist(any), "D"))){
-			If(TcPath){
-				Run,%TcPath%%A_Space%"%any%"
+			If(TcPathRun){
+				Run,%TcPathRun%%A_Space%"%any%"
 			}else if(InStr(FileExist(any), "D")){
 				Run,%any%
 			}else{
@@ -862,13 +858,7 @@ Ext_Check(name,len,ext){
 ;~;[输出短语]
 Send_Str_Zz(strZz,tf=false){
 	if(tf){
-		;变量转换
-		try{
-			Transform,str,Deref,%strZz%
-		}catch{
-			str:=strZz
-		}
-		strZz:=str
+		strZz:=Get_Transform_Val(strZz)
 	}
 	Candy_Saved:=ClipboardAll
 	Clipboard:=strZz
@@ -907,6 +897,15 @@ SkSub_UrlEncode(str, enc="UTF-8")
    While (code := NumGet(buff, A_Index - 1, "UChar")) && DllCall(func, "Str", hex, "Str", "%%%02X", "UChar", code, "Cdecl")
    encoded .= hex
    Return encoded
+}
+;~;获取变量展开转换后的值
+Get_Transform_Val(var){
+	try{
+		Transform,varTemp,Deref,%var%
+		return varTemp
+	}catch{
+		return var
+	}
 }
 ;~;[获取分类名称]
 Get_Tree_Name(z_item,show_key=true){
@@ -960,6 +959,37 @@ Get_Obj_Path(z_item){
 		return absolute ? absolute : obj_path
 	}
 }
+;~;[判断后返回该菜单项最佳的启动路径]
+Get_Item_Run_Path(z_item_path){
+	SplitPath,z_item_path,fileName,,,itemName
+	if(InStr(FileExist(z_item_path), "D"))
+		return z_item_path
+	if(!Check_Obj_Ext(z_item_path))
+		return z_item_path
+	any:=MenuObj[fileName] ? MenuObj[fileName] : MenuObj[itemName]
+	if(any && any!=z_item_path){
+		return z_item_path
+	}
+	return fileName
+}
+;~;[检查文件后缀是否支持无路径查找]
+Check_Obj_Ext(filePath){
+	EvExtFalg:=false
+	fileValue:=RegExReplace(filePath,"iS)(.*?\..*?)($| .*)","$1")	;去掉参数
+	SplitPath, fileValue, fName,, fExt  ; 获取扩展名
+	Loop,% EvCommandExtList.MaxIndex()
+	{
+		EvCommandExtStr:=StrReplace(EvCommandExtList[A_Index],"*.")
+		if(fExt=EvCommandExtStr){
+			EvExtFalg:=true
+			break
+		}
+	}
+	if(!EvExtFalg && fExt)
+		return false
+	else
+		return true
+}
 /*
 【相对路径转换为绝对路径 by hui-Zz】
 aPath 被转换的相对路径，可带文件名
@@ -1000,18 +1030,10 @@ Menu_Add_File_Item:
 		iniFileVar:=iniVar2
 		TREE_NO:=2
 	}
-	SplitPath,selectZz,fileName,,,itemName
-	if(InStr(FileExist(selectZz), "D")){
-		fileName:=selectZz
-	}else{
-		any:=MenuObj[itemName] ? MenuObj[itemName] : MenuObj[fileName]
-		if(any && any!=selectZz){
-			fileName:=selectZz
-		}
-	}
 	;初始化要添加的内容
 	itemGlobalWinKey:=0
-	itemGlobalHotKey:=itemGlobalKey:=X_ThisMenuItem:=""
+	itemName:=itemGlobalHotKey:=itemGlobalKey:=X_ThisMenuItem:=""
+	fileName:=Get_Item_Run_Path(selectZz)
 	Z_ThisMenu:=A_ThisMenu
 	Z_ThisMenuItem:=A_ThisMenuItem
 	if(Z_ThisMenuItem="0【添加到此菜单】"){
@@ -1023,7 +1045,7 @@ Menu_Add_File_Item:
 		return
 	menuGuiFlag:=false
 	thisMenuItemStr:=X_ThisMenuItem="0【添加到此菜单】" ? "" : "菜单项（" Z_ThisMenuItem "）的上面"
-	thisMenuStr:=Z_ThisMenu=RunAnyZz ? "新增项会在『根目录』分类下" : "新增项会在『" Z_ThisMenu "』分类下"
+	thisMenuStr:=Z_ThisMenu=RunAnyZz . TREE_NO ? "新增项会在『根目录』分类下" : "新增项会在『" Z_ThisMenu "』分类下"
 	gosub,Menu_Item_Edit
 return
 ;~;[保存新添加的菜单项]
@@ -1063,7 +1085,7 @@ SetSaveItem:
 				treeLevel:=StrLen(RegExReplace(itemContent,"S)(^-+).+","$1"))
 				tabText:=Set_Tab(treeLevel)
 			}
-		}else if(rootFlag && Z_ThisMenu=RunAnyZz){	;如果要添加到根目录
+		}else if(rootFlag && (Z_ThisMenu=RunAnyZz . TREE_NO)){	;如果要添加到根目录
 			menuFlag:=true
 		}
 		if(menuFlag){
@@ -1295,7 +1317,7 @@ TVEdit:
 return
 Menu_Item_Edit:
 	SaveLabel:=menuGuiFlag ? "SetSaveItemGui" : "SetSaveItem"
-	PromptStr:=menuGuiFlag ? "" : "点击此"
+	PromptStr:=menuGuiFlag ? "需要" : "请点击此"
 	SplitPath, fileName, fName,, fExt  ; 获取扩展名
 	Gui,SaveItem:Destroy
 	Gui,SaveItem:Margin,20,20
@@ -1309,13 +1331,17 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add, Checkbox,Checked%itemGlobalWinKey% x+5 yp+3 vvitemGlobalWinKey,Win
 	Gui,SaveItem:Add, Text, x+20 yp w200, %itemGlobalHotKey%
 	Gui,SaveItem:Add, Text, xm+10 y+10 w100, 分 隔 符 ：  |
-	Gui,SaveItem:Add, Text, x+10 yp w350 cRed vvPrompt GSetSaveItemFullPath, 注意：RunAny不支持当前后缀无路径运行，请%PromptStr%使用全路径
-	Gui,SaveItem:Add, Text, xm+10 y+10 w60,% InStr(itemName,"-") ? "文件后缀：" : "启动路径："
+	Gui,SaveItem:Add, Text, x+10 yp w350 cRed vvPrompt GSetSaveItemFullPath, 注意：RunAny不支持当前后缀无路径运行，%PromptStr%使用全路径
+	if(InStr(itemName,"-")){
+		Gui,SaveItem:Add, Text, xm+10 y+10 w60,文件后缀：
+	}else{
+		Gui,SaveItem:Add, Button, xm+5 y+6 w60 GSetItemPath,启动路径
+	}
 	if(fExt="lnk"){
 		Gui,SaveItem:Add, Button, xm+5 y+2 w60 GSetShortcut,快捷目标
-		Gui,SaveItem:Add, Edit, x+10 yp-18 w400 r3 vvfileName GFileNameChange, %fileName%
+		Gui,SaveItem:Add, Edit, x+10 yp-22 w400 r3 vvfileName GFileNameChange, %fileName%
 	}else{
-		Gui,SaveItem:Add, Edit, x+5 yp w400 r3 vvfileName GFileNameChange, %fileName%
+		Gui,SaveItem:Add, Edit, x+10 yp w400 r3 vvfileName GFileNameChange, %fileName%
 	}
 	Gui,SaveItem:Font
 	Gui,SaveItem:Add,Button,Default xm+150 y+10 w75 G%SaveLabel%,保存(&Y)
@@ -1361,26 +1387,23 @@ SetSaveItemGui:
 return
 FileNameChange:
 	Gui,SaveItem:Submit, NoHide
-	EvExtFalg:=false
 	filePath:=!vfileName && vitemName ? vitemName : vfileName
 	if(filePath){
-		fileValue:=RegExReplace(filePath,"iS)(.*?\..*?)($| .*)","$1")	;去掉参数
-		SplitPath, fileValue, fName,, fExt  ; 获取扩展名
-		Loop,% EvCommandExtList.MaxIndex()
-		{
-			EvCommandExtStr:=StrReplace(EvCommandExtList[A_Index],"*.")
-			if(fExt=EvCommandExtStr){
-				EvExtFalg:=true
-			}
-		}
-		if(!EvExtFalg && fExt)
-			GuiControl, SaveItem:Show, vPrompt
-		else
+		if(Check_Obj_Ext(filePath))
 			GuiControl, SaveItem:Hide, vPrompt
+		else
+			GuiControl, SaveItem:Show, vPrompt
+	}
+return
+SetItemPath:
+	FileSelectFile, fileSelPath, , , 启动文件路径
+	if(fileSelPath){
+		GuiControl,, vfileName, % Get_Item_Run_Path(fileSelPath)
+		gosub,FileNameChange
 	}
 return
 SetSaveItemFullPath:
-	if(selectZz){
+	if(selectZz && !menuGuiFlag){
 		GuiControl, SaveItem:, vfileName, %selectZz%
 		GuiControl, SaveItem:Hide, vPrompt
 	}
@@ -1819,12 +1842,7 @@ return
 ;~;[后缀判断图标Gui]
 Set_Icon(itemVar,editVar=true){
 	;变量转换实际值
-	try{
-		Transform,itemVarTemp,Deref,%itemVar%
-	}catch{
-		itemVarTemp:=itemVar
-	}
-	itemVar:=itemVarTemp
+	itemVar:=Get_Transform_Val(itemVar)
 	SplitPath, itemVar,,, FileExt  ; 获取文件扩展名.
 	itemLen:=StrLen(itemVar)
 	if(InStr(itemVar,";")=1 || itemVar="")
@@ -2061,7 +2079,7 @@ Menu_Set:
 	Gui,66:Add,Hotkey,xm+10 yp+20 w150 vvEvKey,%EvKey%
 	Gui,66:Add,Checkbox,Checked%EvWinKey% xm+170 yp+3 vvEvWinKey,Win
 	Gui,66:Add,Checkbox,Checked%EvAutoClose% x+38 vvEvAutoClose,Everything自动关闭(不常驻)
-	Gui,66:Add,GroupBox,xm-10 y+30 w500 h100,Everything安装路径（支持相对路径..\为RunAny相对上级目录）
+	Gui,66:Add,GroupBox,xm-10 y+30 w500 h100,Everything安装路径（支持内置变量和相对路径..\为RunAny相对上级目录）
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp w420 r3 vvEvPath,%EvPath%
 	Gui,66:Add,GroupBox,xm-10 y+30 w500 h140,Everything搜索参数（搜索结果程序可无路径用RunAny运行）
@@ -2081,17 +2099,17 @@ Menu_Set:
 	Gui,66:Tab,图标+TC设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+20 w500 h230,图标自定义设置（图片或图标文件路径 , 序号不填默认1）
 	Gui,66:Add,Button,xm yp+30 w80 GSetAnyIcon,RunAny图标
-	Gui,66:Add,Edit,xm+82 yp+2 w400 r1 vvAnyIcon,%AnyIcon%
+	Gui,66:Add,Edit,xm+82 yp w400 r1 vvAnyIcon,%AnyIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetMenuIcon,准备图标
-	Gui,66:Add,Edit,xm+82 yp+2 w400 r1 vvMenuIcon,%MenuIcon%
+	Gui,66:Add,Edit,xm+82 yp w400 r1 vvMenuIcon,%MenuIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetTreeIcon,分类图标
-	Gui,66:Add,Edit,xm+82 yp+2 w400 r1 vvTreeIcon,%TreeIcon%
+	Gui,66:Add,Edit,xm+82 yp w400 r1 vvTreeIcon,%TreeIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetFolderIcon,文件夹图标
-	Gui,66:Add,Edit,xm+82 yp+2 w400 r1 vvFolderIcon,%FolderIcon%
+	Gui,66:Add,Edit,xm+82 yp w400 r1 vvFolderIcon,%FolderIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetUrlIcon,网址图标
-	Gui,66:Add,Edit,xm+82 yp+2 w400 r1 vvUrlIcon,%UrlIcon%
+	Gui,66:Add,Edit,xm+82 yp w400 r1 vvUrlIcon,%UrlIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetEXEIcon,EXE图标
-	Gui,66:Add,Edit,xm+82 yp+2 w400 r1 vvEXEIcon,%EXEIcon%
+	Gui,66:Add,Edit,xm+82 yp w400 r1 vvEXEIcon,%EXEIcon%
 	Gui,66:Add,GroupBox,xm-10 y+30 w500 h100,TotalCommander安装路径（TC打开RunAny中的文件夹）
 	Gui,66:Add,Button,xm yp+20 w50 GSetTcPath,选择
 	Gui,66:Add,Edit,xm+60 yp w420 r3 vvTcPath,%TcPath%
@@ -2263,6 +2281,7 @@ Var_Set:
 	global EvCommand:=Var_Read("EvCommand","!C:\*Windows* !?:\$RECYCLE.BIN* file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
 	global EvAutoClose:=Var_Read("EvAutoClose",0)
 	global TcPath:=Var_Read("TcPath")
+	global TcPathRun:=Get_Transform_Val(TcPath)
 	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
 	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)
 	DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe,War3.exe,dota2.exe,League of Legends.exe")
@@ -2272,6 +2291,7 @@ Var_Set:
 	{
 		GroupAdd,DisableGUI,ahk_exe %A_LoopField%
 	}
+	EnvGet, LocalAppData, LocalAppData
 	gosub,Icon_Set
 	global MenuCommonList:={}
 	if(A_DD=01 || A_DD=15){
@@ -2460,6 +2480,11 @@ Config_Update:
 	if(InStr(EvCommand,"!C:\*Windows* file:*.exe")=1){
 		vEvCommand:=StrReplace(EvCommand,"!C:\*Windows* file:*.exe","!C:\*Windows* !?:\$RECYCLE.BIN* file:*.exe")
 		Reg_Set(vEvCommand,EvCommand,"EvCommand")
+	}
+	configDownList:=["实用命令.ini","搜索网址.ini","热键映射.ini"]
+	For i, v in configDownList
+	{
+		URLDownloadToFile,%RunAnyGithubDir%/实用配置/%v% ,%A_ScriptDir%\实用配置\%v%
 	}
 return
 RunAny_Update:
