@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.3.6 @2018.05.27
+║【RunAny】一劳永逸的快速启动工具 v5.3.6 @2018.05.28
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -19,7 +19,7 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_update_version:="5.3.6"
-global RunAny_update_time:="2018.05.27"
+global RunAny_update_time:="2018.05.28"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 global MenuObj:=Object()        ;~程序全径
@@ -1126,7 +1126,6 @@ Menu_Edit:
 	moveRoot[1]:="moveMenu" . both
 	Menu,% moveRoot[1],add
 	global moveLevel:=0
-	global exeIconNum:=8
 	;~;[树型菜单初始化]
 	Gui, Destroy
 	Gui, +Resize
@@ -1855,6 +1854,8 @@ Set_Icon(itemVar,editVar=true){
 		return "Icon8"
 	if(InStr(FileExist(itemVar), "D"))
 		return "Icon4"
+	if(InStr(itemVar,"::",,0,1)=itemLen-1)	; {发送热键}
+		return "Icon9"
 	;~;[获取全路径]
 	FileName:=Get_Obj_Path(itemVar)
 	if(!editVar && FileName="" && FileExt = "exe")
@@ -2312,7 +2313,7 @@ Icon_Set:
 		UpIcon:="shell32.dll,247"
 		DownIcon:="shell32.dll,248"
 	}
-	if(Ext_Check(A_ScriptName,StrLen(A_ScriptName),".exe")){
+	if(A_IsCompiled=1){
 		iconAny:=A_ScriptName ",1"
 		iconMenu:=A_ScriptName ",2"
 	}
@@ -2405,7 +2406,7 @@ Run_Exist:
 return
 GuiIcon_Set:
 	;~;[树型菜单图标集]
-	global ImageListID := IL_Create(8)
+	global ImageListID := IL_Create(9)
 	IL_Add(ImageListID, "shell32.dll", 1)
 	IL_Add(ImageListID, "shell32.dll", 2)
 	IL_Add(ImageListID, EXEIconS[1], EXEIconS[2])
@@ -2414,6 +2415,7 @@ GuiIcon_Set:
 	IL_Add(ImageListID, TreeIconS[1], TreeIconS[2])
 	IL_Add(ImageListID, UrlIconS[1], UrlIconS[2])
 	IL_Add(ImageListID, "shell32.dll", 50)
+	IL_Add(ImageListID, "shell32.dll", 100)
 	;#菜单加载完后，预读完成"修改菜单"的GUI图标
 	Loop, parse, iniVar1, `n, `r, %A_Space%%A_Tab%
 	{
