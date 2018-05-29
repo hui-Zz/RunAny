@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.3.6 @2018.05.28
+║【RunAny】一劳永逸的快速启动工具 v5.3.6 @2018.05.29
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -12,6 +12,7 @@
 #SingleInstance,Force   ;~运行替换旧实例
 ListLines,Off           ;~不显示最近执行的脚本行
 AutoTrim,On             ;~自动去除变量中前导和尾随空格制表符
+SendMode,Input          ;~使用更速度和可靠方式发送键鼠点击
 CoordMode,Menu          ;~相对于整个屏幕
 SetBatchLines,-1        ;~脚本全速执行
 SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
@@ -19,7 +20,7 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_update_version:="5.3.6"
-global RunAny_update_time:="2018.05.28"
+global RunAny_update_time:="2018.05.29"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 global MenuObj:=Object()        ;~程序全径
@@ -671,7 +672,6 @@ Menu_Run:
 return
 ;~;[菜单热键运行]
 Menu_Key_Run:
-	selectZz:=Get_Zz()
 	any:=menuObjkey[(A_ThisHotkey)]
 	thisMenuName:=MenuObjName[(A_ThisHotkey)]
 	SplitPath, any, , dir
@@ -679,16 +679,17 @@ Menu_Key_Run:
 		SetWorkingDir,%dir%
 	try {
 		anyLen:=StrLen(any)
-		If(InStr(any,";",,0,1)=anyLen){
-			StringLeft, any, any, anyLen-1
-			Send_Str_Zz(any,true)	;[输出短语]
-			return
-		}
 		If(InStr(any,"::",,0,1)=anyLen-1){
 			StringLeft, any, any, anyLen-2
 			Send_Key_Zz(any)	;[输出热键]
 			return
 		}
+		If(InStr(any,";",,0,1)=anyLen){
+			StringLeft, any, any, anyLen-1
+			Send_Str_Zz(any,true)	;[输出短语]
+			return
+		}
+		selectZz:=Get_Zz()
 		if(selectZz){
 			firstFile:=RegExReplace(selectZz,"(.*)(\n|\r).*","$1")  ;取第一行
 			if(Candy_isFile=1 || Fileexist(selectZz) || Fileexist(firstFile)){
