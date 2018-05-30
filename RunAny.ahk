@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.3.6 @2018.05.29
+║【RunAny】一劳永逸的快速启动工具 v5.3.7 @2018.05.29
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -19,7 +19,7 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 ;~ StartTick:=A_TickCount   ;若要评估出menu初始化时间
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
-global RunAny_update_version:="5.3.6"
+global RunAny_update_version:="5.3.7"
 global RunAny_update_time:="2018.05.29"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
@@ -483,12 +483,12 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 }
 Menu_Show1:
 	MENU_NO:=1
-	iniFile:=iniPath
+	iniFileShow:=iniPath
 	gosub,Menu_Show
 return
 Menu_Show2:
 	MENU_NO:=2
-	iniFile:=iniPath2
+	iniFileShow:=iniPath2
 	gosub,Menu_Show
 return
 ;~;[显示菜单]
@@ -1024,7 +1024,7 @@ funcPath2AbsoluteZz(aPath,ahkPath){
 ;══════════════════════════════════════════════════════════════════
 ;~;[添加编辑新添加的菜单项]
 Menu_Add_File_Item:
-	if(iniFile=iniPath){
+	if(iniFileShow=iniPath){
 		iniFileVar:=iniVar1
 		TREE_NO:=1
 	}else{
@@ -1111,8 +1111,8 @@ SetSaveItem:
 	}
 	if(saveText){
 		stringtrimright, saveText, saveText, 1
-		FileDelete,%iniFile%
-		FileAppend,%saveText%,%iniFile%
+		FileDelete,%iniFileShow%
+		FileAppend,%saveText%,%iniFileShow%
 		Reload
 	}
 return
@@ -1170,13 +1170,13 @@ Menu_Edit:
 return
 Menu_Edit1:
 	both:=1
-	iniFile:=iniPath
+	iniFileWrite:=iniPath
 	iniFileVar:=iniVar1
 	gosub,Menu_Edit
 return
 Menu_Edit2:
 	both:=2
-	iniFile:=iniPath2
+	iniFileWrite:=iniPath2
 	iniFileVar:=iniVar2
 	gosub,Menu_Edit
 return
@@ -1517,8 +1517,8 @@ Menu_Save:
 		}
 	}
 	if(saveText){
-		FileDelete,%iniFile%
-		FileAppend,%saveText%,%iniFile%
+		FileDelete,%iniFileWrite%
+		FileAppend,%saveText%,%iniFileWrite%
 	}
 return
 ;~;[制表符设置]
@@ -2712,11 +2712,11 @@ FileAppend,
 -网址(&Web)
 	;在别名最末尾添加Tab制表符+热键(参考AHK写法:^代表Ctrl !代表Alt #代表Win +代表Shift)，如选中文字按Alt+z百度
 	百度(&B)	!z|https://www.baidu.com/s?wd=
-	谷歌(&G)	!g|http://www.google.com/search?q=`%s&gws_rd=ssl
-	翻译(&F)	#z|http://translate.google.cn/#auto/zh-CN/
+	谷歌(&G)	!g|https://www.google.com/search?q=`%s&gws_rd=ssl
+	翻译(&F)	#z|https://translate.google.cn/#auto/zh-CN/
 	异次元软件|http://www.iplaysoft.com/search/?s=548512288484505211&q=
 	淘宝(&T)|https://s.taobao.com/search?q=
-	京东(&D)|http://search.jd.com/Search?keyword=
+	京东(&D)|https://search.jd.com/Search?keyword=`%s&enc=utf-8
 	知乎(&Z)|https://www.zhihu.com/search?type=content&q=
 	B站|http://search.bilibili.com/all?keyword=
 	--
