@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.3.7 @2018.05.31
+║【RunAny】一劳永逸的快速启动工具 v5.3.7 @2018.06.01
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -20,7 +20,7 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_update_version:="5.3.7"
-global RunAny_update_time:="2018.05.31"
+global RunAny_update_time:="2018.06.01"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 global MenuObj:=Object()        ;~程序全径
@@ -86,8 +86,8 @@ while !WinExist("ahk_exe Everything.exe")
 {
 	Sleep,100
 	if(A_Index>10){
-		if(EvPath && RegExMatch(EvPath,"iS)^.*?\.exe$")){
-			EvPathRun:=Get_Transform_Val(EvPath)
+		EvPathRun:=Get_Transform_Val(EvPath)
+		if(EvPathRun && FileExist(EvPathRun)){
 			Run,%EvPathRun% -startup
 			Sleep,300
 			break
@@ -118,8 +118,10 @@ If(evExist){
 	}
 }
 ;~;[如果需要自动关闭everything]
-if(EvAutoClose && EvPath)
-	Run,%EvPath% -exit
+if(EvAutoClose && EvPath){
+	EvPathRun:=Get_Transform_Val(EvPath)
+	Run,%EvPathRun% -exit
+}
 DetectHiddenWindows,Off
 ;══════════════════════════════════════════════════════════════════
 ;~;[后缀图标初始化]
@@ -2298,6 +2300,15 @@ Var_Set:
 	global MenuCommonList:={}
 	;~[定期自动检查更新]
 	if(A_DD=01 || A_DD=15){
+		;当天已经检查过就不再更新
+		if(FileExist(A_Temp "\temp_RunAny.ahk")){
+			FileGetTime,tempMTime, %A_Temp%\temp_RunAny.ahk, M  ; 获取修改时间.
+			t1 := A_Now
+			t1 -= %tempMTime%, Days
+			FormatTime,tempTimeDD,%tempMTime%,dd
+			if(t1=0 && (tempTimeDD=01 || tempTimeDD=15))
+				return
+		}
 		Gosub,Auto_Update
 	}
 return
@@ -2475,7 +2486,7 @@ Auto_Update:
 			FileDelete, %A_Temp%\temp_RunAny.ahk
 			TrayTip,,RunAny已经是最新版本。,5,1
 			checkUpdateFlag:=false
-		}else{
+		}else if(A_DD!=01 && A_DD!=15){
 			FileDelete, %A_Temp%\temp_RunAny.ahk
 		}
 	}
