@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.3.7 @2018.05.29
+║【RunAny】一劳永逸的快速启动工具 v5.3.7 @2018.05.31
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -20,7 +20,7 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_update_version:="5.3.7"
-global RunAny_update_time:="2018.05.29"
+global RunAny_update_time:="2018.05.31"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 global MenuObj:=Object()        ;~程序全径
@@ -2296,6 +2296,7 @@ Var_Set:
 	EnvGet, LocalAppData, LocalAppData
 	gosub,Icon_Set
 	global MenuCommonList:={}
+	;~[定期自动检查更新]
 	if(A_DD=01 || A_DD=15){
 		Gosub,Auto_Update
 	}
@@ -2745,6 +2746,12 @@ FileAppend,
 	控制面板(&S)|Control.exe
 	;在程序名后空格+带参数启动
 	hosts文件|notepad.exe `%A_WinDir`%\System32\drivers\etc\hosts
+-其他(&Other)
+	;当前时间（变量语法参考AHK文档https://wyagd001.github.io/zh-cn/docs/Variables.htm）
+	当前时间|`%A_YYYY`%-`%A_MM`%-`%A_DD`% `%A_Hour`%:`%A_Min`%:`%A_Sec`%;
+	;热键映射,快捷方便,左边Shift+空格=回车键;左手Shift+大小写键=删除键
+	左手回车	<+Space|{Enter}::
+	左手删除	LShift & CapsLock|{Delete}::
 ),%iniFile%
 Gosub,Desktop_Append
 FileAppend,
