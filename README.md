@@ -102,7 +102,9 @@ RunAny可以储存邮箱、手机号，想用时就快捷输出，更支持AHK�
 记事本(&N)_:88|Notepad.exe
 ```
 9. **热键映射：** 映射空闲的组合键转变为常用键功能，如：
+
    映射 左手的Shift+空格键 转变成 `回车键` 的功能
+
    映射 左手的Shift+大小写键(CapsLock) 转变成 `删除键` 的功能
 ```ini
 左手回车	<+Space|{Enter}::
@@ -141,7 +143,7 @@ RunAny追求就是：<u>**一劳永逸**</u>
 
 讨论QQ群：[246308937【RunAny快速启动一劳永逸】](https://jq.qq.com/?_wv=1027&k=445Ug7u)、[3222783【AutoHotkey高级群】](https://jq.qq.com/?_wv=1027&k=43uBHer)、[493194474【软客】](https://jq.qq.com/?_wv=1027&k=43trxF5)
 
-**欢迎大家多多提出建议！谢谢各位网友和群里的AHK-工兵、Balance、☆☆天甜 等等对RunAny的大力支持**
+**欢迎大家多多提出建议！感谢各位网友和群里的AHK-工兵、Balance、☆☆天甜、°～童年不懂事°等等对RunAny提出好的建议和问题**
 
 **你的支持是我最大的动力！(金额随意)：**
 <img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.jpg" alt="支持RunAny" width="300" height="300"><img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.png" alt="支持RunAny" width="300" height="300">
