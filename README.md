@@ -25,6 +25,14 @@ __【多台电脑你只需配置一套软件列表，就能到处运行，网盘
 
 ---
 
+## RunAny一键直达，没有比按一个键更快的操作！
+
+如果选中的文字就是网址，那按<kbd>\`</kbd>直接会在浏览器打开。如果是文件夹目录、文件路径、磁力链接，一样一键打开，**就是这么高效！**
+
+<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/help/RunAny一键直达功能.gif" alt="RunAny一键直达功能">
+
+---
+
 ## RunAny让你告别繁琐的右键打开文件！
 
 只要先选中文件，然后再按<kbd>\`</kbd>启动RunAny中的软件，即可用该软件打开选中文件，**就是这么方便！**
@@ -33,27 +41,46 @@ __【多台电脑你只需配置一套软件列表，就能到处运行，网盘
 
 ---
 
-## RunAny除了运行还能搜索！
+## RunAny除了运行还能搜索，还能批量搜索！
 
-在菜单中添加搜索网址，先选中任意文字，按<kbd>\`</kbd>后就可以选择想用的搜索（任意网站、购物、视频等，详见实用配置的搜索网址.ini），更有一次批量搜索功能。
-
-如果选中的文字就是网址，那按<kbd>\`</kbd>直接会在浏览器打开。如果是文件夹目录、文件路径、磁力链接，一样一键打开，**就是这么高效！**
+在菜单中添加搜索网址，先选中任意文字，按<kbd>\`</kbd>后就可以选择想用的搜索，更有一次批量搜索功能。
+详见“实用配置”目录下【搜索网址.ini】（内置购物、视频、图片、软件、音乐类等等搜索网站，复制需要的到【RunAny.ini】内使用）
 
 <img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/help/RunAny%E6%BC%94%E7%A4%BA%E6%89%B9%E9%87%8F%E6%90%9C%E7%B4%A2.gif" alt="RunAny演示批量搜索">
 
 ---
 
+## RunAny短语和热键映射功能：
+
+RunAny可以储存邮箱、手机号，想用时就快捷输出，更支持AHK实时变量，输出当前时间。
+
+**有了RunAny左键右鼠不是梦，左边有大量未使用快捷组合键，利用好这些键，左手再也不用移到键盘的右边😁**
+
+<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/help/RunAny短语和热键映射功能.gif" alt="RunAny短语和热键映射功能">
+
+---
+
+## RunAny的菜单不止一种用法
+
+<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/help/RunAny菜单多种使用方式.gif" alt="RunAny菜单多种使用方式">
+
+---
+
 ## <a name="tree">首次使用请阅读：【自定义树形菜单配置方法】</a>
 
-1.  **分类/目录：** 以 `-`开头为1级目录名， `--`名称为2级，以此类推，如：`-app应用`、`-work办公`、`--img图像处理`
-2.  **分隔符：** 单独一个 `-`是1级分隔符， `--`2级分隔符，如：`-`、`--`
-3.  **菜单别名：** 在竖 `|` 前面添加程序的别名，如：`word|winword.exe`菜单上只会显示word
-4.  **注释：** 前加 `;`可以注释暂时不用的，如：`;cmd.exe`
-5.  **快捷短语：** 末尾分号 `;`识别为短语，会直接打字输出，如：`hui0.0713@gmail.com;` 用于注册时输出邮箱，
+1. **分类/目录：** 以 `-`开头为1级目录名， `--`名称为2级，以此类推，如：`-app应用`、`-work办公`、`--img图像处理`
 
-   `%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%;` 输出 `2018-08-08 08:08:08` 当前时间（变量语法参考[AHK文档](https://wyagd001.github.io/zh-cn/docs/Variables.htm)）
+2. **分隔符：** 单独一个 `-`是1级分隔符， `--`2级分隔符，如：`-`、`--`
 
-6.  **区分同名程序：** 如果电脑上有多个同名程序，加上全路径指定运行其中一个，如：`IE(32位)|C:\Program Files (x86)\Internet Explorer\iexplore.exe`
+3. **菜单别名：** 在竖 `|` 前面添加程序的别名，如：`word|winword.exe`菜单上只会显示word
+
+4. **注释：** 前加 `;`可以注释暂时不用的，如：`;cmd.exe`
+
+5. **快捷短语：** 末尾分号 `;`识别为短语，会直接打字输出，如：`hui0.0713@gmail.com;` 用于注册时输出邮箱，
+
+   `当前时间|%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%;` 输出 `2018-08-08 08:08:08` （变量语法参考[AHK文档](https://wyagd001.github.io/zh-cn/docs/Variables.htm)）
+
+6. **区分同名程序：** 如果电脑上有多个同名程序，加上全路径指定运行其中一个，如：`IE(32位)|C:\Program Files (x86)\Internet Explorer\iexplore.exe`
 
 > 每个菜单名首字母(或用&指定任意)便是启动快捷键，如：`IE(&E)|iexplore.exe`快捷键是e
 >
@@ -71,7 +98,15 @@ __【多台电脑你只需配置一套软件列表，就能到处运行，网盘
 ```ini
 记事本(&N)_:88|Notepad.exe
 ```
-9. **全局热键：** 在别名最末尾添加<kbd>Tab</kbd>制表符+热键（热键格式参考AHK写法:^代表<kbd>Ctrl</kbd> !代表<kbd>Alt</kbd> #代表<kbd>Win</kbd>+代表<kbd>Shift</kbd>），如按 `Alt+b`一键百度、 `Win+z`一键翻译、按 `Alt+z`启动或激活浏览器：
+9. **热键映射：** 映射空闲的组合键转变为常用键功能，如：
+   映射 左手的Shift+空格键 转变成 `回车键` 的功能
+   映射 左手的Shift+大小写键(CapsLock) 转变成 `删除键` 的功能
+```ini
+左手回车	<+Space|{Enter}::
+左手删除	LShift & CapsLock|{Delete}::
+```
+   > 了解更多AHK热键写法文档：https://wyagd001.github.io/zh-cn/docs/Hotkeys.htm
+10. **全局热键：** 在别名最末尾添加<kbd>Tab</kbd>制表符+热键（热键格式参考AHK写法:^代表<kbd>Ctrl</kbd> !代表<kbd>Alt</kbd> #代表<kbd>Win</kbd>+代表<kbd>Shift</kbd>），如按 `Alt+b`一键百度、 `Win+z`一键翻译、按 `Alt+z`启动或激活浏览器：
 ```ini
 百度(&B)	!b|https://www.baidu.com/s?wd=
 谷歌(&G)	!g|http://www.google.com/search?q=%s&gws_rd=ssl
