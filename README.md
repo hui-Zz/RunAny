@@ -4,9 +4,9 @@
 
 __【多台电脑你只需配置一套软件列表，就能到处运行，网盘同步更是如虎添翼，达到一劳永逸！】😎__
 
-另外更有  [快捷打开文件]、[透明化启动]、[全局热键]、[一键批量搜索]...等你使用
+另外更有  [一键直达]、[快捷打开文件]、[一键批量搜索]、[短语和热键映射]、[透明化启动]、[全局热键]...等你使用
 
-【RunAny稳定版下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.2.zip
+【RunAny稳定版下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.3.7.zip
 
 [【RunAny版本更新历史】](https://github.com/hui-Zz/RunAny/wiki/RunAny版本更新历史)
 
@@ -27,7 +27,9 @@ __【多台电脑你只需配置一套软件列表，就能到处运行，网盘
 
 ## RunAny一键直达，没有比按一个键更快的操作！
 
-如果选中的文字就是网址，那按<kbd>\`</kbd>直接会在浏览器打开。如果是文件夹目录、文件路径、磁力链接，一样一键打开，**就是这么高效！**
+如果选中的文字就是网址，那按<kbd>\`</kbd>直接会在浏览器打开。
+
+如果是文件夹目录、文件路径、磁力链接，一样一键打开，**就是这么高效！**
 
 <img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/help/RunAny一键直达功能.gif" alt="RunAny一键直达功能">
 
@@ -44,6 +46,7 @@ __【多台电脑你只需配置一套软件列表，就能到处运行，网盘
 ## RunAny除了运行还能搜索，还能批量搜索！
 
 在菜单中添加搜索网址，先选中任意文字，按<kbd>\`</kbd>后就可以选择想用的搜索，更有一次批量搜索功能。
+
 详见“实用配置”目录下【搜索网址.ini】（内置购物、视频、图片、软件、音乐类等等搜索网站，复制需要的到【RunAny.ini】内使用）
 
 <img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/help/RunAny%E6%BC%94%E7%A4%BA%E6%89%B9%E9%87%8F%E6%90%9C%E7%B4%A2.gif" alt="RunAny演示批量搜索">
@@ -105,7 +108,7 @@ RunAny可以储存邮箱、手机号，想用时就快捷输出，更支持AHK�
 左手回车	<+Space|{Enter}::
 左手删除	LShift & CapsLock|{Delete}::
 ```
-   > 了解更多AHK热键写法文档：https://wyagd001.github.io/zh-cn/docs/Hotkeys.htm
+   > [了解更多AHK热键写法文档](https://wyagd001.github.io/zh-cn/docs/Hotkeys.htm)
 10. **全局热键：** 在别名最末尾添加<kbd>Tab</kbd>制表符+热键（热键格式参考AHK写法:^代表<kbd>Ctrl</kbd> !代表<kbd>Alt</kbd> #代表<kbd>Win</kbd>+代表<kbd>Shift</kbd>），如按 `Alt+b`一键百度、 `Win+z`一键翻译、按 `Alt+z`启动或激活浏览器：
 ```ini
 百度(&B)	!b|https://www.baidu.com/s?wd=
