@@ -48,7 +48,7 @@ __【多台电脑你只需配置一套软件列表，就能到处运行，网盘
 
 在菜单中添加搜索网址，先选中任意文字，按<kbd>\`</kbd>后就可以选择想用的搜索，更有一次批量搜索功能。
 
-详见“实用配置”目录下【搜索网址.ini】（内置购物、视频、图片、软件、音乐类等等搜索网站，复制需要的到【RunAny.ini】内使用）
+详见“实用配置”目录下[搜索网址.ini](https://github.com/hui-Zz/RunAny/blob/master/%E5%AE%9E%E7%94%A8%E9%85%8D%E7%BD%AE/%E6%90%9C%E7%B4%A2%E7%BD%91%E5%9D%80.ini)（内置购物、视频、图片、软件、音乐类等等搜索网站，复制需要的到【RunAny.ini】内使用）
 
 <img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/help/RunAny%E6%BC%94%E7%A4%BA%E6%89%B9%E9%87%8F%E6%90%9C%E7%B4%A2.gif" alt="RunAny演示批量搜索">
 
@@ -156,7 +156,7 @@ RunAny追求就是：<u>**一劳永逸**</u>
 | AHK-工兵 | Balance        |
 | -------- | -------------- |
 | Nicked   | °～童年不懂事° |
-| 声仔     |                |
+| 声仔     | 小雨果         |
 | skystar  |                |
 
 ---
