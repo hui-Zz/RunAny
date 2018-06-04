@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.3.7 @2018.06.01
+║【RunAny】一劳永逸的快速启动工具 v5.3.8 @2018.06.04
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -19,8 +19,8 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 ;~ StartTick:=A_TickCount   ;若要评估出menu初始化时间
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
-global RunAny_update_version:="5.3.7"
-global RunAny_update_time:="2018.06.01"
+global RunAny_update_version:="5.3.8"
+global RunAny_update_time:="2018.06.04"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 global MenuObj:=Object()        ;~程序全径
@@ -497,6 +497,10 @@ return
 Menu_Show:
 	try{
 		global selectZz:=Get_Zz()
+		RunAnyMenu:=A_ScriptDir "\Plugins\RunAny_Menu.ahk"
+		if(ahkFlag && FileExist(RunAnyMenu)){
+			Run,%ahkExePath%%A_Space%%RunAnyMenu%
+		}
 		if(selectZz!=""){
 			if(Candy_isFile){
 				SplitPath, selectZz,,, FileExt  ; 获取文件扩展名.
@@ -828,16 +832,17 @@ Ev_Show:
 		SplitPath,selectZz,fileName
 		selectZz:=fileName
 	}
+	EvPathRun:=Get_Transform_Val(EvPath)
 	IfWinExist ahk_class EVERYTHING
 		if selectZz
-			Run % evPath " -search """ selectZz """"
+			Run % EvPathRun " -search """ selectZz """"
 		else
 			IfWinNotActive
 				WinActivate
 			else
 				WinMinimize
 	else
-		Run % evPath (selectZz ? " -search """ selectZz """" : "")
+		Run % EvPathRun (selectZz ? " -search """ selectZz """" : "")
 return
 ;~;[一键搜索]
 One_Show:
@@ -2311,6 +2316,26 @@ Var_Set:
 		}
 		Gosub,Auto_Update
 	}
+	;~;[RunAny的AHK脚本插件]
+	global AhkPluginsList:=Object()
+	Loop,%A_ScriptDir%\Plugins\*.ahk,0	;Plugins目录下AHK脚本
+	{
+		AhkPluginsList[(A_LoopFileName)]:=1
+	}
+	Loop,%A_ScriptDir%\Plugins\*.*,2		;Plugins目录下文件夹内同名AHK脚本
+	{
+		AhkPluginsList[(A_LoopFileName . ".ahk")]:=1
+	}
+	IniRead,pluginsVar,%RunAnyConfig%,Plugins
+	Loop, parse, pluginsVar, `n, `r
+	{
+		pluginsList:=StrSplit(A_LoopField,"=")
+		AhkPluginsList[(pluginsList[1])]:=pluginsList[2]
+	}
+	For ki, kv in AhkPluginsList
+	{
+		IniWrite,%kv%,%RunAnyConfig%,Plugins,%ki%
+	}
 return
 ;~;[图标初始化]
 Icon_Set:
@@ -2416,6 +2441,11 @@ Run_Exist:
 			Reload
 		}
 	}
+	global ahkFlag:=false
+	global ahkExePath:=A_ScriptDir "\Plugins\AHK.exe"
+	if(FileExist(ahkExePath)){
+		ahkFlag:=true
+	}
 return
 GuiIcon_Set:
 	;~;[树型菜单图标集]
@@ -2498,6 +2528,8 @@ Config_Update:
 	}
 	IfNotExist %A_ScriptDir%\实用配置
 		FileCreateDir,%A_ScriptDir%\实用配置
+	IfNotExist,%A_ScriptDir%\Plugins
+		FileCreateDir, %A_ScriptDir%\Plugins
 	configDownList:=["实用命令.ini","搜索网址.ini","热键映射.ini"]
 	For i, v in configDownList
 	{
