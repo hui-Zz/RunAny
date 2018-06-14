@@ -2064,7 +2064,8 @@ return
 LVMenu(addMenu){
 	flag:=addMenu="ahkGuiMenu" ? true : false
 	Menu, %addMenu%, Add,% flag ? "启动" : "启动`tF1", LVRun
-	Menu, %addMenu%, Icon,% flag ? "启动" : "启动`tF1", %ahkExePath%,2
+	if(ahkFlag)
+		Menu, %addMenu%, Icon,% flag ? "启动" : "启动`tF1", %ahkExePath%,2
 	Menu, %addMenu%, Add,% flag ? "配置" : "配置`tF2", LVEdit
 	Menu, %addMenu%, Icon,% flag ? "配置" : "配置`tF2", SHELL32.dll,134
 	Menu, %addMenu%, Add,% flag ? "自启" : "自启`tF3", LVEnable
@@ -2072,9 +2073,11 @@ LVMenu(addMenu){
 	Menu, %addMenu%, Add,% flag ? "关闭" : "关闭`tF4", LVClose
 	Menu, %addMenu%, Icon,% flag ? "关闭" : "关闭`tF4", SHELL32.dll,28
 	Menu, %addMenu%, Add,% flag ? "挂起" : "挂起`tF5", LVSuspend
-	Menu, %addMenu%, Icon,% flag ? "挂起" : "挂起`tF5", %ahkExePath%,3
+	if(ahkFlag)
+		Menu, %addMenu%, Icon,% flag ? "挂起" : "挂起`tF5", %ahkExePath%,3
 	Menu, %addMenu%, Add,% flag ? "暂停" : "暂停`tF6", LVPause
-	Menu, %addMenu%, Icon,% flag ? "暂停" : "暂停`tF6", %ahkExePath%,4
+	if(ahkFlag)
+		Menu, %addMenu%, Icon,% flag ? "暂停" : "暂停`tF6", %ahkExePath%,4
 	Menu, %addMenu%, Add,% flag ? "删除" : "删除`tF7", LVDel
 	Menu, %addMenu%, Icon,% flag ? "删除" : "删除`tF7", SHELL32.dll,132
 	Menu, %addMenu%, Add,% flag ? "下载" : "下载`tF8", LVAdd
@@ -2219,6 +2222,8 @@ LVDown:
 		MsgBox,网络异常，无法从https://github.com/hui-Zz/RunAny上读取最新版本文件，请手动下载
 		return
 	}
+	IfNotExist,%A_ScriptDir%\%PluginsDir%
+		FileCreateDir, %A_ScriptDir%\%PluginsDir%
 	if(!ahkFlag){
 		URLDownloadToFile,%RunAnyGithubDir%/%PluginsDir%/AHK.exe ,%A_ScriptDir%\%PluginsDir%\AHK.exe
 	}
@@ -2233,6 +2238,9 @@ LVDown:
 			URLDownloadToFile,%RunAnyGithubDir%/%PluginsDir%/%FileName% ,%A_ScriptDir%\%PluginsDir%\%FileName%
 		}
 	}
+	TrayTip,,RunAny插件下载成功，自动重启后请重新查看,3,1
+	Sleep,3000
+	Reload
 return
 ;[判断脚本当前状态]
 LVStatusChange(RowNumber,FileStatus,lvItem){
@@ -2883,8 +2891,6 @@ Config_Update:
 	}
 	IfNotExist %A_ScriptDir%\实用配置
 		FileCreateDir,%A_ScriptDir%\实用配置
-	IfNotExist,%A_ScriptDir%\%PluginsDir%
-		FileCreateDir, %A_ScriptDir%\%PluginsDir%
 	configDownList:=["实用命令.ini","搜索网址.ini","热键映射.ini"]
 	For i, v in configDownList
 	{
