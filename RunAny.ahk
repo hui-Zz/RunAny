@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.3.9 @2018.06.14
+║【RunAny】一劳永逸的快速启动工具 v5.4 @2018.06.15
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -20,8 +20,8 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
-global RunAny_update_version:="5.3.9"
-global RunAny_update_time:="2018.06.14"
+global RunAny_update_version:="5.4"
+global RunAny_update_time:="2018.06.15"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -780,15 +780,22 @@ Web_Run:
 	}else{
 		webList:=(A_ThisHotkey=MenuHotKey2) ? menuWebList2[(menuRoot2[1])] : menuWebList1[(menuRoot1[1])]
 	}
-	MsgBox,33,开始批量搜索%webName%,确定用【%selectZz%】批量搜索以下网站：`n%webList%
-	IfMsgBox Ok
-	{
-		Loop,parse,webList,`n
+	if(JumpSearch){
+		gosub,Web_Search
+	}else{
+		MsgBox,33,开始批量搜索%webName%,确定用【%selectZz%】批量搜索以下网站：`n%webList%
+		IfMsgBox Ok
 		{
-			if(A_LoopField){
-				any:=MenuObj[(A_LoopField)]
-				Run_Search(any,selectZz,BrowserPath)
-			}
+			gosub,Web_Search
+		}
+	}
+return
+Web_Search:
+	Loop,parse,webList,`n
+	{
+		if(A_LoopField){
+			any:=MenuObj[(A_LoopField)]
+			Run_Search(any,selectZz,BrowserPath)
 		}
 	}
 return
@@ -2041,7 +2048,7 @@ Gui,P:Destroy
 Gui,P:Default
 Gui,P:+Resize
 Gui,P:Font, s10, Microsoft YaHei
-Gui,P:Add, Listview, xm w500 r15 grid AltSubmit vRunAnyLV glistview, 插件文件|状态|自启|插件描述
+Gui,P:Add, Listview, xm w500 r15 grid AltSubmit vRunAnyLV glistview, 插件文件|运行状态|自动启动|插件描述
 ;~;[读取启动项内容写入列表]
 GuiControl,P: -Redraw, RunAnyLV
 For runn, runv in PluginsObjList
@@ -2056,7 +2063,7 @@ GuiControl,P: +Redraw, RunAnyLV
 LVMenu("LVMenu")
 LVMenu("ahkGuiMenu")
 Gui,P: Menu, ahkGuiMenu
-LV_ModifyCol()  ; 根据内容自动调整每列的大小.
+LVModifyCol(65,ColumnStatus,ColumnAutoRun)
 Gui,P:Show, , %RunAnyZz% 插件管理
 DetectHiddenWindows,Off
 return
@@ -2199,7 +2206,7 @@ LVAdd:
 	Gui,D:Destroy
 	Gui,D:Default
 	Gui,D:Font, s10, Microsoft YaHei
-	Gui,D:Add, Listview, xm w480 r10 grid AltSubmit vRunAnyDownLV, 插件文件|状态|版本号|插件描述
+	Gui,D:Add, Listview, xm w480 r10 grid AltSubmit Checked vRunAnyDownLV, 插件文件|状态|版本号|插件描述
 	;~;[读取启动项内容写入列表]
 	GuiControl,D: -Redraw, RunAnyDownLV
 	For pi, pv in pluginsDownList
@@ -2211,7 +2218,7 @@ LVAdd:
 	Menu, ahkDownMenu, Add,下载, LVDown
 	Menu, ahkDownMenu, Icon,下载, SHELL32.dll,194
 	Gui,D: Menu, ahkDownMenu
-	LV_ModifyCol()  ; 根据内容自动调整每列的大小.
+	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
 	Gui,D:Show, , %RunAnyZz% 插件下载
 return
 LVDown:
@@ -2219,25 +2226,34 @@ LVDown:
 		MsgBox,网络异常，无法从https://github.com/hui-Zz/RunAny上读取最新版本文件，请手动下载
 		return
 	}
-	IfNotExist,%A_ScriptDir%\%PluginsDir%
-		FileCreateDir, %A_ScriptDir%\%PluginsDir%
-	if(!ahkFlag){
-		URLDownloadToFile,%RunAnyGithubDir%/%PluginsDir%/AHK.exe ,%A_ScriptDir%\%PluginsDir%\AHK.exe
-	}
+	TrayTip,,RunAny开始下载插件，请稍等……,2,1
+	gosub,AhkExeDown
 	Loop
 	{
-		RowNumber := LV_GetNext(RowNumber)  ; 在前一次找到的位置后继续搜索.
+		RowNumber := LV_GetNext(RowNumber)
+		if not RowNumber
+			RowNumber := LV_GetNext(RowNumber, "Checked")  ; 再找勾选的行
 		if not RowNumber  ; 上面返回零, 所以选择的行已经都找到了.
 			break
 		LV_GetText(FileName, RowNumber, ColumnName)
 		LV_GetText(FileStatus, RowNumber, ColumnStatus)
 		if(FileStatus="未下载"){
-			URLDownloadToFile,%RunAnyGithubDir%/%PluginsDir%/%FileName% ,%A_ScriptDir%\%PluginsDir%\%FileName%
+			URLDownloadToFile,%RunAnyGithubDir%/RunPlugins/%FileName% ,%A_ScriptDir%\%PluginsDir%\%FileName%
 		}
 	}
 	TrayTip,,RunAny插件下载成功，自动重启后请重新查看,3,1
-	Sleep,3000
+	Sleep,2000
 	Reload
+return
+AhkExeDown:
+	IfNotExist,%A_ScriptDir%\%PluginsDir%
+		FileCreateDir, %A_ScriptDir%\%PluginsDir%
+	if(!ahkFlag){
+		URLDownloadToFile,%RunAnyGithubDir%/RunPlugins/AHK.exe ,%A_ScriptDir%\%PluginsDir%\AHK.exe
+	}
+	FileGetSize, ahkSize, %A_ScriptDir%\%PluginsDir%\AHK.exe
+	if(ahkSize<1189888)
+		URLDownloadToFile,%RunAnyGithubDir%/RunPlugins/AHK.exe ,%A_ScriptDir%\%PluginsDir%\AHK.exe
 return
 ;[判断脚本当前状态]
 LVStatusChange(RowNumber,FileStatus,lvItem){
@@ -2253,6 +2269,15 @@ LVStatusChange(RowNumber,FileStatus,lvItem){
 		lvItem:="启动"
 	LV_Modify(RowNumber, "", ,lvItem)
 	LV_ModifyCol()
+}
+;[自动调整列表宽度]
+LVModifyCol(width, colList*){
+	LV_ModifyCol()  ; 根据内容自动调整每列的大小.
+	for index,col in colList
+	{
+		LV_ModifyCol(col, width)
+		LV_ModifyCol(col, "center")
+	}
 }
 /*
 【判断启动项当前是否已经运行】（RunAnyCtrl）
@@ -2572,7 +2597,8 @@ Var_Set:
 	global TcPathRun:=Get_Transform_Val(TcPath)
 	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
 	OneKeyUrl:=StrReplace(OneKeyUrl, "|", "`n")
-	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)
+	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)	;隐藏配置
+	global JumpSearch:=Var_Read("JumpSearch",0)			;隐藏配置
 	DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe,War3.exe,dota2.exe,League of Legends.exe")
 	EvCommandVar:=RegExReplace(EvCommand,"i).*file:(\*\.[^\s]*).*","$1")
 	global EvCommandExtList:=StrSplit(EvCommandVar,"|")
@@ -2794,6 +2820,7 @@ GuiIcon_Set:
 return
 ;~;[自动启动生效]
 AutoRun_Effect:
+	gosub,AhkExeDown
 	try {
 		if(ahkFlag){
 			For runn, runv in PluginsPathList	;循环启动项
