@@ -548,7 +548,7 @@ Menu_Show:
 						continue
 					;一键打开网址
 					if(OneKeyWeb && RegExMatch(A_LoopField,"iS)([\w-]+://?|www[.]).*")){
-						Run,%A_LoopField%
+						Run_Search(A_LoopField,"",BrowserPath)
 						openFlag:=true
 						continue
 					}
@@ -786,7 +786,7 @@ Web_Run:
 		{
 			if(A_LoopField){
 				any:=MenuObj[(A_LoopField)]
-				Run_Search(any,selectZz)
+				Run_Search(any,selectZz,BrowserPath)
 			}
 		}
 	}
@@ -822,13 +822,14 @@ Run_Tr(program,trNum,newOpen=false){
 		Run_Zz(program)
 	return
 }
-Run_Search(any,selectZz=""){
+Run_Search(any,selectZz="",browser=""){
+	browserRun:=browser ? browser A_Space : browser
 	if(InStr(any,"%s",true)){
-		Run,% StrReplace(any,"%s",selectZz)
+		Run,% browserRun StrReplace(any,"%s",selectZz)
 	}else if(InStr(any,"%S",true)){
-		Run,% StrReplace(any,"%S",SkSub_UrlEncode(selectZz))
+		Run,% browserRun StrReplace(any,"%S",SkSub_UrlEncode(selectZz))
 	}else{
-		Run,%any%%selectZz%
+		Run,%browserRun%%any%%selectZz%
 	}
 }
 ;══════════════════════════════════════════════════════════════════
@@ -860,7 +861,7 @@ One_Search:
 	Loop,parse,OneKeyUrl,`n
 	{
 		if(A_LoopField){
-			Run_Search(A_LoopField,selectZz)
+			Run_Search(A_LoopField,selectZz,BrowserPath)
 		}
 	}
 return
@@ -2365,6 +2366,9 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%OneKeyMenu% x+38 vvOneKeyMenu,绑定菜单1为一键搜索
 	Gui,66:Add,Text,xm yp+40 w325,一键搜索网址(`%s为选中文字的替代参数，多行搜索多个网址)
 	Gui,66:Add,Edit,xm yp+20 w485 r8 vvOneKeyUrl,%OneKeyUrl%
+	Gui,66:Add,Text,xm y+40 w325,非默认浏览器打开网址(适用一键搜索和一键直达)
+	Gui,66:Add,Button,xm yp+20 w50 GSetBrowserPath,选择
+	Gui,66:Add,Edit,xm+60 yp w420 r3 vvBrowserPath,%BrowserPath%
 	
 	Gui,66:Tab,图标+TC设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+20 w500 h230,图标自定义设置（图片或图标文件路径 , 序号不填默认1）
@@ -2423,6 +2427,11 @@ SetTcPath:
 	if(tcFilePath)
 		GuiControl,, vTcPath, %tcFilePath%
 return
+SetBrowserPath:
+	FileSelectFile, browserFilePath, 3, , 程序路径, (*.exe)
+	if(browserFilePath)
+		GuiControl,, vBrowserPath, %BrowserPath%
+return
 SetAnyIcon:
 SetMenuIcon:
 SetTreeIcon:
@@ -2456,7 +2465,7 @@ SetOK:
 	SetValueList.Push("MenuKey", "MenuWinKey","MenuAddItemKey","MenuAddItemWinKey")
 	SetValueList.Push("EvKey", "EvWinKey", "EvPath","EvCommand","EvAutoClose")
 	SetValueList.Push("OneKey", "OneWinKey", "OneKeyUrl", "OneKeyWeb", "OneKeyFolder", "OneKeyMagnet", "OneKeyFile", "OneKeyMenu")
-	SetValueList.Push("TcPath", "TreeIcon", "FolderIcon", "UrlIcon", "EXEIcon", "AnyIcon", "MenuIcon")
+	SetValueList.Push("BrowserPath", "TcPath", "TreeIcon", "FolderIcon", "UrlIcon", "EXEIcon", "AnyIcon", "MenuIcon")
 	SetValueList.Push("TreeKey1", "TreeWinKey1", "TreeIniKey1", "TreeIniWinKey1", "PluginsManageKey", "PluginsManageWinKey")
 	SetValueList.Push("RunASetKey", "RunASetWinKey", "RunAReloadKey", "RunAReloadWinKey", "RunASuspendKey", "RunASuspendWinKey", "RunAExitKey", "RunAExitWinKey")
 	If(MENU2FLAG){
@@ -2552,6 +2561,7 @@ Var_Set:
 	global OneKeyMenu:=Var_Read("OneKeyMenu",0)
 	global EvCommand:=Var_Read("EvCommand","!C:\*Windows* !?:\$RECYCLE.BIN* file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
 	global EvAutoClose:=Var_Read("EvAutoClose",0)
+	global BrowserPath:=Var_Read("BrowserPath")
 	global TcPath:=Var_Read("TcPath")
 	global TcPathRun:=Get_Transform_Val(TcPath)
 	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
