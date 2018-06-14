@@ -6,7 +6,7 @@ __【多台电脑你只需配置一套软件列表，就能到处运行，网盘
 
 另外更有  [一键直达]、[快捷打开文件]、[一键批量搜索]、[短语和热键映射]、[透明化启动]、[全局热键]...等你使用
 
-【RunAny稳定版下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.3.7.zip
+【RunAny稳定版下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.4.zip
 
 [【RunAny版本更新历史】](https://github.com/hui-Zz/RunAny/wiki/RunAny版本更新历史)
 
