@@ -2064,20 +2064,17 @@ return
 LVMenu(addMenu){
 	flag:=addMenu="ahkGuiMenu" ? true : false
 	Menu, %addMenu%, Add,% flag ? "启动" : "启动`tF1", LVRun
-	if(ahkFlag)
-		Menu, %addMenu%, Icon,% flag ? "启动" : "启动`tF1", %ahkExePath%,2
-	Menu, %addMenu%, Add,% flag ? "配置" : "配置`tF2", LVEdit
-	Menu, %addMenu%, Icon,% flag ? "配置" : "配置`tF2", SHELL32.dll,134
+	try Menu, %addMenu%, Icon,% flag ? "启动" : "启动`tF1", %ahkExePath%,2
+	Menu, %addMenu%, Add,% flag ? "编辑" : "编辑`tF2", LVEdit
+	Menu, %addMenu%, Icon,% flag ? "编辑" : "编辑`tF2", SHELL32.dll,134
 	Menu, %addMenu%, Add,% flag ? "自启" : "自启`tF3", LVEnable
 	Menu, %addMenu%, Icon,% flag ? "自启" : "自启`tF3", SHELL32.dll,166
 	Menu, %addMenu%, Add,% flag ? "关闭" : "关闭`tF4", LVClose
 	Menu, %addMenu%, Icon,% flag ? "关闭" : "关闭`tF4", SHELL32.dll,28
 	Menu, %addMenu%, Add,% flag ? "挂起" : "挂起`tF5", LVSuspend
-	if(ahkFlag)
-		Menu, %addMenu%, Icon,% flag ? "挂起" : "挂起`tF5", %ahkExePath%,3
+	try Menu, %addMenu%, Icon,% flag ? "挂起" : "挂起`tF5", %ahkExePath%,3
 	Menu, %addMenu%, Add,% flag ? "暂停" : "暂停`tF6", LVPause
-	if(ahkFlag)
-		Menu, %addMenu%, Icon,% flag ? "暂停" : "暂停`tF6", %ahkExePath%,4
+	try Menu, %addMenu%, Icon,% flag ? "暂停" : "暂停`tF6", %ahkExePath%,4
 	Menu, %addMenu%, Add,% flag ? "删除" : "删除`tF7", LVDel
 	Menu, %addMenu%, Icon,% flag ? "删除" : "删除`tF7", SHELL32.dll,132
 	Menu, %addMenu%, Add,% flag ? "下载" : "下载`tF8", LVAdd
@@ -2088,7 +2085,7 @@ LVRun:
 	gosub,LVApply
 	return
 LVEdit:
-	menuItem:="配置"
+	menuItem:="编辑"
 	gosub,LVApply
 	return
 LVEnable:
@@ -2132,7 +2129,7 @@ LVApply:
 		if(menuItem="启动"){
 			Run,%FilePath%
 			LV_Modify(RowNumber, "", , "启动")
-		}else if(menuItem="配置"){
+		}else if(menuItem="编辑"){
 			PostMessage, 0x111, 65401,,, %FilePath% ahk_class AutoHotkey
 		}else if(menuItem="挂起"){
 			PostMessage, 0x111, 65404,,, %FilePath% ahk_class AutoHotkey
