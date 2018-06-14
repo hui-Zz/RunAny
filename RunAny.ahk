@@ -19,6 +19,7 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 ;~ StartTick:=A_TickCount   ;若要评估出menu初始化时间
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
+global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.3.9"
 global RunAny_update_time:="2018.06.14"
 Gosub,Var_Set       ;~参数初始化
@@ -504,7 +505,7 @@ return
 Menu_Show:
 	try{
 		global selectZz:=Get_Zz()
-		RunAnyMenu:=A_ScriptDir "\Plugins\RunAny_Menu.ahk"
+		RunAnyMenu:=A_ScriptDir "\" PluginsDir "\RunAny_Menu.ahk"
 		if(ahkFlag && FileExist(RunAnyMenu) && PluginsObjList["RunAny_Menu.ahk"]){
 			Run,%ahkExePath%%A_Space%%RunAnyMenu%
 		}
@@ -2219,7 +2220,7 @@ LVDown:
 		return
 	}
 	if(!ahkFlag){
-		URLDownloadToFile,%RunAnyGithubDir%/Plugins/AHK.exe ,%A_ScriptDir%\Plugins\AHK.exe
+		URLDownloadToFile,%RunAnyGithubDir%/%PluginsDir%/AHK.exe ,%A_ScriptDir%\%PluginsDir%\AHK.exe
 	}
 	Loop
 	{
@@ -2229,7 +2230,7 @@ LVDown:
 		LV_GetText(FileName, RowNumber, ColumnName)
 		LV_GetText(FileStatus, RowNumber, ColumnStatus)
 		if(FileStatus="未下载"){
-			URLDownloadToFile,%RunAnyGithubDir%/Plugins/%FileName% ,%A_ScriptDir%\Plugins\%FileName%
+			URLDownloadToFile,%RunAnyGithubDir%/%PluginsDir%/%FileName% ,%A_ScriptDir%\%PluginsDir%\%FileName%
 		}
 	}
 return
@@ -2701,7 +2702,7 @@ Run_Exist:
 		}
 	}
 	global ahkFlag:=false
-	global ahkExePath:=A_ScriptDir "\Plugins\AHK.exe"
+	global ahkExePath:=A_ScriptDir "\" PluginsDir "\AHK.exe"
 	if(FileExist(ahkExePath)){
 		ahkFlag:=true
 	}
@@ -2712,15 +2713,15 @@ Plugins_Read:
 	global PluginsObjList:=Object()
 	global PluginsPathList:=Object()
 	global PluginsTitleList:=Object()
-	Loop,%A_ScriptDir%\Plugins\*.ahk,0	;Plugins目录下AHK脚本
+	Loop,%A_ScriptDir%\%PluginsDir%\*.ahk,0	;Plugins目录下AHK脚本
 	{
 		PluginsObjList[(A_LoopFileName)]:=0
 		PluginsPathList[(A_LoopFileName)]:=A_LoopFileFullPath
 		PluginsTitleList[(A_LoopFileName)]:=Plugins_Read_Title(A_LoopFileFullPath)
 	}
-	Loop,%A_ScriptDir%\Plugins\*.*,2		;Plugins目录下文件夹内同名AHK脚本
+	Loop,%A_ScriptDir%\%PluginsDir%\*.*,2		;Plugins目录下文件夹内同名AHK脚本
 	{
-		IfExist,%A_ScriptDir%\Plugins\%A_LoopFileName%.ahk
+		IfExist,%A_ScriptDir%\%PluginsDir%\%A_LoopFileName%.ahk
 		{
 			PluginsObjList[(A_LoopFileName . ".ahk")]:=0
 			PluginsPathList[(A_LoopFileName . ".ahk")]:=A_LoopFileFullPath
@@ -2882,8 +2883,8 @@ Config_Update:
 	}
 	IfNotExist %A_ScriptDir%\实用配置
 		FileCreateDir,%A_ScriptDir%\实用配置
-	IfNotExist,%A_ScriptDir%\Plugins
-		FileCreateDir, %A_ScriptDir%\Plugins
+	IfNotExist,%A_ScriptDir%\%PluginsDir%
+		FileCreateDir, %A_ScriptDir%\%PluginsDir%
 	configDownList:=["实用命令.ini","搜索网址.ini","热键映射.ini"]
 	For i, v in configDownList
 	{
