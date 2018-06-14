@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.3.8 @2018.06.04
+║【RunAny】一劳永逸的快速启动工具 v5.3.9 @2018.06.07
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -19,10 +19,11 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 ;~ StartTick:=A_TickCount   ;若要评估出menu初始化时间
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
-global RunAny_update_version:="5.3.8"
-global RunAny_update_time:="2018.06.04"
+global RunAny_update_version:="5.3.9"
+global RunAny_update_time:="2018.06.07"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
+Gosub,Plugins_Read  ;~插件脚本读取
 global MenuObj:=Object()        ;~程序全径
 global MenuObjKey:=Object()     ;~程序热键
 global MenuObjName:=Object()    ;~程序别名
@@ -37,8 +38,8 @@ MenuExeList.SetCapacity(1024)
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化菜单显示热键]
 Hotkey, IfWinNotActive, ahk_group DisableGUI
-HotKeyList:=["MenuHotKey","MenuHotKey2","EvHotKey","OneHotKey","TreeHotKey1","TreeHotKey2","TreeIniHotKey1","TreeIniHotKey2","RunASetHotKey","RunAReloadHotKey","RunASuspendHotKey","RunAExitHotKey"]
-RunList:=["Menu_Show1","Menu_Show2","Ev_Show","One_Show","Menu_Edit1","Menu_Edit2","Menu_Ini","Menu_Ini2","Menu_Set","Menu_Reload","Menu_Suspend","Menu_Exit"]
+HotKeyList:=["MenuHotKey","MenuHotKey2","EvHotKey","OneHotKey","TreeHotKey1","TreeHotKey2","TreeIniHotKey1","TreeIniHotKey2","RunASetHotKey","RunAReloadHotKey","RunASuspendHotKey","RunAExitHotKey","PluginsManageHotKey"]
+RunList:=["Menu_Show1","Menu_Show2","Ev_Show","One_Show","Menu_Edit1","Menu_Edit2","Menu_Ini","Menu_Ini2","Menu_Set","Menu_Reload","Menu_Suspend","Menu_Exit","Plugins_Manage"]
 For ki, kv in HotKeyList
 {
 	StringReplace,keyV,kv,Hot
@@ -466,7 +467,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 				Menu,%menuName%,Icon,%menuItem%,% LNKIconS[1],% LNKIconS[2]
 			}
 		}else{  ; {处理未知的项目图标}
-			If(FileExist(item) && FileExt){
+			If(FileExt){
 				try{
 					RegRead, regFileExt, HKEY_CLASSES_ROOT, .%FileExt%
 					RegRead, regFileIcon, HKEY_CLASSES_ROOT, %regFileExt%\DefaultIcon
@@ -484,6 +485,10 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 	}
 }
 Menu_Show1:
+	if(GetKeyState("Ctrl")){
+		Run,%iniPath%
+		return
+	}
 	MENU_NO:=1
 	iniFileShow:=iniPath
 	gosub,Menu_Show
@@ -498,7 +503,7 @@ Menu_Show:
 	try{
 		global selectZz:=Get_Zz()
 		RunAnyMenu:=A_ScriptDir "\Plugins\RunAny_Menu.ahk"
-		if(ahkFlag && FileExist(RunAnyMenu)){
+		if(ahkFlag && FileExist(RunAnyMenu) && PluginsObjList["RunAny_Menu.ahk"]){
 			Run,%ahkExePath%%A_Space%%RunAnyMenu%
 		}
 		if(selectZz!=""){
@@ -1205,15 +1210,22 @@ return
 	Tab::Send_Str_Zz(A_Tab)
 #If
 GuiContextMenu:
+PGuiContextMenu:
 	If (A_GuiControl = "RunAnyTV") {
 		TV_Modify(A_EventInfo, "Select Vis")
 		Menu, TVMenu, Show
 	}
+	If (A_GuiControl = "RunAnyLV") {
+		LV_Modify(A_EventInfo, "Select Vis")
+		Menu, LVMenu, Show
+	}
 return
 GuiSize:
+PGuiSize:
 	if A_EventInfo = 1
 		return
 	GuiControl, Move, RunAnyTV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
+	GuiControl, Move, RunAnyLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 return
 GuiClose:
 	if(TVFlag){
@@ -2012,6 +2024,214 @@ ToggleAllTheWay(_ItemID=0, _ChkUchk=True ) {
 	Return
 }
 ;══════════════════════════════════════════════════════════════════
+;~;[插件管理]
+;══════════════════════════════════════════════════════════════════
+Plugins_Manage:
+gosub,Plugins_Read
+global ColumnName:=1
+global ColumnStatus:=2
+global ColumnAutoRun:=3
+global ColumnCloseRun:=4
+DetectHiddenWindows,On
+Gui,P:Destroy
+Gui,P:Default
+Gui,P:+Resize
+Gui,P:Font, s10, Microsoft YaHei
+Gui,P:Add, Listview, xm w500 r15 grid AltSubmit vRunAnyLV glistview, 插件文件|状态|自启|插件描述
+;~;[读取启动项内容写入列表]
+GuiControl,P: -Redraw, RunAnyLV
+For runn, runv in PluginsObjList
+{
+	runStatus:=Check_IsRun(PluginsPathList[runn]) ? "启动" : ""
+	pluginsConfig:=runv ? "启用" : ""
+	if(!PluginsPathList[runn])
+		pluginsConfig:="未找到"
+	LV_Add("", runn, runStatus, pluginsConfig, PluginsTitleList[runn])
+}
+GuiControl,P: +Redraw, RunAnyLV
+LVMenu("LVMenu")
+LVMenu("ahkGuiMenu")
+Gui,P: Menu, ahkGuiMenu
+LV_ModifyCol()  ; 根据内容自动调整每列的大小.
+Gui,P:Show, , %RunAnyZz% 插件管理
+DetectHiddenWindows,Off
+return
+
+LVMenu(addMenu){
+	flag:=addMenu="ahkGuiMenu" ? true : false
+	Menu, %addMenu%, Add,% flag ? "启动" : "启动`tF1", LVRun
+	Menu, %addMenu%, Icon,% flag ? "启动" : "启动`tF1", %ahkExePath%,2
+	Menu, %addMenu%, Add,% flag ? "配置" : "配置`tF2", LVEdit
+	Menu, %addMenu%, Icon,% flag ? "配置" : "配置`tF2", SHELL32.dll,134
+	Menu, %addMenu%, Add,% flag ? "下载" : "下载`tF3", LVAdd
+	Menu, %addMenu%, Icon,% flag ? "下载" : "下载`tF3", SHELL32.dll,194
+	Menu, %addMenu%, Add,% flag ? "挂起" : "挂起`tF4", LVSuspend
+	Menu, %addMenu%, Icon,% flag ? "挂起" : "挂起`tF4", %ahkExePath%,3
+	Menu, %addMenu%, Add,% flag ? "暂停" : "暂停`tF5", LVPause
+	Menu, %addMenu%, Icon,% flag ? "暂停" : "暂停`tF5", %ahkExePath%,4
+	Menu, %addMenu%, Add,% flag ? "关闭" : "关闭`tF6", LVClose
+	Menu, %addMenu%, Icon,% flag ? "关闭" : "关闭`tF6", SHELL32.dll,28
+	Menu, %addMenu%, Add,% flag ? "自启" : "自启`tF7", LVEnable
+	Menu, %addMenu%, Icon,% flag ? "自启" : "自启`tF7", SHELL32.dll,166
+	Menu, %addMenu%, Add,% flag ? "删除" : "删除`tF8", LVDel
+	Menu, %addMenu%, Icon,% flag ? "删除" : "删除`tF8", SHELL32.dll,132
+}
+LVRun:
+	menuItem:="启动"
+	gosub,LVApply
+	return
+LVEdit:
+	menuItem:="配置"
+	gosub,LVApply
+	return
+LVAdd:
+	menuItem:="下载"
+	gosub,LVApply
+	return
+LVSuspend:
+	menuItem:="挂起"
+	gosub,LVApply
+	return
+LVPause:
+	menuItem:="暂停"
+	gosub,LVApply
+	return
+LVClose:
+	menuItem:="关闭"
+	gosub,LVApply
+	return
+LVEnable:
+	menuItem:="自启"
+	gosub,LVApply
+	return
+LVDel:
+	menuItem:="删除"
+	gosub,LVApply
+	return
+LVApply:
+	Gui,P:Default
+	DetectHiddenWindows,On      ;~显示隐藏窗口
+	Row:=LV_GetNext(0, "F")
+	RowNumber:=0
+	if(Row && menuItem="删除"){
+		MsgBox,35,确认删除？(Esc取消),确定删除选中的插件配置？(不会删除文件)
+		DelRowList:=""
+	}
+	Loop
+	{
+		RowNumber := LV_GetNext(RowNumber)  ; 在前一次找到的位置后继续搜索.
+		if not RowNumber  ; 上面返回零, 所以选择的行已经都找到了.
+			break
+		LV_GetText(FileName, RowNumber, ColumnName)
+		LV_GetText(FileStatus, RowNumber, ColumnStatus)
+		LV_GetText(FileAutoRun, RowNumber, ColumnAutoRun)
+		FilePath:=PluginsPathList[FileName]
+		if(menuItem="启动"){
+			Run,%FilePath%
+			LV_Modify(RowNumber, "", , "启动")
+		}else if(menuItem="配置"){
+			PostMessage, 0x111, 65401,,, %FilePath% ahk_class AutoHotkey
+		}else if(menuItem="挂起"){
+			PostMessage, 0x111, 65404,,, %FilePath% ahk_class AutoHotkey
+			LVStatusChange(RowNumber,FileStatus,"挂起")
+		}else if(menuItem="暂停"){
+			PostMessage, 0x111, 65403,,, %FilePath% ahk_class AutoHotkey
+			LVStatusChange(RowNumber,FileStatus,"暂停")
+		}else if(menuItem="关闭"){
+			runValue:=RegExReplace(FilePath,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
+			SplitPath, runValue, name,, ext  ; 获取扩展名
+			if(ext="ahk"){
+				PostMessage, 0x111, 65405,,, %FilePath% ahk_class AutoHotkey
+				runStatus:=""
+			}else if(name){
+				Process,Close,%name%
+				if ErrorLevel
+					runStatus:=""
+			}
+			LV_Modify(RowNumber, "", , runStatus)
+		}else if(menuItem="自启"){
+			if(FileAutoRun!="未找到"){
+				IniWrite,1,%RunAnyConfig%,Plugins,%FileName%
+				LV_Modify(RowNumber, "", , ,"启用")
+			}else if(FileAutoRun="启用"){
+				IniWrite,0,%RunAnyConfig%,Plugins,%FileName%
+				LV_Modify(RowNumber, "", , ,"禁用")
+			}
+		}else if(menuItem="删除"){
+			IfMsgBox Yes
+			{
+				DelRowList := RowNumber . ":" . DelRowList
+				IniDelete,%RunAnyConfig%,Plugins,%FileName%
+			}
+		}
+	}
+	if(menuItem="删除"){
+		IfMsgBox Yes
+		{
+			stringtrimright, DelRowList, DelRowList, 1
+			loop, parse, DelRowList, :
+				LV_Delete(A_loopfield)
+		}
+	}
+	DetectHiddenWindows,Off
+return
+#If WinActive(RunAnyZz A_Space "插件管理")
+	F1::gosub,LVRun
+	F2::gosub,LVEdit
+	F4::gosub,LVSuspend
+	F5::gosub,LVPause
+	F6::gosub,LVClose
+	F7::gosub,LVEnable
+	F8::gosub,LVDel
+#If
+listview:
+    if A_GuiEvent = DoubleClick
+    {
+		menuItem:="启动"
+		gosub,LVApply
+    }
+return
+PGuiEscape:
+	Gui,P:Destroy
+return
+;[判断脚本当前状态]
+LVStatusChange(RowNumber,FileStatus,lvItem){
+	item:=lvItem
+	if(FileStatus="挂起" && lvItem="暂停"){
+		lvItem:="挂起暂停"
+	}else if(FileStatus="暂停" && lvItem="挂起"){
+		lvItem:="暂停挂起"
+	}else if(FileStatus!="启动"){
+		StringReplace, lvItem, FileStatus, %item%
+	}
+	if(lvItem="")
+		lvItem:="启动"
+	LV_Modify(RowNumber, "", ,lvItem)
+	LV_ModifyCol()
+}
+/*
+【判断启动项当前是否已经运行】（RunAnyCtrl）
+runNamePath 进程名或者启动项路径
+*/
+Check_IsRun(runNamePath){
+	runValue:=RegExReplace(runNamePath,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
+	SplitPath, runValue, name,, ext  ; 获取扩展名
+	if(ext="ahk"){
+		if(InStr(runNamePath,"..\")=1){
+			runNamePath:=IsFunc("funcPath2AbsoluteZz") ? Func("funcPath2AbsoluteZz").Call(runNamePath,A_ScriptFullPath) : runNamePath
+		}
+		IfWinExist, %runNamePath% ahk_class AutoHotkey
+		{
+			return true
+		}
+	}else if(name){
+		Process,Exist,%name%
+		if ErrorLevel
+			return true
+	}
+	return false
+}
+;══════════════════════════════════════════════════════════════════
 ;~;[设置选项]
 Menu_Set:
 	if(GetKeyState("Ctrl")){
@@ -2069,8 +2289,11 @@ Menu_Set:
 		Gui,66:Add,Hotkey,xp+10 yp+20 w150 vvTreeIniKey2,%TreeIniKey2%
 		Gui,66:Add,Checkbox,Checked%TreeIniWinKey2% xp+155 yp+3 vvTreeIniWinKey2,Win
 	}
+	Gui,66:Add,GroupBox,xm-10 y+30 w225 h55,插件管理：%PluginsManageHotKey%
+	Gui,66:Add,Hotkey,xm yp+20 w150 vvPluginsManageKey,%PluginsManageKey%
+	Gui,66:Add,Checkbox,Checked%PluginsManageWinKey% xm+155 yp+3 vvPluginsManageWinKey,Win
 	
-	Gui,66:Add,GroupBox,xm-10 y+50 w225 h55,设置RunAny：%RunASetHotKey%
+	Gui,66:Add,GroupBox,xm-10 y+30 w225 h55,设置RunAny：%RunASetHotKey%
 	Gui,66:Add,Hotkey,xm yp+20 w150 vvRunASetKey,%RunASetKey%
 	Gui,66:Add,Checkbox,Checked%RunASetWinKey% xm+155 yp+3 vvRunASetWinKey,Win
 	Gui,66:Add,GroupBox,x+35 yp-23 w225 h55,重启RunAny：%RunAReloadHotKey%
@@ -2196,11 +2419,13 @@ SetOK:
 	SetValueList.Push("EvKey", "EvWinKey", "EvPath","EvCommand","EvAutoClose")
 	SetValueList.Push("OneKey", "OneWinKey", "OneKeyUrl", "OneKeyWeb", "OneKeyFolder", "OneKeyMagnet", "OneKeyFile", "OneKeyMenu")
 	SetValueList.Push("TcPath", "TreeIcon", "FolderIcon", "UrlIcon", "EXEIcon", "AnyIcon", "MenuIcon")
-	SetValueList.Push("TreeKey1", "TreeWinKey1", "TreeIniKey1", "TreeIniWinKey1")
+	SetValueList.Push("TreeKey1", "TreeWinKey1", "TreeIniKey1", "TreeIniWinKey1", "PluginsManageKey", "PluginsManageWinKey")
 	SetValueList.Push("RunASetKey", "RunASetWinKey", "RunAReloadKey", "RunAReloadWinKey", "RunASuspendKey", "RunASuspendWinKey", "RunAExitKey", "RunAExitWinKey")
 	If(MENU2FLAG){
 		SetValueList.Push("MenuKey2", "MenuWinKey2", "TreeKey2", "TreeWinKey2", "TreeIniKey2", "TreeIniWinKey2")
 	}
+	OneKeyUrl:=StrReplace(OneKeyUrl, "`n", "|")
+	vOneKeyUrl:=StrReplace(vOneKeyUrl, "`n", "|")
 	For vi, vv in SetValueList
 	{
 		vValue:="v" . vv
@@ -2292,6 +2517,7 @@ Var_Set:
 	global TcPath:=Var_Read("TcPath")
 	global TcPathRun:=Get_Transform_Val(TcPath)
 	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
+	OneKeyUrl:=StrReplace(OneKeyUrl, "|", "`n")
 	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)
 	DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe,War3.exe,dota2.exe,League of Legends.exe")
 	EvCommandVar:=RegExReplace(EvCommand,"i).*file:(\*\.[^\s]*).*","$1")
@@ -2315,26 +2541,6 @@ Var_Set:
 				return
 		}
 		Gosub,Auto_Update
-	}
-	;~;[RunAny的AHK脚本插件]
-	global AhkPluginsList:=Object()
-	Loop,%A_ScriptDir%\Plugins\*.ahk,0	;Plugins目录下AHK脚本
-	{
-		AhkPluginsList[(A_LoopFileName)]:=1
-	}
-	Loop,%A_ScriptDir%\Plugins\*.*,2		;Plugins目录下文件夹内同名AHK脚本
-	{
-		AhkPluginsList[(A_LoopFileName . ".ahk")]:=1
-	}
-	IniRead,pluginsVar,%RunAnyConfig%,Plugins
-	Loop, parse, pluginsVar, `n, `r
-	{
-		pluginsList:=StrSplit(A_LoopField,"=")
-		AhkPluginsList[(pluginsList[1])]:=pluginsList[2]
-	}
-	For ki, kv in AhkPluginsList
-	{
-		IniWrite,%kv%,%RunAnyConfig%,Plugins,%ki%
 	}
 return
 ;~;[图标初始化]
@@ -2447,6 +2653,49 @@ Run_Exist:
 		ahkFlag:=true
 	}
 return
+;~;[RunAny的AHK脚本插件]
+Plugins_Read:
+	global PluginsObjList:=Object()
+	global PluginsPathList:=Object()
+	global PluginsTitleList:=Object()
+	Loop,%A_ScriptDir%\Plugins\*.ahk,0	;Plugins目录下AHK脚本
+	{
+		PluginsObjList[(A_LoopFileName)]:=0
+		PluginsPathList[(A_LoopFileName)]:=A_LoopFileFullPath
+		PluginsTitleList[(A_LoopFileName)]:=Plugins_Read_Title(A_LoopFileFullPath)
+	}
+	Loop,%A_ScriptDir%\Plugins\*.*,2		;Plugins目录下文件夹内同名AHK脚本
+	{
+		IfExist,%A_ScriptDir%\Plugins\%A_LoopFileName%.ahk
+		{
+			PluginsObjList[(A_LoopFileName . ".ahk")]:=0
+			PluginsPathList[(A_LoopFileName . ".ahk")]:=A_LoopFileFullPath
+			PluginsTitleList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Title(A_LoopFileFullPath)
+		}
+	}
+	IniRead,pluginsVar,%RunAnyConfig%,Plugins
+	Loop, parse, pluginsVar, `n, `r
+	{
+		varList:=StrSplit(A_LoopField,"=")
+		PluginsObjList[(varList[1])]:=varList[2]
+	}
+	For ki, kv in PluginsObjList
+	{
+		IniWrite,%kv%,%RunAnyConfig%,Plugins,%ki%
+	}
+return
+Plugins_Read_Title(filePath){
+	titleStr:=""
+	titleReg:="iS).*?【(.*?)】.*"
+	Loop, read, %filePath%
+	{
+		if(RegExMatch(A_LoopReadLine,titleReg)){
+			titleStr:=RegExReplace(A_LoopReadLine,titleReg,"$1")
+			break
+		}
+	}
+	return titleStr
+}
 GuiIcon_Set:
 	;~;[树型菜单图标集]
 	global ImageListID := IL_Create(9)
@@ -2470,6 +2719,14 @@ GuiIcon_Set:
 			Set_Icon(A_LoopField,false)
 		}
 	}
+return
+;~;[自动启动生效]
+AutoRun_Effect:
+
+return
+;~;[随RunAny自动关闭]
+AutoClose_Effect:
+
 return
 Check_Update:
 	checkUpdateFlag:=true
@@ -2580,6 +2837,7 @@ MenuTray:
 	Menu,Tray,add
 	Menu,Tray,add,设置RunAny(&D)`t%RunASetHotKey%,Menu_Set
 	Menu,Tray,Add,关于RunAny(&A)...,Menu_About
+	Menu,Tray,add,插件管理(&C)`t%PluginsManageHotKey%,Plugins_Manage
 	Menu,Tray,Add,检查更新(&U),Check_Update
 	Menu,Tray,add
 	If(MENU2FLAG){
@@ -2613,6 +2871,13 @@ return
 Menu_Exit:
 	ExitApp
 return
+RemoveToolTip:
+	SetTimer,RemoveToolTip,Off
+	ToolTip
+	return
+ExitSub:
+	gosub,AutoClose_Effect
+	ExitApp
 ;══════════════════════════════════════════════════════════════════
 ;~;[使用everything搜索所有exe程序]
 everythingQuery(){

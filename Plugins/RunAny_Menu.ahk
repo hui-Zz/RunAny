@@ -13,6 +13,6 @@ if !ErrorLevel
 	;【将菜单为变半透明，(0-255)表示(透明-不透明)】
 	WinSet, Transparent, 225, ahk_class #32768
 	;【自动选中第一项菜单】
-	SendInput,{Down}
+;	SendInput,{Down}
 }
 ExitApp
