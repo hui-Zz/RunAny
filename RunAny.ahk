@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.3.9 @2018.06.07
+║【RunAny】一劳永逸的快速启动工具 v5.3.9 @2018.06.14
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -20,7 +20,7 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_update_version:="5.3.9"
-global RunAny_update_time:="2018.06.07"
+global RunAny_update_time:="2018.06.14"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -147,6 +147,8 @@ if(menu2){
 	MenuObjTree2[RunAnyZz . "2"]:=Object()
 	Menu_Read(iniVar2,menuRoot2,1,menuWebRoot2,menuWebList2,false,2)
 }
+;~;[在图标加载前先运行插件]
+Gosub,AutoRun_Effect
 ;~;[循环为菜单中EXE程序添加图标，过程较慢]
 For k, v in MenuExeList
 {
@@ -2063,18 +2065,18 @@ LVMenu(addMenu){
 	Menu, %addMenu%, Icon,% flag ? "启动" : "启动`tF1", %ahkExePath%,2
 	Menu, %addMenu%, Add,% flag ? "配置" : "配置`tF2", LVEdit
 	Menu, %addMenu%, Icon,% flag ? "配置" : "配置`tF2", SHELL32.dll,134
-	Menu, %addMenu%, Add,% flag ? "下载" : "下载`tF3", LVAdd
-	Menu, %addMenu%, Icon,% flag ? "下载" : "下载`tF3", SHELL32.dll,194
-	Menu, %addMenu%, Add,% flag ? "挂起" : "挂起`tF4", LVSuspend
-	Menu, %addMenu%, Icon,% flag ? "挂起" : "挂起`tF4", %ahkExePath%,3
-	Menu, %addMenu%, Add,% flag ? "暂停" : "暂停`tF5", LVPause
-	Menu, %addMenu%, Icon,% flag ? "暂停" : "暂停`tF5", %ahkExePath%,4
-	Menu, %addMenu%, Add,% flag ? "关闭" : "关闭`tF6", LVClose
-	Menu, %addMenu%, Icon,% flag ? "关闭" : "关闭`tF6", SHELL32.dll,28
-	Menu, %addMenu%, Add,% flag ? "自启" : "自启`tF7", LVEnable
-	Menu, %addMenu%, Icon,% flag ? "自启" : "自启`tF7", SHELL32.dll,166
-	Menu, %addMenu%, Add,% flag ? "删除" : "删除`tF8", LVDel
-	Menu, %addMenu%, Icon,% flag ? "删除" : "删除`tF8", SHELL32.dll,132
+	Menu, %addMenu%, Add,% flag ? "自启" : "自启`tF3", LVEnable
+	Menu, %addMenu%, Icon,% flag ? "自启" : "自启`tF3", SHELL32.dll,166
+	Menu, %addMenu%, Add,% flag ? "关闭" : "关闭`tF4", LVClose
+	Menu, %addMenu%, Icon,% flag ? "关闭" : "关闭`tF4", SHELL32.dll,28
+	Menu, %addMenu%, Add,% flag ? "挂起" : "挂起`tF5", LVSuspend
+	Menu, %addMenu%, Icon,% flag ? "挂起" : "挂起`tF5", %ahkExePath%,3
+	Menu, %addMenu%, Add,% flag ? "暂停" : "暂停`tF6", LVPause
+	Menu, %addMenu%, Icon,% flag ? "暂停" : "暂停`tF6", %ahkExePath%,4
+	Menu, %addMenu%, Add,% flag ? "删除" : "删除`tF7", LVDel
+	Menu, %addMenu%, Icon,% flag ? "删除" : "删除`tF7", SHELL32.dll,132
+	Menu, %addMenu%, Add,% flag ? "下载" : "下载`tF8", LVAdd
+	Menu, %addMenu%, Icon,% flag ? "下载" : "下载`tF8", SHELL32.dll,194
 }
 LVRun:
 	menuItem:="启动"
@@ -2084,8 +2086,12 @@ LVEdit:
 	menuItem:="配置"
 	gosub,LVApply
 	return
-LVAdd:
-	menuItem:="下载"
+LVEnable:
+	menuItem:="自启"
+	gosub,LVApply
+	return
+LVClose:
+	menuItem:="关闭"
 	gosub,LVApply
 	return
 LVSuspend:
@@ -2094,14 +2100,6 @@ LVSuspend:
 	return
 LVPause:
 	menuItem:="暂停"
-	gosub,LVApply
-	return
-LVClose:
-	menuItem:="关闭"
-	gosub,LVApply
-	return
-LVEnable:
-	menuItem:="自启"
 	gosub,LVApply
 	return
 LVDel:
@@ -2150,7 +2148,7 @@ LVApply:
 			}
 			LV_Modify(RowNumber, "", , runStatus)
 		}else if(menuItem="自启"){
-			if(FileAutoRun!="未找到"){
+			if(FileAutoRun!="未找到" && FileAutoRun!="启用"){
 				IniWrite,1,%RunAnyConfig%,Plugins,%FileName%
 				LV_Modify(RowNumber, "", , ,"启用")
 			}else if(FileAutoRun="启用"){
@@ -2178,11 +2176,12 @@ return
 #If WinActive(RunAnyZz A_Space "插件管理")
 	F1::gosub,LVRun
 	F2::gosub,LVEdit
-	F4::gosub,LVSuspend
-	F5::gosub,LVPause
-	F6::gosub,LVClose
-	F7::gosub,LVEnable
-	F8::gosub,LVDel
+	F3::gosub,LVEnable
+	F4::gosub,LVClose
+	F5::gosub,LVSuspend
+	F6::gosub,LVPause
+	F7::gosub,LVDel
+	F8::gosub,LVAdd
 #If
 listview:
     if A_GuiEvent = DoubleClick
@@ -2193,6 +2192,45 @@ listview:
 return
 PGuiEscape:
 	Gui,P:Destroy
+return
+LVAdd:
+	Gui,D:Destroy
+	Gui,D:Default
+	Gui,D:Font, s10, Microsoft YaHei
+	Gui,D:Add, Listview, xm w480 r10 grid AltSubmit vRunAnyDownLV, 插件文件|状态|版本号|插件描述
+	;~;[读取启动项内容写入列表]
+	GuiControl,D: -Redraw, RunAnyDownLV
+	For pi, pv in pluginsDownList
+	{
+		runStatus:=PluginsPathList[pv] ? "已下载" : "未下载"
+		LV_Add("", pv, runStatus, Plugins_Read_Version(PluginsPathList[pv]), PluginsTitleList[pv])
+	}
+	GuiControl,D: +Redraw, RunAnyDownLV
+	Menu, ahkDownMenu, Add,下载, LVDown
+	Menu, ahkDownMenu, Icon,下载, SHELL32.dll,194
+	Gui,D: Menu, ahkDownMenu
+	LV_ModifyCol()  ; 根据内容自动调整每列的大小.
+	Gui,D:Show, , %RunAnyZz% 插件下载
+return
+LVDown:
+	if(!Check_Github()){
+		MsgBox,网络异常，无法从https://github.com/hui-Zz/RunAny上读取最新版本文件，请手动下载
+		return
+	}
+	if(!ahkFlag){
+		URLDownloadToFile,%RunAnyGithubDir%/Plugins/AHK.exe ,%A_ScriptDir%\Plugins\AHK.exe
+	}
+	Loop
+	{
+		RowNumber := LV_GetNext(RowNumber)  ; 在前一次找到的位置后继续搜索.
+		if not RowNumber  ; 上面返回零, 所以选择的行已经都找到了.
+			break
+		LV_GetText(FileName, RowNumber, ColumnName)
+		LV_GetText(FileStatus, RowNumber, ColumnStatus)
+		if(FileStatus="未下载"){
+			URLDownloadToFile,%RunAnyGithubDir%/Plugins/%FileName% ,%A_ScriptDir%\Plugins\%FileName%
+		}
+	}
 return
 ;[判断脚本当前状态]
 LVStatusChange(RowNumber,FileStatus,lvItem){
@@ -2528,6 +2566,8 @@ Var_Set:
 	}
 	EnvGet, LocalAppData, LocalAppData
 	gosub,Icon_Set
+	global lpszUrl:="https://raw.githubusercontent.com"
+	global RunAnyGithubDir:=lpszUrl . "/hui-Zz/RunAny/master"
 	global MenuCommonList:={}
 	;~[定期自动检查更新]
 	if(A_DD=01 || A_DD=15){
@@ -2597,11 +2637,14 @@ Icon_FileExt_Set:
 	Menu,Tray,Icon,修改菜单(&E)`t%TreeHotKey1%,% EXEIconS[1],% EXEIconS[2]
 	Menu,Tray,Icon,修改文件(&F)`t%TreeIniHotKey1%,SHELL32.dll,134
 	If(MENU2FLAG){
+		Menu,Tray,Icon,启动菜单2(&2)`t%MenuHotKey2%,% TreeIconS[1],% TreeIconS[2]
 		Menu,Tray,Icon,修改菜单2(&W)`t%TreeHotKey2%,% EXEIconS[1],% EXEIconS[2]
 		Menu,Tray,Icon,修改文件2(&G)`t%TreeIniHotKey2%,SHELL32.dll,134
 	}
 	Menu,Tray,Icon,设置RunAny(&D)`t%RunASetHotKey%,% AnyIconS[1],% AnyIconS[2]
 	Menu,Tray,Icon,关于RunAny(&A)...,% MenuIconS[1],% MenuIconS[2]
+	Menu,Tray,Icon,插件管理(&C)`t%PluginsManageHotKey%,shell32.dll,166
+	Menu,Tray,Icon,检查更新(&U),shell32.dll,14
 	Menu,exeTestMenu,add,SetCancel	;只用于测试应用图标正常添加
 return
 ;~;[调用判断]
@@ -2652,6 +2695,7 @@ Run_Exist:
 	if(FileExist(ahkExePath)){
 		ahkFlag:=true
 	}
+	pluginsDownList:=["RunAny_Menu.ahk","huiZz_MButton.ahk","huiZz_RestTime.ahk"]
 return
 ;~;[RunAny的AHK脚本插件]
 Plugins_Read:
@@ -2685,16 +2729,28 @@ Plugins_Read:
 	}
 return
 Plugins_Read_Title(filePath){
-	titleStr:=""
-	titleReg:="iS).*?【(.*?)】.*"
+	returnStr:=""
+	strReg:="iS).*?【(.*?)】.*"
 	Loop, read, %filePath%
 	{
-		if(RegExMatch(A_LoopReadLine,titleReg)){
-			titleStr:=RegExReplace(A_LoopReadLine,titleReg,"$1")
+		if(RegExMatch(A_LoopReadLine,strReg)){
+			returnStr:=RegExReplace(A_LoopReadLine,strReg,"$1")
 			break
 		}
 	}
-	return titleStr
+	return returnStr
+}
+Plugins_Read_Version(filePath){
+	returnStr:=""
+	strReg=iS)^\t*\s*global RunAny_Plugins_Version:="([\d\.]*)"
+	Loop, read, %filePath%
+	{
+		if(RegExMatch(A_LoopReadLine,strReg)){
+			returnStr:=RegExReplace(A_LoopReadLine,strReg,"$1")
+			break
+		}
+	}
+	return returnStr
 }
 GuiIcon_Set:
 	;~;[树型菜单图标集]
@@ -2722,12 +2778,46 @@ GuiIcon_Set:
 return
 ;~;[自动启动生效]
 AutoRun_Effect:
-
+	try {
+		if(ahkFlag){
+			For runn, runv in PluginsPathList	;循环启动项
+			{
+				;需要自动启动的项
+				if(PluginsObjList[runn]){
+					runValue:=RegExReplace(runv,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
+					SplitPath, runValue, name,, ext  ; 获取扩展名
+					if(ext="ahk"){
+						Run,%ahkExePath%%A_Space%%runv%
+					}else{
+						Run,%runv%
+					}
+				}
+			}
+		}
+	} catch e {
+		MsgBox,16,自动启动出错,% "启动项名：" runn "`n启动项路径：" runv "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+	}
 return
 ;~;[随RunAny自动关闭]
 AutoClose_Effect:
-
+	DetectHiddenWindows,On
+	For runn, runv in PluginsPathList
+	{
+		if(PluginsObjList[runn]){
+			runValue:=RegExReplace(runv,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
+			SplitPath, runValue, name,, ext  ; 获取扩展名
+			if(ext="ahk"){
+				PostMessage, 0x111, 65405,,, %runv% ahk_class AutoHotkey
+			}else if(name){
+				Process,Close,%name%
+			}
+		}
+	}
+	DetectHiddenWindows,Off
 return
+Check_Github(){
+	return DllCall("Wininet.dll\InternetCheckConnection", "Ptr", &lpszUrl, "UInt", 0x1, "UInt", 0x0, "Int")
+}
 Check_Update:
 	checkUpdateFlag:=true
 	gosub,Auto_Update
@@ -2736,10 +2826,7 @@ Auto_Update:
 	if(FileExist(A_Temp "\RunAny_Update.bat"))
 		FileDelete, %A_Temp%\RunAny_Update.bat
 	;[下载最新的更新脚本]
-	lpszUrl:="https://raw.githubusercontent.com"
-	RunAnyGithubDir:=lpszUrl . "/hui-Zz/RunAny/master"
-	network:=DllCall("Wininet.dll\InternetCheckConnection", "Ptr", &lpszUrl, "UInt", 0x1, "UInt", 0x0, "Int")
-	if(!network){
+	if(!Check_Github()){
 		MsgBox,网络异常，无法从https://github.com/hui-Zz/RunAny上读取最新版本文件
 		return
 	}
@@ -2837,7 +2924,7 @@ MenuTray:
 	Menu,Tray,add
 	Menu,Tray,add,设置RunAny(&D)`t%RunASetHotKey%,Menu_Set
 	Menu,Tray,Add,关于RunAny(&A)...,Menu_About
-	Menu,Tray,add,插件管理(&C)`t%PluginsManageHotKey%,Plugins_Manage
+	Menu,Tray,Add,插件管理(&C)`t%PluginsManageHotKey%,Plugins_Manage
 	Menu,Tray,Add,检查更新(&U),Check_Update
 	Menu,Tray,add
 	If(MENU2FLAG){
@@ -2869,15 +2956,17 @@ Menu_Suspend:
 	Suspend
 return
 Menu_Exit:
+	gosub,AutoClose_Effect
 	ExitApp
 return
 RemoveToolTip:
 	SetTimer,RemoveToolTip,Off
 	ToolTip
-	return
+return
 ExitSub:
 	gosub,AutoClose_Effect
 	ExitApp
+return
 ;══════════════════════════════════════════════════════════════════
 ;~;[使用everything搜索所有exe程序]
 everythingQuery(){
