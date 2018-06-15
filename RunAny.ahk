@@ -488,10 +488,6 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 	}
 }
 Menu_Show1:
-	if(GetKeyState("Ctrl")){
-		Run,%iniPath%
-		return
-	}
 	MENU_NO:=1
 	iniFileShow:=iniPath
 	gosub,Menu_Show
@@ -2310,10 +2306,6 @@ Check_IsRun(runNamePath){
 ;══════════════════════════════════════════════════════════════════
 ;~;[设置选项]
 Menu_Set:
-	if(GetKeyState("Ctrl")){
-		gosub,Menu_Config
-		return
-	}
 	Gui,66:Destroy
 	Gui,66:Font,,Microsoft YaHei
 	Gui,66:Margin,30,20
