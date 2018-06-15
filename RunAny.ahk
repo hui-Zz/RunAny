@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.4 @2018.06.15
+║【RunAny】一劳永逸的快速启动工具 v5.4.0 @2018.06.15
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -20,7 +20,7 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
-global RunAny_update_version:="5.4"
+global RunAny_update_version:="5.4.0"
 global RunAny_update_time:="2018.06.15"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
@@ -2134,7 +2134,13 @@ LVApply:
 		LV_GetText(FileAutoRun, RowNumber, ColumnAutoRun)
 		FilePath:=PluginsPathList[FileName]
 		if(menuItem="启动"){
-			Run,%FilePath%
+			runValue:=RegExReplace(FilePath,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
+			SplitPath, runValue, name,, ext  ; 获取扩展名
+			if(ahkFlag && ext="ahk"){
+				Run,%ahkExePath%%A_Space%%FilePath%
+			}else{
+				Run,%FilePath%
+			}
 			LV_Modify(RowNumber, "", , "启动")
 		}else if(menuItem="编辑"){
 			PostMessage, 0x111, 65401,,, %FilePath% ahk_class AutoHotkey
