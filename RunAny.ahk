@@ -2769,7 +2769,12 @@ Plugins_Read:
 	Loop, parse, pluginsVar, `n, `r
 	{
 		varList:=StrSplit(A_LoopField,"=")
+		SplitPath,% varList[1], name,, ext, name_no_ext
 		PluginsObjList[(varList[1])]:=varList[2]
+		if(FileExist(A_ScriptDir "\" PluginsDir "\" varList[1]))
+			PluginsPathList[(varList[1])]:=A_ScriptDir "\" PluginsDir "\" varList[1]
+		if(FileExist(A_ScriptDir "\" PluginsDir "\" name_no_ext "\" varList[1]))
+			PluginsPathList[(varList[1])]:=A_ScriptDir "\" PluginsDir "\" name_no_ext "\" varList[1]
 	}
 	For ki, kv in PluginsObjList
 	{
