@@ -2064,7 +2064,7 @@ LVMenu("LVMenu")
 LVMenu("ahkGuiMenu")
 Gui,P: Menu, ahkGuiMenu
 LVModifyCol(65,ColumnStatus,ColumnAutoRun)
-Gui,P:Show, , %RunAnyZz% 插件管理
+Gui,P:Show, , %RunAnyZz% 插件管理 %RunAny_update_version%
 DetectHiddenWindows,Off
 return
 
@@ -2188,7 +2188,7 @@ LVApply:
 	}
 	DetectHiddenWindows,Off
 return
-#If WinActive(RunAnyZz A_Space "插件管理")
+#If WinActive(RunAnyZz A_Space "插件管理" A_Space RunAny_update_version)
 	F1::gosub,LVRun
 	F2::gosub,LVEdit
 	F3::gosub,LVEnable
@@ -2225,7 +2225,7 @@ LVAdd:
 	Menu, ahkDownMenu, Icon,下载, SHELL32.dll,194
 	Gui,D: Menu, ahkDownMenu
 	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
-	Gui,D:Show, , %RunAnyZz% 插件下载
+	Gui,D:Show, , %RunAnyZz% 插件下载 %RunAny_update_version%
 return
 LVDown:
 	if(!Check_Github()){
