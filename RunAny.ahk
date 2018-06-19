@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.4.0 @2018.06.15
+║【RunAny】一劳永逸的快速启动工具 v5.4.1 @2018.06.18
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -20,8 +20,8 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
-global RunAny_update_version:="5.4.0"
-global RunAny_update_time:="2018.06.15"
+global RunAny_update_version:="5.4.1"
+global RunAny_update_time:="2018.06.18"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -545,7 +545,7 @@ Menu_Show:
 						continue
 					;一键打开网址
 					if(OneKeyWeb && RegExMatch(A_LoopField,"iS)([\w-]+://?|www[.]).*")){
-						Run_Search(A_LoopField,"",BrowserPath)
+						Run_Search(A_LoopField,"",BrowserPathRun)
 						openFlag:=true
 						continue
 					}
@@ -791,7 +791,7 @@ Web_Search:
 	{
 		if(A_LoopField){
 			any:=MenuObj[(A_LoopField)]
-			Run_Search(any,selectZz,BrowserPath)
+			Run_Search(any,selectZz,BrowserPathRun)
 		}
 	}
 return
@@ -865,7 +865,7 @@ One_Search:
 	Loop,parse,OneKeyUrl,`n
 	{
 		if(A_LoopField){
-			Run_Search(A_LoopField,selectZz,BrowserPath)
+			Run_Search(A_LoopField,selectZz,BrowserPathRun)
 		}
 	}
 return
@@ -2392,7 +2392,7 @@ Menu_Set:
 	Gui,66:Add,GroupBox,xm-10 y+20 w500 h260,一键搜索选中文字
 	Gui,66:Add,Hotkey,xm yp+30 w150 vvOneKey,%OneKey%
 	Gui,66:Add,Checkbox,Checked%OneWinKey% xm+155 yp+3 vvOneWinKey,Win
-	Gui,66:Add,Checkbox,Checked%OneKeyMenu% x+38 vvOneKeyMenu,绑定菜单1为一键搜索
+	Gui,66:Add,Checkbox,Checked%OneKeyMenu% x+38 vvOneKeyMenu,绑定菜单1热键为一键搜索
 	Gui,66:Add,Text,xm yp+40 w325,一键搜索网址(`%s为选中文字的替代参数，多行搜索多个网址)
 	Gui,66:Add,Edit,xm yp+20 w485 r8 vvOneKeyUrl,%OneKeyUrl%
 	Gui,66:Add,Text,xm y+40 w325,非默认浏览器打开网址(适用一键搜索和一键直达)
@@ -2459,7 +2459,7 @@ return
 SetBrowserPath:
 	FileSelectFile, browserFilePath, 3, , 程序路径, (*.exe)
 	if(browserFilePath)
-		GuiControl,, vBrowserPath, %BrowserPath%
+		GuiControl,, vBrowserPath, %browserFilePath%
 return
 SetAnyIcon:
 SetMenuIcon:
@@ -2591,6 +2591,7 @@ Var_Set:
 	global EvCommand:=Var_Read("EvCommand","!C:\*Windows* !?:\$RECYCLE.BIN* file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
 	global EvAutoClose:=Var_Read("EvAutoClose",0)
 	global BrowserPath:=Var_Read("BrowserPath")
+	global BrowserPathRun:=Get_Transform_Val(BrowserPath)
 	global TcPath:=Var_Read("TcPath")
 	global TcPathRun:=Get_Transform_Val(TcPath)
 	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
