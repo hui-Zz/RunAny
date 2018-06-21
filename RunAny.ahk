@@ -1466,7 +1466,7 @@ SaveItemGuiDropFiles:
 	if(control="SysTreeView321"){
 		Loop, Parse, A_GuiEvent, `n
 		{
-			fileID:=TV_Add(Get_Item_Run_Path(A_LoopField),parentID,Set_Icon(A_LoopField))
+			fileID:=TV_Add(Get_Item_Run_Path(A_LoopField),0,Set_Icon(A_LoopField))
 			TVFlag:=true
 		}
 	}
@@ -1583,9 +1583,16 @@ Set_Tab(tabNum){
 	}
 	return tabText
 }
+;~;[多选导入]
 TVImportFile:
 	selID:=TV_GetSelection()
-	parentID:=TV_GetParent(selID)
+	TV_GetText(ItemText, selID)
+	if(InStr(ItemText,"-")=1){
+		parentID:=selID
+		TV_Modify(selID, "Bold Expand")
+	}else{
+		parentID:=TV_GetParent(selID)
+	}
 	FileSelectFile, exeName, M35, , 选择多项要导入的EXE(快捷方式), (*.exe;*.lnk)
 	Loop,parse,exeName,`n
 	{
@@ -1604,17 +1611,24 @@ TVImportFile:
 		}
 	}
 return
+;~;[批量导入]
 TVImportFolder:
 	selID:=TV_GetSelection()
-	parentID:=TV_GetParent(selID)
+	TV_GetText(ItemText, selID)
+	if(InStr(ItemText,"-")=1){
+		parentID:=selID
+		TV_Modify(selID, "Bold Expand")
+	}else{
+		parentID:=TV_GetParent(selID)
+	}
 	FileSelectFolder, folderName, , 0
 	if(folderName){
-		MsgBox,33,导入文件夹所有exe和lnk,确定导入%folderName%及子文件夹下所有程序和快捷方式吗？
+		MsgBox,33,导入文件夹所有exe和lnk,确定导入  %folderName%  及子文件夹下所有程序和快捷方式吗？
 		IfMsgBox Ok
 		{
 			Loop,%folderName%\*.lnk,0,1
 			{
-				lnkID:=TV_Add(A_LoopFileName,parentID,"Icon5")
+				lnkID:=TV_Add(A_LoopFileName,parentID,Set_Icon(A_LoopFileFullPath))
 			}
 			Loop,%folderName%\*.exe,0,1
 			{
