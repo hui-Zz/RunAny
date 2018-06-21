@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.4.1 @2018.06.18
+║【RunAny】一劳永逸的快速启动工具 v5.4.2 @2018.06.20
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -20,8 +20,8 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
-global RunAny_update_version:="5.4.1"
-global RunAny_update_time:="2018.06.18"
+global RunAny_update_version:="5.4.2"
+global RunAny_update_time:="2018.06.20"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -126,6 +126,9 @@ if(EvAutoClose && EvPath){
 }
 DetectHiddenWindows,Off
 ;══════════════════════════════════════════════════════════════════
+;~;[支持浏览器和TC无路径识别]
+BrowserPathRun:=Get_Obj_Path(BrowserPathRun) ? Get_Obj_Path(BrowserPathRun) . RegExReplace(BrowserPathRun,"iS).*?\.exe($| .*)","$1"): BrowserPathRun
+TcPathRun:=Get_Obj_Path(TcPathRun) ? Get_Obj_Path(TcPathRun) . RegExReplace(TcPathRun,"iS).*?\.exe($| .*)","$1"): TcPathRun 
 ;~;[后缀图标初始化]
 Gosub,Icon_FileExt_Set
 ;#应用菜单数组#网址菜单名数组及地址队列#
@@ -658,7 +661,7 @@ Menu_Run:
 			}else if(RegExMatch(any,"iS)([\w-]+://?|www[.]).*")){
 				Run_Search(any,selectZz)
 			}else{
-				Run,%any%
+				Run,%any%%A_Space%%selectZz%
 			}
 			return
 		}
@@ -1450,6 +1453,30 @@ SetShortcut:
 		gosub,SetSaveItemFullPath
 	}
 return
+GuiDropFiles:  ; 对拖放提供支持.
+SaveItemGuiDropFiles:
+	Loop, Parse, A_GuiEvent, `n
+	{
+		SelectedFileName = %A_LoopField%  ; 仅获取首个文件 (如果有多个文件的时候).
+		break
+	}
+	;获取鼠标下面的控件
+	MouseGetPos, , , id, control
+	WinGetClass, class, ahk_id %id%
+	if(control="SysTreeView321"){
+		Loop, Parse, A_GuiEvent, `n
+		{
+			fileID:=TV_Add(Get_Item_Run_Path(A_LoopField),parentID,Set_Icon(A_LoopField))
+			TVFlag:=true
+		}
+	}
+	if(control="Edit1"){
+		GuiControl,SaveItem:, vitemName, % Get_Item_Run_Path(SelectedFileName)
+	}
+	if(control="Edit2"){
+		GuiControl,SaveItem:, vfileName, % Get_Item_Run_Path(SelectedFileName)
+	}
+return
 TVDown:
 	TV_Move(true)
 return
@@ -1909,15 +1936,19 @@ Set_Icon(itemVar,editVar=true){
 		}
 	}
 	;~;[编辑后图标重新加载]
-	if(editVar && !FileName && FileExt = "exe"){
+	if(editVar && FileName=""){
 		;~;[编辑后通过everything重新添加应用图标]
 		diyText:=StrSplit(itemVar,"|")
-		exeText:=(diyText[2]) ? diyText[2] : diyText[1]
-		exeQueryPath:=exeQuery(exeText)
-		if(exeQueryPath){
-			FileName:=exeQueryPath
+		objText:=(diyText[2]) ? diyText[2] : diyText[1]
+		if(FileExt="exe"){
+			exeQueryPath:=exeQuery(objText)
+			if(exeQueryPath){
+				FileName:=exeQueryPath
+			}else{
+				return "Icon3"
+			}
 		}else{
-			return "Icon3"
+			FileName:=objText
 		}
 	}
 	; 计算 SHFILEINFO 结构需要的缓存大小.
