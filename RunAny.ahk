@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.4.2 @2018.06.20
+║【RunAny】一劳永逸的快速启动工具 v5.4.2 @2018.06.26
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -21,7 +21,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.4.2"
-global RunAny_update_time:="2018.06.20"
+global RunAny_update_time:="2018.06.26"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -39,8 +39,8 @@ MenuExeList.SetCapacity(1024)
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化菜单显示热键]
 Hotkey, IfWinNotActive, ahk_group DisableGUI
-HotKeyList:=["MenuHotKey","MenuHotKey2","EvHotKey","OneHotKey","TreeHotKey1","TreeHotKey2","TreeIniHotKey1","TreeIniHotKey2","RunASetHotKey","RunAReloadHotKey","RunASuspendHotKey","RunAExitHotKey","PluginsManageHotKey"]
-RunList:=["Menu_Show1","Menu_Show2","Ev_Show","One_Show","Menu_Edit1","Menu_Edit2","Menu_Ini","Menu_Ini2","Menu_Set","Menu_Reload","Menu_Suspend","Menu_Exit","Plugins_Manage"]
+HotKeyList:=["MenuHotKey","MenuHotKey2","EvHotKey","OneHotKey","TreeHotKey1","TreeHotKey2","TreeIniHotKey1","TreeIniHotKey2","RunATrayHotKey","RunASetHotKey","RunAReloadHotKey","RunASuspendHotKey","RunAExitHotKey","PluginsManageHotKey"]
+RunList:=["Menu_Show1","Menu_Show2","Ev_Show","One_Show","Menu_Edit1","Menu_Edit2","Menu_Ini","Menu_Ini2","Menu_Tray","Menu_Set","Menu_Reload","Menu_Suspend","Menu_Exit","Plugins_Manage"]
 For ki, kv in HotKeyList
 {
 	StringReplace,keyV,kv,Hot
@@ -2386,7 +2386,14 @@ Menu_Set:
 	Gui,66:Add,Edit,xm yp+25 w480 r4 vvDisableApp,%DisableApp%
 	
 	Gui,66:Tab,配置热键,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+30 w225 h55,修改菜单管理(1)：%TreeHotKey1%
+	Gui,66:Add,GroupBox,xm-10 y+30 w225 h55,RunAny托盘菜单：%RunATrayHotKey%
+	Gui,66:Add,Hotkey,xm yp+20 w150 vvRunATrayKey,%RunATrayKey%
+	Gui,66:Add,Checkbox,Checked%RunATrayWinKey% xm+155 yp+3 vvRunATrayWinKey,Win
+	Gui,66:Add,GroupBox,x+35 yp-23 w225 h55,插件管理：：%PluginsManageHotKey%
+	Gui,66:Add,Hotkey,xp+10 yp+20 w150 vvPluginsManageKey,%PluginsManageKey%
+	Gui,66:Add,Checkbox,Checked%PluginsManageWinKey% xp+155 yp+3 vvPluginsManageWinKey,Win
+	
+	Gui,66:Add,GroupBox,xm-10 y+40 w225 h55,修改菜单管理(1)：%TreeHotKey1%
 	Gui,66:Add,Hotkey,xm yp+20 w150 vvTreeKey1,%TreeKey1%
 	Gui,66:Add,Checkbox,Checked%TreeWinKey1% xm+155 yp+3 vvTreeWinKey1,Win
 	If(MENU2FLAG){
@@ -2394,7 +2401,7 @@ Menu_Set:
 		Gui,66:Add,Hotkey,xp+10 yp+20 w150 vvTreeKey2,%TreeKey2%
 		Gui,66:Add,Checkbox,Checked%TreeWinKey2% xp+155 yp+3 vvTreeWinKey2,Win
 	}
-	Gui,66:Add,GroupBox,xm-10 y+30 w225 h55,修改菜单文件(1)：%TreeIniHotKey1%
+	Gui,66:Add,GroupBox,xm-10 y+20 w225 h55,修改菜单文件(1)：%TreeIniHotKey1%
 	Gui,66:Add,Hotkey,xm yp+20 w150 vvTreeIniKey1,%TreeIniKey1%
 	Gui,66:Add,Checkbox,Checked%TreeIniWinKey1% xm+155 yp+3 vvTreeIniWinKey1,Win
 	If(MENU2FLAG){
@@ -2402,17 +2409,14 @@ Menu_Set:
 		Gui,66:Add,Hotkey,xp+10 yp+20 w150 vvTreeIniKey2,%TreeIniKey2%
 		Gui,66:Add,Checkbox,Checked%TreeIniWinKey2% xp+155 yp+3 vvTreeIniWinKey2,Win
 	}
-	Gui,66:Add,GroupBox,xm-10 y+30 w225 h55,插件管理：%PluginsManageHotKey%
-	Gui,66:Add,Hotkey,xm yp+20 w150 vvPluginsManageKey,%PluginsManageKey%
-	Gui,66:Add,Checkbox,Checked%PluginsManageWinKey% xm+155 yp+3 vvPluginsManageWinKey,Win
-	
-	Gui,66:Add,GroupBox,xm-10 y+30 w225 h55,设置RunAny：%RunASetHotKey%
+
+	Gui,66:Add,GroupBox,xm-10 y+40 w225 h55,设置RunAny：%RunASetHotKey%
 	Gui,66:Add,Hotkey,xm yp+20 w150 vvRunASetKey,%RunASetKey%
 	Gui,66:Add,Checkbox,Checked%RunASetWinKey% xm+155 yp+3 vvRunASetWinKey,Win
 	Gui,66:Add,GroupBox,x+35 yp-23 w225 h55,重启RunAny：%RunAReloadHotKey%
 	Gui,66:Add,Hotkey,xp+10 yp+20 w150 vvRunAReloadKey,%RunAReloadKey%
 	Gui,66:Add,Checkbox,Checked%RunAReloadWinKey% xp+155 yp+3 vvRunAReloadWinKey,Win
-	Gui,66:Add,GroupBox,xm-10 y+30 w225 h55,停用RunAny：%RunASuspendHotKey%
+	Gui,66:Add,GroupBox,xm-10 y+20 w225 h55,停用RunAny：%RunASuspendHotKey%
 	Gui,66:Add,Hotkey,xm yp+20 w150 vvRunASuspendKey,%RunASuspendKey%
 	Gui,66:Add,Checkbox,Checked%RunASuspendWinKey% xm+155 yp+3 vvRunASuspendWinKey,Win
 	Gui,66:Add,GroupBox,x+35 yp-23 w225 h55,退出RunAny：%RunAExitHotKey%
@@ -2541,7 +2545,7 @@ SetOK:
 	SetValueList.Push("OneKey", "OneWinKey", "OneKeyUrl", "OneKeyWeb", "OneKeyFolder", "OneKeyMagnet", "OneKeyFile", "OneKeyMenu")
 	SetValueList.Push("BrowserPath", "TcPath", "TreeIcon", "FolderIcon", "UrlIcon", "EXEIcon", "AnyIcon", "MenuIcon")
 	SetValueList.Push("TreeKey1", "TreeWinKey1", "TreeIniKey1", "TreeIniWinKey1", "PluginsManageKey", "PluginsManageWinKey")
-	SetValueList.Push("RunASetKey", "RunASetWinKey", "RunAReloadKey", "RunAReloadWinKey", "RunASuspendKey", "RunASuspendWinKey", "RunAExitKey", "RunAExitWinKey")
+	SetValueList.Push("RunATrayKey","RunATrayWinKey","RunASetKey","RunASetWinKey","RunAReloadKey","RunAReloadWinKey","RunASuspendKey","RunASuspendWinKey","RunAExitKey","RunAExitWinKey")
 	If(MENU2FLAG){
 		SetValueList.Push("MenuKey2", "MenuWinKey2", "TreeKey2", "TreeWinKey2", "TreeIniKey2", "TreeIniWinKey2")
 	}
@@ -3028,6 +3032,9 @@ MenuTray:
 	Menu,Tray,add,退出(&X)`t%RunAExitHotKey%,Menu_Exit
 	Menu,Tray,Default,启动菜单(&Z)`t%MenuHotKey%
 	Menu,Tray,Click,1
+return
+Menu_Tray:
+	Menu,Tray,Show
 return
 Menu_Ini:
 	Run,%iniPath%
