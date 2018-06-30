@@ -378,6 +378,10 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 			}
 		}
 	}
+	if(!HideMenuTray){
+		Menu,% menuRootFn[1],add,RunAny设置,:Tray
+		Menu,% menuRootFn[1],Icon,RunAny设置,% AnyIconS[1],% AnyIconS[2]
+	}
 }
 ;══════════════════════════════════════════════════════════════════
 ;~;[生成菜单(判断后缀创建图标)]
@@ -2365,6 +2369,7 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%HideWeb% xm yp+20 vvHideWeb,隐藏网址（选中文字显示）
 	Gui,66:Add,Checkbox,Checked%HideSend% x+46 vvHideSend,隐藏短语（选中文字显示）
 	Gui,66:Add,Checkbox,Checked%HideAddItem% xm yp+20 vvHideAddItem,隐藏【添加到此菜单】
+	Gui,66:Add,Checkbox,Checked%HideMenuTray% x+70 vvHideMenuTray,隐藏托盘菜单
 	Gui,66:Add,GroupBox,xm-10 y+15 w500 h70,RunAny选中文字菜单
 	Gui,66:Add,Checkbox,Checked%HideUnSelect% xm yp+20 vvHideUnSelect gUnCheckWebSend,选中文字依然显示应用菜单
 	Gui,66:Add,Text,xm yp+25 w120,选中后直接一键打开：
@@ -2539,7 +2544,7 @@ SetOK:
 		}
 	}
 	SetValueList:=["IniConfig","DisableApp"]
-	SetValueList.Push("HideFail", "HideUnSelect", "HideRecent", "HideWeb", "HideSend", "HideAddItem")
+	SetValueList.Push("HideFail","HideUnSelect","HideRecent","HideWeb","HideSend","HideAddItem","HideMenuTray")
 	SetValueList.Push("MenuKey", "MenuWinKey","MenuAddItemKey","MenuAddItemWinKey")
 	SetValueList.Push("EvKey", "EvWinKey", "EvPath","EvCommand","EvAutoClose")
 	SetValueList.Push("OneKey", "OneWinKey", "OneKeyUrl", "OneKeyWeb", "OneKeyFolder", "OneKeyMagnet", "OneKeyFile", "OneKeyMenu")
@@ -2632,6 +2637,7 @@ Var_Set:
 	global HideWeb:=Var_Read("HideWeb",0)
 	global HideSend:=Var_Read("HideSend",0)
 	global HideAddItem:=Var_Read("HideAddItem",0)
+	global HideMenuTray:=Var_Read("HideMenuTray",1)
 	global OneKeyWeb:=Var_Read("OneKeyWeb",1)
 	global OneKeyFolder:=Var_Read("OneKeyFolder",1)
 	global OneKeyMagnet:=Var_Read("OneKeyMagnet",1)
@@ -3016,17 +3022,17 @@ MenuTray:
 	Menu,Tray,add,修改菜单(&E)`t%TreeHotKey1%,Menu_Edit1
 	Menu,Tray,add,修改文件(&F)`t%TreeIniHotKey1%,Menu_Ini
 	Menu,Tray,add
-	Menu,Tray,add,设置RunAny(&D)`t%RunASetHotKey%,Menu_Set
-	Menu,Tray,Add,关于RunAny(&A)...,Menu_About
-	Menu,Tray,Add,插件管理(&C)`t%PluginsManageHotKey%,Plugins_Manage
-	Menu,Tray,Add,检查更新(&U),Check_Update
-	Menu,Tray,add
 	If(MENU2FLAG){
 		Menu,Tray,add,启动菜单2(&2)`t%MenuHotKey2%,Menu_Show2
 		Menu,Tray,add,修改菜单2(&W)`t%TreeHotKey2%,Menu_Edit2
 		Menu,Tray,add,修改文件2(&G)`t%TreeIniHotKey2%,Menu_Ini2
 		Menu,Tray,add
 	}
+	Menu,Tray,add,设置RunAny(&D)`t%RunASetHotKey%,Menu_Set
+	Menu,Tray,Add,关于RunAny(&A)...,Menu_About
+	Menu,Tray,Add,插件管理(&C)`t%PluginsManageHotKey%,Plugins_Manage
+	Menu,Tray,Add,检查更新(&U),Check_Update
+	Menu,Tray,add
 	Menu,Tray,add,重启(&R)`t%RunAReloadHotKey%,Menu_Reload
 	Menu,Tray,add,停用(&S)`t%RunASuspendHotKey%,Menu_Suspend
 	Menu,Tray,add,退出(&X)`t%RunAExitHotKey%,Menu_Exit

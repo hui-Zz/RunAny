@@ -1,10 +1,10 @@
-﻿;**************************
-;*【鼠标中键自由拖拽窗口】 *
-;*  网页中键后台打开页面   *
-;*  双击中键置顶窗口状态   *
-;*          by hui-Zz     *
-;**************************
-global RunAny_Plugins_Version:="1.06.14"
+﻿;*****************************
+;*【鼠标中键任意位置拖拽窗口】 *
+;*    网页中键后台打开页面    *
+;*    双击中键置顶窗口状态    *
+;*             by hui-Zz     *
+;*****************************
+global RunAny_Plugins_Version:="1.06.26"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #WinActivateForce       ;~强制激活窗口
@@ -20,6 +20,8 @@ GroupAdd,maxApp,ahk_exe vmware-vmx.exe
 GroupAdd,maxApp,ahk_exe TeamViewer.exe
 GroupAdd,maxApp,ahk_exe dota2.exe
 GroupAdd,maxApp,ahk_exe League of Legends.exe
+GroupAdd,browserApp,ahk_class Chrome.exe
+GroupAdd,browserApp,ahk_class QQBrowser.exe
 #If !WinActive("ahk_group maxApp") ;特定最大化程序下屏蔽
 	MButton:: ; 如不屏蔽中键原功能在前缀加~，但这样拖拽窗口时会实时激活
 		CoordMode,Mouse ; 切换到屏幕绝对坐标
@@ -28,7 +30,7 @@ GroupAdd,maxApp,ahk_exe League of Legends.exe
 		if(winstat<>1){
 			WinGetPos,Zz_OldPosX,Zz_OldPosY,,,ahk_id %Zz_MouseWin%
 			SetTimer,Zz_WatchMouse,10 ; 跟踪鼠标拖拽
-		}else if(WinActive("ahk_group chrome")){ ; 浏览器不最大化中键仍为拖拽
+		}else if(WinActive("ahk_group browserApp")){ ; 浏览器不最大化中键仍为拖拽
 			SendInput,^{LButton} ; 【网页中键后台打开】(默认为浏览器最大化时)
 		}
 ;		KeyWait,MButton,,t0.2 ; 双击判断，等待第二次按键
