@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.4.2 @2018.06.26
+║【RunAny】一劳永逸的快速启动工具 v5.4.3 @2018.08.16
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -20,8 +20,8 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
-global RunAny_update_version:="5.4.2"
-global RunAny_update_time:="2018.06.26"
+global RunAny_update_version:="5.4.3"
+global RunAny_update_time:="2018.08.16"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -515,6 +515,9 @@ Menu_Show:
 		if(selectZz!=""){
 			if(Candy_isFile){
 				SplitPath, selectZz,,, FileExt  ; 获取文件扩展名.
+				if(InStr(FileExist(selectZz), "D")){  ; {目录}
+					FileExt:="folder"
+				}
 				try{
 					extMenuName:=MenuObjExt[FileExt]
 					if(extMenuName){
