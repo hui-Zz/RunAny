@@ -510,7 +510,7 @@ Menu_Show:
 		global selectZz:=Get_Zz()
 		RunAnyMenu:=A_ScriptDir "\" PluginsDir "\RunAny_Menu.ahk"
 		if(ahkFlag && FileExist(RunAnyMenu) && PluginsObjList["RunAny_Menu.ahk"]){
-			Run,%ahkExePath%%A_Space%%RunAnyMenu%
+			Run,%ahkExePath%%A_Space%"%RunAnyMenu%"
 		}
 		if(selectZz!=""){
 			if(Candy_isFile){
@@ -2182,7 +2182,7 @@ LVApply:
 			runValue:=RegExReplace(FilePath,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
 			SplitPath, runValue, name,, ext  ; 获取扩展名
 			if(ahkFlag && ext="ahk"){
-				Run,%ahkExePath%%A_Space%%FilePath%
+				Run,%ahkExePath%%A_Space%"%FilePath%"
 			}else{
 				Run,%FilePath%
 			}
@@ -2889,7 +2889,7 @@ AutoRun_Effect:
 					runValue:=RegExReplace(runv,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
 					SplitPath, runValue, name,, ext  ; 获取扩展名
 					if(ext="ahk"){
-						Run,%ahkExePath%%A_Space%%runv%
+						Run,%ahkExePath%%A_Space%"%runv%"
 					}else{
 						Run,%runv%
 					}
