@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.4.3 @2018.08.16
+║【RunAny】一劳永逸的快速启动工具 v5.4.4 @2018.08.17
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -20,8 +20,8 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
-global RunAny_update_version:="5.4.3"
-global RunAny_update_time:="2018.08.16"
+global RunAny_update_version:="5.4.4"
+global RunAny_update_time:="2018.08.17"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -126,9 +126,8 @@ if(EvAutoClose && EvPath){
 }
 DetectHiddenWindows,Off
 ;══════════════════════════════════════════════════════════════════
-;~;[支持浏览器和TC无路径识别]
-BrowserPathRun:=Get_Obj_Path(BrowserPathRun) ? Get_Obj_Path(BrowserPathRun) . RegExReplace(BrowserPathRun,"iS).*?\.exe($| .*)","$1"): BrowserPathRun
-TcPathRun:=Get_Obj_Path(TcPathRun) ? Get_Obj_Path(TcPathRun) . RegExReplace(TcPathRun,"iS).*?\.exe($| .*)","$1"): TcPathRun 
+;~;[自定义后缀打开方式]
+Gosub,Open_Ext_Set
 ;~;[后缀图标初始化]
 Gosub,Icon_FileExt_Set
 ;#应用菜单数组#网址菜单名数组及地址队列#
@@ -568,8 +567,8 @@ Menu_Show:
 					if(RegExMatch(A_LoopField,"S)^(\\\\|.:\\)")){
 						;一键打开目录
 						if(OneKeyFolder && InStr(FileExist(A_LoopField), "D")){
-							If(TcPathRun){
-								Run,%TcPathRun%%A_Space%"%A_LoopField%"
+							If(OpenFolderPathRun){
+								Run,%OpenFolderPathRun%%A_Space%"%A_LoopField%"
 							}else{
 								Run,%A_LoopField%
 							}
@@ -617,7 +616,7 @@ Menu_Run:
 		any:=MenuObj[(MenuShowMenuRun)]
 		MenuShowMenuRun:=""
 	}
-	SplitPath, any, , dir
+	SplitPath, any, , dir, ext
 	if(dir)
 		SetWorkingDir,%dir%
 	if(!HideRecent && !RegExMatch(A_ThisMenuItem,"S)^&1|2"))
@@ -636,8 +635,8 @@ Menu_Run:
 		}
 		;[按住Ctrl键打开应用所在目录，只有目录则直接打开]
 		If(!selectZz && !Candy_isFile && (GetKeyState("Ctrl") || InStr(FileExist(any), "D"))){
-			If(TcPathRun){
-				Run,%TcPathRun%%A_Space%"%any%"
+			If(OpenFolderPathRun){
+				Run,%OpenFolderPathRun%%A_Space%"%any%"
 			}else if(InStr(FileExist(any), "D")){
 				Run,%any%
 			}else{
@@ -680,6 +679,8 @@ Menu_Run:
 			if(thisMenuName && RegExMatch(thisMenuName,"S).*?_:(\d{1,2})$")){
 				menuTrNum:=RegExReplace(thisMenuName,"S).*?_:(\d{1,2})$","$1")
 				Run_Tr(any,menuTrNum,true)
+			}else if(ext && openExtRunList[ext]){
+				Run,% openExtRunList[ext] . A_Space . """" any """"
 			}else{
 				Run,%any%
 			}
@@ -989,6 +990,15 @@ Get_Obj_Path(z_item){
 		return absolute ? absolute : obj_path
 	}
 }
+;~;[获取变量转换后的应用路径]
+Get_Obj_Path_Transform(z_item){
+	itemPath:=Get_Transform_Val(z_item) ; 变量转换
+	objPathItem:=Get_Obj_Path(itemPath) ; 自动添加完整路径
+	if(objPathItem){
+		itemPath:=objPathItem . RegExReplace(itemPath,"iS).*?\.exe($| .*)","$1")
+	}
+	return itemPath
+}
 ;~;[判断后返回该菜单项最佳的启动路径]
 Get_Item_Run_Path(z_item_path){
 	SplitPath,z_item_path,fileName,,,itemName
@@ -1160,7 +1170,7 @@ Menu_Edit:
 	Gui, Destroy
 	Gui, +Resize
 	Gui, Font,, Microsoft YaHei
-	Gui, Add, TreeView,vRunAnyTV w450 r30 -Readonly AltSubmit Checked hwndHTV gTVClick ImageList%ImageListID%
+	Gui, Add, TreeView,vRunAnyTV w520 r30 -Readonly AltSubmit Checked hwndHTV gTVClick ImageList%ImageListID%
 	Gui, Add, Progress,vMyProgress w450 cBlue
 	GuiControl, Hide, MyProgress
 	GuiControl, -Redraw, RunAnyTV
@@ -2096,7 +2106,7 @@ Gui,P:Destroy
 Gui,P:Default
 Gui,P:+Resize
 Gui,P:Font, s10, Microsoft YaHei
-Gui,P:Add, Listview, xm w500 r15 grid AltSubmit vRunAnyLV glistview, 插件文件|运行状态|自动启动|插件描述
+Gui,P:Add, Listview, xm w500 r20 grid AltSubmit vRunAnyLV glistview, 插件文件|运行状态|自动启动|插件描述
 ;~;[读取启动项内容写入列表]
 GuiControl,P: -Redraw, RunAnyLV
 For runn, runv in PluginsObjList
@@ -2358,22 +2368,24 @@ Check_IsRun(runNamePath){
 ;══════════════════════════════════════════════════════════════════
 ;~;[设置选项]
 Menu_Set:
+	groupWidch66=520
 	Gui,66:Destroy
 	Gui,66:Font,,Microsoft YaHei
 	Gui,66:Margin,30,20
-	Gui,66:Add,Tab,x10 y10 w520 h500,RunAny设置|配置热键|Everything设置|一键搜索|图标+TC设置
+	Gui,66:Default
+	Gui,66:Add,Tab,x10 y10 w550 h500,RunAny设置|配置热键|Everything设置|一键搜索|自定义打开后缀|图标+TC设置
 	Gui,66:Tab,RunAny设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+5 w500 h50,RunAny设置
+	Gui,66:Add,GroupBox,xm-10 y+5 w%groupWidch66% h50,RunAny设置
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+25 vvAutoRun,开机自动启动
 	Gui,66:Add,Checkbox,Checked%IniConfig% x+118 vvIniConfig,RunAnyConfig.ini移动盘绿色配置
-	Gui,66:Add,GroupBox,xm-10 y+15 w500 h80,RunAny应用菜单
+	Gui,66:Add,GroupBox,xm-10 y+15 w%groupWidch66% h80,RunAny应用菜单
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
 	Gui,66:Add,Checkbox,Checked%HideRecent% x+130 vvHideRecent,隐藏最近运行
 	Gui,66:Add,Checkbox,Checked%HideWeb% xm yp+20 vvHideWeb,隐藏网址（选中文字显示）
 	Gui,66:Add,Checkbox,Checked%HideSend% x+46 vvHideSend,隐藏短语（选中文字显示）
 	Gui,66:Add,Checkbox,Checked%HideAddItem% xm yp+20 vvHideAddItem,隐藏【添加到此菜单】
 	Gui,66:Add,Checkbox,Checked%HideMenuTray% x+70 vvHideMenuTray,隐藏托盘菜单
-	Gui,66:Add,GroupBox,xm-10 y+15 w500 h70,RunAny选中文字菜单
+	Gui,66:Add,GroupBox,xm-10 y+15 w%groupWidch66% h70,RunAny选中文字菜单
 	Gui,66:Add,Checkbox,Checked%HideUnSelect% xm yp+20 vvHideUnSelect gUnCheckWebSend,选中文字依然显示应用菜单
 	Gui,66:Add,Text,xm yp+25 w120,选中后直接一键打开：
 	Gui,66:Add,Checkbox,Checked%OneKeyWeb% x+20 yp vvOneKeyWeb,网址
@@ -2390,11 +2402,11 @@ Menu_Set:
 	}else{
 		Gui,66:Add,Button,x+35 yp-5 w150 GSetMenu2,开启第2个菜单
 	}
-	Gui,66:Add,GroupBox,xm-10 y+25 w500 h115,屏蔽RunAny程序列表（逗号分隔）
+	Gui,66:Add,GroupBox,xm-10 y+25 w%groupWidch66% h115,屏蔽RunAny程序列表（逗号分隔）
 	Gui,66:Add,Edit,xm yp+25 w480 r4 vvDisableApp,%DisableApp%
 	
 	Gui,66:Tab,配置热键,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+30 w225 h55,RunAny托盘菜单：%RunATrayHotKey%
+	Gui,66:Add,GroupBox,xm-10 y+20 w225 h55,RunAny托盘菜单：%RunATrayHotKey%
 	Gui,66:Add,Hotkey,xm yp+20 w150 vvRunATrayKey,%RunATrayKey%
 	Gui,66:Add,Checkbox,Checked%RunATrayWinKey% xm+155 yp+3 vvRunATrayWinKey,Win
 	Gui,66:Add,GroupBox,x+35 yp-23 w225 h55,插件管理：：%PluginsManageHotKey%
@@ -2432,21 +2444,21 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%RunAExitWinKey% xp+155 yp+3 vvRunAExitWinKey,Win
 	
 	Gui,66:Tab,Everything设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+20 w500 h55,一键Everything [搜索选中文字、激活、隐藏]
+	Gui,66:Add,GroupBox,xm-10 y+20 w%groupWidch66% h55,一键Everything [搜索选中文字、激活、隐藏]
 	Gui,66:Add,Hotkey,xm+10 yp+20 w150 vvEvKey,%EvKey%
 	Gui,66:Add,Checkbox,Checked%EvWinKey% xm+170 yp+3 vvEvWinKey,Win
 	Gui,66:Add,Checkbox,Checked%EvAutoClose% x+38 vvEvAutoClose,Everything自动关闭(不常驻)
-	Gui,66:Add,GroupBox,xm-10 y+30 w500 h100,Everything安装路径（支持内置变量和相对路径..\为RunAny相对上级目录）
+	Gui,66:Add,GroupBox,xm-10 y+30 w%groupWidch66% h100,Everything安装路径（支持内置变量和相对路径..\为RunAny相对上级目录）
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp w420 r3 vvEvPath,%EvPath%
-	Gui,66:Add,GroupBox,xm-10 y+30 w500 h140,Everything搜索参数（搜索结果程序可无路径用RunAny运行）
+	Gui,66:Add,GroupBox,xm-10 y+30 w%groupWidch66% h140,Everything搜索参数（搜索结果程序可无路径用RunAny运行）
 	Gui,66:Add,Button,xm yp+20 w50 GSetEvCommand,修改
 	Gui,66:Add,Text,xm+60 yp,!C:\*Windows*为排除系统缓存和系统程序
 	Gui,66:Add,Text,xm+60 yp+15,file:*.exe|*.lnk|后面类推增加想要的后缀
 	Gui,66:Add,Edit,ReadOnly xm+10 yp+25 w470 r3 vvEvCommand,%EvCommand%
 	
 	Gui,66:Tab,一键搜索,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+20 w500 h260,一键搜索选中文字
+	Gui,66:Add,GroupBox,xm-10 y+20 w%groupWidch66% h260,一键搜索选中文字
 	Gui,66:Add,Hotkey,xm yp+30 w150 vvOneKey,%OneKey%
 	Gui,66:Add,Checkbox,Checked%OneWinKey% xm+155 yp+3 vvOneWinKey,Win
 	Gui,66:Add,Checkbox,Checked%OneKeyMenu% x+38 vvOneKeyMenu,绑定菜单1热键为一键搜索
@@ -2456,8 +2468,23 @@ Menu_Set:
 	Gui,66:Add,Button,xm yp+20 w50 GSetBrowserPath,选择
 	Gui,66:Add,Edit,xm+60 yp w420 r3 vvBrowserPath,%BrowserPath%
 	
+	Gui,66:Tab,自定义打开后缀,,Exact
+	Gui,66:Add,GroupBox,xm-10 y+10 w%groupWidch66% h400,使用自定义软件打开%RunAnyZz%菜单内不同后缀的文件
+	Gui,66:Add,Button, xm yp+30 w50 GLVOpenExtAdd, + 增加
+	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtEdit, * 修改
+	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtRemove, - 减少
+	Gui,66:Add,Text, x+10 yp+5 w280,（特殊类型：文件夹folder 网址http https ftp等）
+	Gui,66:Add,Listview,xm yp+30 w500 r14 grid AltSubmit -Multi vRunAnyOpenExtLV glistviewOpenExt, 文件后缀(用空格分隔)|打开方式(支持无路径)
+	GuiControl, 66:-Redraw, RunAnyOpenExtLV
+	For k, v in openExtIniList
+	{
+		LV_Add("", v, k)
+	}
+	LV_ModifyCol()
+	GuiControl, 66:+Redraw, RunAnyOpenExtLV
+	
 	Gui,66:Tab,图标+TC设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+20 w500 h230,图标自定义设置（图片或图标文件路径 , 序号不填默认1）
+	Gui,66:Add,GroupBox,xm-10 y+20 w%groupWidch66% h230,图标自定义设置（图片或图标文件路径 , 序号不填默认1）
 	Gui,66:Add,Button,xm yp+30 w80 GSetAnyIcon,RunAny图标
 	Gui,66:Add,Edit,xm+82 yp w400 r1 vvAnyIcon,%AnyIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetMenuIcon,准备图标
@@ -2470,7 +2497,7 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+82 yp w400 r1 vvUrlIcon,%UrlIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetEXEIcon,EXE图标
 	Gui,66:Add,Edit,xm+82 yp w400 r1 vvEXEIcon,%EXEIcon%
-	Gui,66:Add,GroupBox,xm-10 y+30 w500 h100,TotalCommander安装路径（TC打开RunAny中的文件夹）
+	Gui,66:Add,GroupBox,xm-10 y+30 w%groupWidch66% h100,TotalCommander安装路径（TC打开RunAny中的文件夹）
 	Gui,66:Add,Button,xm yp+20 w50 GSetTcPath,选择
 	Gui,66:Add,Edit,xm+60 yp w420 r3 vvTcPath,%TcPath%
 
@@ -2518,6 +2545,12 @@ SetBrowserPath:
 	if(browserFilePath)
 		GuiControl,, vBrowserPath, %browserFilePath%
 return
+SetOpenExtRun:
+	FileSelectFile, openExtPath, , , 启动文件路径
+	if(openExtPath){
+		GuiControl,, vopenExtRun, %openExtPath%
+	}
+return
 SetAnyIcon:
 SetMenuIcon:
 SetTreeIcon:
@@ -2563,6 +2596,16 @@ SetOK:
 	{
 		vValue:="v" . vv
 		Reg_Set(%vValue%,%vv%,vv)
+	}
+	;[保存自定义打开后缀列表]
+	if(OpenExtFlag){
+		IniDelete, %iniFile%, OpenExt
+		Loop % LV_GetCount()
+		{
+			LV_GetText(openExtName, A_Index, 1)
+			LV_GetText(openExtRun, A_Index, 2)
+			IniWrite,%openExtName%,%RunAnyConfig%,OpenExt,%openExtRun%
+		}
 	}
 	Reload
 return
@@ -2617,6 +2660,82 @@ Var_Read(rValue,defVar=""){
 		return defVar
 	}
 }
+listviewOpenExt:
+    if A_GuiEvent = DoubleClick
+    {
+		openExtItem:="编辑"
+		gosub,Open_Ext_Edit
+    }
+return
+LVOpenExtAdd:
+	openExtItem:="新建"
+	openExtName:=openExtRun:=""
+	gosub,Open_Ext_Edit
+return
+LVOpenExtEdit:
+	openExtItem:="编辑"
+	gosub,Open_Ext_Edit
+return
+LVOpenExtRemove:
+	OpenExtFlag:=true
+	RunRowNumber := LV_GetNext(0, "F")
+	if not RunRowNumber
+		return
+	LV_Delete(RunRowNumber)
+return
+Open_Ext_Edit:
+	if(openExtItem="编辑"){
+		RunRowNumber := LV_GetNext(0, "F")
+		if not RunRowNumber
+			return
+		LV_GetText(openExtName, RunRowNumber, 1)
+		LV_GetText(openExtRun, RunRowNumber, 2)
+	}
+	Gui,SaveExt:Destroy
+	Gui,SaveExt:Default
+	Gui,SaveExt:Margin,20,20
+	Gui,SaveExt:Font,,Microsoft YaHei
+	Gui,SaveExt:Add, GroupBox,xm y+10 w400 h145,%openExtItem%自定义后缀打开方式
+	Gui,SaveExt:Add, Text, xm+10 y+35 y35 w62, 文件后缀   (空格分隔)
+	Gui,SaveExt:Add, Edit, x+5 yp+5 w300 vvopenExtName, %openExtName%
+	Gui,SaveExt:Add, Button, xm+5 y+15 w60 GSetOpenExtRun,打开方式软件路径
+	Gui,SaveExt:Add, Edit, x+12 yp w300 r3 vvopenExtRun, %openExtRun%
+	Gui,SaveExt:Font
+	Gui,SaveExt:Add,Button,Default xm+100 y+25 w75 GSaveOpenExt,保存(&Y)
+	Gui,SaveExt:Add,Button,x+20 w75 GSetCancel,取消(&C)
+	Gui,SaveExt:Show,,%openExtItem%自定义后缀打开方式 - %RunAnyZz%
+return
+SaveOpenExt:
+	OpenExtFlag:=true
+	Gui,SaveExt:Submit, NoHide
+	if(!vopenExtName || !vopenExtRun){
+		ToolTip, 请填入文件后缀名和打开方式软件路径,195,35
+		SetTimer,RemoveToolTip,3000
+		return
+	}
+	Gui,66:Default
+	if(openExtItem="新建"){
+		if(openExtIniList[vopenExtRun]){
+			Loop % LV_GetCount()
+			{
+				LV_GetText(openExtNameGet, A_Index, 1)
+				LV_GetText(openExtRunGet, A_Index, 2)
+				if(vopenExtRun=openExtRunGet){
+					LV_Modify(A_Index,"",openExtNameGet . A_Space . vopenExtName,vopenExtRun)
+					ToolTip, 已自动合并后缀到相同打开方式中,195,-20
+					SetTimer,RemoveToolTip,3000
+					break
+				}
+			}
+		}else{
+			LV_Add("",vopenExtName,vopenExtRun)
+		}
+	}else{
+		LV_Modify(RunRowNumber,"",vopenExtName,vopenExtRun)
+	}
+	LV_ModifyCol()  ; 根据内容自动调整每列的大小.
+	Gui,SaveExt:Destroy
+return
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化]
 ;══════════════════════════════════════════════════════════════════
@@ -2648,10 +2767,6 @@ Var_Set:
 	global OneKeyMenu:=Var_Read("OneKeyMenu",0)
 	global EvCommand:=Var_Read("EvCommand","!C:\*Windows* !?:\$RECYCLE.BIN* file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
 	global EvAutoClose:=Var_Read("EvAutoClose",0)
-	global BrowserPath:=Var_Read("BrowserPath")
-	global BrowserPathRun:=Get_Transform_Val(BrowserPath)
-	global TcPath:=Var_Read("TcPath")
-	global TcPathRun:=Get_Transform_Val(TcPath)
 	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
 	OneKeyUrl:=StrReplace(OneKeyUrl, "|", "`n")
 	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)	;隐藏配置
@@ -2665,10 +2780,10 @@ Var_Set:
 	}
 	EnvGet, LocalAppData, LocalAppData
 	gosub,Icon_Set
+	;~[定期自动检查更新]
 	global lpszUrl:="https://raw.githubusercontent.com"
 	global RunAnyGithubDir:=lpszUrl . "/hui-Zz/RunAny/master"
 	global MenuCommonList:={}
-	;~[定期自动检查更新]
 	if(A_DD=01 || A_DD=15){
 		;当天已经检查过就不再更新
 		if(FileExist(A_Temp "\temp_RunAny.ahk")){
@@ -2681,6 +2796,39 @@ Var_Set:
 		}
 		Gosub,Auto_Update
 	}
+return
+;~;[自定义打开方式]
+Open_Ext_Set:
+	;~;[支持一键直达浏览器无路径识别]
+	global BrowserPath:=Var_Read("BrowserPath")
+	global BrowserPathRun:=Get_Obj_Path_Transform(BrowserPath)
+	;~;[自定义后缀文件打开方式]
+	global openExtIniList:={}
+	global openExtRunList:={}
+	IniRead,openExtVar,%RunAnyConfig%,OpenExt
+	Loop, parse, openExtVar, `n, `r
+	{
+		itemList:=StrSplit(A_LoopField,"=")
+		openExtIniList[itemList[1]]:=itemList[2]
+		Loop, parse,% itemList[2], %A_Space%
+		{
+			openExtRunList[A_LoopField]:=Get_Obj_Path_Transform(itemList[1])
+		}
+	}
+	if(!openExtRunList["folder"]){
+		TcPath:=Var_Read("TcPath")
+		if(TcPath){
+			openExtName:="folder"
+			if(openExtIniList[TcPath]){ ; 如果已存在旧打开方式，则加在末尾
+				openExtName:=openExtIniList[TcPath] A_Space "folder"
+			}
+			IniWrite,%openExtName%,%RunAnyConfig%,OpenExt,%TcPath%
+			openExtRunList["folder"]:=Get_Obj_Path_Transform(TcPath)
+			openExtIniList[TcPath]:=openExtName
+			IniDelete,%RunAnyConfig%,Config,TcPath
+		}
+	}
+	global OpenFolderPathRun:=openExtRunList["folder"]
 return
 ;~;[图标初始化]
 Icon_Set:
