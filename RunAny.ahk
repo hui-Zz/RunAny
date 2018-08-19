@@ -696,6 +696,8 @@ Menu_Run:
 				Run_Tr(any,menuTrNum,true)
 			}else if(ext && openExtRunList[ext]){
 				Run,% openExtRunList[ext] . A_Space . """" any """"
+			}else if(RegExMatch(any,"iS)([\w-]+://?|www[.]).*")){
+				Run_Search(any)
 			}else{
 				Run,%any%
 			}
@@ -853,7 +855,19 @@ Run_Tr(program,trNum,newOpen=false){
 	return
 }
 Run_Search(any,selectZz="",browser=""){
-	browserRun:=browser ? browser A_Space : browser
+	if(browser){
+		browserRun:=browser A_Space
+	}else if(RegExMatch(any,"iS)(www[.]).*")){
+		browserRun:=openExtRunList["www"] A_Space
+	}else{
+		HyperList:=["http","https","ftp"]
+		For i, v in HyperList
+		{
+			if(RegExMatch(any,"iS)(" v "://?).*")){
+				browserRun:=openExtRunList[v] A_Space
+			}
+		}
+	}
 	if(InStr(any,"%s",true)){
 		Run,% browserRun StrReplace(any,"%s",selectZz)
 	}else if(InStr(any,"%S",true)){
@@ -2418,7 +2432,7 @@ Menu_Set:
 		Gui,66:Add,Button,x+35 yp-5 w150 GSetMenu2,开启第2个菜单
 	}
 	Gui,66:Add,GroupBox,xm-10 y+25 w%groupWidch66% h115,屏蔽RunAny程序列表（逗号分隔）
-	Gui,66:Add,Edit,xm yp+25 w480 r4 vvDisableApp,%DisableApp%
+	Gui,66:Add,Edit,xm yp+25 w480 r4 -WantReturn vvDisableApp,%DisableApp%
 	
 	Gui,66:Tab,配置热键,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+20 w225 h55,RunAny托盘菜单：%RunATrayHotKey%
@@ -2465,12 +2479,12 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%EvAutoClose% x+38 vvEvAutoClose,Everything自动关闭(不常驻)
 	Gui,66:Add,GroupBox,xm-10 y+30 w%groupWidch66% h100,Everything安装路径（支持内置变量和相对路径..\为RunAny相对上级目录）
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
-	Gui,66:Add,Edit,xm+60 yp w420 r3 vvEvPath,%EvPath%
+	Gui,66:Add,Edit,xm+60 yp w420 r3 -WantReturn vvEvPath,%EvPath%
 	Gui,66:Add,GroupBox,xm-10 y+30 w%groupWidch66% h140,Everything搜索参数（搜索结果程序可无路径用RunAny运行）
 	Gui,66:Add,Button,xm yp+20 w50 GSetEvCommand,修改
 	Gui,66:Add,Text,xm+60 yp,!C:\*Windows*为排除系统缓存和系统程序
 	Gui,66:Add,Text,xm+60 yp+15,file:*.exe|*.lnk|后面类推增加想要的后缀
-	Gui,66:Add,Edit,ReadOnly xm+10 yp+25 w470 r3 vvEvCommand,%EvCommand%
+	Gui,66:Add,Edit,ReadOnly xm+10 yp+25 w470 r3 -WantReturn vvEvCommand,%EvCommand%
 	
 	Gui,66:Tab,一键搜索,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+20 w%groupWidch66% h260,一键搜索选中文字
@@ -2481,14 +2495,14 @@ Menu_Set:
 	Gui,66:Add,Edit,xm yp+20 w485 r8 vvOneKeyUrl,%OneKeyUrl%
 	Gui,66:Add,Text,xm y+40 w325,非默认浏览器打开网址(适用一键搜索和一键直达)
 	Gui,66:Add,Button,xm yp+20 w50 GSetBrowserPath,选择
-	Gui,66:Add,Edit,xm+60 yp w420 r3 vvBrowserPath,%BrowserPath%
+	Gui,66:Add,Edit,xm+60 yp w420 r3 -WantReturn vvBrowserPath,%BrowserPath%
 	
 	Gui,66:Tab,自定义打开后缀,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+10 w%groupWidch66% h400,使用自定义软件打开%RunAnyZz%菜单内不同后缀的文件(合并原来TC打开目录功能)
 	Gui,66:Add,Button, xm yp+30 w50 GLVOpenExtAdd, + 增加
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtEdit, * 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtRemove, - 减少
-	Gui,66:Add,Text, x+10 yp+5 w280,（特殊类型：文件夹folder 网址http https ftp等）
+	Gui,66:Add,Text, x+10 yp+5 w320,（特殊类型：文件夹folder 网址http https www ftp等）
 	Gui,66:Add,Listview,xm yp+30 w500 r14 grid AltSubmit -Multi vRunAnyOpenExtLV glistviewOpenExt, 文件后缀(用空格分隔)|打开方式(支持无路径)
 	GuiControl, 66:-Redraw, RunAnyOpenExtLV
 	For k, v in openExtIniList
@@ -2623,7 +2637,7 @@ SetOK:
 	}
 	;[保存自定义打开后缀列表]
 	if(OpenExtFlag){
-		IniDelete, %iniFile%, OpenExt
+		IniDelete, %RunAnyConfig%, OpenExt
 		Loop % LV_GetCount()
 		{
 			LV_GetText(openExtName, A_Index, 1)
@@ -2723,7 +2737,7 @@ Open_Ext_Edit:
 	Gui,SaveExt:Add, Text, xm+10 y+35 y35 w62, 文件后缀    (空格分隔)
 	Gui,SaveExt:Add, Edit, x+5 yp+5 w300 vvopenExtName, %openExtName%
 	Gui,SaveExt:Add, Button, xm+5 y+15 w60 GSetOpenExtRun,打开方式软件路径
-	Gui,SaveExt:Add, Edit, x+12 yp w300 r3 vvopenExtRun, %openExtRun%
+	Gui,SaveExt:Add, Edit, x+12 yp w300 r3 -WantReturn vvopenExtRun, %openExtRun%
 	Gui,SaveExt:Font
 	Gui,SaveExt:Add,Button,Default xm+100 y+25 w75 GSaveOpenExt,保存(&Y)
 	Gui,SaveExt:Add,Button,x+20 w75 GSetCancel,取消(&C)
