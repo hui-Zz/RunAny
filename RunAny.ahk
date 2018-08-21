@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.5 @2018.08.19
+║【RunAny】一劳永逸的快速启动工具 v5.5.0 @2018.08.21
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -20,8 +20,8 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
-global RunAny_update_version:="5.5"
-global RunAny_update_time:="2018.08.19"
+global RunAny_update_version:="5.5.0"
+global RunAny_update_time:="2018.08.21"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -643,9 +643,15 @@ Menu_Run:
 			Send_Str_Zz(any,true)	;[输出短语]
 			return
 		}
+		;[输出热键]
 		If(InStr(any,"::",,0,1)=anyLen-1){
-			StringLeft, any, any, anyLen-2
-			Send_Key_Zz(any)	;[输出热键]
+			If(InStr(any,":::",,0,1)=anyLen-2){
+				StringLeft, any, any, anyLen-3
+				Send_Key_Zz(any,1)
+			}else{
+				StringLeft, any, any, anyLen-2
+				Send_Key_Zz(any)
+			}
 			return
 		}
 		;[按住Ctrl键打开应用所在目录，只有目录则直接打开]
@@ -717,9 +723,15 @@ Menu_Key_Run:
 		SetWorkingDir,%dir%
 	try {
 		anyLen:=StrLen(any)
+		;[输出热键]
 		If(InStr(any,"::",,0,1)=anyLen-1){
-			StringLeft, any, any, anyLen-2
-			Send_Key_Zz(any)	;[输出热键]
+			If(InStr(any,":::",,0,1)=anyLen-2){
+				StringLeft, any, any, anyLen-3
+				Send_Key_Zz(any,1)
+			}else{
+				StringLeft, any, any, anyLen-2
+				Send_Key_Zz(any)
+			}
 			return
 		}
 		If(InStr(any,";",,0,1)=anyLen){
@@ -927,8 +939,12 @@ Send_Str_Zz(strZz,tf=false){
 	Clipboard:=Candy_Saved
 }
 ;~;[输出热键]
-Send_Key_Zz(keyZz){
+Send_Key_Zz(keyZz,keyLevel=0){
+	if(keyLevel=1)
+		SendLevel,1
 	SendInput,%keyZz%
+	if(keyLevel=1)
+		SendLevel,0
 }
 ;~;[获取选中]
 Get_Zz(){
