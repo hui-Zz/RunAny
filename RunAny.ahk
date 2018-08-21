@@ -857,13 +857,13 @@ Run_Tr(program,trNum,newOpen=false){
 Run_Search(any,selectZz="",browser=""){
 	if(browser){
 		browserRun:=browser A_Space
-	}else if(RegExMatch(any,"iS)(www[.]).*")){
+	}else if(RegExMatch(any,"iS)(www[.]).*") && openExtRunList["www"]){
 		browserRun:=openExtRunList["www"] A_Space
 	}else{
 		HyperList:=["http","https","ftp"]
 		For i, v in HyperList
 		{
-			if(RegExMatch(any,"iS)(" v "://?).*")){
+			if(RegExMatch(any,"iS)(" v "://?).*") && openExtRunList[v]){
 				browserRun:=openExtRunList[v] A_Space
 			}
 		}
@@ -2526,13 +2526,13 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+82 yp w400 r1 vvUrlIcon,%UrlIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetEXEIcon,EXE图标
 	Gui,66:Add,Edit,xm+82 yp w400 r1 vvEXEIcon,%EXEIcon%
-	Gui,66:Add,GroupBox,xm-10 y+30 w%groupWidch66% h130,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含后面热键）
+	Gui,66:Add,GroupBox,xm-10 y+30 w%groupWidch66% h135,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含后面热键）
 	Gui,66:Add,Text, xm yp+20 w380,如图标文件名可以为：-常用(&&App).ico、cmd.png、百度(&&B).ico
 	Gui,66:Add,Button,xm yp+30 w50 GSetIconFolderPath,选择
-	Gui,66:Add,Edit,xm+60 yp w420 r3 vvIconFolderPath,%IconFolderPath%
+	Gui,66:Add,Edit,xm+60 yp w420 r4 vvIconFolderPath,%IconFolderPath%
 
 	Gui,66:Tab
-	Gui,66:Add,Button,Default xm+100 y+70 w75 GSetOK,确定(&Y)
+	Gui,66:Add,Button,Default xm+100 y+50 w75 GSetOK,确定(&Y)
 	Gui,66:Add,Button,x+15 w75 GSetCancel,取消(&C)
 	Gui,66:Add,Button,x+15 w75 GSetReSet,重置
 	Gui,66:Add,Text,x+40 yp+5 w75 GMenu_Config,RunAnyConfig.ini
