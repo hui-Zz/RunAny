@@ -407,7 +407,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 		}
 		if(InStr(item,"::",,0,1)=itemLen-1){	; {发送热键}
 			Menu,%menuName%,add,%menuItem%,Menu_Run
-			Menu_Item_Icon(menuName,menuItem,"SHELL32.dll","100")
+			Menu_Item_Icon(menuName,menuItem,"SHELL32.dll",InStr(item,":::",,0,1)=itemLen-2 ? "101" : "100")
 			return
 		}
 		if(RegExMatch(item,"iS)([\w-]+://?|www[.]).*")){  ; {网址}
@@ -1985,7 +1985,7 @@ Set_Icon(itemVar,editVar=true){
 	if(InStr(FileExist(itemVar), "D"))
 		return "Icon4"
 	if(InStr(itemVar,"::",,0,1)=itemLen-1)	; {发送热键}
-		return "Icon9"
+		return InStr(itemVar,":::",,0,1)=itemLen-2 ? "Icon10" : "Icon9"
 	;~;[获取全路径]
 	FileName:=Get_Obj_Path(itemVar)
 	if(!editVar && FileName="" && FileExt = "exe")
@@ -3075,7 +3075,7 @@ Plugins_Read_Version(filePath){
 }
 GuiIcon_Set:
 	;~;[树型菜单图标集]
-	global ImageListID := IL_Create(9)
+	global ImageListID := IL_Create(10)
 	IL_Add(ImageListID, "shell32.dll", 1)
 	IL_Add(ImageListID, "shell32.dll", 2)
 	IL_Add(ImageListID, EXEIconS[1], EXEIconS[2])
@@ -3085,6 +3085,7 @@ GuiIcon_Set:
 	IL_Add(ImageListID, UrlIconS[1], UrlIconS[2])
 	IL_Add(ImageListID, "shell32.dll", 50)
 	IL_Add(ImageListID, "shell32.dll", 100)
+	IL_Add(ImageListID, "shell32.dll", 101)
 	;#菜单加载完后，预读完成"修改菜单"的GUI图标
 	Loop, parse, iniVar1, `n, `r, %A_Space%%A_Tab%
 	{
