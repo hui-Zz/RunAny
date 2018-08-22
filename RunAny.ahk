@@ -140,7 +140,6 @@ MenuObjTree1[RunAnyZz . "1"]:=Object()
 global menu2:=MENU2FLAG
 ;~;[读取带图标的自定义应用菜单]
 Menu_Read(iniVar1,menuRoot1,1,menuWebRoot1,menuWebList1,false,1)
-Menu,% menuRoot1[1],Add
 ;~;[如果有第2菜单则开始加载]
 if(menu2){
 	menuRoot2:=Object(),menuWebRoot2:=Object(),menuWebList2:=Object()
@@ -149,6 +148,16 @@ if(menu2){
 	menuWebRoot2.Push(RunAnyZz . "2")
 	MenuObjTree2[RunAnyZz . "2"]:=Object()
 	Menu_Read(iniVar2,menuRoot2,1,menuWebRoot2,menuWebList2,false,2)
+}
+;~;[最近运行项]
+if(!HideRecent){
+	Menu,% menuRoot1[1],Add
+	For mck, mcv in MenuCommonList
+	{
+		obj:=RegExReplace(mcv,"&" mck A_Space)
+		MenuObj[mcv]:=MenuObj[obj]
+		Menu,% menuRoot1[1],Add,%mcv%,Menu_Run
+	}
 }
 ;~;[在图标加载前先运行插件]
 Gosub,AutoRun_Effect
@@ -793,6 +802,12 @@ Menu_Recent:
 			Menu,% menuRoot1[1],Rename,% MenuCommon2,% MenuCommonList[2]
 		}
 	}
+	commonStr:=""
+	For k, v in MenuCommonList
+	{
+		commonStr:=commonStr ? commonStr "|" v : v
+	}
+	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, MenuCommonList, %commonStr%
 return
 ;~;[所有菜单(添加/删除)临时项]
 Menu_Add_Del_Temp(addDel=1,TREE_NO=1,mName="",LabelName="",mIcon="",mIconNum=""){
@@ -2834,10 +2849,20 @@ Var_Set:
 	}
 	EnvGet, LocalAppData, LocalAppData
 	gosub,Icon_Set
+	;~[最近运行项]
+	if(!HideRecent){
+		global MenuCommonList:={}
+		RegRead, MenuCommonListReg, HKEY_CURRENT_USER, Software\RunAny, MenuCommonList
+		if(MenuCommonListReg){
+			Loop, parse, MenuCommonListReg, |
+			{
+				MenuCommonList.Push(A_LoopField)
+			}
+		}
+	}
 	;~[定期自动检查更新]
 	global lpszUrl:="https://raw.githubusercontent.com"
 	global RunAnyGithubDir:=lpszUrl . "/hui-Zz/RunAny/master"
-	global MenuCommonList:={}
 	if(A_DD=01 || A_DD=15){
 		;当天已经检查过就不再更新
 		if(FileExist(A_Temp "\temp_RunAny.ahk")){
