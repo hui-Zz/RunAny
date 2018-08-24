@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.5.0 @2018.08.21
+║【RunAny】一劳永逸的快速启动工具 v5.5.0 @2018.08.24
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -21,7 +21,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.5.0"
-global RunAny_update_time:="2018.08.21"
+global RunAny_update_time:="2018.08.24"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -892,15 +892,16 @@ Run_Search(any,selectZz="",browser=""){
 		{
 			if(RegExMatch(any,"iS)(" v "://?).*") && openExtRunList[v]){
 				browserRun:=openExtRunList[v] A_Space
+				break
 			}
 		}
 	}
 	if(InStr(any,"%s",true)){
-		Run,% browserRun StrReplace(any,"%s",selectZz)
+		Run,% browserRun """" StrReplace(any,"%s",selectZz) """"
 	}else if(InStr(any,"%S",true)){
-		Run,% browserRun StrReplace(any,"%S",SkSub_UrlEncode(selectZz))
+		Run,% browserRun """" StrReplace(any,"%S",SkSub_UrlEncode(selectZz)) """"
 	}else{
-		Run,%browserRun%%any%%selectZz%
+		Run,%browserRun%"%any%%selectZz%"
 	}
 }
 ;══════════════════════════════════════════════════════════════════
@@ -2708,10 +2709,12 @@ UnCheckWebSend:
 	}
 return
 Reg_Set(vGui, var, sz){
+	StringCaseSense, On
 	if(vGui!=var){
 		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, %sz%, %vGui%
 		IniWrite,%vGui%,%RunAnyConfig%,Config,%sz%
 	}
+	StringCaseSense, Off
 }
 ;~;[读取注册表]
 Var_Read(rValue,defVar=""){
