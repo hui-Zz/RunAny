@@ -693,7 +693,11 @@ Menu_Run:
 					Run,*RunAs %any%%A_Space%%selectZzStr%
 					return
 				}
-				Run,%any%%A_Space%%selectZzStr%
+				if(InStr(FileExist(any), "D")){
+					Run,%any%
+				}else{
+					Run,%any%%A_Space%%selectZzStr%
+				}
 			}else if(RegExMatch(any,"iS)([\w-]+://?|www[.]).*")){
 				Run_Search(any,selectZz)
 			}else{
