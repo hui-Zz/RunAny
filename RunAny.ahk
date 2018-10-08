@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.5.2 @2018.09.27
+║【RunAny】一劳永逸的快速启动工具 v5.5.2 @2018.10.08
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -19,9 +19,10 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 ;~ StartTick:=A_TickCount   ;若要评估出menu初始化时间
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
+global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.5.2"
-global RunAny_update_time:="2018.09.27"
+global RunAny_update_time:="2018.10.08"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -161,10 +162,14 @@ if(!HideRecent){
 }
 ;~;[在图标加载前先运行插件]
 Gosub,AutoRun_Effect
+;~;[插件对象注册]
+Gosub,Plugins_Object_Register
 ;~;[循环为菜单中EXE程序添加图标，过程较慢]
 For k, v in MenuExeList
 {
-	Menu_Item_Icon(v["menuName"],v["menuItem"],v["itemPath"])
+	if(!HideMenuAppIconList[(v["menuName"])]){
+		Menu_Item_Icon(v["menuName"],v["menuItem"],v["itemPath"])
+	}
 }
 ;#菜单已经加载完毕，托盘图标变化
 try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
@@ -469,6 +474,11 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 				Menu,%menuName%,Delete,%menuItem%
 			return
 		}
+		if(RegExMatch(item,"iS).+?\[.+?\]\(.*?\)")){  ; {外接函数}
+			Menu,%menuName%,add,%menuItem%,Menu_Run
+			Menu_Item_Icon(menuName,menuItem,"SHELL32.dll","131")
+			return
+		}
 		Menu,%menuName%,add,%menuItem%,Menu_Run
 		if(InStr(FileExist(item), "D")){  ; {目录}
 			Menu,%menuName%,Icon,%menuItem%,% FolderIconS[1],% FolderIconS[2]
@@ -510,6 +520,7 @@ Menu_Item_Icon(menuName,menuItem,iconPath,iconNo=0,treeLevel=""){
 			menuKeys:=StrSplit(menuKeyStr,"`t")
 			menuItemSet:=menuKeys[1]
 		}
+		;~ Run,Z:\resourcesextract-x64\ResourcesExtract.exe /LoadConfig "Z:\resourcesextract-x64\raicon.cfg" /Source "%iconPath%" /DestFold "Z:\c"
 		if(IconFolderList[menuItemSet]){
 			Menu,%menuName%,Icon,%menuItem%,% IconFolderList[menuItemSet],0
 		}else{
@@ -694,6 +705,15 @@ Menu_Run:
 			}
 			return
 		}
+		if(RegExMatch(any,"iS).+?\[.+?\]\(.*?\)")){  ; {外接函数}
+			appPlugins:=RegExReplace(any,"iS)(.+?)\[.+?\]\(.*?\)","$1")	;取插件名
+			appFunc:=RegExReplace(any,"iS).+?\[(.+?)\]\(.*?\)","$1")	;取函数名
+			appParms:=RegExReplace(any,"iS).+?\[.+?\]\((.*?)\)","$1")	;取函数参数
+			if(PluginsObjRegGUID[appPlugins]){
+				DynaExpr_ObjRegisterActive(PluginsObjRegGUID[appPlugins],appFunc,appParms,selectZz)
+			}
+			return
+		}
 		;[按住Ctrl键打开应用所在目录，只有目录则直接打开]
 		if(!selectZz && !Candy_isFile){
 			if((GetKeyState("Ctrl") || InStr(FileExist(any), "D"))){
@@ -786,6 +806,15 @@ Menu_Key_Run:
 			return
 		}
 		selectZz:=Get_Zz()
+		if(RegExMatch(any,"iS).+?\[.+?\]\(.*?\)")){  ; {外接函数}
+			appPlugins:=RegExReplace(any,"iS)(.+?)\[.+?\]\(.*?\)","$1")	;取插件名
+			appFunc:=RegExReplace(any,"iS).+?\[(.+?)\]\(.*?\)","$1")	;取函数名
+			appParms:=RegExReplace(any,"iS).+?\[.+?\]\((.*?)\)","$1")	;取函数参数
+			if(PluginsObjRegGUID[appPlugins]){
+				DynaExpr_ObjRegisterActive(PluginsObjRegGUID[appPlugins],appFunc,appParms,selectZz)
+			}
+			return
+		}
 		if(selectZz){
 			firstFile:=RegExReplace(selectZz,"(.*)(\n|\r).*","$1")  ;取第一行
 			if(Candy_isFile=1 || Fileexist(selectZz) || Fileexist(firstFile)){
@@ -1173,6 +1202,64 @@ escapeString(string){
 	string:=RegExReplace(string, "('|""|&|\\|\\n|\\r|\\t|\\b|\\f)", "\$1")
 	string:=RegExReplace(string, "\R", "\n")
 	return string
+}
+;~;[动态执行脚本注册对象]
+DynaExpr_ObjRegisterActive(GUID,appFunc,appParms:="",getZz:="")
+{
+	sScript:="
+	(
+		#NoTrayIcon
+		get_zz := " getZz "
+		try appPlugins := ComObjActive(""" GUID """)
+		appPlugins[""" appFunc """](" appParms ")
+	)"
+	PID:=DynaRun(sScript)
+}
+;~;[动态获得AHK代码结果值]
+DynaExpr_EvalToVar(sExpr,getZz:="")
+{
+	sTmpFile := A_Temp "\temp.ahk"
+	sScript:="
+	(
+		#NoTrayIcon
+		FileDelete " sTmpFile "
+		get_zz := " getZz "
+		val := " sExpr "
+		FileAppend %val%, " sTmpFile "
+	)"
+
+	PID:=DynaRun(sScript)
+
+	Process,WaitClose,%PID%
+	FileRead sResult, %sTmpFile%
+	return sResult
+}
+;~;[动态执行AHK代码]
+DynaRun(TempScript, pipename="", params="")
+{
+   static _:="uint",@:="Ptr"
+   If pipename =
+      name := "AHK" A_TickCount
+   Else
+      name := pipename
+   __PIPE_GA_ := DllCall("CreateNamedPipe","str","\\.\pipe\" name,_,2,_,0,_,255,_,0,_,0,@,0,@,0)
+   __PIPE_    := DllCall("CreateNamedPipe","str","\\.\pipe\" name,_,2,_,0,_,255,_,0,_,0,@,0,@,0)
+   if (__PIPE_=-1 or __PIPE_GA_=-1)
+      Return 0
+	 If A_IsCompiled || (A_IsDll && DllCall(A_AhkPath "\ahkgetvar","Str","A_IsCompiled")) ; allow compiled executable to execute dynamic scripts. Requires AHK_H
+		Run, % """" A_AhkPath """" (params?" ":"") params " /E ""\\.\pipe\" name """",,UseErrorLevel HIDE, PID
+	 else
+		Run, % """" A_AhkPath """" (params?" ":"") params " ""\\.\pipe\" name """",,UseErrorLevel HIDE, PID
+   If ErrorLevel
+      MsgBox, 262144, ERROR,% "Could not open file:`n" __AHK_EXE_ """\\.\pipe\" name """"
+   DllCall("ConnectNamedPipe",@,__PIPE_GA_,@,0)
+   DllCall("CloseHandle",@,__PIPE_GA_)
+   DllCall("ConnectNamedPipe",@,__PIPE_,@,0)
+   script := (A_IsUnicode ? chr(0xfeff) : (chr(239) . chr(187) . chr(191))) TempScript
+   if !DllCall("WriteFile",@,__PIPE_,"str",script,_,(StrLen(script)+1)*(A_IsUnicode ? 2 : 1),_ "*",0,@,0)
+      Return A_LastError,DllCall("CloseHandle",@,__PIPE_)
+   DllCall("CloseHandle",@,__PIPE_)
+   Return PID
 }
 ;══════════════════════════════════════════════════════════════════
 ;~;[添加编辑新添加的菜单项]
@@ -2598,8 +2685,8 @@ Menu_Set:
 	GuiControl, 66:+Redraw, RunAnyOpenExtLV
 	
 	Gui,66:Tab,图标设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+20 w%groupWidch66% h230,图标自定义设置（图片或图标文件路径 , 序号不填默认1）
-	Gui,66:Add,Button,xm yp+30 w80 GSetAnyIcon,RunAny图标
+	Gui,66:Add,GroupBox,xm-10 y+20 w%groupWidch66% h210,图标自定义设置（图片或图标文件路径 , 序号不填默认1）
+	Gui,66:Add,Button,xm yp+20 w80 GSetAnyIcon,RunAny图标
 	Gui,66:Add,Edit,xm+82 yp w400 r1 vvAnyIcon,%AnyIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetMenuIcon,准备图标
 	Gui,66:Add,Edit,xm+82 yp w400 r1 vvMenuIcon,%MenuIcon%
@@ -2894,13 +2981,21 @@ Var_Set:
 	global EvAutoClose:=Var_Read("EvAutoClose",0)
 	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
 	OneKeyUrl:=StrReplace(OneKeyUrl, "|", "`n")
-	global JumpSearch:=Var_Read("JumpSearch",0)			;隐藏配置
-	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)	;隐藏配置
-	ClipWaitApp:=Var_Read("ClipWaitApp","")				;隐藏配置
+	;[隐藏配置]开始
+	global JumpSearch:=Var_Read("JumpSearch",0)          ;批量搜索忽略确认弹窗
+	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)    ;获取选中目标到剪贴板等待时间
+	ClipWaitApp:=Var_Read("ClipWaitApp","")              ;上一项剪贴板等待时间生效的应用
 	Loop,parse,ClipWaitApp,`,
 	{
 		GroupAdd,ClipWaitGUI,ahk_exe %A_LoopField%
 	}
+	global HideMenuAppIconList:={}
+	HideMenuAppIcon:=Var_Read("HideMenuAppIcon")  ;在菜单内禁用EXE图标
+	Loop,parse,HideMenuAppIcon,`,
+	{
+		HideMenuAppIconList[A_LoopField]:=true
+	}
+	;[隐藏配置]结束
 	DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe,War3.exe,dota2.exe,League of Legends.exe")
 	Loop,parse,DisableApp,`,
 	{
@@ -3100,7 +3195,7 @@ Run_Exist:
 	}
 	pluginsDownList:=["RunAny_Menu.ahk","huiZz_MButton.ahk","huiZz_RestTime.ahk"]
 return
-;~;[RunAny的AHK脚本插件]
+;~;[AHK插件脚本读取]
 Plugins_Read:
 	global PluginsObjList:=Object()
 	global PluginsPathList:=Object()
@@ -3134,6 +3229,20 @@ Plugins_Read:
 	For ki, kv in PluginsObjList
 	{
 		IniWrite,%kv%,%RunAnyConfig%,Plugins,%ki%
+	}
+return
+;~;[RunAny的AHK脚本对象注册]
+Plugins_Object_Register:
+	global PluginsObjRegGUID:=Object()	;~插件对象注册GUID列表
+	RunAny_ObjReg_Path=%A_ScriptDir%\%PluginsDir%\%RunAny_ObjReg%
+	IfExist,%RunAny_ObjReg_Path%
+	{
+		IniRead,objRegVar,%RunAny_ObjReg_Path%,objreg
+		Loop, parse, objRegVar, `n, `r
+		{
+			varList:=StrSplit(A_LoopField,"=")
+			PluginsObjRegGUID[(varList[1])]:=varList[2]
+		}
 	}
 return
 Plugins_Read_Title(filePath){
@@ -3195,7 +3304,10 @@ AutoRun_Effect:
 				;需要自动启动的项
 				if(PluginsObjList[runn]){
 					runValue:=RegExReplace(runv,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
-					SplitPath, runValue, name,, ext  ; 获取扩展名
+					SplitPath, runValue, name, dir, ext  ; 获取扩展名
+					if(dir){
+						SetWorkingDir,%dir%
+					}
 					if(ext="ahk"){
 						Run,%ahkExePath%%A_Space%"%runv%"
 					}else{
@@ -3206,6 +3318,8 @@ AutoRun_Effect:
 		}
 	} catch e {
 		MsgBox,16,自动启动出错,% "启动项名：" runn "`n启动项路径：" runv "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+	} finally {
+		SetWorkingDir,%A_ScriptDir%
 	}
 return
 ;~;[随RunAny自动关闭]
