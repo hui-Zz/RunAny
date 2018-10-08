@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.5.0 @2018.08.24
+║【RunAny】一劳永逸的快速启动工具 v5.5.2 @2018.09.27
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -20,8 +20,8 @@ SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
-global RunAny_update_version:="5.5.0"
-global RunAny_update_time:="2018.08.24"
+global RunAny_update_version:="5.5.2"
+global RunAny_update_time:="2018.09.27"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -572,6 +572,9 @@ Menu_Show:
 			}
 			if(MENU_NO=1){
 				openFlag:=false
+				calcFlag:=false
+				calcResult:=""
+				selectResult:=""
 				Loop, parse, selectZz, `n, `r, %A_Space%%A_Tab%
 				{
 					if(!A_LoopField)
@@ -606,6 +609,34 @@ Menu_Show:
 							continue
 						}
 					}
+					;一键计算数字加减乘除
+					if(RegExMatch(A_LoopField,"^[+*/-\d\(\)\.]+($|=$)")){
+						loopField:=A_LoopField
+						if(RegExMatch(A_LoopField,"^[+*/-\d\(\)\.]+=$")){
+							StringTrimRight, loopField, loopField, 1
+						}
+						calc:=js_eval(loopField)
+						selectResult.=A_LoopField
+						if(RegExMatch(A_LoopField,"^[+*/-\d\(\)\.]+=$")){
+							calcFlag:=true
+							selectResult.=calc
+						}else{
+							calcResult.=calc "`n"
+						}
+						selectResult.="`n"
+						openFlag:=true
+						continue
+					}
+				}
+				if(calcResult){
+					StringTrimRight, calcResult, calcResult, 1
+					ToolTip,%calcResult%
+					Clipboard:=calcResult
+					SetTimer,RemoveToolTip,% (calcResult="?") ? 1000 : 3000
+				}
+				if(calcFlag && selectResult){
+					StringTrimRight, selectResult, selectResult, 1
+					Send_Str_Zz(selectResult)
 				}
 				if(openFlag)
 					return
@@ -664,15 +695,17 @@ Menu_Run:
 			return
 		}
 		;[按住Ctrl键打开应用所在目录，只有目录则直接打开]
-		If(!selectZz && !Candy_isFile && (GetKeyState("Ctrl") || InStr(FileExist(any), "D"))){
-			If(OpenFolderPathRun){
-				Run,%OpenFolderPathRun%%A_Space%"%any%"
-			}else if(InStr(FileExist(any), "D")){
-				Run,%any%
-			}else{
-				Run,% "explorer.exe /select," any
+		if(!selectZz && !Candy_isFile){
+			if((GetKeyState("Ctrl") || InStr(FileExist(any), "D"))){
+				if(OpenFolderPathRun){
+					Run,%OpenFolderPathRun%%A_Space%"%any%"
+				}else if(InStr(FileExist(any), "D")){
+					Run,%any%
+				}else{
+					Run,% "explorer.exe /select," any
+				}
+				return
 			}
-			return
 		}
 		if(selectZz!=""){
 			firstFile:=RegExReplace(selectZz,"(.*)(\n|\r).*","$1")  ;取第一行
@@ -972,7 +1005,11 @@ Get_Zz(){
 	Candy_Saved:=ClipboardAll
 	Clipboard=
 	SendInput,^c
-	ClipWait,%ClipWaitTime%
+	if (ClipWaitTime != 0.1) && WinActive("ahk_group ClipWaitGUI"){
+		ClipWait,%ClipWaitTime%
+	}else{
+		ClipWait,0.1
+	}
 	If(ErrorLevel){
 		Clipboard:=Candy_Saved
 		return
@@ -1125,6 +1162,18 @@ funcPath2AbsoluteZz(aPath,ahkPath){
 	}
 	return false
 }
+;~;[利用HTML中JS的eval函数来计算]
+js_eval(exp)
+{
+	exp:=escapeString(exp)
+	HtmlObj.write("<body><script>var t=document.body;t.innerText='';t.innerText=eval('" . exp . "');</script></body>")
+	return InStr(cabbage:=HtmlObj.body.innerText, "body") ? "?" : cabbage
+}
+escapeString(string){
+	string:=RegExReplace(string, "('|""|&|\\|\\n|\\r|\\t|\\b|\\f)", "\$1")
+	string:=RegExReplace(string, "\R", "\n")
+	return string
+}
 ;══════════════════════════════════════════════════════════════════
 ;~;[添加编辑新添加的菜单项]
 Menu_Add_File_Item:
@@ -1270,7 +1319,7 @@ Menu_Edit:
 	TVMenu("TVMenu")
 	TVMenu("GuiMenu")
 	Gui, Menu, GuiMenu
-	Gui, Show, , %RunAnyZz%菜单树管理【%both%】(双击修改，右键操作)
+	Gui, Show, , %RunAnyZz%菜单树管理【%both%】(双击修改，右键操作) %RunAny_update_version%
 return
 Menu_Edit1:
 	both:=1
@@ -2572,7 +2621,7 @@ Menu_Set:
 	Gui,66:Add,Button,x+15 w75 GSetCancel,取消(&C)
 	Gui,66:Add,Button,x+15 w75 GSetReSet,重置
 	Gui,66:Add,Text,x+40 yp+5 w75 GMenu_Config,RunAnyConfig.ini
-	Gui,66:Show,,%RunAnyZz%设置
+	Gui,66:Show,,%RunAnyZz%设置 %RunAny_update_version%
 	return
 ;~;[关于]
 Menu_About:
@@ -2779,7 +2828,7 @@ Open_Ext_Edit:
 	Gui,SaveExt:Font
 	Gui,SaveExt:Add,Button,Default xm+100 y+25 w75 GSaveOpenExt,保存(&Y)
 	Gui,SaveExt:Add,Button,x+20 w75 GSetCancel,取消(&C)
-	Gui,SaveExt:Show,,%openExtItem%自定义后缀打开方式 - %RunAnyZz%
+	Gui,SaveExt:Show,,%RunAnyZz% - %openExtItem%自定义后缀打开方式 %RunAny_update_version%
 return
 SaveOpenExt:
 	OpenExtFlag:=true
@@ -2845,16 +2894,22 @@ Var_Set:
 	global EvAutoClose:=Var_Read("EvAutoClose",0)
 	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
 	OneKeyUrl:=StrReplace(OneKeyUrl, "|", "`n")
-	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)	;隐藏配置
 	global JumpSearch:=Var_Read("JumpSearch",0)			;隐藏配置
+	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)	;隐藏配置
+	ClipWaitApp:=Var_Read("ClipWaitApp","")				;隐藏配置
+	Loop,parse,ClipWaitApp,`,
+	{
+		GroupAdd,ClipWaitGUI,ahk_exe %A_LoopField%
+	}
 	DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe,War3.exe,dota2.exe,League of Legends.exe")
-	EvCommandVar:=RegExReplace(EvCommand,"i).*file:(\*\.[^\s]*).*","$1")
-	global EvCommandExtList:=StrSplit(EvCommandVar,"|")
 	Loop,parse,DisableApp,`,
 	{
 		GroupAdd,DisableGUI,ahk_exe %A_LoopField%
 	}
+	EvCommandVar:=RegExReplace(EvCommand,"i).*file:(\*\.[^\s]*).*","$1")
+	global EvCommandExtList:=StrSplit(EvCommandVar,"|")
 	EnvGet, LocalAppData, LocalAppData
+	global HtmlObj:=ComObjCreate("HTMLfile")
 	gosub,Icon_Set
 	;~[最近运行项]
 	if(!HideRecent){
@@ -3182,7 +3237,7 @@ Auto_Update:
 		FileDelete, %A_Temp%\RunAny_Update.bat
 	;[下载最新的更新脚本]
 	if(!Check_Github()){
-		MsgBox,网络异常，无法从https://github.com/hui-Zz/RunAny上读取最新版本文件
+		TrayTip,,网络异常，无法从https://github.com/hui-Zz/RunAny上读取最新版本文件,3,1
 		return
 	}
 	URLDownloadToFile,%RunAnyGithubDir%/RunAny.ahk ,%A_Temp%\temp_RunAny.ahk
@@ -3194,7 +3249,7 @@ Auto_Update:
 			break
 		}
 		if(A_LoopReadLine="404: Not Found"){
-			MsgBox,文件下载异常，更新失败！
+			TrayTip,,文件下载异常，更新失败！,3,1
 			return
 		}
 	}
