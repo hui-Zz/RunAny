@@ -1,5 +1,5 @@
 ﻿/*
-【RunAny函数注册工具】
+【RunAny对象注册工具】
 */
 global RunAny_Plugins_Version:="1.0.0"
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件

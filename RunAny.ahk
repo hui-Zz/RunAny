@@ -2313,7 +2313,7 @@ GuiControl,P: -Redraw, RunAnyLV
 For runn, runv in PluginsObjList
 {
 	runStatus:=Check_IsRun(PluginsPathList[runn]) ? "启动" : ""
-	pluginsConfig:=runv ? "启用" : ""
+	pluginsConfig:=runv ? "自启" : ""
 	if(!PluginsPathList[runn])
 		pluginsConfig:="未找到"
 	LV_Add("", runn, runStatus, pluginsConfig, PluginsTitleList[runn])
@@ -2394,13 +2394,20 @@ LVApply:
 		FilePath:=PluginsPathList[FileName]
 		if(menuItem="启动"){
 			runValue:=RegExReplace(FilePath,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
-			SplitPath, runValue, name,, ext  ; 获取扩展名
-			if(ahkFlag && ext="ahk"){
-				Run,%ahkExePath%%A_Space%"%FilePath%"
-			}else{
-				Run,%FilePath%
+			try {
+				SplitPath, runValue, name, dir, ext  ; 获取扩展名
+				if(dir){
+					SetWorkingDir,%dir%
+				}
+				if(ahkFlag && ext="ahk"){
+					Run,%ahkExePath%%A_Space%"%FilePath%"
+				}else{
+					Run,%FilePath%
+				}
+				LV_Modify(RowNumber, "", , "启动")
+			} finally {
+				SetWorkingDir,%A_ScriptDir%
 			}
-			LV_Modify(RowNumber, "", , "启动")
 		}else if(menuItem="编辑"){
 			PostMessage, 0x111, 65401,,, %FilePath% ahk_class AutoHotkey
 		}else if(menuItem="挂起"){
@@ -2422,10 +2429,10 @@ LVApply:
 			}
 			LV_Modify(RowNumber, "", , runStatus)
 		}else if(menuItem="自启"){
-			if(FileAutoRun!="未找到" && FileAutoRun!="启用"){
+			if(FileAutoRun!="未找到" && FileAutoRun!="自启"){
 				IniWrite,1,%RunAnyConfig%,Plugins,%FileName%
-				LV_Modify(RowNumber, "", , ,"启用")
-			}else if(FileAutoRun="启用"){
+				LV_Modify(RowNumber, "", , ,"自启")
+			}else if(FileAutoRun="自启"){
 				IniWrite,0,%RunAnyConfig%,Plugins,%FileName%
 				LV_Modify(RowNumber, "", , ,"禁用")
 			}
@@ -3193,7 +3200,7 @@ Run_Exist:
 	if(FileExist(ahkExePath)){
 		ahkFlag:=true
 	}
-	pluginsDownList:=["RunAny_Menu.ahk","huiZz_MButton.ahk","huiZz_RestTime.ahk"]
+	pluginsDownList:=["RunAny_ObjReg.ahk","RunAny_Menu.ahk","huiZz_MButton.ahk","huiZz_RestTime.ahk","huiZz_Window.ahk"]
 return
 ;~;[AHK插件脚本读取]
 Plugins_Read:
