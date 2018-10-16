@@ -696,22 +696,11 @@ Menu_Run:
 		}
 		;[输出热键]
 		If(InStr(any,"::",,0,1)=anyLen-1){
-			If(InStr(any,":::",,0,1)=anyLen-2){
-				StringLeft, any, any, anyLen-3
-				Send_Key_Zz(any,1)
-			}else{
-				StringLeft, any, any, anyLen-2
-				Send_Key_Zz(any)
-			}
+			gosub,Menu_Run_Send_Zz
 			return
 		}
 		if(RegExMatch(any,"iS).+?\[.+?\]\(.*?\)")){  ; {外接函数}
-			appPlugins:=RegExReplace(any,"iS)(.+?)\[.+?\]\(.*?\)","$1")	;取插件名
-			appFunc:=RegExReplace(any,"iS).+?\[(.+?)\]\(.*?\)","$1")	;取函数名
-			appParms:=RegExReplace(any,"iS).+?\[.+?\]\((.*?)\)","$1")	;取函数参数
-			if(PluginsObjRegGUID[appPlugins]){
-				DynaExpr_ObjRegisterActive(PluginsObjRegGUID[appPlugins],appFunc,appParms,selectZz)
-			}
+			gosub,Menu_Run_Plugins_ObjReg
 			return
 		}
 		;[按住Ctrl键打开应用所在目录，只有目录则直接打开]
@@ -791,13 +780,7 @@ Menu_Key_Run:
 		anyLen:=StrLen(any)
 		;[输出热键]
 		If(InStr(any,"::",,0,1)=anyLen-1){
-			If(InStr(any,":::",,0,1)=anyLen-2){
-				StringLeft, any, any, anyLen-3
-				Send_Key_Zz(any,1)
-			}else{
-				StringLeft, any, any, anyLen-2
-				Send_Key_Zz(any)
-			}
+			gosub,Menu_Run_Send_Zz
 			return
 		}
 		If(InStr(any,";",,0,1)=anyLen){
@@ -807,12 +790,7 @@ Menu_Key_Run:
 		}
 		selectZz:=Get_Zz()
 		if(RegExMatch(any,"iS).+?\[.+?\]\(.*?\)")){  ; {外接函数}
-			appPlugins:=RegExReplace(any,"iS)(.+?)\[.+?\]\(.*?\)","$1")	;取插件名
-			appFunc:=RegExReplace(any,"iS).+?\[(.+?)\]\(.*?\)","$1")	;取函数名
-			appParms:=RegExReplace(any,"iS).+?\[.+?\]\((.*?)\)","$1")	;取函数参数
-			if(PluginsObjRegGUID[appPlugins]){
-				DynaExpr_ObjRegisterActive(PluginsObjRegGUID[appPlugins],appFunc,appParms,selectZz)
-			}
+			gosub,Menu_Run_Plugins_ObjReg
 			return
 		}
 		if(selectZz){
@@ -844,6 +822,23 @@ Menu_Key_Run:
 		MsgBox,16,%thisMenuName%运行出错,% "运行路径：" any "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 	}finally{
 		SetWorkingDir,%A_ScriptDir%
+	}
+return
+Menu_Run_Send_Zz:
+	If(InStr(any,":::",,0,1)=anyLen-2){
+		StringLeft, any, any, anyLen-3
+		Send_Key_Zz(any,1)
+	}else{
+		StringLeft, any, any, anyLen-2
+		Send_Key_Zz(any)
+	}
+return
+Menu_Run_Plugins_ObjReg:
+	appPlugins:=RegExReplace(any,"iS)(.+?)\[.+?\]\(.*?\)","$1")	;取插件名
+	appFunc:=RegExReplace(any,"iS).+?\[(.+?)\]\(.*?\)","$1")	;取函数名
+	appParms:=RegExReplace(any,"iS).+?\[.+?\]\((.*?)\)","$1")	;取函数参数
+	if(PluginsObjRegGUID[appPlugins]){
+		DynaExpr_ObjRegisterActive(PluginsObjRegGUID[appPlugins],appFunc,appParms,selectZz)
 	}
 return
 ;~;[菜单最近运行]
@@ -1209,7 +1204,7 @@ DynaExpr_ObjRegisterActive(GUID,appFunc,appParms:="",getZz:="")
 	sScript:="
 	(
 		#NoTrayIcon
-		get_zz := " getZz "
+		get_zz = " getZz "
 		try appPlugins := ComObjActive(""" GUID """)
 		appPlugins[""" appFunc """](" appParms ")
 	)"
@@ -1223,7 +1218,7 @@ DynaExpr_EvalToVar(sExpr,getZz:="")
 	(
 		#NoTrayIcon
 		FileDelete " sTmpFile "
-		get_zz := " getZz "
+		get_zz = " getZz "
 		val := " sExpr "
 		FileAppend %val%, " sTmpFile "
 	)"
@@ -3241,6 +3236,7 @@ return
 ;~;[RunAny的AHK脚本对象注册]
 Plugins_Object_Register:
 	global PluginsObjRegGUID:=Object()	;~插件对象注册GUID列表
+	global PluginsObjRegActive:=Object()	;~插件对象注册Active列表
 	RunAny_ObjReg_Path=%A_ScriptDir%\%PluginsDir%\%RunAny_ObjReg%
 	IfExist,%RunAny_ObjReg_Path%
 	{
@@ -3249,6 +3245,7 @@ Plugins_Object_Register:
 		{
 			varList:=StrSplit(A_LoopField,"=")
 			PluginsObjRegGUID[(varList[1])]:=varList[2]
+			try PluginsObjRegActive[(varList[1])]:=ComObjActive(varList[2])
 		}
 	}
 return
