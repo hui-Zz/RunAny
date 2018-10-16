@@ -918,31 +918,31 @@ Web_Search:
 return
 Run_Zz(program){
 	fullPath:=Get_Obj_Path(program)
-	path:=fullPath ? fullPath : program
+	exePath:=fullPath ? fullPath : program
 	DetectHiddenWindows, Off
-	If !WinExist("ahk_exe" . path)
+	If !WinExist("ahk_exe" . exePath)
 		Run,%program%
 	else
-		WinGet,l,List,ahk_exe %path%
+		WinGet,l,List,ahk_exe %exePath%
 		if l=1
-			If WinActive("ahk_exe" . path)
+			If WinActive("ahk_exe" . exePath)
 				WinMinimize
 			else
 				WinActivate
 		else
-			WinActivateBottom,ahk_exe %path%
+			WinActivateBottom,ahk_exe %exePath%
 	return
 }
 Run_Tr(program,trNum,newOpen=false){
 	fullPath:=Get_Obj_Path(program)
-	path:=fullPath ? fullPath : program
+	exePath:=fullPath ? fullPath : program
 	DetectHiddenWindows, Off
-	If(newOpen || !WinExist("ahk_exe" . path)){
+	If(newOpen || !WinExist("ahk_exe" . exePath)){
 		Run,%program%
-		WinWait,ahk_exe %path%
+		WinWait,ahk_exe %exePath%
 		;~ WinSet,Style,-0xC00000,
-		try WinSet,Style,-0x40000,ahk_exe %path%
-		WinSet,Transparent,% trNum/100*255,ahk_exe %path%
+		try WinSet,Style,-0x40000,ahk_exe %exePath%
+		WinSet,Transparent,% trNum/100*255,ahk_exe %exePath%
 	}else
 		Run_Zz(program)
 	return
@@ -1116,8 +1116,8 @@ Get_Obj_Path(z_item){
 		return obj_path
 	}else{
 		val:=RegExReplace(obj_path,"\.\.\\.*?$")
-		path:=StrReplace(obj_path,val)
-		absolute:=funcPath2AbsoluteZz(path,val)
+		aPath:=StrReplace(obj_path,val)
+		absolute:=funcPath2AbsoluteZz(aPath,val)
 		return absolute ? absolute : obj_path
 	}
 }
@@ -3010,7 +3010,7 @@ Var_Set:
 	}
 	EvCommandVar:=RegExReplace(EvCommand,"i).*file:(\*\.[^\s]*).*","$1")
 	global EvCommandExtList:=StrSplit(EvCommandVar,"|")
-	EnvGet, LocalAppData, LocalAppData
+	;~ EnvGet, LocalAppData, LocalAppData
 	global HtmlObj:=ComObjCreate("HTMLfile")
 	gosub,Icon_Set
 	;~[最近运行项]
