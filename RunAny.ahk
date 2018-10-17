@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.5.2 @2018.10.08
+║【RunAny】一劳永逸的快速启动工具 v5.5.3 @2018.10.17
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -21,8 +21,8 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
-global RunAny_update_version:="5.5.2"
-global RunAny_update_time:="2018.10.08"
+global RunAny_update_version:="5.5.3"
+global RunAny_update_time:="2018.10.17"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -160,10 +160,12 @@ if(!HideRecent){
 		Menu,% menuRoot1[1],Add,%mcv%,Menu_Run
 	}
 }
-;~;[在图标加载前先运行插件]
-Gosub,AutoRun_Effect
-;~;[插件对象注册]
-Gosub,Plugins_Object_Register
+if(!iniFlag){
+	;~;[在图标加载前先运行插件]
+	Gosub,AutoRun_Effect
+	;~;[插件对象注册]
+	Gosub,Plugins_Object_Register
+}
 ;~;[循环为菜单中EXE程序添加图标，过程较慢]
 For k, v in MenuExeList
 {
@@ -174,8 +176,8 @@ For k, v in MenuExeList
 ;#菜单已经加载完毕，托盘图标变化
 try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 ;#如果是第一次运行#
-if(ini){
-	ini:=false
+if(iniFlag){
+	iniFlag:=false
 	TrayTip,,RunAny菜单初始化完成`n右击任务栏图标设置,3,1
 	gosub,Menu_About
 	gosub,Menu_Show1
@@ -239,9 +241,9 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 			}
 			if(menuRootFn[menuLevel]="")
 				continue
-			;除短语和网址以外的项目转换配置中%%的变量
+			;短语、网址、外接函数除外的菜单项直接转换%%为系统变量值
 			itemLen:=StrLen(Z_LoopField)
-			if(InStr(Z_LoopField,";",,0,1)!=itemLen && !RegExMatch(Z_LoopField,"iS)([\w-]+://?|www[.]).*")){
+			if(InStr(Z_LoopField,";",,0,1)!=itemLen && !RegExMatch(Z_LoopField,"iS)([\w-]+://?|www[.]).*") && !RegExMatch(item,"iS).+?\[.+?\]%?\(.*?\)")){
 				Z_LoopField:=Get_Transform_Val(Z_LoopField)
 			}
 			;~添加到分类目录程序全数据
@@ -474,7 +476,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 				Menu,%menuName%,Delete,%menuItem%
 			return
 		}
-		if(RegExMatch(item,"iS).+?\[.+?\]\(.*?\)")){  ; {外接函数}
+		if(RegExMatch(item,"iS).+?\[.+?\]%?\(.*?\)")){  ; {外接函数}
 			Menu,%menuName%,add,%menuItem%,Menu_Run
 			Menu_Item_Icon(menuName,menuItem,"SHELL32.dll","131")
 			return
@@ -699,7 +701,7 @@ Menu_Run:
 			gosub,Menu_Run_Send_Zz
 			return
 		}
-		if(RegExMatch(any,"iS).+?\[.+?\]\(.*?\)")){  ; {外接函数}
+		if(RegExMatch(any,"iS).+?\[.+?\]%?\(.*?\)")){  ; {外接函数}
 			gosub,Menu_Run_Plugins_ObjReg
 			return
 		}
@@ -789,7 +791,7 @@ Menu_Key_Run:
 			return
 		}
 		selectZz:=Get_Zz()
-		if(RegExMatch(any,"iS).+?\[.+?\]\(.*?\)")){  ; {外接函数}
+		if(RegExMatch(any,"iS).+?\[.+?\]%?\(.*?\)")){  ; {外接函数}
 			gosub,Menu_Run_Plugins_ObjReg
 			return
 		}
@@ -834,11 +836,41 @@ Menu_Run_Send_Zz:
 	}
 return
 Menu_Run_Plugins_ObjReg:
-	appPlugins:=RegExReplace(any,"iS)(.+?)\[.+?\]\(.*?\)","$1")	;取插件名
-	appFunc:=RegExReplace(any,"iS).+?\[(.+?)\]\(.*?\)","$1")	;取函数名
-	appParms:=RegExReplace(any,"iS).+?\[.+?\]\((.*?)\)","$1")	;取函数参数
+	appPlugins:=RegExReplace(any,"iS)(.+?)\[.+?\]%?\(.*?\)","$1")	;取插件名
+	appFunc:=RegExReplace(any,"iS).+?\[(.+?)\]%?\(.*?\)","$1")	;取函数名
+	appParmStr:=RegExReplace(any,"iS).+?\[.+?\]%?\((.*?)\)","$1")	;取函数参数
 	if(PluginsObjRegGUID[appPlugins]){
-		DynaExpr_ObjRegisterActive(PluginsObjRegGUID[appPlugins],appFunc,appParms,selectZz)
+		if(RegExMatch(any,"iS).+?\[.+?\]%\(.*?\)")){  ;动态函数执行
+			DynaExpr_ObjRegisterActive(PluginsObjRegGUID[appPlugins],appFunc,appParmStr,selectZz)
+		}else{
+			try PluginsObjRegActive[appPlugins]:=ComObjActive(PluginsObjRegGUID[appPlugins])
+			getZz:=selectZz
+			appParmStr:=Get_Transform_Val(appParmStr)
+			appParms:=StrSplit(appParmStr,",")
+			if(appParmStr=""){	;没有传参，直接执行函数
+				PluginsObjRegActive[appPlugins][appFunc]()
+			}else if(appParms.MaxIndex()=1){
+				PluginsObjRegActive[appPlugins][appFunc](appParms[1])
+			}else if(appParms.MaxIndex()=2){
+				PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2])
+			}else if(appParms.MaxIndex()=3){
+				PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3])
+			}else if(appParms.MaxIndex()=4){
+				PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4])
+			}else if(appParms.MaxIndex()=5){
+				PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5])
+			}else if(appParms.MaxIndex()=6){
+				PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6])
+			}else if(appParms.MaxIndex()=7){
+				PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7])
+			}else if(appParms.MaxIndex()=8){
+				PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8])
+			}else if(appParms.MaxIndex()=9){
+				PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8],appParms[9])
+			}else if(appParms.MaxIndex()=10){
+				PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8],appParms[9],appParms[10])
+			}
+		}
 	}
 return
 ;~;[菜单最近运行]
@@ -3005,7 +3037,7 @@ Var_Set:
 	}
 	EvCommandVar:=RegExReplace(EvCommand,"i).*file:(\*\.[^\s]*).*","$1")
 	global EvCommandExtList:=StrSplit(EvCommandVar,"|")
-	;~ EnvGet, LocalAppData, LocalAppData
+	EnvGet, LocalAppData, LocalAppData
 	global HtmlObj:=ComObjCreate("HTMLfile")
 	gosub,Icon_Set
 	;~[最近运行项]
@@ -3245,7 +3277,6 @@ Plugins_Object_Register:
 		{
 			varList:=StrSplit(A_LoopField,"=")
 			PluginsObjRegGUID[(varList[1])]:=varList[2]
-			try PluginsObjRegActive[(varList[1])]:=ComObjActive(varList[2])
 		}
 	}
 return
@@ -3692,5 +3723,5 @@ QQ.exe
 C盘|C:\
 -
 ),%iniFile%
-global ini:=true
+global iniFlag:=true
 return
