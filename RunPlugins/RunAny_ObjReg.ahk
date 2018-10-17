@@ -10,7 +10,7 @@ if(!FileExist(RunAny_ObjReg)){
 	FileAppend,[%objreg%],%RunAny_ObjReg%
 }
 IniRead,objGUID,%RunAny_ObjReg%,%objreg%,%nameNotExt%,%A_Space%
-if(!objGUID){
+if(!objGUID && nameNotExt!="RunAny_ObjReg"){
 	objGUID:=CreateGUID()
 	IniWrite,%objGUID%,%RunAny_ObjReg%,%objreg%,%nameNotExt%
 }
