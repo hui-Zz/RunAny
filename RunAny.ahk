@@ -243,7 +243,7 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 				continue
 			;短语、网址、外接函数除外的菜单项直接转换%%为系统变量值
 			itemLen:=StrLen(Z_LoopField)
-			if(InStr(Z_LoopField,";",,0,1)!=itemLen && !RegExMatch(Z_LoopField,"iS)([\w-]+://?|www[.]).*") && !RegExMatch(item,"iS).+?\[.+?\]%?\(.*?\)")){
+			if(InStr(Z_LoopField,";",,0,1)!=itemLen && !RegExMatch(Z_LoopField,"iS)([\w-]+://?|www[.]).*") && !RegExMatch(Z_LoopField,"iS).+?\[.+?\]%?\(.*?\)")){
 				Z_LoopField:=Get_Transform_Val(Z_LoopField)
 			}
 			;~添加到分类目录程序全数据
@@ -478,7 +478,16 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 		}
 		if(RegExMatch(item,"iS).+?\[.+?\]%?\(.*?\)")){  ; {外接函数}
 			Menu,%menuName%,add,%menuItem%,Menu_Run
+			Menu,%menuName%:,add,%menuItem%,Menu_Run
 			Menu_Item_Icon(menuName,menuItem,"SHELL32.dll","131")
+			Menu_Item_Icon(menuName ":",menuItem,"SHELL32.dll","131")
+			if(menuName = menuRootFn[1]){
+				Menu,% menuWebRootFn[1],Add,%menuItem%,Menu_Run
+				Menu_Item_Icon(menuWebRootFn[1],menuItem,"SHELL32.dll","131")
+				webRootShow:=true
+			}else{
+				Menu,% menuWebRootFn[1],Add,%menuName%:, :%menuName%:
+			}
 			return
 		}
 		Menu,%menuName%,add,%menuItem%,Menu_Run
