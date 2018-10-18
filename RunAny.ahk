@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.5.3 @2018.10.17
+║【RunAny】一劳永逸的快速启动工具 v5.5.3 @2018.10.18
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -22,7 +22,7 @@ global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.5.3"
-global RunAny_update_time:="2018.10.17"
+global RunAny_update_time:="2018.10.18"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -559,7 +559,7 @@ Menu_Show:
 		}
 		if(selectZz!=""){
 			if(Candy_isFile){
-				SplitPath, selectZz,,, FileExt  ; 获取文件扩展名.
+				SplitPath, selectZz,FileName,, FileExt  ; 获取文件扩展名.
 				if(InStr(FileExist(selectZz), "D")){  ; {目录}
 					FileExt:="folder"
 				}
@@ -576,19 +576,19 @@ Menu_Show:
 								Menu,%extMenuName%,Default,0【添加到此菜单】
 								Menu,%extMenuName%,Icon,0【添加到此菜单】,SHELL32.dll,166
 							}
-							Menu,%extMenuName%,Show
+							Menu_Show_Show(extMenuName,FileName)
 							if(!HideAddItem)
 								Menu,%extMenuName%,Delete,0【添加到此菜单】
 						}
 					}else{
 						if(!HideAddItem)
 							Menu_Add_Del_Temp(1,MENU_NO,"0【添加到此菜单】","Menu_Add_File_Item","SHELL32.dll","166")
-						Menu,% menuRoot%MENU_NO%[1],Show
+						Menu_Show_Show(menuRoot%MENU_NO%[1],FileName)
 						if(!HideAddItem)
 							Menu_Add_Del_Temp(0,MENU_NO,"0【添加到此菜单】")
 					}
 				}catch{
-					Menu,% menuRoot%MENU_NO%[1],Show
+					Menu_Show_Show(menuRoot%MENU_NO%[1],FileName)
 				}
 				return
 			}
@@ -632,14 +632,14 @@ Menu_Show:
 						}
 					}
 					;一键计算数字加减乘除
-					if(RegExMatch(A_LoopField,"^[+*/-\d\(\)\.]+($|=$)")){
+					if(RegExMatch(A_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+($|=$)")){
 						loopField:=A_LoopField
-						if(RegExMatch(A_LoopField,"^[+*/-\d\(\)\.]+=$")){
+						if(RegExMatch(A_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+=$")){
 							StringTrimRight, loopField, loopField, 1
 						}
 						calc:=js_eval(loopField)
 						selectResult.=A_LoopField
-						if(RegExMatch(A_LoopField,"^[+*/-\d\(\)\.]+=$")){
+						if(RegExMatch(A_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+=$")){
 							calcFlag:=true
 							selectResult.=calc
 						}else{
@@ -670,7 +670,7 @@ Menu_Show:
 			}
 			;#选中文本弹出网址菜单#
 			if(!HideUnSelect){
-				Menu,% menuWebRoot%MENU_NO%[1],Show
+				Menu_Show_Show(menuWebRoot%MENU_NO%[1],selectZz)
 				return
 			}
 		}
@@ -685,6 +685,16 @@ Menu_Key_Show:
 		thisMenuName:=menuTreekey[(A_ThisHotkey)]
 		Menu,% thisMenuName,Show
 	}catch{}
+return
+Menu_Show_Show(menuName,itemName){
+	Menu,%menuName%,Insert, 1&,%itemName%,Menu_Show_Select_Clipboard
+	Menu,%menuName%,Insert, 2&
+	Menu,%menuName%,Show
+	Menu,%menuName%,Delete, 2&
+	Menu,%menuName%,Delete,%itemName%
+}
+Menu_Show_Select_Clipboard:
+	Clipboard:=Candy_Select
 return
 ;~;[菜单运行]
 Menu_Run:
@@ -1067,6 +1077,7 @@ Send_Key_Zz(keyZz,keyLevel=0){
 ;~;[获取选中]
 Get_Zz(){
 	global Candy_isFile
+	global Candy_Select
 	Candy_Saved:=ClipboardAll
 	Clipboard=
 	SendInput,^c
@@ -1081,6 +1092,7 @@ Get_Zz(){
 	}
 	Candy_isFile:=DllCall("IsClipboardFormatAvailable","UInt",15)
 	CandySel=%Clipboard%
+	Candy_Select=%ClipboardAll%
 	Clipboard:=Candy_Saved
 	return CandySel
 }
