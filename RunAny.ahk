@@ -2556,12 +2556,21 @@ return
 AhkExeDown:
 	IfNotExist,%A_ScriptDir%\%PluginsDir%
 		FileCreateDir, %A_ScriptDir%\%PluginsDir%
+	ahkName:=A_Is64bitOS ? "AHK64.exe" : "AHK.exe"
+	ahkDown:=false
 	if(!ahkFlag){
-		URLDownloadToFile,%RunAnyGithubDir%/RunPlugins/AHK.exe ,%A_ScriptDir%\%PluginsDir%\AHK.exe
+		ahkDown:=true
 	}
 	FileGetSize, ahkSize, %A_ScriptDir%\%PluginsDir%\AHK.exe
-	if(ahkSize<1189888)
-		URLDownloadToFile,%RunAnyGithubDir%/RunPlugins/AHK.exe ,%A_ScriptDir%\%PluginsDir%\AHK.exe
+	if(ahkSize<897024){
+		ahkDown:=true
+	}
+	if(ahkDown){
+		TrayTip,,RunAny使用脚本插件需要下载AHK.exe，下载期间RunAny可能卡顿，请稍等片刻……,3,1
+		URLDownloadToFile,%RunAnyGithubDir%/RunPlugins/%ahkName% ,%A_ScriptDir%\%PluginsDir%\AHK.exe
+		if(ahkSize<897024)
+			TrayTip,,AHK.exe下载失败，请重启RunAny重新下载或到Github下载,3,1
+	}
 return
 ;[判断脚本当前状态]
 LVStatusChange(RowNumber,FileStatus,lvItem){
@@ -3243,6 +3252,7 @@ Plugins_Read:
 	global PluginsObjList:=Object()
 	global PluginsPathList:=Object()
 	global PluginsTitleList:=Object()
+	global PluginsObjNum:=0
 	Loop,%A_ScriptDir%\%PluginsDir%\*.ahk,0	;Plugins目录下AHK脚本
 	{
 		PluginsObjList[(A_LoopFileName)]:=0
@@ -3264,6 +3274,8 @@ Plugins_Read:
 		varList:=StrSplit(A_LoopField,"=")
 		SplitPath,% varList[1], name,, ext, name_no_ext
 		PluginsObjList[(varList[1])]:=varList[2]
+		if(varList[2])
+			PluginsObjNum++
 		if(FileExist(A_ScriptDir "\" PluginsDir "\" varList[1]))
 			PluginsPathList[(varList[1])]:=A_ScriptDir "\" PluginsDir "\" varList[1]
 		if(FileExist(A_ScriptDir "\" PluginsDir "\" name_no_ext "\" varList[1]))
@@ -3340,7 +3352,9 @@ GuiIcon_Set:
 return
 ;~;[自动启动生效]
 AutoRun_Effect:
-	gosub,AhkExeDown
+	if(PluginsObjNum>0){
+		gosub,AhkExeDown
+	}
 	try {
 		if(ahkFlag){
 			For runn, runv in PluginsPathList	;循环启动项
