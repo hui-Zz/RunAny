@@ -602,13 +602,13 @@ Menu_Show:
 					if(!A_LoopField)
 						continue
 					;一键打开网址
-					if(OneKeyWeb && RegExMatch(A_LoopField,"iS)([\w-]+://?|www[.]).*")){
+					if(OneKeyWeb && RegExMatch(A_LoopField,"iS)^([\w-]+://?|www[.]).*")){
 						Run_Search(A_LoopField,"",BrowserPathRun)
 						openFlag:=true
 						continue
 					}
 					;一键磁力下载
-					if(OneKeyMagnet && InStr(A_LoopField,"magnet:?xt=urn:btih:")=1){
+					if(OneKeyMagnet && InStr(A_LoopField,"iS)^magnet:?xt=urn:btih:")=1){
 						Run,%A_LoopField%
 						openFlag:=true
 						continue
@@ -1460,7 +1460,7 @@ Menu_Edit:
 	TVMenu("TVMenu")
 	TVMenu("GuiMenu")
 	Gui, Menu, GuiMenu
-	Gui, Show, , %RunAnyZz%菜单树管理【%both%】(双击修改，右键操作) %RunAny_update_version%
+	Gui, Show, , %RunAnyZz%菜单树管理【%both%】(双击修改，右键操作) %RunAny_update_version% %RunAny_update_time%
 return
 Menu_Edit1:
 	both:=1
@@ -2377,7 +2377,7 @@ LVMenu("LVMenu")
 LVMenu("ahkGuiMenu")
 Gui,P: Menu, ahkGuiMenu
 LVModifyCol(65,ColumnStatus,ColumnAutoRun)
-Gui,P:Show, , %RunAnyZz% 插件管理 %RunAny_update_version%
+Gui,P:Show, , %RunAnyZz% 插件管理 %RunAny_update_version% %RunAny_update_time%
 DetectHiddenWindows,Off
 return
 
@@ -2508,7 +2508,7 @@ LVApply:
 	}
 	DetectHiddenWindows,Off
 return
-#If WinActive(RunAnyZz A_Space "插件管理" A_Space RunAny_update_version)
+#If WinActive(RunAnyZz A_Space "插件管理" A_Space RunAny_update_version RunAny_update_time)
 	F1::gosub,LVRun
 	F2::gosub,LVEdit
 	F3::gosub,LVEnable
@@ -2545,14 +2545,14 @@ LVAdd:
 	Menu, ahkDownMenu, Icon,下载, SHELL32.dll,194
 	Gui,D: Menu, ahkDownMenu
 	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
-	Gui,D:Show, , %RunAnyZz% 插件下载 %RunAny_update_version%
+	Gui,D:Show, , %RunAnyZz% 插件下载 %RunAny_update_version% %RunAny_update_time%
 return
 LVDown:
+	TrayTip,,RunAny开始下载插件，请稍等……,2,1
 	if(!Check_Github()){
 		MsgBox,网络异常，无法从https://github.com/hui-Zz/RunAny上读取最新版本文件，请手动下载
 		return
 	}
-	TrayTip,,RunAny开始下载插件，请稍等……,2,1
 	gosub,AhkExeDown
 	Loop
 	{
@@ -2563,17 +2563,13 @@ LVDown:
 			break
 		LV_GetText(FileName, RowNumber, ColumnName)
 		LV_GetText(FileStatus, RowNumber, ColumnStatus)
-		if(FileStatus="未下载"){
-			URLDownloadToFile,%RunAnyGithubDir%/RunPlugins/%FileName% ,%A_ScriptDir%\%PluginsDir%\%FileName%
-		}
+		URLDownloadToFile,%RunAnyGithubDir%/RunPlugins/%FileName% ,%A_ScriptDir%\%PluginsDir%\%FileName%
 	}
 	TrayTip,,RunAny插件下载成功，自动重启后请重新查看,3,1
 	Sleep,2000
 	Reload
 return
 AhkExeDown:
-	IfNotExist,%A_ScriptDir%\%PluginsDir%
-		FileCreateDir, %A_ScriptDir%\%PluginsDir%
 	ahkName:=A_Is64bitOS ? "AHK64.exe" : "AHK.exe"
 	ahkDown:=false
 	if(!ahkFlag){
@@ -2779,7 +2775,7 @@ Menu_Set:
 	Gui,66:Add,Button,x+15 w75 GSetCancel,取消(&C)
 	Gui,66:Add,Button,x+15 w75 GSetReSet,重置
 	Gui,66:Add,Text,x+40 yp+5 w75 GMenu_Config,RunAnyConfig.ini
-	Gui,66:Show,,%RunAnyZz%设置 %RunAny_update_version%
+	Gui,66:Show,,%RunAnyZz%设置 %RunAny_update_version% %RunAny_update_time%
 	return
 ;~;[关于]
 Menu_About:
@@ -2986,7 +2982,7 @@ Open_Ext_Edit:
 	Gui,SaveExt:Font
 	Gui,SaveExt:Add,Button,Default xm+100 y+25 w75 GSaveOpenExt,保存(&Y)
 	Gui,SaveExt:Add,Button,x+20 w75 GSetCancel,取消(&C)
-	Gui,SaveExt:Show,,%RunAnyZz% - %openExtItem%自定义后缀打开方式 %RunAny_update_version%
+	Gui,SaveExt:Show,,%RunAnyZz% - %openExtItem%自定义后缀打开方式 %RunAny_update_version% %RunAny_update_time%
 return
 SaveOpenExt:
 	OpenExtFlag:=true
@@ -3261,6 +3257,8 @@ Run_Exist:
 			Reload
 		}
 	}
+	IfNotExist,%A_ScriptDir%\%PluginsDir%
+		FileCreateDir, %A_ScriptDir%\%PluginsDir%
 	global ahkFlag:=false
 	global ahkExePath:=A_ScriptDir "\" PluginsDir "\AHK.exe"
 	if(FileExist(ahkExePath)){
