@@ -687,11 +687,17 @@ Menu_Key_Show:
 	}catch{}
 return
 Menu_Show_Show(menuName,itemName){
-	Menu,%menuName%,Insert, 1&,%itemName%,Menu_Show_Select_Clipboard
-	Menu,%menuName%,Insert, 2&
-	Menu,%menuName%,Show
-	Menu,%menuName%,Delete, 2&
-	Menu,%menuName%,Delete,%itemName%
+	if(!HideGetZz){
+		if(StrLen(itemName)>ShowGetZzLen)
+			itemName:=SubStr(itemName, 1, ShowGetZzLen) . "..."
+		Menu,%menuName%,Insert, 1&,%itemName%,Menu_Show_Select_Clipboard
+		Menu,%menuName%,Insert, 2&
+		Menu,%menuName%,Show
+		Menu,%menuName%,Delete, 2&
+		Menu,%menuName%,Delete,%itemName%
+	}else{
+		Menu,%menuName%,Show
+	}
 }
 Menu_Show_Select_Clipboard:
 	Clipboard:=Candy_Select
@@ -2652,6 +2658,7 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%HideMenuTray% x+70 vvHideMenuTray,隐藏托盘菜单
 	Gui,66:Add,GroupBox,xm-10 y+15 w%groupWidch66% h70,RunAny选中文字菜单
 	Gui,66:Add,Checkbox,Checked%HideUnSelect% xm yp+20 vvHideUnSelect gUnCheckWebSend,选中文字依然显示应用菜单
+	Gui,66:Add,Checkbox,Checked%HideGetZz% x+46 vvHideGetZz,隐藏选中提示信息
 	Gui,66:Add,Text,xm yp+25 w120,选中后直接一键打开：
 	Gui,66:Add,Checkbox,Checked%OneKeyWeb% x+20 yp vvOneKeyWeb,网址
 	Gui,66:Add,Checkbox,Checked%OneKeyFile% x+10 yp vvOneKeyFile,文件路径
@@ -2852,7 +2859,7 @@ SetOK:
 		}
 	}
 	SetValueList:=["IniConfig","DisableApp"]
-	SetValueList.Push("HideFail","HideUnSelect","HideRecent","HideWeb","HideSend","HideAddItem","HideMenuTray")
+	SetValueList.Push("HideFail","HideUnSelect","HideRecent","HideWeb","HideSend","HideAddItem","HideMenuTray","HideGetZz")
 	SetValueList.Push("MenuKey", "MenuWinKey","MenuAddItemKey","MenuAddItemWinKey")
 	SetValueList.Push("EvKey", "EvWinKey", "EvPath","EvCommand","EvAutoClose")
 	SetValueList.Push("OneKey", "OneWinKey", "OneKeyUrl", "OneKeyWeb", "OneKeyFolder", "OneKeyMagnet", "OneKeyFile", "OneKeyMenu")
@@ -3036,6 +3043,7 @@ Var_Set:
 	global HideSend:=Var_Read("HideSend",0)
 	global HideAddItem:=Var_Read("HideAddItem",0)
 	global HideMenuTray:=Var_Read("HideMenuTray",1)
+	global HideGetZz:=Var_Read("HideGetZz",0)
 	global OneKeyWeb:=Var_Read("OneKeyWeb",1)
 	global OneKeyFolder:=Var_Read("OneKeyFolder",1)
 	global OneKeyMagnet:=Var_Read("OneKeyMagnet",1)
@@ -3046,6 +3054,7 @@ Var_Set:
 	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
 	OneKeyUrl:=StrReplace(OneKeyUrl, "|", "`n")
 	;[隐藏配置]开始
+	global ShowGetZzLen:=Var_Read("ShowGetZzLen",30)     ;菜单显示选中文字最大截取字数
 	global JumpSearch:=Var_Read("JumpSearch",0)          ;批量搜索忽略确认弹窗
 	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)    ;获取选中目标到剪贴板等待时间
 	ClipWaitApp:=Var_Read("ClipWaitApp","")              ;上一项剪贴板等待时间生效的应用
