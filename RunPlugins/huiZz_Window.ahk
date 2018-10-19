@@ -2,7 +2,7 @@
 ;*  【ObjReg窗口快捷操作脚本】    *
 ;*                  by hui-Zz   *
 ;********************************
-global RunAny_Plugins_Version:="1.0.0"
+global RunAny_Plugins_Version:="1.0.1"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent			 ;~让脚本持久运行
@@ -12,6 +12,7 @@ ListLines,Off           ;~不显示最近执行的脚本行
 SendMode,Input          ;~使用更速度和可靠方式发送键鼠点击
 SetBatchLines,-1        ;~脚本全速执行(默认10ms)
 SetControlDelay,0       ;~控件修改命令自动延时(默认20)
+SetWinDelay,0            ;~执行窗口命令自动延时(默认20)
 SetTitleMatchMode,2     ;~窗口标题模糊匹配
 CoordMode,Menu,Window   ;~坐标相对活动窗口
 ;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
@@ -34,6 +35,36 @@ class RunAnyObj {
 		}else{
 			WinSet,AlwaysOnTop,Off,A
 		}
+	}
+	;[窗口边角置顶观影]
+	;参数说明：
+	;mode：1-左上,2-右上,3-左下,4-右下
+	;x：正数向左偏移像素，负数向右偏移像素
+	;y：正数向下偏移像素，负数向上偏移像素
+	;title：0-显示标题栏，1-隐藏标题栏
+	win_movie_zz(mode=1,x=0,y=0,title=0){
+		MouseGetPos,,,zId
+		WinGetTitle,zTitle,ahk_id %zId%
+		WinSet,AlwaysOnTop,on,ahk_id %zId%
+		if(title)
+			WinSet,Style,-0xC00000,ahk_id %zId%
+		else
+			WinSet,Style,+0xC00000,ahk_id %zId%
+		WinGetPos,var_x,var_y,var_width,var_height,ahk_id %zId%
+		if(mode=1){
+			var_x:=0
+			var_y:=0
+		}else if(mode=2){
+			var_x:=A_ScreenWidth-var_width
+			var_y:=0
+		}else if(mode=3){
+			var_x:=0
+			var_y:=A_ScreenHeight-var_height
+		}else if(mode=4){
+			var_x:=A_ScreenWidth-var_width
+			var_y:=A_ScreenHeight-var_height
+		}
+		WinMove,%zTitle%,,% var_x + x,% var_y + y
 	}
 	;[窗口透明度]
 	win_transparency_zz(flag = 1,amount = 10)
