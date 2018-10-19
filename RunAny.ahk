@@ -1451,6 +1451,8 @@ Menu_Edit:
 			}else{
 				TV_Add(A_LoopField,treeRoot[treeLevel],"Bold Icon8")
 			}
+		}else if(InStr(A_LoopField,";")=1){
+			TV_Add(A_LoopField,treeRoot[treeLevel],"Icon8")
 		}else{
 			TV_Add(A_LoopField,treeRoot[treeLevel],Set_Icon(A_LoopField,false))
 		}
@@ -2184,8 +2186,6 @@ Set_Icon(itemVar,editVar=true){
 	itemVar:=Get_Transform_Val(itemVar)
 	SplitPath, itemVar,,, FileExt  ; 获取文件扩展名.
 	itemLen:=StrLen(itemVar)
-	if(InStr(itemVar,";")=1 || itemVar="")
-		return "Icon0"
 	if(InStr(itemVar,";",,0,1)=itemLen)
 		return "Icon2"
 	if(RegExMatch(itemVar,"S)^-+[^-]+.*"))
@@ -2196,6 +2196,8 @@ Set_Icon(itemVar,editVar=true){
 		return "Icon4"
 	if(InStr(itemVar,"::",,0,1)=itemLen-1)	; {发送热键}
 		return InStr(itemVar,":::",,0,1)=itemLen-2 ? "Icon10" : "Icon9"
+	if(RegExMatch(itemVar,"iS).+?\[.+?\]%?\(.*?\)"))  ; {外接函数}
+		return "Icon11"
 	;~;[获取全路径]
 	FileName:=Get_Obj_Path(itemVar)
 	if(!editVar && FileName="" && FileExt = "exe")
@@ -3346,7 +3348,7 @@ Plugins_Read_Version(filePath){
 }
 GuiIcon_Set:
 	;~;[树型菜单图标集]
-	global ImageListID := IL_Create(10)
+	global ImageListID := IL_Create(11)
 	IL_Add(ImageListID, "shell32.dll", 1)
 	IL_Add(ImageListID, "shell32.dll", 2)
 	IL_Add(ImageListID, EXEIconS[1], EXEIconS[2])
@@ -3357,6 +3359,7 @@ GuiIcon_Set:
 	IL_Add(ImageListID, "shell32.dll", 50)
 	IL_Add(ImageListID, "shell32.dll", 100)
 	IL_Add(ImageListID, "shell32.dll", 101)
+	IL_Add(ImageListID, "shell32.dll", 131)
 	;#菜单加载完后，预读完成"修改菜单"的GUI图标
 	Loop, parse, iniVar1, `n, `r, %A_Space%%A_Tab%
 	{
