@@ -399,6 +399,7 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 }
 ;══════════════════════════════════════════════════════════════════
 ;~;[生成菜单(判断后缀创建图标)]
+;══════════════════════════════════════════════════════════════════
 Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow){
 	if(!menuName || !item)
 		return
@@ -549,7 +550,9 @@ Menu_Show2:
 	iniFileShow:=iniPath2
 	gosub,Menu_Show
 return
+;══════════════════════════════════════════════════════════════════
 ;~;[显示菜单]
+;══════════════════════════════════════════════════════════════════
 Menu_Show:
 	try{
 		global selectZz:=Get_Zz()
@@ -671,8 +674,10 @@ Menu_Show:
 			;#选中文本弹出网址菜单#
 			if(!HideUnSelect){
 				Menu_Show_Show(menuWebRoot%MENU_NO%[1],selectZz)
-				return
+			}else{
+				Menu_Show_Show(menuRoot%MENU_NO%[1],selectZz)
 			}
+			return
 		}
 		;#其他弹出应用菜单#
 		Menu,% menuRoot%MENU_NO%[1],Show
@@ -702,7 +707,9 @@ Menu_Show_Show(menuName,itemName){
 Menu_Show_Select_Clipboard:
 	Clipboard:=Candy_Select
 return
+;══════════════════════════════════════════════════════════════════
 ;~;[菜单运行]
+;══════════════════════════════════════════════════════════════════
 Menu_Run:
 	any:=MenuObj[(A_ThisMenuItem)]
 	if(MenuShowMenuRun){
@@ -732,7 +739,7 @@ Menu_Run:
 		}
 		;[按住Ctrl键打开应用所在目录，只有目录则直接打开]
 		if(!selectZz && !Candy_isFile){
-			if((GetKeyState("Ctrl") || InStr(FileExist(any), "D"))){
+			if(GetKeyState("Ctrl") || InStr(FileExist(any), "D")){
 				if(OpenFolderPathRun){
 					Run,%OpenFolderPathRun%%A_Space%"%any%"
 				}else if(InStr(FileExist(any), "D")){
@@ -796,7 +803,9 @@ Menu_Run:
 		SetWorkingDir,%A_ScriptDir%
 	}
 return
+;══════════════════════════════════════════════════════════════════
 ;~;[菜单热键运行]
+;══════════════════════════════════════════════════════════════════
 Menu_Key_Run:
 	any:=menuObjkey[(A_ThisHotkey)]
 	thisMenuName:=MenuObjName[(A_ThisHotkey)]
@@ -870,8 +879,13 @@ Menu_Run_Plugins_ObjReg:
 		}else{
 			try PluginsObjRegActive[appPlugins]:=ComObjActive(PluginsObjRegGUID[appPlugins])
 			getZz:=selectZz
-			appParmStr:=Get_Transform_Val(appParmStr)
+			appParmStr:=StrReplace(appParmStr,"``,",Chr(3))
 			appParms:=StrSplit(appParmStr,",")
+			Loop,% appParms.MaxIndex()
+			{
+				appParms[A_Index]:=StrReplace(appParms[A_Index],Chr(3),",")
+				appParms[A_Index]:=Get_Transform_Val(appParms[A_Index])
+			}
 			if(appParmStr=""){	;没有传参，直接执行函数
 				PluginsObjRegActive[appPlugins][appFunc]()
 			}else if(appParms.MaxIndex()=1){
