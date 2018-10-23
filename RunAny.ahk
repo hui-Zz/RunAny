@@ -175,6 +175,7 @@ For k, v in MenuExeList
 }
 ;#菜单已经加载完毕，托盘图标变化
 try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
+
 ;#如果是第一次运行#
 if(iniFlag){
 	iniFlag:=false
@@ -187,7 +188,6 @@ if(ReloadEditFlag){
 	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, ReloadEditFlag, 0
 	gosub,Menu_Edit
 }
-
 return
 
 ;══════════════════════════════════════════════════════════════════
@@ -532,13 +532,31 @@ Menu_Item_Icon(menuName,menuItem,iconPath,iconNo=0,treeLevel=""){
 			menuKeys:=StrSplit(menuKeyStr,"`t")
 			menuItemSet:=menuKeys[1]
 		}
-		;~ Run,Z:\resourcesextract-x64\ResourcesExtract.exe /LoadConfig "Z:\resourcesextract-x64\raicon.cfg" /Source "%iconPath%" /DestFold "Z:\c"
+		;~ Menu_Exe_Icon_Create(iconPath)
 		if(IconFolderList[menuItemSet]){
 			Menu,%menuName%,Icon,%menuItem%,% IconFolderList[menuItemSet],0
 		}else{
 			Menu,%menuName%,Icon,%menuItem%,%iconPath%,%iconNo%
 		}
 	}catch{}
+}
+Menu_Exe_Icon_Create(exePath){
+	;~ Run,D:\Users\OneDrive\Apps\Img\ResourcesExtract\ResourcesExtract.exe /LoadConfig "D:\Users\OneDrive\Apps\Img\ResourcesExtract\RunAnyIcon.cfg" /Source "%exePath%" /DestFold "Z:\i"
+	SplitPath, exePath, exeName, exeDir, ext, name_no_ext
+	maxFileSize=
+	maxFilePath=
+	IfExist,Z:\i\%exeName%
+	{
+		loop,Z:\i\%exeName%\*.ico
+		{
+			if(maxFileSize<A_LoopFileSize){
+				maxFileSize:=A_LoopFileSize
+				maxFilePath:=A_LoopFileFullPath
+			}
+		}
+		FileCopy, %maxFilePath%, Z:\c\%name_no_ext%.ico, 1
+		maxFilePath=
+	}
 }
 Menu_Show1:
 	MENU_NO:=1
@@ -774,7 +792,9 @@ Menu_Run:
 				}else{
 					Run,%any%%A_Space%%selectZzStr%
 				}
-			}else if(RegExMatch(any,"iS)([\w-]+://?|www[.]).*")){
+			}else if(RegExMatch(any,"iS)^.*?\.exe ([\w-]+://?|www[.]).*")){
+				gosub,Menu_Run_Exe_Url
+			}else if(RegExMatch(any,"iS)^([\w-]+://?|www[.]).*")){
 				Run_Search(any,selectZz)
 			}else{
 				Run,%any%%A_Space%%selectZz%
@@ -791,7 +811,9 @@ Menu_Run:
 				Run_Tr(any,menuTrNum,true)
 			}else if(ext && openExtRunList[ext]){
 				Run,% openExtRunList[ext] . A_Space . """" any """"
-			}else if(RegExMatch(any,"iS)([\w-]+://?|www[.]).*")){
+			}else if(RegExMatch(any,"iS)^.*?\.exe ([\w-]+://?|www[.]).*")){
+				gosub,Menu_Run_Exe_Url
+			}else if(RegExMatch(any,"iS)^([\w-]+://?|www[.]).*")){
 				Run_Search(any)
 			}else{
 				Run,%any%
@@ -841,7 +863,9 @@ Menu_Key_Run:
 				}
 				StringTrimRight, selectZzStr, selectZzStr, 1
 				Run,%any%%A_Space%%selectZzStr%
-			}else if(RegExMatch(any,"iS)([\w-]+://?|www[.]).*")){
+			}else if(RegExMatch(any,"iS)^.*?\.exe ([\w-]+://?|www[.]).*")){
+				gosub,Menu_Run_Exe_Url
+			}else if(RegExMatch(any,"iS)^([\w-]+://?|www[.]).*")){
 				Run_Search(any,selectZz)
 			}else{
 				Run_Zz(any)
@@ -850,6 +874,8 @@ Menu_Key_Run:
 			if(thisMenuName && RegExMatch(thisMenuName,"S).*?_:(\d{1,2})$")){
 				menuTrNum:=RegExReplace(thisMenuName,"S).*?_:(\d{1,2})$","$1")
 				Run_Tr(any,menuTrNum)
+			}else if(RegExMatch(any,"iS)^.*?\.exe ([\w-]+://?|www[.]).*")){
+				gosub,Menu_Run_Exe_Url
 			}else{
 				Run_Zz(any)
 			}
@@ -868,6 +894,11 @@ Menu_Run_Send_Zz:
 		StringLeft, any, any, anyLen-2
 		Send_Key_Zz(any)
 	}
+return
+Menu_Run_Exe_Url:
+	BrowserPath:=RegExReplace(any,"iS)(.*?\.exe) .*","$1")	;只去参数
+	anyUrl:=RegExReplace(any,"iS).*?\.exe (.*)","$1")	;去掉应用名，取参数
+	Run_Search(anyUrl,selectZz,BrowserPath)
 return
 Menu_Run_Plugins_ObjReg:
 	appPlugins:=RegExReplace(any,"iS)(.+?)\[.+?\]%?\(.*?\)","$1")	;取插件名
