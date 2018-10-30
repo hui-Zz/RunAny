@@ -12,7 +12,7 @@ ListLines,Off           ;~不显示最近执行的脚本行
 SendMode,Input          ;~使用更速度和可靠方式发送键鼠点击
 SetBatchLines,-1        ;~脚本全速执行(默认10ms)
 SetControlDelay,0       ;~控件修改命令自动延时(默认20)
-SetWinDelay,0            ;~执行窗口命令自动延时(默认20)
+SetWinDelay,0            ;~执行窗口命令自动延时(默认100)
 SetTitleMatchMode,2     ;~窗口标题模糊匹配
 CoordMode,Menu,Window   ;~坐标相对活动窗口
 ;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW

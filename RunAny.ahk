@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.5.3 @2018.10.18
+║【RunAny】一劳永逸的快速启动工具 v5.5.4 @2018.10.30
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -16,13 +16,12 @@ SendMode,Input          ;~使用更速度和可靠方式发送键鼠点击
 CoordMode,Menu          ;~相对于整个屏幕
 SetBatchLines,-1        ;~脚本全速执行
 SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
-;~ StartTick:=A_TickCount   ;若要评估出menu初始化时间
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
-global RunAny_update_version:="5.5.3"
-global RunAny_update_time:="2018.10.18"
+global RunAny_update_version:="5.5.4"
+global RunAny_update_time:="2018.10.30"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -112,6 +111,7 @@ while !WinExist("ahk_exe Everything.exe")
 		}
 	}
 }
+
 ;~;[使用everything读取整个系统所有exe]
 If(evExist){
 	everythingQuery()
@@ -126,11 +126,13 @@ if(EvAutoClose && EvPath){
 	Run,%EvPathRun% -exit
 }
 DetectHiddenWindows,Off
+
 ;══════════════════════════════════════════════════════════════════
 ;~;[自定义后缀打开方式]
 Gosub,Open_Ext_Set
 ;~;[后缀图标初始化]
 Gosub,Icon_FileExt_Set
+
 ;#应用菜单数组#网址菜单名数组及地址队列#
 menuRoot1:=Object(),menuWebRoot1:=Object(),menuWebList1:=Object()
 ;菜单级别：初始为根菜单RunAny
@@ -141,6 +143,7 @@ MenuObjTree1[RunAnyZz . "1"]:=Object()
 global menu2:=MENU2FLAG
 ;~;[读取带图标的自定义应用菜单]
 Menu_Read(iniVar1,menuRoot1,1,menuWebRoot1,menuWebList1,false,1)
+
 ;~;[如果有第2菜单则开始加载]
 if(menu2){
 	menuRoot2:=Object(),menuWebRoot2:=Object(),menuWebList2:=Object()
@@ -166,6 +169,7 @@ if(!iniFlag){
 	;~;[插件对象注册]
 	Gosub,Plugins_Object_Register
 }
+
 ;~;[循环为菜单中EXE程序添加图标，过程较慢]
 For k, v in MenuExeList
 {
@@ -532,31 +536,12 @@ Menu_Item_Icon(menuName,menuItem,iconPath,iconNo=0,treeLevel=""){
 			menuKeys:=StrSplit(menuKeyStr,"`t")
 			menuItemSet:=menuKeys[1]
 		}
-		;~ Menu_Exe_Icon_Create(iconPath)
 		if(IconFolderList[menuItemSet]){
 			Menu,%menuName%,Icon,%menuItem%,% IconFolderList[menuItemSet],0
 		}else{
 			Menu,%menuName%,Icon,%menuItem%,%iconPath%,%iconNo%
 		}
 	}catch{}
-}
-Menu_Exe_Icon_Create(exePath){
-	;~ Run,D:\Users\OneDrive\Apps\Img\ResourcesExtract\ResourcesExtract.exe /LoadConfig "D:\Users\OneDrive\Apps\Img\ResourcesExtract\RunAnyIcon.cfg" /Source "%exePath%" /DestFold "Z:\i"
-	SplitPath, exePath, exeName, exeDir, ext, name_no_ext
-	maxFileSize=
-	maxFilePath=
-	IfExist,Z:\i\%exeName%
-	{
-		loop,Z:\i\%exeName%\*.ico
-		{
-			if(maxFileSize<A_LoopFileSize){
-				maxFileSize:=A_LoopFileSize
-				maxFilePath:=A_LoopFileFullPath
-			}
-		}
-		FileCopy, %maxFilePath%, Z:\c\%name_no_ext%.ico, 1
-		maxFilePath=
-	}
 }
 Menu_Show1:
 	MENU_NO:=1
@@ -2812,8 +2797,10 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+82 yp w400 r1 vvUrlIcon,%UrlIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetEXEIcon,EXE图标
 	Gui,66:Add,Edit,xm+82 yp w400 r1 vvEXEIcon,%EXEIcon%
-	Gui,66:Add,GroupBox,xm-10 y+30 w%groupWidch66% h135,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含后面热键）
+	Gui,66:Add,GroupBox,xm-10 y+30 w%groupWidch66% h145,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含后面热键）
 	Gui,66:Add,Text, xm yp+20 w380,如图标文件名可以为：-常用(&&App).ico、cmd.png、百度(&&B).ico
+	if(FileExist(ResourcesExtractFile))
+		Gui,66:Add,Button,x+5 yp w110 GMenu_Exe_Icon_Create,生成所有EXE图标
 	Gui,66:Add,Button,xm yp+30 w50 GSetIconFolderPath,选择
 	Gui,66:Add,Edit,xm+60 yp w420 r4 vvIconFolderPath,%IconFolderPath%
 
@@ -3121,6 +3108,7 @@ Var_Set:
 	global EvCommandExtList:=StrSplit(EvCommandVar,"|")
 	EnvGet, LocalAppData, LocalAppData
 	global HtmlObj:=ComObjCreate("HTMLfile")
+	global ResourcesExtractFile:=A_ScriptDir "\ResourcesExtract\ResourcesExtract.exe"
 	gosub,Icon_Set
 	;~[最近运行项]
 	if(!HideRecent){
@@ -3250,9 +3238,10 @@ Icon_FileExt_Set:
 	global IconFolderList:={}
 	Loop, parse, IconFolderPath, |
 	{
-		IfExist,%A_LoopField%
+		IconFolder:=Get_Transform_Val(A_LoopField)
+		IfExist,%IconFolder%
 		{
-			Loop,%A_LoopField%\*.*,0,1
+			Loop,%IconFolder%\*.*,0,1
 			{
 				SplitPath,% A_LoopFileFullPath, ,, ext, name_no_ext
 				IconFolderList[(name_no_ext)]:=A_LoopFileFullPath
@@ -3417,6 +3406,90 @@ GuiIcon_Set:
 		}
 	}
 return
+Menu_Exe_Icon_Create:
+	;~;[循环提取菜单中EXE的所有程序图标，过程较慢]
+	cfgFile=%A_ScriptDir%\ResourcesExtract\ResourcesExtract.cfg
+	DestFold=%A_Temp%\RunAnyExeIconTemp
+	if(!FileExist(ResourcesExtractFile)){
+		MsgBox, 请将ResourcesExtract.exe放入%A_ScriptDir%\ResourcesExtract\
+		return
+	}
+	MsgBox,33,生成所有EXE图标，请稍等片刻,确定提取生成%RunAnyZz%菜单中的所有EXE程序图标吗？
+	IfMsgBox Ok
+	{
+		if(!FileExist(cfgFile)){
+			MsgBox, 请将ResourcesExtract.cfg放入%A_ScriptDir%\ResourcesExtract\
+			return
+		}else{
+			IniWrite,%DestFold%,%cfgFile%,General,DestFolder
+			IniWrite,1,%cfgFile%,General,ExtractIcons
+			IniWrite,0,%cfgFile%,General,ExtractCursors
+			IniWrite,0,%cfgFile%,General,ExtractBitmaps
+			IniWrite,0,%cfgFile%,General,ExtractHTML
+			IniWrite,0,%cfgFile%,General,ExtractAnimatedIcons
+			IniWrite,0,%cfgFile%,General,ExtractAnimatedCursors
+			IniWrite,0,%cfgFile%,General,ExtractAVI
+			IniWrite,0,%cfgFile%,General,OpenDestFolder
+			IniWrite,2,%cfgFile%,General,MultiFilesMode
+		}
+		For k, v in MenuExeList
+		{
+			if(!HideMenuAppIconList[(v["menuName"])]){
+				exePath:=v["itemPath"]
+				Run,%ResourcesExtractFile% /LoadConfig "%cfgFile%" /Source "%exePath%" /DestFold "%DestFold%"
+			}
+		}
+		Menu_Exe_Icon_Set()
+		MsgBox, 成功生成%RunAnyZz%内所有EXE图标到 %A_ScriptDir%\ExeIcon
+		Gui,66:Submit, NoHide
+		if(vIconFolderPath){
+			GuiControl,, vIconFolderPath, %vIconFolderPath%`n`%A_ScriptDir`%\ExeIcon
+		}else{
+			GuiControl,, vIconFolderPath, `%A_ScriptDir`%\ExeIcon
+		}
+	}
+return
+Menu_Exe_Icon_Set(){
+	;~;[循环提取菜单中EXE程序的正确图标]
+	IfNotExist,%A_ScriptDir%\ExeIcon
+		FileCreateDir, %A_ScriptDir%\ExeIcon
+	For k, v in MenuExeList
+	{
+		if(!HideMenuAppIconList[(v["menuName"])]){
+			exePath:=v["itemPath"]
+			SplitPath, exePath, exeName, exeDir, ext, name_no_ext
+			iconNameFlag:=false
+			maxFileName=
+			maxFileSize=
+			maxFilePath=
+			IfExist,%A_Temp%\RunAnyExeIconTemp\%exeName%
+			{
+				loop,%A_Temp%\RunAnyExeIconTemp\%exeName%\*.ico
+				{
+					if(RegExMatch(A_LoopFileName,"iS).*_MAINICON.ico")){
+						maxFilePath:=A_LoopFileFullPath
+						break
+					}
+					if(!iconNameFlag && RegExMatch(A_LoopFileName,"iS).*_\d+\.ico")){
+						iconNum:=RegExReplace(A_LoopFileName,"iS).*_(\d+)\.ico","$1")
+						if(A_Index=1 || maxFileName>iconNum){
+							maxFileName:=iconNum
+							maxFilePath:=A_LoopFileFullPath
+						}
+						continue
+					}
+					if(maxFileSize<A_LoopFileSize){
+						iconNameFlag:=true
+						maxFileSize:=A_LoopFileSize
+						maxFilePath:=A_LoopFileFullPath
+					}
+				}
+				FileCopy, %maxFilePath%, %A_ScriptDir%\ExeIcon\%name_no_ext%.ico, 1
+				maxFilePath=
+			}
+		}
+	}
+}
 ;~;[自动启动生效]
 AutoRun_Effect:
 	if(PluginsObjNum>0){
