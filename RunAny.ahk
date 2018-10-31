@@ -536,6 +536,8 @@ Menu_Item_Icon(menuName,menuItem,iconPath,iconNo=0,treeLevel=""){
 			menuKeys:=StrSplit(menuKeyStr,"`t")
 			menuItemSet:=menuKeys[1]
 		}
+		if(RegExMatch(menuItemSet,"S).*_:\d{1,2}$"))
+			menuItemSet:=RegExReplace(menuItemSet,"S)(.*)_:\d{1,2}$","$1")
 		if(IconFolderList[menuItemSet]){
 			Menu,%menuName%,Icon,%menuItem%,% IconFolderList[menuItemSet],0
 		}else{
@@ -614,7 +616,7 @@ Menu_Show:
 						continue
 					}
 					;一键磁力下载
-					if(OneKeyMagnet && InStr(A_LoopField,"iS)^magnet:?xt=urn:btih:")=1){
+					if(OneKeyMagnet && InStr(A_LoopField,"magnet:?xt=urn:btih:")=1){
 						Run,%A_LoopField%
 						openFlag:=true
 						continue
@@ -3300,7 +3302,7 @@ Run_Exist:
 	if(FileExist(ahkExePath)){
 		ahkFlag:=true
 	}
-	pluginsDownList:=["RunAny_ObjReg.ahk","RunAny_Menu.ahk","huiZz_MButton.ahk","huiZz_RestTime.ahk","huiZz_Window.ahk"]
+	pluginsDownList:=["RunAny_ObjReg.ahk","RunAny_Menu.ahk","huiZz_MButton.ahk","huiZz_RestTime.ahk","huiZz_Window.ahk,"huiZz_Text.ahk"]
 return
 ;~;[AHK插件脚本读取]
 Plugins_Read:
@@ -3443,7 +3445,8 @@ Menu_Exe_Icon_Create:
 		MsgBox, 成功生成%RunAnyZz%内所有EXE图标到 %A_ScriptDir%\ExeIcon
 		Gui,66:Submit, NoHide
 		if(vIconFolderPath){
-			GuiControl,, vIconFolderPath, %vIconFolderPath%`n`%A_ScriptDir`%\ExeIcon
+			if(!InStr(vIconFolderPath,"ExeIcon"))
+				GuiControl,, vIconFolderPath, %vIconFolderPath%`n`%A_ScriptDir`%\ExeIcon
 		}else{
 			GuiControl,, vIconFolderPath, `%A_ScriptDir`%\ExeIcon
 		}
@@ -3484,7 +3487,15 @@ Menu_Exe_Icon_Set(){
 						maxFilePath:=A_LoopFileFullPath
 					}
 				}
-				FileCopy, %maxFilePath%, %A_ScriptDir%\ExeIcon\%name_no_ext%.ico, 1
+				menuItem:=v["menuItem"]
+				if(InStr(menuItem,"`t")){
+					menuKeyStr:=RegExReplace(menuItem, "S)\t+", A_Tab)
+					menuKeys:=StrSplit(menuKeyStr,"`t")
+					menuItem:=menuKeys[1]
+				}
+				if(RegExMatch(menuItem,"S).*_:\d{1,2}$"))
+					menuItem:=RegExReplace(menuItem,"S)(.*)_:\d{1,2}$","$1")
+				FileCopy, %maxFilePath%, %A_ScriptDir%\ExeIcon\%menuItem%.ico, 1
 				maxFilePath=
 			}
 		}
