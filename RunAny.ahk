@@ -3302,7 +3302,7 @@ Run_Exist:
 	if(FileExist(ahkExePath)){
 		ahkFlag:=true
 	}
-	pluginsDownList:=["RunAny_ObjReg.ahk","RunAny_Menu.ahk","huiZz_MButton.ahk","huiZz_RestTime.ahk","huiZz_Window.ahk,"huiZz_Text.ahk"]
+	pluginsDownList:=["RunAny_ObjReg.ahk","RunAny_Menu.ahk","huiZz_MButton.ahk","huiZz_RestTime.ahk","huiZz_Window.ahk","huiZz_Text.ahk"]
 return
 ;~;[AHK插件脚本读取]
 Plugins_Read:
