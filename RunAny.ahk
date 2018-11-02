@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.5.4 @2018.10.31
+║【RunAny】一劳永逸的快速启动工具 v5.5.4 @2018.11.02
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -21,7 +21,7 @@ global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.5.4"
-global RunAny_update_time:="2018.10.31"
+global RunAny_update_time:="2018.11.02"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -484,11 +484,11 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 		if(RegExMatch(item,"iS).+?\[.+?\]%?\(.*?\)")){  ; {外接函数}
 			Menu,%menuName%,add,%menuItem%,Menu_Run
 			Menu,%menuName%:,add,%menuItem%,Menu_Run
-			Menu_Item_Icon(menuName,menuItem,"SHELL32.dll","131")
-			Menu_Item_Icon(menuName ":",menuItem,"SHELL32.dll","131")
+			Menu_Item_Icon(menuName,menuItem,FuncIconS[1],FuncIconS[2])
+			Menu_Item_Icon(menuName ":",menuItem,FuncIconS[1],FuncIconS[2])
 			if(menuName = menuRootFn[1]){
 				Menu,% menuWebRootFn[1],Add,%menuItem%,Menu_Run
-				Menu_Item_Icon(menuWebRootFn[1],menuItem,"SHELL32.dll","131")
+				Menu_Item_Icon(menuWebRootFn[1],menuItem,FuncIconS[1],FuncIconS[2])
 				webRootShow:=true
 			}else{
 				Menu,% menuWebRootFn[1],Add,%menuName%:, :%menuName%:
@@ -891,42 +891,49 @@ Menu_Run_Plugins_ObjReg:
 	appPlugins:=RegExReplace(any,"iS)(.+?)\[.+?\]%?\(.*?\)","$1")	;取插件名
 	appFunc:=RegExReplace(any,"iS).+?\[(.+?)\]%?\(.*?\)","$1")	;取函数名
 	appParmStr:=RegExReplace(any,"iS).+?\[.+?\]%?\((.*?)\)","$1")	;取函数参数
-	if(PluginsObjRegGUID[appPlugins]){
-		if(RegExMatch(any,"iS).+?\[.+?\]%\(.*?\)")){  ;动态函数执行
-			DynaExpr_ObjRegisterActive(PluginsObjRegGUID[appPlugins],appFunc,appParmStr,selectZz)
-		}else{
-			try PluginsObjRegActive[appPlugins]:=ComObjActive(PluginsObjRegGUID[appPlugins])
-			getZz:=selectZz
-			appParmStr:=StrReplace(appParmStr,"``,",Chr(3))
-			appParms:=StrSplit(appParmStr,",")
-			Loop,% appParms.MaxIndex()
-			{
-				appParms[A_Index]:=StrReplace(appParms[A_Index],Chr(3),",")
-				appParms[A_Index]:=Get_Transform_Val(appParms[A_Index])
-			}
-			if(appParmStr=""){	;没有传参，直接执行函数
-				PluginsObjRegActive[appPlugins][appFunc]()
-			}else if(appParms.MaxIndex()=1){
-				PluginsObjRegActive[appPlugins][appFunc](appParms[1])
-			}else if(appParms.MaxIndex()=2){
-				PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2])
-			}else if(appParms.MaxIndex()=3){
-				PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3])
-			}else if(appParms.MaxIndex()=4){
-				PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4])
-			}else if(appParms.MaxIndex()=5){
-				PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5])
-			}else if(appParms.MaxIndex()=6){
-				PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6])
-			}else if(appParms.MaxIndex()=7){
-				PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7])
-			}else if(appParms.MaxIndex()=8){
-				PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8])
-			}else if(appParms.MaxIndex()=9){
-				PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8],appParms[9])
-			}else if(appParms.MaxIndex()=10){
-				PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8],appParms[9],appParms[10])
-			}
+	if(!PluginsObjRegGUID[appPlugins]){
+		ToolTip,没有找到 %appPlugins% 脚本插件`n请确认已下载并重启RunAny重试
+		SetTimer,RemoveToolTip,3000
+		return
+	}
+	if(RegExMatch(any,"iS).+?\[.+?\]%\(.*?\)")){  ;动态函数执行
+		DynaExpr_ObjRegisterActive(PluginsObjRegGUID[appPlugins],appFunc,appParmStr,selectZz)
+	}else{
+		try {
+			PluginsObjRegActive[appPlugins]:=ComObjActive(PluginsObjRegGUID[appPlugins])
+		} catch {
+			TrayTip,,%appPlugins% 外接脚本注册失败，请查看配置是否有问题并重启RunAny重试,3,1
+		}
+		getZz:=selectZz
+		appParmStr:=StrReplace(appParmStr,"``,",Chr(3))
+		appParms:=StrSplit(appParmStr,",")
+		Loop,% appParms.MaxIndex()
+		{
+			appParms[A_Index]:=StrReplace(appParms[A_Index],Chr(3),",")
+			appParms[A_Index]:=Get_Transform_Val(appParms[A_Index])
+		}
+		if(appParmStr=""){	;没有传参，直接执行函数
+			PluginsObjRegActive[appPlugins][appFunc]()
+		}else if(appParms.MaxIndex()=1){
+			PluginsObjRegActive[appPlugins][appFunc](appParms[1])
+		}else if(appParms.MaxIndex()=2){
+			PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2])
+		}else if(appParms.MaxIndex()=3){
+			PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3])
+		}else if(appParms.MaxIndex()=4){
+			PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4])
+		}else if(appParms.MaxIndex()=5){
+			PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5])
+		}else if(appParms.MaxIndex()=6){
+			PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6])
+		}else if(appParms.MaxIndex()=7){
+			PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7])
+		}else if(appParms.MaxIndex()=8){
+			PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8])
+		}else if(appParms.MaxIndex()=9){
+			PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8],appParms[9])
+		}else if(appParms.MaxIndex()=10){
+			PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8],appParms[9],appParms[10])
 		}
 	}
 return
@@ -2294,7 +2301,8 @@ Set_Icon(itemVar,editVar=true){
         ; 检查此文件扩展名的图标是否已经在图像列表中. 如果是,
         ; 可以避免多次调用并极大提高性能,
         ; 尤其对于包含数以百计文件的文件夹而言:
-        IconNumber := IconArray%ExtID%
+		if(ExtID>0)
+			IconNumber := IconArray%ExtID%
         noEXE:=true
     }
     if not IconNumber  ; 此扩展名还没有相应的图标, 所以进行加载.
@@ -2786,7 +2794,7 @@ Menu_Set:
 	GuiControl, 66:+Redraw, RunAnyOpenExtLV
 	
 	Gui,66:Tab,图标设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+20 w%groupWidch66% h210,图标自定义设置（图片或图标文件路径 , 序号不填默认1）
+	Gui,66:Add,GroupBox,xm-10 y+10 w%groupWidch66% h230,图标自定义设置（图片或图标文件路径 , 序号不填默认1）
 	Gui,66:Add,Button,xm yp+20 w80 GSetAnyIcon,RunAny图标
 	Gui,66:Add,Edit,xm+82 yp w400 r1 vvAnyIcon,%AnyIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetMenuIcon,准备图标
@@ -2799,7 +2807,9 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+82 yp w400 r1 vvUrlIcon,%UrlIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetEXEIcon,EXE图标
 	Gui,66:Add,Edit,xm+82 yp w400 r1 vvEXEIcon,%EXEIcon%
-	Gui,66:Add,GroupBox,xm-10 y+30 w%groupWidch66% h145,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含后面热键）
+	Gui,66:Add,Button,xm yp+30 w80 GSetFuncIcon,外接函数
+	Gui,66:Add,Edit,xm+82 yp w400 r1 vvFuncIcon,%FuncIcon%
+	Gui,66:Add,GroupBox,xm-10 y+20 w%groupWidch66% h145,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含后面热键）
 	Gui,66:Add,Text, xm yp+20 w380,如图标文件名可以为：-常用(&&App).ico、cmd.png、百度(&&B).ico
 	if(FileExist(ResourcesExtractFile))
 		Gui,66:Add,Button,x+5 yp w110 GMenu_Exe_Icon_Create,生成所有EXE图标
@@ -2868,6 +2878,7 @@ SetTreeIcon:
 SetFolderIcon:
 SetUrlIcon:
 SetEXEIcon:
+SetFuncIcon:
 	setEdit:=StrReplace(A_ThisLabel, "Set", "v")
 	FileSelectFile, filePath, 3, , 图标图片路径
 	if(filePath)
@@ -2893,9 +2904,9 @@ SetOK:
 	SetValueList:=["IniConfig","DisableApp"]
 	SetValueList.Push("HideFail","HideUnSelect","HideRecent","HideWeb","HideSend","HideAddItem","HideMenuTray","HideGetZz")
 	SetValueList.Push("MenuKey", "MenuWinKey","MenuAddItemKey","MenuAddItemWinKey")
-	SetValueList.Push("EvKey", "EvWinKey", "EvPath","EvCommand","EvAutoClose")
-	SetValueList.Push("OneKey", "OneWinKey", "OneKeyUrl", "OneKeyWeb", "OneKeyFolder", "OneKeyMagnet", "OneKeyFile", "OneKeyMenu")
-	SetValueList.Push("BrowserPath", "IconFolderPath", "TreeIcon", "FolderIcon", "UrlIcon", "EXEIcon", "AnyIcon", "MenuIcon")
+	SetValueList.Push("EvKey","EvWinKey","EvPath","EvCommand","EvAutoClose")
+	SetValueList.Push("OneKey","OneWinKey","OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu")
+	SetValueList.Push("BrowserPath","IconFolderPath","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon","AnyIcon","MenuIcon")
 	SetValueList.Push("TreeKey1", "TreeWinKey1", "TreeIniKey1", "TreeIniWinKey1", "PluginsManageKey", "PluginsManageWinKey")
 	SetValueList.Push("RunATrayKey","RunATrayWinKey","RunASetKey","RunASetWinKey","RunAReloadKey","RunAReloadWinKey","RunASuspendKey","RunASuspendWinKey","RunAExitKey","RunAExitWinKey")
 	If(MENU2FLAG){
@@ -3210,6 +3221,7 @@ Icon_Set:
 return
 ;~;[后缀图标初始化]
 Icon_FileExt_Set:
+	Menu,exeTestMenu,add,SetCancel	;只用于测试应用图标正常添加
 	FolderIcon:=Var_Read("FolderIcon","shell32.dll,4")
 	global FolderIconS:=StrSplit(FolderIcon,",")
 	UrlIcon:=Var_Read("UrlIcon","shell32.dll,44")
@@ -3221,20 +3233,28 @@ Icon_FileExt_Set:
 		LNKIcon:="shell32.dll,30"
 	}
 	global LNKIconS:=StrSplit(LNKIcon,",")
+	FuncIcon:=Var_Read("FuncIcon","shell32.dll,131")
+	global FuncIconS:=StrSplit(FuncIcon,",")
+	try{
+		Menu,exeTestMenu,Icon,SetCancel,ZzIcon.dll,7
+		ZzIconPath:="ZzIcon.dll,7"
+	} catch {
+		ZzIconPath:="ZzIcon.dll,1"
+	}
+	global ZzIconS:=StrSplit(ZzIconPath,",")
 	;[RunAny菜单图标初始化]
-	Menu,Tray,Icon,启动菜单(&Z)`t%MenuHotKey%,% TreeIconS[1],% TreeIconS[2]
-	Menu,Tray,Icon,修改菜单(&E)`t%TreeHotKey1%,% EXEIconS[1],% EXEIconS[2]
+	Menu,Tray,Icon,启动菜单(&Z)`t%MenuHotKey%,% ZzIconS[1],% ZzIconS[2]
+	Menu,Tray,Icon,修改菜单(&E)`t%TreeHotKey1%,% TreeIconS[1],% TreeIconS[2]
 	Menu,Tray,Icon,修改文件(&F)`t%TreeIniHotKey1%,SHELL32.dll,134
 	If(MENU2FLAG){
-		Menu,Tray,Icon,启动菜单2(&2)`t%MenuHotKey2%,% TreeIconS[1],% TreeIconS[2]
-		Menu,Tray,Icon,修改菜单2(&W)`t%TreeHotKey2%,% EXEIconS[1],% EXEIconS[2]
+		Menu,Tray,Icon,启动菜单2(&2)`t%MenuHotKey2%,% ZzIconS[1],% ZzIconS[2]
+		Menu,Tray,Icon,修改菜单2(&W)`t%TreeHotKey2%,% TreeIconS[1],% TreeIconS[2]
 		Menu,Tray,Icon,修改文件2(&G)`t%TreeIniHotKey2%,SHELL32.dll,134
 	}
-	Menu,Tray,Icon,设置RunAny(&D)`t%RunASetHotKey%,% AnyIconS[1],% AnyIconS[2]
-	Menu,Tray,Icon,关于RunAny(&A)...,% MenuIconS[1],% MenuIconS[2]
+	Menu,Tray,Icon,设置RunAny(&D)`t%RunASetHotKey%,% MenuIconS[1],% MenuIconS[2]
+	Menu,Tray,Icon,关于RunAny(&A)...,% AnyIconS[1],% AnyIconS[2]
 	Menu,Tray,Icon,插件管理(&C)`t%PluginsManageHotKey%,shell32.dll,166
 	Menu,Tray,Icon,检查更新(&U),shell32.dll,14
-	Menu,exeTestMenu,add,SetCancel	;只用于测试应用图标正常添加
 	;~;[引入菜单项图标识别库]
 	global IconFolderPath:=Var_Read("IconFolderPath")
 	global IconFolderList:={}
@@ -3395,7 +3415,7 @@ GuiIcon_Set:
 	IL_Add(ImageListID, "shell32.dll", 50)
 	IL_Add(ImageListID, "shell32.dll", 100)
 	IL_Add(ImageListID, "shell32.dll", 101)
-	IL_Add(ImageListID, "shell32.dll", 131)
+	IL_Add(ImageListID, FuncIconS[1], FuncIconS[2])
 	;#菜单加载完后，预读完成"修改菜单"的GUI图标
 	Loop, parse, iniVar1, `n, `r, %A_Space%%A_Tab%
 	{
