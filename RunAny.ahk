@@ -2571,6 +2571,7 @@ PGuiEscape:
 	Gui,P:Destroy
 return
 LVAdd:
+	gosub,PluginsNewVersion
 	Gui,D:Destroy
 	Gui,D:Default
 	Gui,D:Font, s10, Microsoft YaHei
@@ -2589,27 +2590,40 @@ LVAdd:
 	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
 	Gui,D:Show, , %RunAnyZz% 插件下载 %RunAny_update_version% %RunAny_update_time%
 return
-LVDown:
-	TrayTip,,RunAny开始下载插件，请稍等……,2,1
+PluginsNewVersion:
 	if(!Check_Github()){
-		MsgBox,网络异常，无法从https://github.com/hui-Zz/RunAny上读取最新版本文件，请手动下载
+		TrayTip,网络异常，无法从https://github.com/hui-Zz/RunAny上读取最新版本文件，请手动下载,3,1
 		return
 	}
-	gosub,AhkExeDown
-	Loop
+	pluginsDownList:=["RunAny_ObjReg.ahk","RunAny_Menu.ahk","huiZz_MButton.ahk","huiZz_RestTime.ahk","huiZz_Window.ahk","huiZz_Text.ahk"]
+return
+LVDown:
+	MsgBox,33,RunAny下载插件,是否下载插件？如有修改过插件代码请注意备份！`n(旧版文件会转移到%A_Temp%\%RunAnyZz%\%PluginsDir%)
+	IfMsgBox Ok
 	{
-		RowNumber := LV_GetNext(RowNumber)
-		if not RowNumber
-			RowNumber := LV_GetNext(RowNumber, "Checked")  ; 再找勾选的行
-		if not RowNumber  ; 上面返回零, 所以选择的行已经都找到了.
-			break
-		LV_GetText(FileName, RowNumber, ColumnName)
-		LV_GetText(FileStatus, RowNumber, ColumnStatus)
-		URLDownloadToFile,%RunAnyGithubDir%/RunPlugins/%FileName% ,%A_ScriptDir%\%PluginsDir%\%FileName%
+		TrayTip,,RunAny开始下载插件，请稍等……,2,1
+		if(!Check_Github()){
+			MsgBox,网络异常，无法从https://github.com/hui-Zz/RunAny上读取最新版本文件，请手动下载
+			return
+		}
+		gosub,AhkExeDown
+		Loop
+		{
+			RowNumber := LV_GetNext(RowNumber)
+			if not RowNumber
+				RowNumber := LV_GetNext(RowNumber, "Checked")  ; 再找勾选的行
+			if not RowNumber  ; 上面返回零, 所以选择的行已经都找到了.
+				break
+			LV_GetText(FileName, RowNumber, ColumnName)
+			LV_GetText(FileStatus, RowNumber, ColumnStatus)
+			IfExist,%A_ScriptDir%\%PluginsDir%\%FileName%
+				FileMove,%A_ScriptDir%\%PluginsDir%\%FileName%,%A_Temp%\%RunAnyZz%\%PluginsDir%\%FileName%
+			URLDownloadToFile,%RunAnyGithubDir%/RunPlugins/%FileName% ,%A_ScriptDir%\%PluginsDir%\%FileName%
+		}
+		MsgBox,RunAny插件下载成功，自动重启后请重新查看,3,1
+		Sleep,2000
+		Reload
 	}
-	TrayTip,,RunAny插件下载成功，自动重启后请重新查看,3,1
-	Sleep,2000
-	Reload
 return
 AhkExeDown:
 	ahkName:=A_Is64bitOS ? "AHK64.exe" : "AHK.exe"
@@ -3322,7 +3336,6 @@ Run_Exist:
 	if(FileExist(ahkExePath)){
 		ahkFlag:=true
 	}
-	pluginsDownList:=["RunAny_ObjReg.ahk","RunAny_Menu.ahk","huiZz_MButton.ahk","huiZz_RestTime.ahk","huiZz_Window.ahk","huiZz_Text.ahk"]
 return
 ;~;[AHK插件脚本读取]
 Plugins_Read:
@@ -3431,45 +3444,60 @@ return
 Menu_Exe_Icon_Create:
 	;~;[循环提取菜单中EXE的所有程序图标，过程较慢]
 	cfgFile=%A_ScriptDir%\ResourcesExtract\ResourcesExtract.cfg
-	DestFold=%A_Temp%\RunAnyExeIconTemp
+	DestFold=%A_Temp%\%RunAnyZz%\RunAnyExeIconTemp
 	if(!FileExist(ResourcesExtractFile)){
 		MsgBox, 请将ResourcesExtract.exe放入%A_ScriptDir%\ResourcesExtract\
 		return
 	}
-	MsgBox,33,生成所有EXE图标，请稍等片刻,确定提取生成%RunAnyZz%菜单中的所有EXE程序图标吗？
-	IfMsgBox Ok
+	MsgBox,35,生成所有EXE图标，请稍等片刻, 是：覆盖老图标重新生成%RunAnyZz%菜单中的所有EXE图标`n否：只生成没有的EXE图标`n取消：取消生成
+	IfMsgBox Yes
 	{
-		if(!FileExist(cfgFile)){
-			MsgBox, 请将ResourcesExtract.cfg放入%A_ScriptDir%\ResourcesExtract\
-			return
-		}else{
-			IniWrite,%DestFold%,%cfgFile%,General,DestFolder
-			IniWrite,1,%cfgFile%,General,ExtractIcons
-			IniWrite,0,%cfgFile%,General,ExtractCursors
-			IniWrite,0,%cfgFile%,General,ExtractBitmaps
-			IniWrite,0,%cfgFile%,General,ExtractHTML
-			IniWrite,0,%cfgFile%,General,ExtractAnimatedIcons
-			IniWrite,0,%cfgFile%,General,ExtractAnimatedCursors
-			IniWrite,0,%cfgFile%,General,ExtractAVI
-			IniWrite,0,%cfgFile%,General,OpenDestFolder
-			IniWrite,2,%cfgFile%,General,MultiFilesMode
-		}
-		For k, v in MenuExeList
-		{
-			if(!HideMenuAppIconList[(v["menuName"])]){
-				exePath:=v["itemPath"]
+		exeIconCreateFlag:=false
+		gosub,Menu_Exe_Icon_Extract
+	}
+	IfMsgBox No
+	{
+		exeIconCreateFlag:=true
+		gosub,Menu_Exe_Icon_Extract
+	}
+return
+Menu_Exe_Icon_Extract:
+	if(!FileExist(cfgFile)){
+		MsgBox, 请将ResourcesExtract.cfg放入%A_ScriptDir%\ResourcesExtract\
+		return
+	}else{
+		IniWrite,%DestFold%,%cfgFile%,General,DestFolder
+		IniWrite,1,%cfgFile%,General,ExtractIcons
+		IniWrite,0,%cfgFile%,General,ExtractCursors
+		IniWrite,0,%cfgFile%,General,ExtractBitmaps
+		IniWrite,0,%cfgFile%,General,ExtractHTML
+		IniWrite,0,%cfgFile%,General,ExtractAnimatedIcons
+		IniWrite,0,%cfgFile%,General,ExtractAnimatedCursors
+		IniWrite,0,%cfgFile%,General,ExtractAVI
+		IniWrite,0,%cfgFile%,General,OpenDestFolder
+		IniWrite,2,%cfgFile%,General,MultiFilesMode
+	}
+	ToolTip,RunAny开始用ResourcesExtract生成EXE图标，请稍等……
+	For k, v in MenuExeList
+	{
+		exePath:=v["itemPath"]
+		if(FileExist(exePath) && !HideMenuAppIconList[(v["menuName"])]){
+			menuItem:=menuItemIconFileName(v["menuItem"])
+			if(!exeIconCreateFlag || !FileExist(A_ScriptDir "\ExeIcon\" menuItem ".ico")){
 				Run,%ResourcesExtractFile% /LoadConfig "%cfgFile%" /Source "%exePath%" /DestFold "%DestFold%"
 			}
 		}
-		Menu_Exe_Icon_Set()
-		MsgBox, 成功生成%RunAnyZz%内所有EXE图标到 %A_ScriptDir%\ExeIcon
-		Gui,66:Submit, NoHide
-		if(vIconFolderPath){
-			if(!InStr(vIconFolderPath,"ExeIcon"))
-				GuiControl,, vIconFolderPath, %vIconFolderPath%`n`%A_ScriptDir`%\ExeIcon
-		}else{
-			GuiControl,, vIconFolderPath, `%A_ScriptDir`%\ExeIcon
-		}
+	}
+	Process,WaitClose,ResourcesExtract.exe,10
+	ToolTip
+	Menu_Exe_Icon_Set()
+	MsgBox, 成功生成%RunAnyZz%内所有EXE图标到 %A_ScriptDir%\ExeIcon
+	Gui,66:Submit, NoHide
+	if(vIconFolderPath){
+		if(!InStr(vIconFolderPath,"ExeIcon"))
+			GuiControl,, vIconFolderPath, %vIconFolderPath%`n`%A_ScriptDir`%\ExeIcon
+	}else{
+		GuiControl,, vIconFolderPath, `%A_ScriptDir`%\ExeIcon
 	}
 return
 Menu_Exe_Icon_Set(){
@@ -3485,9 +3513,9 @@ Menu_Exe_Icon_Set(){
 			maxFileName=
 			maxFileSize=
 			maxFilePath=
-			IfExist,%A_Temp%\RunAnyExeIconTemp\%exeName%
+			IfExist,%A_Temp%\%RunAnyZz%\RunAnyExeIconTemp\%exeName%
 			{
-				loop,%A_Temp%\RunAnyExeIconTemp\%exeName%\*.ico
+				loop,%A_Temp%\%RunAnyZz%\RunAnyExeIconTemp\%exeName%\*.ico
 				{
 					if(RegExMatch(A_LoopFileName,"iS).*_MAINICON.ico")){
 						maxFilePath:=A_LoopFileFullPath
@@ -3507,19 +3535,22 @@ Menu_Exe_Icon_Set(){
 						maxFilePath:=A_LoopFileFullPath
 					}
 				}
-				menuItem:=v["menuItem"]
-				if(InStr(menuItem,"`t")){
-					menuKeyStr:=RegExReplace(menuItem, "S)\t+", A_Tab)
-					menuKeys:=StrSplit(menuKeyStr,"`t")
-					menuItem:=menuKeys[1]
-				}
-				if(RegExMatch(menuItem,"S).*_:\d{1,2}$"))
-					menuItem:=RegExReplace(menuItem,"S)(.*)_:\d{1,2}$","$1")
+				menuItem:=menuItemIconFileName(v["menuItem"])
 				FileCopy, %maxFilePath%, %A_ScriptDir%\ExeIcon\%menuItem%.ico, 1
 				maxFilePath=
 			}
 		}
 	}
+}
+menuItemIconFileName(menuItem){
+	if(InStr(menuItem,"`t")){
+		menuKeyStr:=RegExReplace(menuItem, "S)\t+", A_Tab)
+		menuKeys:=StrSplit(menuKeyStr,"`t")
+		menuItem:=menuKeys[1]
+	}
+	if(RegExMatch(menuItem,"S).*_:\d{1,2}$"))
+		menuItem:=RegExReplace(menuItem,"S)(.*)_:\d{1,2}$","$1")
+	return menuItem
 }
 ;~;[自动启动生效]
 AutoRun_Effect:
