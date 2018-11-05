@@ -36,6 +36,10 @@ __【多台电脑你只需配置一套软件列表，就能到处运行，配合
 
 <img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/help/RunAny一键直达功能.gif" alt="RunAny一键直达功能">
 
+RunAny一键公式计算
+
+<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/help/RunAny公式计算.gif" alt="RunAny公式计算">
+
 ---
 
 ## RunAny让你告别繁琐的右键打开文件！
