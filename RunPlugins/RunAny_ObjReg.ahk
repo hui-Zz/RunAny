@@ -1,9 +1,11 @@
 ﻿/*
-【RunAny对象注册工具】
+【RunAny插件对象注册工具(不用自启)】
 */
-global RunAny_Plugins_Version:="1.0.0"
+global RunAny_Plugins_Version:="1.0.1"
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global objreg:="objreg"
+SetTitleMatchMode,2         ;~窗口标题模糊匹配
+DetectHiddenWindows,On      ;~显示隐藏窗口
 SplitPath, A_ScriptFullPath, name,, ext,nameNotExt
 ;~[生成插件脚本GUID]
 if(!FileExist(RunAny_ObjReg)){
@@ -13,6 +15,16 @@ IniRead,objGUID,%RunAny_ObjReg%,%objreg%,%nameNotExt%,%A_Space%
 if(!objGUID && nameNotExt!="RunAny_ObjReg"){
 	objGUID:=CreateGUID()
 	IniWrite,%objGUID%,%RunAny_ObjReg%,%objreg%,%nameNotExt%
+    Process,Exist,RunAny.exe
+	if ErrorLevel
+	{
+        Run,%A_ScriptDir%\..\RunAny.exe
+    }
+    IfWinExist, RunAny.ahk ahk_class AutoHotkey
+    {
+        PostMessage, 0x111, 65405,,, RunAny.ahk ahk_class AutoHotkey
+        Run,%A_ScriptDir%\..\RunAny.ahk
+    }
 }
 if(IsObject(RunAnyObj)){
 	ObjRegisterActive(RunAnyObj, objGUID)
