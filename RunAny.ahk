@@ -2571,17 +2571,21 @@ PGuiEscape:
 	Gui,P:Destroy
 return
 LVAdd:
-	gosub,PluginsNewVersion
+	global pluginsDownList:=Object()
+	gosub,PluginsDownVersion
 	Gui,D:Destroy
 	Gui,D:Default
 	Gui,D:Font, s10, Microsoft YaHei
-	Gui,D:Add, Listview, xm w480 r10 grid AltSubmit Checked vRunAnyDownLV, 插件文件|状态|版本号|插件描述
+	Gui,D:Add, Listview, xm w550 r10 grid AltSubmit Checked vRunAnyDownLV, 插件文件|状态|版本号|最新版本|插件描述
 	;~;[读取启动项内容写入列表]
 	GuiControl,D: -Redraw, RunAnyDownLV
-	For pi, pv in pluginsDownList
+	For pk, pv in pluginsDownList
 	{
-		runStatus:=PluginsPathList[pv] ? "已下载" : "未下载"
-		LV_Add("", pv, runStatus, Plugins_Read_Version(PluginsPathList[pv]), PluginsTitleList[pv])
+		runStatus:=PluginsPathList[pk] ? "已下载" : "未下载"
+		pluginsLocalVersion:=Plugins_Read_Version(PluginsPathList[pk])
+		if(runStatus="已下载")
+			runStatus:=pluginsLocalVersion < pv ? "可更新" : "已下载"
+		LV_Add("", pk, runStatus, pluginsLocalVersion, checkGithub ? pv : "网络异常", PluginsTitleList[pk])
 	}
 	GuiControl,D: +Redraw, RunAnyDownLV
 	Menu, ahkDownMenu, Add,下载, LVDown
@@ -2590,12 +2594,34 @@ LVAdd:
 	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
 	Gui,D:Show, , %RunAnyZz% 插件下载 %RunAny_update_version% %RunAny_update_time%
 return
-PluginsNewVersion:
+PluginsDownVersion:
 	if(!Check_Github()){
 		TrayTip,网络异常，无法从https://github.com/hui-Zz/RunAny上读取最新版本文件，请手动下载,3,1
+		pluginsDownList:=PluginsObjList
+		checkGithub:=false
 		return
 	}
-	pluginsDownList:=["RunAny_ObjReg.ahk","RunAny_Menu.ahk","huiZz_MButton.ahk","huiZz_RestTime.ahk","huiZz_Window.ahk","huiZz_Text.ahk"]
+	IfNotExist %A_Temp%\%RunAnyZz%\%PluginsDir%
+		FileCreateDir,%A_Temp%\%RunAnyZz%\%PluginsDir%
+	ObjRegIniPath=%A_Temp%\%RunAnyZz%\%PluginsDir%\RunAny_ObjReg.ini
+	URLDownloadToFile,%RunAnyGithubDir%/%PluginsDir%/RunAny_ObjReg.ini,%ObjRegIniPath%
+	Sleep,1000
+	IfExist,%ObjRegIniPath%
+	{
+		FileGetSize, ObjRegIniSize, %ObjRegIniPath%
+		if(ObjRegIniSize>100){
+			IniRead,objRegIniVar,%ObjRegIniPath%,version
+			Loop, parse, objRegIniVar, `n, `r
+			{
+				varList:=StrSplit(A_LoopField,"=")
+				pluginsDownList[(varList[1])]:=varList[2]
+			}
+			checkGithub:=true
+			return
+		}
+	}
+	pluginsDownList:=PluginsObjList
+	checkGithub:=false
 return
 LVDown:
 	MsgBox,33,RunAny下载插件,是否下载插件？如有修改过插件代码请注意备份！`n(旧版文件会转移到%A_Temp%\%RunAnyZz%\%PluginsDir%)
@@ -2618,10 +2644,10 @@ LVDown:
 			LV_GetText(FileStatus, RowNumber, ColumnStatus)
 			IfExist,%A_ScriptDir%\%PluginsDir%\%FileName%
 				FileMove,%A_ScriptDir%\%PluginsDir%\%FileName%,%A_Temp%\%RunAnyZz%\%PluginsDir%\%FileName%
-			URLDownloadToFile,%RunAnyGithubDir%/RunPlugins/%FileName% ,%A_ScriptDir%\%PluginsDir%\%FileName%
+			URLDownloadToFile,%RunAnyGithubDir%/%PluginsDir%/%FileName% ,%A_ScriptDir%\%PluginsDir%\%FileName%
 		}
 		MsgBox,RunAny插件下载成功，自动重启后请重新查看,3,1
-		Sleep,2000
+		Sleep,1000
 		Reload
 	}
 return
@@ -2637,7 +2663,7 @@ AhkExeDown:
 	}
 	if(ahkDown){
 		TrayTip,,RunAny使用脚本插件需要下载AHK.exe，下载期间RunAny可能卡顿，请稍等片刻……,3,1
-		URLDownloadToFile,%RunAnyGithubDir%/RunPlugins/%ahkName% ,%A_ScriptDir%\%PluginsDir%\AHK.exe
+		URLDownloadToFile,%RunAnyGithubDir%/%PluginsDir%/%ahkName% ,%A_ScriptDir%\%PluginsDir%\AHK.exe
 		if(ahkSize<897024)
 			TrayTip,,AHK.exe下载失败，请重启RunAny重新下载或到Github下载,3,1
 	}
