@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.5.4 @2018.11.02
+║【RunAny】一劳永逸的快速启动工具 v5.5.5 @2018.11.05
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -20,8 +20,8 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
-global RunAny_update_version:="5.5.4"
-global RunAny_update_time:="2018.11.02"
+global RunAny_update_version:="5.5.5"
+global RunAny_update_time:="2018.11.05"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -1238,18 +1238,18 @@ Get_Item_Run_Path(z_item_path){
 }
 ;~;[检查文件后缀是否支持无路径查找]
 Check_Obj_Ext(filePath){
-	EvExtFalg:=false
+	EvExtFlag:=false
 	fileValue:=RegExReplace(filePath,"iS)(.*?\..*?)($| .*)","$1")	;去掉参数
 	SplitPath, fileValue, fName,, fExt  ; 获取扩展名
 	Loop,% EvCommandExtList.MaxIndex()
 	{
 		EvCommandExtStr:=StrReplace(EvCommandExtList[A_Index],"*.")
 		if(fExt=EvCommandExtStr){
-			EvExtFalg:=true
+			EvExtFlag:=true
 			break
 		}
 	}
-	if(!EvExtFalg && fExt)
+	if(!EvExtFlag && fExt)
 		return false
 	else
 		return true
@@ -2627,28 +2627,33 @@ LVDown:
 	MsgBox,33,RunAny下载插件,是否下载插件？如有修改过插件代码请注意备份！`n(旧版文件会转移到%A_Temp%\%RunAnyZz%\%PluginsDir%)
 	IfMsgBox Ok
 	{
-		TrayTip,,RunAny开始下载插件，请稍等……,2,1
 		if(!Check_Github()){
 			MsgBox,网络异常，无法从https://github.com/hui-Zz/RunAny上读取最新版本文件，请手动下载
 			return
 		}
 		gosub,AhkExeDown
+		downFlag:=false
 		Loop
 		{
-			RowNumber := LV_GetNext(RowNumber)
-			if not RowNumber
-				RowNumber := LV_GetNext(RowNumber, "Checked")  ; 再找勾选的行
+			RowNumber := LV_GetNext(RowNumber, "Checked")  ; 再找勾选的行
 			if not RowNumber  ; 上面返回零, 所以选择的行已经都找到了.
 				break
+			TrayTip,,RunAny开始下载插件，请稍等……,2,1
 			LV_GetText(FileName, RowNumber, ColumnName)
 			LV_GetText(FileStatus, RowNumber, ColumnStatus)
 			IfExist,%A_ScriptDir%\%PluginsDir%\%FileName%
-				FileMove,%A_ScriptDir%\%PluginsDir%\%FileName%,%A_Temp%\%RunAnyZz%\%PluginsDir%\%FileName%
+				FileMove,%A_ScriptDir%\%PluginsDir%\%FileName%,%A_Temp%\%RunAnyZz%\%PluginsDir%\%FileName%,1
 			URLDownloadToFile,%RunAnyGithubDir%/%PluginsDir%/%FileName% ,%A_ScriptDir%\%PluginsDir%\%FileName%
+			downFlag:=true
 		}
-		MsgBox,RunAny插件下载成功，自动重启后请重新查看,3,1
-		Sleep,1000
-		Reload
+		if(downFlag){
+			MsgBox,RunAny插件下载成功，自动重启后就可以使用了!
+			Sleep,1000
+			Reload
+		}else{
+			ToolTip,请至少选中一项
+			SetTimer,RemoveToolTip,2000
+		}
 	}
 return
 AhkExeDown:
