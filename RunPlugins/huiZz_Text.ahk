@@ -1,8 +1,8 @@
-﻿;********************************
-;*    【ObjReg文本操作脚本】     *
-;*                  by hui-Zz   *
-;********************************
-global RunAny_Plugins_Version:="1.0.0"
+﻿;**************************************
+;* 【ObjReg文本操作脚本(文本函数.ini)】 *
+;*                          by hui-Zz *
+;**************************************
+global RunAny_Plugins_Version:="1.0.1"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent			 ;~让脚本持久运行
@@ -20,8 +20,7 @@ CoordMode,Menu,Window   ;~坐标相对活动窗口
 
 class RunAnyObj {
 	;[文本多行合并]
-	;参数说明：
-	;getZz：选中的文本内容
+	;参数说明：getZz：选中的文本内容
 	;splitStr：换行符替换的分隔文本(默认空格，逗号为特殊字符，转义写成`,)
 	text_merge_zz(getZz:="",splitStr:=" "){
 		textResult:=""
@@ -34,16 +33,14 @@ class RunAnyObj {
 		this.Send_Str_Zz(textResult)
 	}
 	;[文本替换]
-	;参数说明：
-	;getZz：选中的文本内容
+	;参数说明：getZz：选中的文本内容
 	;searchStr：查找的文本内容
 	;replaceStr：用来替换查找到的文本
 	text_replace_zz(getZz:="",searchStr:="",replaceStr:=""){
 		this.Send_Str_Zz(StrReplace(getZz,searchStr,replaceStr))
 	}
 	;[文本格式化]
-	;参数说明：
-	;getZz：选中的文本内容
+	;参数说明：getZz：选中的文本内容
 	;formatStr：格式化选项，详情查看(https://wyagd001.github.io/zh-cn/docs/commands/Format.htm)
 	text_format_zz(getZz:="",formatStr:=""){
 		this.Send_Str_Zz(Format(formatStr,getZz))
@@ -64,6 +61,21 @@ class RunAnyObj {
 		if(downApp)
 			downApp:=downApp A_Space
 		Run,%downApp%%url%
+	}
+	;~ [便捷替换粘贴文本]
+	text_paste_zz(getZz:=""){
+		SendInput,^v
+		Clipboard:=getZz
+	}
+	;~ [选中文本比较剪贴板]
+	text_compare_zz(getZz:="",compareApp:=""){
+		if(compareApp){
+			fs:="选择文本"+A_Now
+			fc:="剪贴板文本"+A_Now
+			FileAppend,%getZz%,%A_Temp%\%fs%.txt
+			FileAppend,%Clipboard%,%A_Temp%\%fc%.txt
+			Run,%compareApp% %A_Temp%\%fs%.txt %A_Temp%\%fc%.txt
+		}
 	}
 	;~;[输出短语]
 	Send_Str_Zz(strZz){
