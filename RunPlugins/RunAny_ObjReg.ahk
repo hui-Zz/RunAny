@@ -23,6 +23,7 @@ if(!objGUID && nameNotExt!="RunAny_ObjReg"){
     IfWinExist, RunAny.ahk ahk_class AutoHotkey
     {
         PostMessage, 0x111, 65405,,, RunAny.ahk ahk_class AutoHotkey
+        Sleep,200
         Run,%A_ScriptDir%\..\RunAny.ahk
     }
 }
