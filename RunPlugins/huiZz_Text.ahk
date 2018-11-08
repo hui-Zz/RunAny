@@ -2,7 +2,7 @@
 ;* 【ObjReg文本操作脚本(文本函数.ini)】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.2"
+global RunAny_Plugins_Version:="1.0.1"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent			 ;~让脚本持久运行
