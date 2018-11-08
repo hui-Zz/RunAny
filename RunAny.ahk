@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.5.5 @2018.11.06
+║【RunAny】一劳永逸的快速启动工具 v5.5.5 @2018.11.08
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -21,7 +21,7 @@ global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.5.5"
-global RunAny_update_time:="2018.11.06"
+global RunAny_update_time:="2018.11.08"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -565,7 +565,8 @@ Menu_Show:
 		if(ahkFlag && FileExist(RunAnyMenu) && PluginsObjList["RunAny_Menu.ahk"]){
 			Run,%ahkExePath%%A_Space%"%RunAnyMenu%"
 		}
-		if(selectZz!=""){
+		selectCheck:=Trim(selectZz," `t`n`r")
+		if(selectCheck!=""){
 			if(Candy_isFile){
 				SplitPath, selectZz,FileName,, FileExt  ; 获取文件扩展名.
 				if(InStr(FileExist(selectZz), "D")){  ; {目录}
@@ -2325,7 +2326,8 @@ Set_Icon(itemVar,editVar=true){
 			; 现在已经把它复制到图像列表, 所以应销毁原来的:
 			DllCall("DestroyIcon", "ptr", hIcon)
 			; 缓存图标来节省内存并提升加载性能:
-			IconArray%ExtID% := IconNumber
+			if(ExtID>0)
+				IconArray%ExtID% := IconNumber
 		}
 	}
 	return "Icon" . IconNumber
