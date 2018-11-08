@@ -2,7 +2,7 @@
 ;* 【ObjReg文本操作脚本(文本函数.ini)】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.2"
+global RunAny_Plugins_Version:="1.0.3"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent			 ;~让脚本持久运行
@@ -155,8 +155,9 @@ class RunAnyObj {
 	}
 	;[批量添加序号]
 	;参数说明：getZz：选中的文本内容
+	;arab：0-中文数字；1-阿拉伯数字
 	;seqNumStr：序号形式
-	text_seq_num_zz(getZz:="",seqNumStr:=""){
+	text_seq_num_zz(getZz:="",seqNumStr:="",arab:=1){
 		textResult:=""
 		ignoreNum:=0
 		Loop, parse, getZz, `n, `r
@@ -167,10 +168,29 @@ class RunAnyObj {
 				ignoreNum++
 				continue
 			}
-			textResult.=(A_Index-ignoreNum) seqNumStr getZzLoop . "`n"
+			numIndex:=A_Index-ignoreNum
+			numIndex:=(arab=1) ? numIndex : this.n2c(numIndex)
+			textResult.=numIndex seqNumStr getZzLoop . "`n"
 		}
 		textResult:=RTrim(textResult,"`n")
 		this.Send_Str_Zz(textResult)
+	}
+	;数字转中文   by FeiYue
+	n2c(n){
+		if !(n ~= "^[1-9]\d*$")    ;当不是整数
+			return
+		static a:=StrSplit("零一二三四五六七八九")
+			, b:=StrSplit("十百千万十百千亿十百千兆十百千京十百千垓")
+		c:=d:="", k:=StrLen(n)
+		Loop, Parse, n
+			c.=a[A_LoopField+1] . b[k-A_Index]
+		if StrLen(c)>(max:=2*b.MaxIndex()+1)
+			d:=SubStr(c,1,-max+2), c:=SubStr(c,-max+3)
+		c:=RegExReplace(c,"零(十|百|千)","零")
+		c:=RegExReplace(c,"零{4}(万|亿|兆|京)","零")
+		c:=RegExReplace(c,"零+(万|亿|兆|京)","$1零")
+		c:=RegExReplace(c,"零+(?=零|$)")
+		return, d . c
 	}
 }
 
