@@ -606,49 +606,55 @@ Menu_Show:
 				calcFlag:=false
 				calcResult:=""
 				selectResult:=""
-				Loop, parse, selectZz, `n, `r, %A_Space%%A_Tab%
+				Loop, parse, selectZz, `n, `r
 				{
-					if(!A_LoopField)
+					S_LoopField=%A_LoopField%
+					if(S_LoopField=""){
+						if(calcResult)
+							calcResult.=A_LoopField "`n"
+						if(selectResult)
+							selectResult.=A_LoopField "`n"
 						continue
+					}
 					;一键打开网址
-					if(OneKeyWeb && RegExMatch(A_LoopField,"iS)^([\w-]+://?|www[.]).*")){
-						Run_Search(A_LoopField,"",BrowserPathRun)
+					if(OneKeyWeb && RegExMatch(S_LoopField,"iS)^([\w-]+://?|www[.]).*")){
+						Run_Search(S_LoopField,"",BrowserPathRun)
 						openFlag:=true
 						continue
 					}
 					;一键磁力下载
-					if(OneKeyMagnet && InStr(A_LoopField,"magnet:?xt=urn:btih:")=1){
-						Run,%A_LoopField%
+					if(OneKeyMagnet && InStr(S_LoopField,"magnet:?xt=urn:btih:")=1){
+						Run,%S_LoopField%
 						openFlag:=true
 						continue
 					}
-					if(RegExMatch(A_LoopField,"S)^(\\\\|.:\\)")){
+					if(RegExMatch(S_LoopField,"S)^(\\\\|.:\\)")){
 						;一键打开目录
-						if(OneKeyFolder && InStr(FileExist(A_LoopField), "D")){
+						if(OneKeyFolder && InStr(FileExist(S_LoopField), "D")){
 							If(OpenFolderPathRun){
-								Run,%OpenFolderPathRun%%A_Space%"%A_LoopField%"
+								Run,%OpenFolderPathRun%%A_Space%"%S_LoopField%"
 							}else{
-								Run,%A_LoopField%
+								Run,%S_LoopField%
 							}
 							openFlag:=true
 							continue
 						}
 						;一键打开文件
-						if(OneKeyFile && Fileexist(A_LoopField)){
-							Run,%A_LoopField%
+						if(OneKeyFile && Fileexist(S_LoopField)){
+							Run,%S_LoopField%
 							openFlag:=true
 							continue
 						}
 					}
 					;一键计算数字加减乘除
-					if(RegExMatch(A_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+($|=$)")){
-						loopField:=A_LoopField
-						if(RegExMatch(A_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+=$")){
-							StringTrimRight, loopField, loopField, 1
+					if(RegExMatch(S_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+($|=$)")){
+						formula:=S_LoopField
+						if(RegExMatch(S_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+=$")){
+							StringTrimRight, formula, formula, 1
 						}
-						calc:=js_eval(loopField)
+						calc:=js_eval(formula)
 						selectResult.=A_LoopField
-						if(RegExMatch(A_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+=$")){
+						if(RegExMatch(S_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+=$")){
 							calcFlag:=true
 							selectResult.=calc
 						}else{
