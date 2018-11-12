@@ -699,12 +699,12 @@ return
 Menu_Key_Show:
 	global selectZz:=Get_Zz()
 	try {
-		thisMenuName:=menuTreekey[(A_ThisHotkey)]
-		Menu,% thisMenuName,Show
+		Menu_Show_Show(menuTreekey[(A_ThisHotkey)],selectZz)
 	}catch{}
 return
 Menu_Show_Show(menuName,itemName){
-	if(!HideGetZz){
+	selectCheck:=Trim(itemName," `t`n`r")
+	if(!HideGetZz && selectCheck!=""){
 		if(StrLen(itemName)>ShowGetZzLen)
 			itemName:=SubStr(itemName, 1, ShowGetZzLen) . "..."
 		Menu,%menuName%,Insert, 1&,%itemName%,Menu_Show_Select_Clipboard
@@ -909,7 +909,7 @@ Menu_Run_Plugins_ObjReg:
 		try {
 			PluginsObjRegActive[appPlugins]:=ComObjActive(PluginsObjRegGUID[appPlugins])
 		} catch {
-			TrayTip,,%appPlugins% 外接脚本注册失败，请查看配置是否有问题并重启RunAny重试,3,1
+			TrayTip,,%appPlugins% 外接脚本失败`n请检查是否已经启动(在插件管理中设为自动启动)，并重启RunAny重试,3,1
 		}
 		getZz:=selectZz
 		appParmStr:=StrReplace(appParmStr,"``,",Chr(3))
@@ -2591,7 +2591,7 @@ LVAdd:
 	{
 		runStatus:=PluginsPathList[pk] ? "已下载" : "未下载"
 		pluginsLocalVersion:=Plugins_Read_Version(PluginsPathList[pk])
-		if(runStatus="已下载")
+		if(runStatus="已下载" && checkGithub)
 			runStatus:=pluginsLocalVersion < pv ? "可更新" : "已下载"
 		LV_Add("", pk, runStatus, pluginsLocalVersion, checkGithub ? pv : "网络异常", PluginsTitleList[pk])
 	}
