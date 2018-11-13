@@ -264,9 +264,11 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 					SplitPath, item,,, FileExt  ; 获取文件扩展名.
 					appParm:=RegExReplace(menuDiy[2],"iS).*?\." FileExt "($| .*)","$1")	;去掉应用名，取参数
 					MenuObjParam[menuDiy[1]]:=item . appParm
+					itemParam:=item . appParm
 					flagEXE:=true
 				}else{
 					item:=menuDiy[2]
+					itemParam:=menuDiy[2]
 					if(RegExMatch(item,"iS).*?\.exe .*"))
 						item:=RegExReplace(item,"iS)(.*?\.exe) .*","$1")	;只去参数
 					SplitPath, item,,, FileExt  ; 获取文件扩展名.
@@ -276,8 +278,11 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 					else if(FileExist(A_WinDir "\" item) || FileExist(A_WinDir "\system32\" item))
 						flagEXE:=true
 					;~;如果是有效程序、不隐藏失效、不是exe程序则添加该菜单项功能
-					if(flagEXE || !HideFail || FileExt!="exe")
+					if(flagEXE || !HideFail){
 						MenuObjParam[menuDiy[1]]:=menuDiy[2]
+					}else if(FileExt!="exe"){
+						MenuObj[menuDiy[1]]:=menuDiy[2]
+					}
 				}
 				if(FileExt="exe"){
 					if(flagEXE){
@@ -297,14 +302,14 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 							Menu_Item_Icon(menuRootFn[menuLevel],menuDiy[1],"SHELL32.dll","124")
 					}
 				}else{
-					Menu_Add(menuRootFn[menuLevel],menuDiy[1],MenuObjParam[menuDiy[1]],menuRootFn,menuWebRootFn,menuWebList,webRootShow)
+					Menu_Add(menuRootFn[menuLevel],menuDiy[1],itemParam,menuRootFn,menuWebRootFn,menuWebList,webRootShow)
 				}
 				;~;[分割Tab获取应用自定义热键]
 				if(InStr(menuDiy[1],"`t")){
 					menuKeyStr:=RegExReplace(menuDiy[1], "S)\t+", A_Tab)
 					menuKeys:=StrSplit(menuKeyStr,"`t")
 					if(menuKeys[2]){
-						MenuObjKey[menuKeys[2]]:=MenuObjParam[menuDiy[1]]
+						MenuObjKey[menuKeys[2]]:=itemParam
 						MenuObjName[menuKeys[2]]:=menuKeys[1]
 						Hotkey,% menuKeys[2],Menu_Key_Run,On
 					}
@@ -424,6 +429,17 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 			}
 			if(HideSend)
 				Menu,%menuName%,Delete,%menuItem%
+			if(InStr(menuItem,":")=1){
+				;{设置热字符串}
+				any:=MenuObj[(menuItem)]
+				StringLeft, any, any, itemLen-1
+				if(InStr(menuItem,"`t")){
+					menuKeyStr:=RegExReplace(menuItem, "S)\t+", A_Tab)
+					menuKeys:=StrSplit(menuKeyStr,"`t")
+					menuItem:=menuKeys[1]
+				}
+				Hotstring(menuItem, Get_Transform_Val(any))
+			}
 			return
 		}
 		if(InStr(item,"::",,0,1)=itemLen-1){	; {发送热键}
@@ -640,7 +656,7 @@ Menu_Show:
 							continue
 						}
 						;一键打开文件
-						if(OneKeyFile && Fileexist(S_LoopField)){
+						if(OneKeyFile && FileExist(S_LoopField)){
 							Run,%S_LoopField%
 							openFlag:=true
 							continue
@@ -729,7 +745,7 @@ Menu_Run:
 		MenuShowMenuRun:=""
 	}
 	SplitPath, any, , dir, ext
-	if(dir)
+	if(dir && FileExist(dir))
 		SetWorkingDir,%dir%
 	if(!HideRecent && !RegExMatch(A_ThisMenuItem,"S)^&1|2"))
 		gosub,Menu_Recent
@@ -764,7 +780,7 @@ Menu_Run:
 		}
 		if(selectZz!=""){
 			firstFile:=RegExReplace(selectZz,"(.*)(\n|\r).*","$1")  ;取第一行
-			if(Candy_isFile=1 || Fileexist(selectZz) || Fileexist(firstFile)){
+			if(Candy_isFile=1 || FileExist(selectZz) || FileExist(firstFile)){
 				if(GetKeyState("Ctrl")){
 					gosub,Menu_Add_File_Item
 					return
@@ -826,7 +842,7 @@ Menu_Key_Run:
 	any:=menuObjkey[(A_ThisHotkey)]
 	thisMenuName:=MenuObjName[(A_ThisHotkey)]
 	SplitPath, any, , dir
-	if(dir)
+	if(dir && FileExist(dir))
 		SetWorkingDir,%dir%
 	try {
 		anyLen:=StrLen(any)
@@ -847,7 +863,7 @@ Menu_Key_Run:
 		}
 		if(selectZz){
 			firstFile:=RegExReplace(selectZz,"(.*)(\n|\r).*","$1")  ;取第一行
-			if(Candy_isFile=1 || Fileexist(selectZz) || Fileexist(firstFile)){
+			if(Candy_isFile=1 || FileExist(selectZz) || FileExist(firstFile)){
 				selectZzStr:=""
 				Loop, parse, selectZz, `n, `r, %A_Space%%A_Tab%
 				{
