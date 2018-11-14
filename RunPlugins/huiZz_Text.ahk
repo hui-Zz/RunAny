@@ -1,8 +1,8 @@
 ﻿;**************************************
-;* 【ObjReg文本操作脚本(文本函数.ini)】 *
+;* 【ObjReg文本操作脚本[文本函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.3"
+global RunAny_Plugins_Version:="1.0.4"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent			 ;~让脚本持久运行
@@ -16,7 +16,7 @@ SetWinDelay,0            ;~执行窗口命令自动延时(默认100)
 SetTitleMatchMode,2     ;~窗口标题模糊匹配
 CoordMode,Menu,Window   ;~坐标相对活动窗口
 ;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
-#Include RunAny_ObjReg.ahk
+#Include %A_ScriptDir%\RunAny_ObjReg.ahk
 
 class RunAnyObj {
 	;~;[输出短语]
@@ -191,6 +191,28 @@ class RunAnyObj {
 		c:=RegExReplace(c,"零+(万|亿|兆|京)","$1零")
 		c:=RegExReplace(c,"零+(?=零|$)")
 		return, d . c
+	}
+	;中文转数字   by FeiYue
+	c2n(c){
+		static a:={"零":0,一:1,二:2,两:2,三:3,四:4,五:5
+			,六:6,七:7,八:8,九:9,十:10,百:100,千:1000
+			,万:10000,亿:10**8,兆:10**12,京:10**16,垓:10**20}
+		c:=RegExReplace(c,"[[:ascii:]]")
+		c:=SubStr(c,1,1)="十" ? "一" c:c
+		r:=StrSplit(c), q:=w:=bak:=1, n:=0
+		Loop, % i:=r.MaxIndex()
+			if (v:=Round(a[r[i--]]))>1000
+				w*=(v>bak ? v//bak : v), bak:=v, q:=1
+			else if (v>=10)
+				q:=v
+			else n+=v*q*w
+		return, n
+	}
+	;[中文数字互转]
+	;参数说明：getZz：选中的文本内容
+	;cn：0-转为阿拉伯数字；1-转为中文数字
+	text_cn2_zz(getZz:="",cn=0){
+		this.Send_Str_Zz(cn ? this.n2c(getZz) : this.c2n(getZz))
 	}
 }
 
