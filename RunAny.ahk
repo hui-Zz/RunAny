@@ -2030,9 +2030,9 @@ Website_Icon:
 		try {
 			diyText:=StrSplit(ItemText,"|")
 			webText:=(diyText[2]) ? diyText[2] : diyText[1]
-			if(RegExMatch(webText,"iS)([\w-]+://?|www[.]).*")){
+			if(RegExMatch(webText,"iS)^([\w-]+://?|www[.]).*")){
 				website:=RegExReplace(webText,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
-				webIcon:=WebIconDir "\" website ".ico"
+				webIcon:=WebIconDir "\" menuItemIconFileName(diyText[1]) ".ico"
 				InputBox, webSiteInput, 重新下载网站图标,可以重新下载图标并匹配网址`n请修改以下网址再点击下载,,,,,,,,http://%website%/favicon.ico
 				if !ErrorLevel
 				{
@@ -2092,9 +2092,9 @@ Website_Icon_Down:
 	try {
 		diyText:=StrSplit(ItemText,"|")
 		webText:=(diyText[2]) ? diyText[2] : diyText[1]
-		if(RegExMatch(webText,"iS)([\w-]+://?|www[.]).*")){
+		if(RegExMatch(webText,"iS)^([\w-]+://?|www[.]).*")){
 			website:=RegExReplace(webText,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
-			webIcon:=WebIconDir "\" website ".ico"
+			webIcon:=WebIconDir "\" menuItemIconFileName(diyText[1]) ".ico"
 			URLDownloadToFile("http://" website "/favicon.ico",webIcon)
 			GuiControl,, MyProgress, +10
 		}
