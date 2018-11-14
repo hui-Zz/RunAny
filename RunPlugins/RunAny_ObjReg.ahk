@@ -1,8 +1,8 @@
 ﻿/*
-【RunAny插件对象注册工具(不用自启)】
+【ObjReg插件对象注册工具（不用自启）】
 */
-global RunAny_Plugins_Version:="1.0.1"
-global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
+global RunAny_Plugins_Version:="1.0.2"
+global RunAny_ObjReg:=A_ScriptDir "\RunAny_ObjReg.ini" ;~插件注册配置文件
 global objreg:="objreg"
 SetTitleMatchMode,2         ;~窗口标题模糊匹配
 DetectHiddenWindows,On      ;~显示隐藏窗口
