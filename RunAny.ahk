@@ -20,7 +20,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
-global RunAny_update_version:="5.5.0" ;~暂时不更新
+global RunAny_update_version:="5.5.6"
 global RunAny_update_time:="2018.11.14"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
@@ -2457,13 +2457,13 @@ gosub,Plugins_Read
 global ColumnName:=1
 global ColumnStatus:=2
 global ColumnAutoRun:=3
-global ColumnCloseRun:=4
+global ColumnContent:=5
 DetectHiddenWindows,On
 Gui,P:Destroy
 Gui,P:Default
 Gui,P:+Resize
 Gui,P:Font, s10, Microsoft YaHei
-Gui,P:Add, Listview, xm w500 r20 grid AltSubmit vRunAnyLV glistview, 插件文件|运行状态|自动启动|插件描述
+Gui,P:Add, Listview, xm w550 r20 grid AltSubmit vRunAnyLV glistview, 插件文件|运行状态|自动启动|插件描述
 ;~;[读取启动项内容写入列表]
 GuiControl,P: -Redraw, RunAnyLV
 For runn, runv in PluginsObjList
@@ -2632,11 +2632,12 @@ PGuiEscape:
 return
 LVAdd:
 	global pluginsDownList:=Object()
+	global pluginsNameList:=Object()
 	gosub,PluginsDownVersion
 	Gui,D:Destroy
 	Gui,D:Default
 	Gui,D:Font, s10, Microsoft YaHei
-	Gui,D:Add, Listview, xm w550 r10 grid AltSubmit Checked vRunAnyDownLV, 插件文件|状态|版本号|最新版本|插件描述
+	Gui,D:Add, Listview, xm w600 r10 grid AltSubmit Checked vRunAnyDownLV, 插件文件|状态|版本号|最新版本|插件描述
 	;~;[读取启动项内容写入列表]
 	GuiControl,D: -Redraw, RunAnyDownLV
 	For pk, pv in pluginsDownList
@@ -2645,7 +2646,7 @@ LVAdd:
 		pluginsLocalVersion:=Plugins_Read_Version(PluginsPathList[pk])
 		if(runStatus="已下载" && checkGithub)
 			runStatus:=pluginsLocalVersion < pv ? "可更新" : "已下载"
-		LV_Add("", pk, runStatus, pluginsLocalVersion, checkGithub ? pv : "网络异常", PluginsTitleList[pk])
+		LV_Add("", pk, runStatus, pluginsLocalVersion, checkGithub ? pv : "网络异常",checkGithub ? pluginsNameList[pk] : PluginsTitleList[pk])
 	}
 	GuiControl,D: +Redraw, RunAnyDownLV
 	Menu, ahkDownMenu, Add,下载, LVDown
@@ -2675,6 +2676,12 @@ PluginsDownVersion:
 				varList:=StrSplit(A_LoopField,"=")
 				pluginsDownList[(varList[1])]:=varList[2]
 			}
+			IniRead,objRegIniVar,%ObjRegIniPath%,name
+			Loop, parse, objRegIniVar, `n, `r
+			{
+				varList:=StrSplit(A_LoopField,"=")
+				pluginsNameList[(varList[1])]:=varList[2]
+			}
 			checkGithub:=true
 			return
 		}
@@ -2700,10 +2707,18 @@ LVDown:
 			TrayTip,,RunAny开始下载插件，请稍等……,2,1
 			LV_GetText(FileName, RowNumber, ColumnName)
 			LV_GetText(FileStatus, RowNumber, ColumnStatus)
+			LV_GetText(FileContent, RowNumber, ColumnContent)
 			IfExist,%A_ScriptDir%\%PluginsDir%\%FileName%
 				FileMove,%A_ScriptDir%\%PluginsDir%\%FileName%,%A_Temp%\%RunAnyZz%\%PluginsDir%\%FileName%,1
 			URLDownloadToFile(RunAnyGithubDir "/" PluginsDir "/" FileName,A_ScriptDir "\" PluginsDir "\" FileName)
 			downFlag:=true
+			pluginsContent:=RegExReplace(FileContent, ".*\[([^\[\]]*)\]","$1")
+			if(pluginsContent){
+				IfExist,%featureDir%\%pluginsContent%
+					FileMove,%featureDir%\%pluginsContent%,%A_Temp%\%RunAnyZz%\实用配置\%pluginsContent%,1
+				URLDownloadToFile(RunAnyGithubDir "/实用配置/" pluginsContent,featureDir "\" pluginsContent)
+				Run,%featureDir%\%pluginsContent%
+			}
 		}
 		if(downFlag){
 			MsgBox,RunAny插件下载成功，自动重启后就可以使用了!
@@ -3239,6 +3254,7 @@ Var_Set:
 	;~[定期自动检查更新]
 	global lpszUrl:="https://raw.githubusercontent.com"
 	global RunAnyGithubDir:=lpszUrl . "/hui-Zz/RunAny/master"
+	global featureDir:=A_ScriptDir "\实用配置"
 	if(A_DD=01 || A_DD=15){
 		;当天已经检查过就不再更新
 		if(FileExist(A_Temp "\temp_RunAny.ahk")){
@@ -3746,8 +3762,8 @@ Config_Update:
 		vEvCommand:=StrReplace(EvCommand,"!C:\*Windows* file:*.exe","!C:\*Windows* !?:\$RECYCLE.BIN* file:*.exe")
 		Reg_Set(vEvCommand,EvCommand,"EvCommand")
 	}
-	IfNotExist %A_ScriptDir%\实用配置
-		FileCreateDir,%A_ScriptDir%\实用配置
+	IfNotExist %featureDir%
+		FileCreateDir,%featureDir%
 	configDownList:=["窗口函数.ini","文本函数.ini","系统函数.ini"]
 	For i, v in configDownList
 	{
