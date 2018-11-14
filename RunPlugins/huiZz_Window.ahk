@@ -1,5 +1,5 @@
 ﻿;**************************************
-;* 【ObjReg窗口操作脚本(窗口函数.ini)】 *
+;* 【ObjReg窗口操作脚本[窗口函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
 global RunAny_Plugins_Version:="1.0.1"
@@ -16,7 +16,7 @@ SetWinDelay,0            ;~执行窗口命令自动延时(默认100)
 SetTitleMatchMode,2     ;~窗口标题模糊匹配
 CoordMode,Menu,Window   ;~坐标相对活动窗口
 ;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
-#Include RunAny_ObjReg.ahk
+#Include %A_ScriptDir%\RunAny_ObjReg.ahk
 
 class RunAnyObj {
 	;[窗口居中]
