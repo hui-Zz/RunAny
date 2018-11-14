@@ -20,7 +20,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
-global RunAny_update_version:="5.5.6"
+global RunAny_update_version:="5.5.0" ;~暂时不更新
 global RunAny_update_time:="2018.11.14"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
@@ -1784,6 +1784,7 @@ SetItemIconPath:
 	if(iconSelPath){
 		SplitPath, vfileName, fName,, fExt, name_no_ext
 		itemIconName:=vitemName ? vitemName : name_no_ext
+		itemIconName:=menuItemIconFileName(itemIconName)
 		if(FileExist(itemIconFile)){
 			IfNotExist %A_Temp%\%RunAnyZz%\RunIcon
 				FileCreateDir,%A_Temp%\%RunAnyZz%\RunIcon
