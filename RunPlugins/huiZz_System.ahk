@@ -1,8 +1,8 @@
 ﻿;**************************************
-;* 【ObjReg系统操作脚本(系统函数.ini)】 *
+;* 【ObjReg系统操作脚本[系统函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.0"
+global RunAny_Plugins_Version:="1.0.1"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent			 ;~让脚本持久运行
 #WinActivateForce       ;~强制激活窗口
@@ -15,7 +15,7 @@ SetWinDelay,0            ;~执行窗口命令自动延时(默认100)
 SetTitleMatchMode,2     ;~窗口标题模糊匹配
 CoordMode,Menu,Window   ;~坐标相对活动窗口
 ;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
-#Include RunAny_ObjReg.ahk
+#Include %A_ScriptDir%\RunAny_ObjReg.ahk
 
 class RunAnyObj {
 	;[显示系统隐藏文件]
@@ -69,6 +69,9 @@ class RunAnyObj {
 			Sleep,3000
 			ToolTip
 		}
+	}
+	system_ping_zz(getZz:=""){
+		Run,% ComSpec " /C ping " getZz " -t"
 	}
 	/*
 	【隐藏运行cmd命令并将结果存入剪贴板后取回 @hui-Zz】
