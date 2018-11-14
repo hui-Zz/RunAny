@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.5.5 @2018.11.08
+║【RunAny】一劳永逸的快速启动工具 v5.5.6 @2018.11.14
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -20,8 +20,8 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
-global RunAny_update_version:="5.5.5"
-global RunAny_update_time:="2018.11.08"
+global RunAny_update_version:="5.5.6"
+global RunAny_update_time:="2018.11.14"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -449,7 +449,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 		}
 		if(RegExMatch(item,"iS)([\w-]+://?|www[.]).*")){  ; {网址}
 			website:=RegExReplace(item,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
-			webIcon:=A_ScriptDir "\RunIcon\" website ".ico"
+			webIcon:=RunIconDir "\" website ".ico"
 			Menu,%menuName%,add,%menuItem%,Menu_Run
 			Menu,%menuName%:,add,%menuItem%,Menu_Run
 			if(FileExist(webIcon)){
@@ -1684,18 +1684,22 @@ return
 Menu_Item_Edit:
 	SaveLabel:=menuGuiFlag ? "SetSaveItemGui" : "SetSaveItem"
 	PromptStr:=menuGuiFlag ? "需要" : "请点击此"
-	SplitPath, fileName, fName,, fExt  ; 获取扩展名
+	SplitPath, fileName, fName,, fExt, name_no_ext
+	itemIconName:=itemName ? itemName : name_no_ext
+	itemIconFile:=IconFolderList[menuItemIconFileName(itemIconName)]
 	Gui,SaveItem:Destroy
 	Gui,SaveItem:Margin,20,20
 	Gui,SaveItem:Font,,Microsoft YaHei
 	Gui,SaveItem:Add, GroupBox,xm y+10 w500 h210,新增菜单项
 	Gui,SaveItem:Add, Text, xm+10 y+30 y35 w60, 菜单项名：
 	Gui,SaveItem:Add, Edit, x+5 yp-3 w250 vvitemName GFileNameChange, %itemName%
-	Gui,SaveItem:Add, Text, x+20 yp+3 w80, Tab制表符
-	Gui,SaveItem:Add, Text, xm+10 y+15 w60, 全局热键：
+	Gui,SaveItem:Add, Text, x+10 yp+3 w70, Tab制表符
+	Gui,SaveItem:Add, Picture, x+10 yp-3 w50 h-1 gSetItemIconPath, %itemIconFile%
+	Gui,SaveItem:Add, Text, xp-5 yp+3 w72 cGreen vvIconAdd gSetItemIconPath BackgroundTrans, 添加图标文件
+	Gui,SaveItem:Add, Text, xm+10 y+20 w60, 全局热键：
 	Gui,SaveItem:Add, Hotkey,x+5 yp-3 w150 vvitemGlobalKey,%itemGlobalKey%
 	Gui,SaveItem:Add, Checkbox,Checked%itemGlobalWinKey% x+5 yp+3 vvitemGlobalWinKey,Win
-	Gui,SaveItem:Add, Text, x+20 yp w200, %itemGlobalHotKey%
+	Gui,SaveItem:Add, Text, x+5 yp cBlue w200 BackgroundTrans, %itemGlobalHotKey%
 	Gui,SaveItem:Add, Text, xm+10 y+10 w100, 分 隔 符 ：  |
 	Gui,SaveItem:Add, Text, x+10 yp w350 cRed vvPrompt GSetSaveItemFullPath, 注意：RunAny不支持当前后缀无路径运行，%PromptStr%使用全路径
 	if(InStr(itemName,"-")){
@@ -1715,6 +1719,8 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add, Text, xm y+25, %thisMenuStr% %thisMenuItemStr%
 	Gui,SaveItem:Show,,新增菜单项 - %RunAnyZz%
 	GuiControl,SaveItem:Hide, vPrompt
+	if(itemIconFile)
+		GuiControl,SaveItem:Hide, vIconAdd
 	thisMenuStr:=thisMenuItemStr:=""
 	gosub,FileNameChange
 return
@@ -1766,6 +1772,35 @@ SetItemPath:
 	if(fileSelPath){
 		GuiControl,, vfileName, % Get_Item_Run_Path(fileSelPath)
 		gosub,FileNameChange
+	}
+return
+SetItemIconPath:
+	Gui,SaveItem:Submit, NoHide
+	if(!vitemName && !vfileName){
+		MsgBox, 48, ,菜单项名和启动路径不能同时为空时设置图标
+		return
+	}
+	FileSelectFile, iconSelPath, , , 图标文件路径
+	if(iconSelPath){
+		SplitPath, vfileName, fName,, fExt, name_no_ext
+		itemIconName:=vitemName ? vitemName : name_no_ext
+		if(FileExist(itemIconFile)){
+			IfNotExist %A_Temp%\%RunAnyZz%\RunIcon
+				FileCreateDir,%A_Temp%\%RunAnyZz%\RunIcon
+			SplitPath, itemIconFile, fName,, fExt, name_no_ext
+			FileMove,%itemIconFile%,%A_Temp%\%RunAnyZz%\RunIcon\%fName%,1
+		}
+		if(fExt="exe"){
+			iconCopyDir:=ExeIconDir
+		}else if(RegExMatch(vfileName,"iS)([\w-]+://?|www[.]).*")){
+			iconCopyDir:=WebIconDir
+		}else{
+			iconCopyDir:=MenuIconDir
+		}
+		SplitPath, iconSelPath, iName,, iExt
+		FileCopy, %iconSelPath%, %iconCopyDir%\%itemIconName%.%iExt%, 1
+		GuiControl, SaveItem:Disable, vitemName
+		GuiControl, SaveItem:Disable, vfileName
 	}
 return
 SetSaveItemFullPath:
@@ -1976,9 +2011,8 @@ TVImportFolder:
 	}
 return
 Website_Icon:
-	IconPath:=A_ScriptDir "\RunIcon\"
-	IfNotExist %IconPath%
-		FileCreateDir,%IconPath%
+	IfNotExist %WebIconDir%
+		FileCreateDir,%WebIconDir%
 	selText:=""
 	selTextList:=Object()
 	CheckID = 0
@@ -1997,7 +2031,7 @@ Website_Icon:
 			webText:=(diyText[2]) ? diyText[2] : diyText[1]
 			if(RegExMatch(webText,"iS)([\w-]+://?|www[.]).*")){
 				website:=RegExReplace(webText,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
-				webIcon:=IconPath website ".ico"
+				webIcon:=WebIconDir "\" website ".ico"
 				InputBox, webSiteInput, 重新下载网站图标,可以重新下载图标并匹配网址`n请修改以下网址再点击下载,,,,,,,,http://%website%/favicon.ico
 				if !ErrorLevel
 				{
@@ -2013,7 +2047,7 @@ Website_Icon:
 		return
 	}
 	if(selText){
-		MsgBox,33,下载网站图标,确定下载以下选中的网站图标：`n(下载的图标在%A_ScriptDir%\RunIcon)`n%selText%
+		MsgBox,33,下载网站图标,确定下载以下选中的网站图标：`n(下载的图标在%WebIconDir%)`n%selText%
 		IfMsgBox Ok
 		{
 			Loop,% selTextList.MaxIndex()
@@ -2031,7 +2065,7 @@ Website_Icon:
 		}
 		return
 	}
-	MsgBox,33,下载网站图标,确定下载RunAny内所有网站图标吗？`n(下载的图标在%A_ScriptDir%\RunIcon)
+	MsgBox,33,下载网站图标,确定下载RunAny内所有网站图标吗？`n(下载的图标在%WebIconDir%)
 	IfMsgBox Ok
 	{
 		errDown:=""
@@ -2059,7 +2093,7 @@ Website_Icon_Down:
 		webText:=(diyText[2]) ? diyText[2] : diyText[1]
 		if(RegExMatch(webText,"iS)([\w-]+://?|www[.]).*")){
 			website:=RegExReplace(webText,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
-			webIcon:=IconPath website ".ico"
+			webIcon:=WebIconDir "\" website ".ico"
 			URLDownloadToFile("http://" website "/favicon.ico",webIcon)
 			GuiControl,, MyProgress, +10
 		}
@@ -2068,7 +2102,7 @@ Website_Icon_Down:
 	}
 return
 WebsiteIconError(errDown){
-	MsgBox,以下网站图标无法下载，请单选后点[网站图标]按钮重新指定网址下载，`n或手动添加对应图标到[%A_ScriptDir%\RunIcon]`n`n%errDown%
+	MsgBox,以下网站图标无法下载，请单选后点[网站图标]按钮重新指定网址下载，`n或手动添加对应图标到[%WebIconDir%]`n`n%errDown%
 }
 ;~;[上下移动项目]
 TV_Move(moveMode = true){
@@ -3252,6 +3286,10 @@ Open_Ext_Set:
 return
 ;~;[图标初始化]
 Icon_Set:
+	global RunIconDir:=A_ScriptDir "\RunIcon"
+	global WebIconDir:=RunIconDir "\webIcon"
+	global ExeIconDir:=RunIconDir "\ExeIcon"
+	global MenuIconDir:=RunIconDir "\MenuIcon"
 	iconAny:="shell32.dll,190"
 	iconMenu:="shell32.dll,195"
 	iconTree:="shell32.dll,53"
@@ -3536,7 +3574,7 @@ Menu_Exe_Icon_Extract:
 		exePath:=v["itemPath"]
 		if(FileExist(exePath) && !HideMenuAppIconList[(v["menuName"])]){
 			menuItem:=menuItemIconFileName(v["menuItem"])
-			if(!exeIconCreateFlag || !FileExist(A_ScriptDir "\ExeIcon\" menuItem ".ico")){
+			if(!exeIconCreateFlag || !FileExist(ExeIconDir "\" menuItem ".ico")){
 				Run,%ResourcesExtractFile% /LoadConfig "%cfgFile%" /Source "%exePath%" /DestFold "%DestFold%"
 			}
 		}
@@ -3544,19 +3582,19 @@ Menu_Exe_Icon_Extract:
 	Process,WaitClose,ResourcesExtract.exe,10
 	ToolTip
 	Menu_Exe_Icon_Set()
-	MsgBox, 成功生成%RunAnyZz%内所有EXE图标到 %A_ScriptDir%\ExeIcon
+	MsgBox, 成功生成%RunAnyZz%内所有EXE图标到 %ExeIconDir%
 	Gui,66:Submit, NoHide
 	if(vIconFolderPath){
 		if(!InStr(vIconFolderPath,"ExeIcon"))
-			GuiControl,, vIconFolderPath, %vIconFolderPath%`n`%A_ScriptDir`%\ExeIcon
+			GuiControl,, vIconFolderPath, %vIconFolderPath%`n`%A_ScriptDir`%\RunIcon\ExeIcon
 	}else{
-		GuiControl,, vIconFolderPath, `%A_ScriptDir`%\ExeIcon
+		GuiControl,, vIconFolderPath, `%A_ScriptDir`%\RunIcon\ExeIcon
 	}
 return
 Menu_Exe_Icon_Set(){
 	;~;[循环提取菜单中EXE程序的正确图标]
-	IfNotExist,%A_ScriptDir%\ExeIcon
-		FileCreateDir, %A_ScriptDir%\ExeIcon
+	IfNotExist,%ExeIconDir%
+		FileCreateDir, %ExeIconDir%
 	For k, v in MenuExeList
 	{
 		if(!HideMenuAppIconList[(v["menuName"])]){
@@ -3589,7 +3627,7 @@ Menu_Exe_Icon_Set(){
 					}
 				}
 				menuItem:=menuItemIconFileName(v["menuItem"])
-				FileCopy, %maxFilePath%, %A_ScriptDir%\ExeIcon\%menuItem%.ico, 1
+				FileCopy, %maxFilePath%, %ExeIconDir%\%menuItem%.ico, 1
 				maxFilePath=
 			}
 		}
