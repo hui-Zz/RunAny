@@ -1310,6 +1310,7 @@ funcPath2AbsoluteZz(aPath,ahkPath){
 ;~;[利用HTML中JS的eval函数来计算]
 js_eval(exp)
 {
+	HtmlObj:=ComObjCreate("HTMLfile")
 	exp:=escapeString(exp)
 	HtmlObj.write("<body><script>var t=document.body;t.innerText='';t.innerText=eval('" . exp . "');</script></body>")
 	return InStr(cabbage:=HtmlObj.body.innerText, "body") ? "?" : cabbage
@@ -2258,7 +2259,7 @@ Set_Icon(itemVar,editVar=true){
 		return "Icon4"
 	if(InStr(itemVar,"::",,0,1)=itemLen-1)	; {发送热键}
 		return InStr(itemVar,":::",,0,1)=itemLen-2 ? "Icon10" : "Icon9"
-	if(RegExMatch(itemVar,"iS).+?\[.+?\]%?\(.*?\)"))  ; {外接函数}
+	if(RegExMatch(itemVar,"S).+?\[.+?\]%?\(.*?\)"))  ; {外接函数}
 		return "Icon11"
 	;~;[获取全路径]
 	FileName:=Get_Obj_Path(itemVar)
@@ -2463,8 +2464,8 @@ LVMenu(addMenu){
 	try Menu, %addMenu%, Icon,% flag ? "暂停" : "暂停`tF6", %ahkExePath%,4
 	Menu, %addMenu%, Add,% flag ? "删除" : "删除`tF7", LVDel
 	Menu, %addMenu%, Icon,% flag ? "删除" : "删除`tF7", SHELL32.dll,132
-	Menu, %addMenu%, Add,% flag ? "下载" : "下载`tF8", LVAdd
-	Menu, %addMenu%, Icon,% flag ? "下载" : "下载`tF8", SHELL32.dll,194
+	Menu, %addMenu%, Add,% flag ? "下载插件" : "下载插件`tF8", LVAdd
+	Menu, %addMenu%, Icon,% flag ? "下载插件" : "下载插件`tF8", SHELL32.dll,194
 }
 LVRun:
 	menuItem:="启动"
@@ -3187,7 +3188,6 @@ Var_Set:
 	EvCommandVar:=RegExReplace(EvCommand,"i).*file:(\*\.[^\s]*).*","$1")
 	global EvCommandExtList:=StrSplit(EvCommandVar,"|")
 	EnvGet, LocalAppData, LocalAppData
-	global HtmlObj:=ComObjCreate("HTMLfile")
 	global ResourcesExtractFile:=A_ScriptDir "\ResourcesExtract\ResourcesExtract.exe"
 	gosub,Icon_Set
 	;~[最近运行项]
