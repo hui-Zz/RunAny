@@ -2610,7 +2610,7 @@ LVApply:
 	}
 	DetectHiddenWindows,Off
 return
-#If WinActive(RunAnyZz A_Space "插件管理" A_Space RunAny_update_version RunAny_update_time)
+#If WinActive(RunAnyZz " 插件管理 " RunAny_update_version A_Space RunAny_update_time)
 	F1::gosub,LVRun
 	F2::gosub,LVEdit
 	F3::gosub,LVEnable
@@ -2714,6 +2714,8 @@ LVDown:
 			downFlag:=true
 			pluginsContent:=RegExReplace(FileContent, ".*\[([^\[\]]*)\]","$1")
 			if(pluginsContent){
+				IfNotExist %A_Temp%\%RunAnyZz%\实用配置
+					FileCreateDir,%A_Temp%\%RunAnyZz%\实用配置
 				IfExist,%featureDir%\%pluginsContent%
 					FileMove,%featureDir%\%pluginsContent%,%A_Temp%\%RunAnyZz%\实用配置\%pluginsContent%,1
 				URLDownloadToFile(RunAnyGithubDir "/实用配置/" pluginsContent,featureDir "\" pluginsContent)
@@ -3307,6 +3309,12 @@ Icon_Set:
 	global WebIconDir:=RunIconDir "\webIcon"
 	global ExeIconDir:=RunIconDir "\ExeIcon"
 	global MenuIconDir:=RunIconDir "\MenuIcon"
+	IconDirs:="ExeIcon,WebIcon,MenuIcon"
+	Loop, Parse, IconDirs, `,
+	{
+		IfNotExist %RunIconDir%\%A_LoopField%
+			FileCreateDir,%RunIconDir%\%A_LoopField%
+	}
 	iconAny:="shell32.dll,190"
 	iconMenu:="shell32.dll,195"
 	iconTree:="shell32.dll,53"
@@ -3378,7 +3386,7 @@ Icon_FileExt_Set:
 	Menu,Tray,Icon,插件管理(&C)`t%PluginsManageHotKey%,shell32.dll,166
 	Menu,Tray,Icon,检查更新(&U),shell32.dll,14
 	;~;[引入菜单项图标识别库]
-	global IconFolderPath:=Var_Read("IconFolderPath")
+	global IconFolderPath:=Var_Read("IconFolderPath","%A_ScriptDir%\RunIcon\ExeIcon|%A_ScriptDir%\RunIcon\WebIcon|%A_ScriptDir%\RunIcon\MenuIcon")
 	global IconFolderList:={}
 	Loop, parse, IconFolderPath, |
 	{
