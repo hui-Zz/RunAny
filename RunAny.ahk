@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.5.6 @2018.11.14
+║【RunAny】一劳永逸的快速启动工具 v5.5.6 @2018.11.15
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -21,7 +21,7 @@ global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.5.6"
-global RunAny_update_time:="2018.11.14"
+global RunAny_update_time:="2018.11.15"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -1788,8 +1788,8 @@ SetItemIconPath:
 		if(FileExist(itemIconFile)){
 			IfNotExist %A_Temp%\%RunAnyZz%\RunIcon
 				FileCreateDir,%A_Temp%\%RunAnyZz%\RunIcon
-			SplitPath, itemIconFile, fName,, fExt, name_no_ext
-			FileMove,%itemIconFile%,%A_Temp%\%RunAnyZz%\RunIcon\%fName%,1
+			SplitPath, itemIconFile, iName
+			FileMove,%itemIconFile%,%A_Temp%\%RunAnyZz%\RunIcon\%iName%,1
 		}
 		if(fExt="exe"){
 			iconCopyDir:=ExeIconDir
@@ -1798,10 +1798,9 @@ SetItemIconPath:
 		}else{
 			iconCopyDir:=MenuIconDir
 		}
-		SplitPath, iconSelPath, iName,, iExt
+		SplitPath, iconSelPath,,, iExt
 		FileCopy, %iconSelPath%, %iconCopyDir%\%itemIconName%.%iExt%, 1
-		GuiControl, SaveItem:Disable, vitemName
-		GuiControl, SaveItem:Disable, vfileName
+		gosub,SetSaveItemGui
 	}
 return
 SetSaveItemFullPath:
