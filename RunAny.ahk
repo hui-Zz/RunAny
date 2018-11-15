@@ -2931,7 +2931,7 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+82 yp w400 r1 vvFuncIcon,%FuncIcon%
 	Gui,66:Add,GroupBox,xm-10 y+20 w%groupWidch66% h145,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含后面热键）
 	Gui,66:Add,Text, xm yp+20 w380,如图标文件名可以为：-常用(&&App).ico、cmd.png、百度(&&B).ico
-	if(FileExist(ResourcesExtractFile))
+	if(ResourcesExtractExist)
 		Gui,66:Add,Button,x+5 yp w110 GMenu_Exe_Icon_Create,生成所有EXE图标
 	Gui,66:Add,Button,xm yp+30 w50 GSetIconFolderPath,选择
 	Gui,66:Add,Edit,xm+60 yp w420 r4 vvIconFolderPath,%IconFolderPath%
@@ -3240,7 +3240,6 @@ Var_Set:
 	EvCommandVar:=RegExReplace(EvCommand,"i).*file:(\*\.[^\s]*).*","$1")
 	global EvCommandExtList:=StrSplit(EvCommandVar,"|")
 	EnvGet, LocalAppData, LocalAppData
-	global ResourcesExtractFile:=A_ScriptDir "\ResourcesExtract\ResourcesExtract.exe"
 	gosub,Icon_Set
 	;~[最近运行项]
 	if(!HideRecent){
@@ -3314,6 +3313,18 @@ Icon_Set:
 	{
 		IfNotExist %RunIconDir%\%A_LoopField%
 			FileCreateDir,%RunIconDir%\%A_LoopField%
+	}
+	global ResourcesExtractExist:=false
+	global ResourcesExtractDir:=A_ScriptDir "\ResourcesExtract"
+	global ResourcesExtractFile:=A_ScriptDir "\ResourcesExtract\ResourcesExtract.exe"
+	if(!FileExist(ResourcesExtractFile)){
+		ResourcesExtractFile:=RunIconDir "\ResourcesExtract\ResourcesExtract.exe"
+		if(FileExist(ResourcesExtractFile)){
+			ResourcesExtractExist:=true
+			ResourcesExtractDir:=RunIconDir "\ResourcesExtract"
+		}
+	}else{
+		ResourcesExtractExist:=true
 	}
 	iconAny:="shell32.dll,190"
 	iconMenu:="shell32.dll,195"
@@ -3559,10 +3570,10 @@ GuiIcon_Set:
 return
 Menu_Exe_Icon_Create:
 	;~;[循环提取菜单中EXE的所有程序图标，过程较慢]
-	cfgFile=%A_ScriptDir%\ResourcesExtract\ResourcesExtract.cfg
+	cfgFile=%ResourcesExtractDir%\ResourcesExtract.cfg
 	DestFold=%A_Temp%\%RunAnyZz%\RunAnyExeIconTemp
-	if(!FileExist(ResourcesExtractFile)){
-		MsgBox, 请将ResourcesExtract.exe放入%A_ScriptDir%\ResourcesExtract\
+	if(!ResourcesExtractExist){
+		MsgBox, 请将ResourcesExtract.exe放入%ResourcesExtractDir%
 		return
 	}
 	MsgBox,35,生成所有EXE图标，请稍等片刻, 是：覆盖老图标重新生成%RunAnyZz%菜单中的所有EXE图标`n否：只生成没有的EXE图标`n取消：取消生成
@@ -3579,7 +3590,7 @@ Menu_Exe_Icon_Create:
 return
 Menu_Exe_Icon_Extract:
 	if(!FileExist(cfgFile)){
-		MsgBox, 请将ResourcesExtract.cfg放入%A_ScriptDir%\ResourcesExtract\
+		MsgBox, 请将ResourcesExtract.cfg放入%ResourcesExtractDir%
 		return
 	}else{
 		IniWrite,%DestFold%,%cfgFile%,General,DestFolder
