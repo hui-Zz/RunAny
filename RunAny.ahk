@@ -2076,6 +2076,8 @@ Website_Icon:
 			if not ItemID
 				break
 			TV_GetText(ItemText, ItemID)
+			if(InStr(ItemText,";")=1 || ItemText="")
+				continue
 			GuiControl, Show, MyProgress
 			Gosub,Website_Icon_Down
 		}
@@ -3782,7 +3784,7 @@ Config_Update:
 	}
 	IfNotExist %featureDir%
 		FileCreateDir,%featureDir%
-	configDownList:=["窗口函数.ini","文本函数.ini","系统函数.ini"]
+	configDownList:=["实用命令.ini","搜索网址.ini","热键映射.ini"]
 	For i, v in configDownList
 	{
 		URLDownloadToFile(RunAnyGithubDir "/实用配置/" v,A_ScriptDir "\实用配置\" v)
