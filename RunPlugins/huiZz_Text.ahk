@@ -2,7 +2,7 @@
 ;* 【ObjReg文本操作脚本[文本函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.4"
+global RunAny_Plugins_Version:="1.0.5"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent			 ;~让脚本持久运行
@@ -160,9 +160,19 @@ class RunAnyObj {
 	text_seq_num_zz(getZz:="",seqNumStr:="",arab:=1){
 		textResult:=""
 		ignoreNum:=0
+		removeFlag:=false
 		Loop, parse, getZz, `n, `r
 		{
 			getZzLoop:=A_LoopField
+			if(arab=1 && RegExMatch(getZzLoop,"^\d+" seqNumStr)){
+				textResult.=RegExReplace(getZzLoop,"^\d+" seqNumStr) . "`n"
+				removeFlag:=true
+			}else if(RegExMatch(getZzLoop,"^[零一二三四五六七八九十百千万亿兆京垓]+" seqNumStr)){
+				textResult.=RegExReplace(getZzLoop,"^[零一二三四五六七八九十百千万亿兆京垓]+" seqNumStr) . "`n"
+				removeFlag:=true
+			}
+			if(removeFlag)
+				continue
 			if(!Trim(A_LoopField)){
 				textResult.=getZzLoop . "`n"
 				ignoreNum++
