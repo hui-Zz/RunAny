@@ -2,7 +2,7 @@
 ;* 【ObjReg文本操作脚本[文本函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.5"
+global RunAny_Plugins_Version:="1.0.6"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent			 ;~让脚本持久运行
@@ -35,7 +35,8 @@ class RunAnyObj {
 		Loop, parse, getZz, `n, `r
 		{
 			str=%A_LoopField%
-			textResult.=str . splitStr
+			if(str!="")
+				textResult.=str . splitStr
 		}
 		StringTrimRight, textResult, textResult, 1
 		this.Send_Str_Zz(textResult)
@@ -131,6 +132,20 @@ class RunAnyObj {
 		if(downApp)
 			downApp:=downApp A_Space
 		Run,%downApp%%url%
+	}
+	;[选中文字编辑]
+	;参数说明：getZz：选中的文本内容
+	;editApp：编辑器软件
+	text_edit_zz(getZz:="",editApp:=""){
+		if(editApp){
+			DetectHiddenWindows, Off
+			if(!WinExist("ahk_exe" . editApp)){
+				Run,%editApp%
+				WinWait,ahk_exe %editApp%
+			}
+			WinActivate,ahk_exe %editApp%
+			this.Send_Str_Zz(getZz)
+		}
 	}
 	;[便捷替换粘贴文本]
 	text_paste_zz(getZz:=""){
