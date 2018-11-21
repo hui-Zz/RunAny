@@ -247,8 +247,10 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 				continue
 			;短语、网址、外接函数除外的菜单项直接转换%%为系统变量值
 			itemLen:=StrLen(Z_LoopField)
+			transformValFlag:=false
 			if(InStr(Z_LoopField,";",,0,1)!=itemLen && !RegExMatch(Z_LoopField,"iS)([\w-]+://?|www[.]).*") && !RegExMatch(Z_LoopField,"iS).+?\[.+?\]%?\(.*?\)")){
 				Z_LoopField:=Get_Transform_Val(Z_LoopField)
+				transformValFlag:=true
 			}
 			;~添加到分类目录程序全数据
 			MenuObjTree%TREE_NO%[(menuRootFn[menuLevel])].Push(Z_LoopField)
@@ -269,7 +271,7 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 				}else{
 					item:=menuDiy[2]
 					itemParam:=menuDiy[2]
-					if(RegExMatch(item,"iS).*?\.exe .*"))
+					if(transformValFlag && RegExMatch(item,"iS).*?\.exe .*"))
 						item:=RegExReplace(item,"iS)(.*?\.exe) .*","$1")	;只去参数
 					SplitPath, item,,, FileExt  ; 获取文件扩展名.
 					;~;如果是有效全路径或系统程序则保留显示
@@ -278,10 +280,10 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 					else if(FileExist(A_WinDir "\" item) || FileExist(A_WinDir "\system32\" item))
 						flagEXE:=true
 					;~;如果是有效程序、不隐藏失效、不是exe程序则添加该菜单项功能
-					if(flagEXE || !HideFail){
-						MenuObjParam[menuDiy[1]]:=menuDiy[2]
-					}else if(FileExt!="exe"){
+					if(FileExt!="exe"){
 						MenuObj[menuDiy[1]]:=menuDiy[2]
+					}else if(flagEXE || !HideFail){
+						MenuObjParam[menuDiy[1]]:=menuDiy[2]
 					}
 				}
 				if(FileExt="exe"){
@@ -497,7 +499,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 				Menu,%menuName%,Delete,%menuItem%
 			return
 		}
-		if(RegExMatch(item,"iS).+?\[.+?\]%?\(.*?\)")){  ; {外接函数}
+		if(RegExMatch(item,"S).+?\[.+?\]%?\(.*?\)")){  ; {外接函数}
 			Menu,%menuName%,add,%menuItem%,Menu_Run
 			Menu,%menuName%:,add,%menuItem%,Menu_Run
 			Menu_Item_Icon(menuName,menuItem,FuncIconS[1],FuncIconS[2])
@@ -577,10 +579,7 @@ return
 Menu_Show:
 	try{
 		global selectZz:=Get_Zz()
-		RunAnyMenu:=A_ScriptDir "\" PluginsDir "\RunAny_Menu.ahk"
-		if(ahkFlag && FileExist(RunAnyMenu) && PluginsObjList["RunAny_Menu.ahk"]){
-			Run,%ahkExePath%%A_Space%"%RunAnyMenu%"
-		}
+		gosub,RunAny_Menu
 		selectCheck:=Trim(selectZz," `t`n`r")
 		if(selectCheck!=""){
 			if(Candy_isFile){
@@ -715,8 +714,15 @@ return
 Menu_Key_Show:
 	global selectZz:=Get_Zz()
 	try {
+		gosub,RunAny_Menu
 		Menu_Show_Show(menuTreekey[(A_ThisHotkey)],selectZz)
 	}catch{}
+return
+RunAny_Menu:
+	RunAnyMenu:=A_ScriptDir "\" PluginsDir "\RunAny_Menu.ahk"
+	if(ahkFlag && FileExist(RunAnyMenu) && PluginsObjList["RunAny_Menu.ahk"]){
+		Run,%ahkExePath%%A_Space%"%RunAnyMenu%"
+	}
 return
 Menu_Show_Show(menuName,itemName){
 	selectCheck:=Trim(itemName," `t`n`r")
@@ -915,8 +921,8 @@ Menu_Run_Plugins_ObjReg:
 	appFunc:=RegExReplace(any,"iS).+?\[(.+?)\]%?\(.*?\)","$1")	;取函数名
 	appParmStr:=RegExReplace(any,"iS).+?\[.+?\]%?\((.*?)\)","$1")	;取函数参数
 	if(!PluginsObjRegGUID[appPlugins]){
-		ToolTip,没有找到 %appPlugins% 脚本插件`n请确认已下载并重启RunAny重试
-		SetTimer,RemoveToolTip,3000
+		ToolTip,脚本插件：%appPlugins%`n脚本函数：%appFunc%`n函数参数：%appParmStr%`n没有正确识别！请检查修改并重启RunAny重试
+		SetTimer,RemoveToolTip,5000
 		return
 	}
 	if(RegExMatch(any,"iS).+?\[.+?\]%\(.*?\)")){  ;动态函数执行
@@ -933,6 +939,15 @@ Menu_Run_Plugins_ObjReg:
 		Loop,% appParms.MaxIndex()
 		{
 			appParms[A_Index]:=StrReplace(appParms[A_Index],Chr(3),",")
+			if(RegExMatch(appParms[A_Index],"iS)%""(.+?)""%")){	;无路径应用变量
+				appNoPath:=RegExReplace(appParms[A_Index],"iS)%""(.+?)""%","$1")
+				appNoPathName:=RegExReplace(appNoPath,"iS)\.exe($| .*)")	;去掉后缀或参数，取应用名
+				if(MenuObj[appNoPathName]){
+					SplitPath,% MenuObj[appNoPathName],,, FileExt  ; 获取文件扩展名.
+					appNoPathParm:=RegExReplace(appNoPath,"iS).*?\." FileExt "($| .*)","$1")	;去掉应用名，取参数
+					appParms[A_Index]:=MenuObj[appNoPathName] . appNoPathParm
+				}
+			}
 			appParms[A_Index]:=Get_Transform_Val(appParms[A_Index])
 		}
 		if(appParmStr=""){	;没有传参，直接执行函数
@@ -2553,7 +2568,7 @@ LVApply:
 			runValue:=RegExReplace(FilePath,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
 			try {
 				SplitPath, runValue, name, dir, ext  ; 获取扩展名
-				if(dir){
+				if(dir && FileExist(dir)){
 					SetWorkingDir,%dir%
 				}
 				if(ahkFlag && ext="ahk"){
@@ -3693,7 +3708,7 @@ AutoRun_Effect:
 				if(PluginsObjList[runn]){
 					runValue:=RegExReplace(runv,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
 					SplitPath, runValue, name, dir, ext  ; 获取扩展名
-					if(dir){
+					if(dir && FileExist(dir)){
 						SetWorkingDir,%dir%
 					}
 					if(ext="ahk"){
