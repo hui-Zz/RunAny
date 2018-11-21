@@ -104,7 +104,7 @@ class RunAnyObj {
 	system_file_path_zz(path:="",copy:=""){
 		SplitPath, path, name, dir, ext, nameNoExt, drive
 		if(ext="lnk")
-			FileGetShortcut, %getZz%, lnkTarget, lnkDir, lnkArgs, lnkDesc, lnkIcon, lnkIconNum, lnkRunState
+			FileGetShortcut, %path%, lnkTarget, lnkDir, lnkArgs, lnkDesc, lnkIcon, lnkIconNum, lnkRunState
 		Clipboard:=%copy%
 	}
 }
