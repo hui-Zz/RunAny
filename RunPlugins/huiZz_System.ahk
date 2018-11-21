@@ -2,7 +2,7 @@
 ;* 【ObjReg系统操作脚本[系统函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.2"
+global RunAny_Plugins_Version:="1.0.3"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent			 ;~让脚本持久运行
 #WinActivateForce       ;~强制激活窗口
@@ -97,6 +97,15 @@ class RunAnyObj {
 		Process,Close,explorer.exe
 		;~ WinWaitClose,ahk_exe explorer.exe
 		;~ Run,explorer.exe
+	}
+	;[复制选中文件路径]
+	;复制文件说明：path路径, name名称, dir目录, ext后缀, nameNoExt无后缀名称, drive盘符
+	;复制快捷方式说明：lnkTarget指向路径, lnkDir指向目录, lnkArgs参数, lnkDesc注释, lnkIcon图标文件名, lnkIconNum图标编号, lnkRunState初始运行方式
+	system_file_path_zz(path:="",copy:=""){
+		SplitPath, path, name, dir, ext, nameNoExt, drive
+		if(ext="lnk")
+			FileGetShortcut, %getZz%, lnkTarget, lnkDir, lnkArgs, lnkDesc, lnkIcon, lnkIconNum, lnkRunState
+		Clipboard:=%copy%
 	}
 }
 
