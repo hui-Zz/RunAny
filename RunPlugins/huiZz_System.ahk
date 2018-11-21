@@ -2,7 +2,7 @@
 ;* 【ObjReg系统操作脚本[系统函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.1"
+global RunAny_Plugins_Version:="1.0.2"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent			 ;~让脚本持久运行
 #WinActivateForce       ;~强制激活窗口
@@ -70,6 +70,7 @@ class RunAnyObj {
 			ToolTip
 		}
 	}
+	;[ping选中地址]
 	system_ping_zz(getZz:=""){
 		Run,% ComSpec " /C ping " getZz " -t"
 	}
@@ -89,6 +90,13 @@ class RunAnyObj {
 		if(save)
 			Clipboard:=Clip_Saved
 		return cmdInfo
+	}
+	;[重启桌面]
+	system_explorer_zz(){
+		DetectHiddenWindows, Off
+		Process,Close,explorer.exe
+		;~ WinWaitClose,ahk_exe explorer.exe
+		;~ Run,explorer.exe
 	}
 }
 
