@@ -2,7 +2,7 @@
 ;* 【ObjReg文本操作脚本[文本函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.6"
+global RunAny_Plugins_Version:="1.0.7"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent			 ;~让脚本持久运行
@@ -67,6 +67,35 @@ class RunAnyObj {
 				textResult.=getZzLoop . "`n"
 				continue
 			}
+			textResult.=Format(formatStr,getZzLoop) . "`n"
+		}
+		textResult:=RTrim(textResult,"`n")
+		this.Send_Str_Zz(textResult)
+	}
+	;[Markdown格式化]
+	;参数说明：getZz：选中的文本内容
+	;formatStr：格式化选项，详情查看(https://wyagd001.github.io/zh-cn/docs/commands/Format.htm)
+	text_format_md_zz(getZz:="",formatStr:=""){
+		textResult:=""
+		removeFlag:=false
+		escapeList:=StrSplit("\.*?+[{|()^$")
+		regStr:=StrReplace(formatStr,"{1}",Chr(3))
+		For k, v in escapeList
+			regStr:=StrReplace(regStr,v,"\" v)
+		regStr:=StrReplace(regStr,Chr(3),"(.*?)")
+		Loop, parse, getZz, `n, `r
+		{
+			getZzLoop:=A_LoopField
+			if(!Trim(A_LoopField)){
+				textResult.=getZzLoop . "`n"
+				continue
+			}
+			if(RegExMatch(getZzLoop,"S)^" regStr "$")){
+				textResult.=RegExReplace(getZzLoop,"S)^" regStr "$","$1") . "`n"
+				removeFlag:=true
+			}
+			if(removeFlag)
+				continue
 			textResult.=Format(formatStr,getZzLoop) . "`n"
 		}
 		textResult:=RTrim(textResult,"`n")
