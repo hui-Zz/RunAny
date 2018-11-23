@@ -589,7 +589,7 @@ Menu_Show:
 				}
 				try{
 					extMenuName:=MenuObjExt[FileExt]
-					if(extMenuName){
+					if(MENU_NO=1 && extMenuName){
 						if(MenuObjTree%MENU_NO%[extMenuName].MaxIndex()=1){
 							itemContent:=MenuObjTree%MENU_NO%[extMenuName][1]
 							MenuShowMenuRun:=Get_Obj_Name(itemContent)
@@ -1595,7 +1595,7 @@ GuiClose:
 		IfMsgBox Yes
 		{
 			gosub,Menu_Save
-			Gui, Destroy
+			Reload
 		}
 		IfMsgBox No
 			Gui, Destroy
