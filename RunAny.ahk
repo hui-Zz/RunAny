@@ -549,8 +549,8 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 Menu_Item_Icon(menuName,menuItem,iconPath,iconNo=0,treeLevel=""){
 	try{
 		menuItemSet:=treeLevel ? treeLevel : menuItem
-		if(InStr(menuItem,"`t")){
-			menuKeyStr:=RegExReplace(menuItem, "S)\t+", A_Tab)
+		if(InStr(menuItemSet,"`t")){
+			menuKeyStr:=RegExReplace(menuItemSet, "S)\t+", A_Tab)
 			menuKeys:=StrSplit(menuKeyStr,"`t")
 			menuItemSet:=menuKeys[1]
 		}
