@@ -3037,16 +3037,20 @@ SetOK:
 			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		}
 	}
-	SetValueList:=["IniConfig","DisableApp"]
+	SetValueList:=["IniConfig","DisableApp","EvPath","EvCommand","EvAutoClose"]
 	SetValueList.Push("HideFail","HideUnSelect","HideRecent","HideWeb","HideSend","HideAddItem","HideMenuTray","HideGetZz")
-	SetValueList.Push("MenuKey", "MenuWinKey","MenuAddItemKey","MenuAddItemWinKey")
-	SetValueList.Push("EvKey","EvWinKey","EvPath","EvCommand","EvAutoClose")
-	SetValueList.Push("OneKey","OneWinKey","OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu")
+	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu")
 	SetValueList.Push("BrowserPath","IconFolderPath","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon","AnyIcon","MenuIcon")
-	SetValueList.Push("TreeKey1", "TreeWinKey1", "TreeIniKey1", "TreeIniWinKey1", "PluginsManageKey", "PluginsManageWinKey")
-	SetValueList.Push("RunATrayKey","RunATrayWinKey","RunASetKey","RunASetWinKey","RunAReloadKey","RunAReloadWinKey","RunASuspendKey","RunASuspendWinKey","RunAExitKey","RunAExitWinKey")
+	SetValueList.Push("TreeKey1", "TreeWinKey1", "TreeIniKey1", "TreeIniWinKey1")
 	If(MENU2FLAG){
 		SetValueList.Push("MenuKey2", "MenuWinKey2", "TreeKey2", "TreeWinKey2", "TreeIniKey2", "TreeIniWinKey2")
+	}
+	RunHotKeyList:=["Menu","Ev","One","PluginsManage"]
+	RunHotKeyList.Push("RunATray","RunASet","RunAReload","RunASuspend","RunAExit")
+	For ki, kv in RunHotKeyList
+	{
+		SetValueList.Push(kv . "Key")
+		SetValueList.Push(kv . "WinKey")
 	}
 	OneKeyUrl:=RegExReplace(OneKeyUrl,"S)[\n]+","|")
 	vOneKeyUrl:=RegExReplace(vOneKeyUrl,"S)[\n]+","|")
