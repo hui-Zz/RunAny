@@ -307,13 +307,28 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 					Menu_Add(menuRootFn[menuLevel],menuDiy[1],itemParam,menuRootFn,menuWebRootFn,menuWebList,webRootShow)
 				}
 				;~;[分割Tab获取应用自定义热键]
-				if(InStr(menuDiy[1],"`t")){
-					menuKeyStr:=RegExReplace(menuDiy[1], "S)\t+", A_Tab)
-					menuKeys:=StrSplit(menuKeyStr,"`t")
-					if(menuKeys[2]){
-						MenuObjKey[menuKeys[2]]:=itemParam
-						MenuObjName[menuKeys[2]]:=menuKeys[1]
-						Hotkey,% menuKeys[2],Menu_Key_Run,On
+				menuKeyStr:=RegExReplace(menuDiy[1], "S)\t+", A_Tab)
+				menuKeys:=StrSplit(menuKeyStr,"`t")
+				;~;[设置热键启动方式]
+				if(InStr(menuDiy[1],"`t") && menuKeys[2]){
+					MenuObjKey[menuKeys[2]]:=itemParam
+					MenuObjName[menuKeys[2]]:=menuKeys[1]
+					Hotkey,% menuKeys[2],Menu_Key_Run,On
+				}
+				;~;[设置热字符串启动方式]
+				if(RegExMatch(menuKeys[1],"S):[*?a-zA-Z0-9]+?:[^:]*")){
+					hotstr:=menuKeys[1]
+					if(RegExMatch(hotstr,"S).*_:\d{1,2}$"))
+						hotstr:=RegExReplace(hotstr,"S)(.*)_:\d{1,2}$","$1")
+					hotstr:=RegExReplace(hotstr,"S)^[^:]*?(:[*?a-zA-Z0-9]+?:[^:]*)","$1")
+					if(hotstr){
+						MenuObjKey[hotstr]:=itemParam
+						MenuObjName[hotstr]:=menuKeys[1]
+						if(RegExMatch(hotstr,":[^:]*?X[^:]*?:[^:]*")){
+							Hotstring(hotstr,"Menu_Key_Run","On")
+						}else{
+							Hotstring(hotstr,itemParam,"On")
+						}
 					}
 				}
 				continue
@@ -431,17 +446,6 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 			}
 			if(HideSend)
 				Menu,%menuName%,Delete,%menuItem%
-			if(InStr(menuItem,":")=1){
-				;{设置热字符串}
-				any:=MenuObj[(menuItem)]
-				StringLeft, any, any, itemLen-1
-				if(InStr(menuItem,"`t")){
-					menuKeyStr:=RegExReplace(menuItem, "S)\t+", A_Tab)
-					menuKeys:=StrSplit(menuKeyStr,"`t")
-					menuItem:=menuKeys[1]
-				}
-				Hotstring(menuItem, Get_Transform_Val(any))
-			}
 			return
 		}
 		if(InStr(item,"::",,0,1)=itemLen-1){	; {发送热键}
