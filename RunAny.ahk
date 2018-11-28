@@ -30,6 +30,7 @@ global MenuObjKey:=Object()     ;~程序热键
 global MenuObjName:=Object()    ;~程序别名
 global MenuObjParam:=Object()   ;~程序参数
 global MenuObjExt:=Object()     ;~后缀对应菜单
+global MenuObjPublic:=Object()  ;~后缀公共菜单
 global MenuExeList:=Object()    ;~程序数据数组
 global MenuTreeKey:=Object()    ;~分类热键
 global MenuObjTree1:=Object()   ;~分类目录程序全数据1
@@ -153,6 +154,8 @@ if(menu2){
 	MenuObjTree2[RunAnyZz . "2"]:=Object()
 	Menu_Read(iniVar2,menuRoot2,1,menuWebRoot2,menuWebList2,false,2)
 }
+;获得所有后缀公共菜单
+MenuObjExt["public"]:=MenuObjPublic
 ;~;[最近运行项]
 if(!HideRecent){
 	Menu,% menuRoot1[1],Add
@@ -216,7 +219,10 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 					;~;[读取菜单关联后缀]
 					Loop, parse,% menuItems[2],%A_Space%
 					{
-						MenuObjExt[(A_LoopField)]:=menuItem
+						if(A_LoopField="public")
+							MenuObjPublic.Push(menuItem) ;公共后缀菜单
+						else
+							MenuObjExt[(A_LoopField)]:=menuItem
 					}
 				}
 				if(menuItem!=""){
@@ -585,133 +591,133 @@ Menu_Show:
 		global selectZz:=Get_Zz()
 		gosub,RunAny_Menu
 		selectCheck:=Trim(selectZz," `t`n`r")
-		if(selectCheck!=""){
-			if(Candy_isFile){
-				SplitPath, selectZz,FileName,, FileExt  ; 获取文件扩展名.
-				if(InStr(FileExist(selectZz), "D")){  ; {目录}
-					FileExt:="folder"
-				}
-				try{
-					extMenuName:=MenuObjExt[FileExt]
-					if(MENU_NO=1 && extMenuName){
-						if(MenuObjTree%MENU_NO%[extMenuName].MaxIndex()=1){
-							itemContent:=MenuObjTree%MENU_NO%[extMenuName][1]
-							MenuShowMenuRun:=Get_Obj_Name(itemContent)
-							gosub,Menu_Run
-						}else{
-							if(!HideAddItem){
-								Menu,%extMenuName%,Insert, ,0【添加到此菜单】,Menu_Add_File_Item
-								Menu,%extMenuName%,Default,0【添加到此菜单】
-								Menu,%extMenuName%,Icon,0【添加到此菜单】,SHELL32.dll,166
-							}
-							Menu_Show_Show(extMenuName,FileName)
-							if(!HideAddItem)
-								Menu,%extMenuName%,Delete,0【添加到此菜单】
-						}
-					}else{
-						if(!HideAddItem)
-							Menu_Add_Del_Temp(1,MENU_NO,"0【添加到此菜单】","Menu_Add_File_Item","SHELL32.dll","166")
-						Menu_Show_Show(menuRoot%MENU_NO%[1],FileName)
-						if(!HideAddItem)
-							Menu_Add_Del_Temp(0,MENU_NO,"0【添加到此菜单】")
-					}
-				}catch{
-					Menu_Show_Show(menuRoot%MENU_NO%[1],FileName)
-				}
-				return
+		if(selectCheck=""){
+			;#无选中内容弹出应用菜单#
+			Menu,% menuRoot%MENU_NO%[1],Show
+			return
+		}
+		if(Candy_isFile){
+			SplitPath, selectZz,FileName,, FileExt  ; 获取文件扩展名.
+			if(InStr(FileExist(selectZz), "D")){  ; {目录}
+				FileExt:="folder"
 			}
-			if(MENU_NO=1){
-				openFlag:=false
-				calcFlag:=false
-				calcResult:=""
-				selectResult:=""
-				Loop, parse, selectZz, `n, `r
-				{
-					S_LoopField=%A_LoopField%
-					if(S_LoopField=""){
-						if(calcResult)
-							calcResult.=A_LoopField "`n"
-						if(selectResult)
-							selectResult.=A_LoopField "`n"
-						continue
+			try{
+				extMenuName:=MenuObjExt[FileExt]
+				if(MENU_NO=1 && extMenuName){
+					if(MenuObjTree%MENU_NO%[extMenuName].MaxIndex()=1){
+						itemContent:=MenuObjTree%MENU_NO%[extMenuName][1]
+						MenuShowMenuRun:=Get_Obj_Name(itemContent)
+						gosub,Menu_Run
+					}else{
+						if(!HideAddItem){
+							Menu,%extMenuName%,Insert, ,0【添加到此菜单】,Menu_Add_File_Item
+							Menu,%extMenuName%,Default,0【添加到此菜单】
+							Menu,%extMenuName%,Icon,0【添加到此菜单】,SHELL32.dll,166
+						}
+						Menu_Show_Show(extMenuName,FileName)
+						if(!HideAddItem)
+							Menu,%extMenuName%,Delete,0【添加到此菜单】
 					}
-					;一键打开网址
-					if(OneKeyWeb && RegExMatch(S_LoopField,"iS)^([\w-]+://?|www[.]).*")){
-						Run_Search(S_LoopField,"",BrowserPathRun)
+				}else{
+					if(!HideAddItem)
+						Menu_Add_Del_Temp(1,MENU_NO,"0【添加到此菜单】","Menu_Add_File_Item","SHELL32.dll","166")
+					Menu_Show_Show(menuRoot%MENU_NO%[1],FileName)
+					if(!HideAddItem)
+						Menu_Add_Del_Temp(0,MENU_NO,"0【添加到此菜单】")
+				}
+			}catch{
+				Menu_Show_Show(menuRoot%MENU_NO%[1],FileName)
+			}
+			return
+		}
+		if(MENU_NO=1){
+			openFlag:=false
+			calcFlag:=false
+			calcResult:=""
+			selectResult:=""
+			Loop, parse, selectZz, `n, `r
+			{
+				S_LoopField=%A_LoopField%
+				if(S_LoopField=""){
+					if(calcResult)
+						calcResult.=A_LoopField "`n"
+					if(selectResult)
+						selectResult.=A_LoopField "`n"
+					continue
+				}
+				;一键打开网址
+				if(OneKeyWeb && RegExMatch(S_LoopField,"iS)^([\w-]+://?|www[.]).*")){
+					Run_Search(S_LoopField,"",BrowserPathRun)
+					openFlag:=true
+					continue
+				}
+				;一键磁力下载
+				if(OneKeyMagnet && InStr(S_LoopField,"magnet:?xt=urn:btih:")=1){
+					Run,%S_LoopField%
+					openFlag:=true
+					continue
+				}
+				if(RegExMatch(S_LoopField,"S)^(\\\\|.:\\)")){
+					;一键打开目录
+					if(OneKeyFolder && InStr(FileExist(S_LoopField), "D")){
+						If(OpenFolderPathRun){
+							Run,%OpenFolderPathRun%%A_Space%"%S_LoopField%"
+						}else{
+							Run,%S_LoopField%
+						}
 						openFlag:=true
 						continue
 					}
-					;一键磁力下载
-					if(OneKeyMagnet && InStr(S_LoopField,"magnet:?xt=urn:btih:")=1){
+					;一键打开文件
+					if(OneKeyFile && FileExist(S_LoopField)){
 						Run,%S_LoopField%
 						openFlag:=true
 						continue
 					}
-					if(RegExMatch(S_LoopField,"S)^(\\\\|.:\\)")){
-						;一键打开目录
-						if(OneKeyFolder && InStr(FileExist(S_LoopField), "D")){
-							If(OpenFolderPathRun){
-								Run,%OpenFolderPathRun%%A_Space%"%S_LoopField%"
-							}else{
-								Run,%S_LoopField%
-							}
-							openFlag:=true
-							continue
-						}
-						;一键打开文件
-						if(OneKeyFile && FileExist(S_LoopField)){
-							Run,%S_LoopField%
-							openFlag:=true
-							continue
-						}
+				}
+				;一键计算数字加减乘除
+				if(RegExMatch(S_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+($|=$)")){
+					formula:=S_LoopField
+					if(RegExMatch(S_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+=$")){
+						StringTrimRight, formula, formula, 1
 					}
-					;一键计算数字加减乘除
-					if(RegExMatch(S_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+($|=$)")){
-						formula:=S_LoopField
-						if(RegExMatch(S_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+=$")){
-							StringTrimRight, formula, formula, 1
-						}
-						calc:=js_eval(formula)
-						selectResult.=A_LoopField
-						if(RegExMatch(S_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+=$")){
-							calcFlag:=true
-							selectResult.=calc
-						}else{
-							calcResult.=calc "`n"
-						}
-						selectResult.="`n"
-						openFlag:=true
-						continue
+					calc:=js_eval(formula)
+					selectResult.=A_LoopField
+					if(RegExMatch(S_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+=$")){
+						calcFlag:=true
+						selectResult.=calc
+					}else{
+						calcResult.=calc "`n"
 					}
-				}
-				if(calcResult){
-					StringTrimRight, calcResult, calcResult, 1
-					ToolTip,%calcResult%
-					Clipboard:=calcResult
-					SetTimer,RemoveToolTip,% (calcResult="?") ? 1000 : 3000
-				}
-				if(calcFlag && selectResult){
-					StringTrimRight, selectResult, selectResult, 1
-					Send_Str_Zz(selectResult)
-				}
-				if(openFlag)
-					return
-				;#绑定菜单1为一键搜索
-				if(OneKeyMenu){
-					gosub,One_Search
-					return
+					selectResult.="`n"
+					openFlag:=true
+					continue
 				}
 			}
-			;#选中文本弹出网址菜单#
-			if(!HideUnSelect){
-				Menu_Show_Show(menuWebRoot%MENU_NO%[1],selectZz)
-			}else{
-				Menu_Show_Show(menuRoot%MENU_NO%[1],selectZz)
+			if(calcResult){
+				StringTrimRight, calcResult, calcResult, 1
+				ToolTip,%calcResult%
+				Clipboard:=calcResult
+				SetTimer,RemoveToolTip,% (calcResult="?") ? 1000 : 3000
 			}
-			return
+			if(calcFlag && selectResult){
+				StringTrimRight, selectResult, selectResult, 1
+				Send_Str_Zz(selectResult)
+			}
+			if(openFlag)
+				return
+			;#绑定菜单1为一键搜索
+			if(OneKeyMenu){
+				gosub,One_Search
+				return
+			}
 		}
-		;#其他弹出应用菜单#
-		Menu,% menuRoot%MENU_NO%[1],Show
+		;#选中文本弹出网址菜单#
+		if(!HideUnSelect){
+			Menu_Show_Show(menuWebRoot%MENU_NO%[1],selectZz)
+		}else{
+			Menu_Show_Show(menuRoot%MENU_NO%[1],selectZz)
+		}
 	}catch{}
 return
 ;~;[菜单热键显示]
