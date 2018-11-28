@@ -134,6 +134,7 @@ Gosub,Open_Ext_Set
 ;~;[后缀图标初始化]
 Gosub,Icon_FileExt_Set
 
+global MenuWebRootSplit:=Object()	;网址短语函数菜单的分隔符追加
 ;#应用菜单数组#网址菜单名数组及地址队列#
 menuRoot1:=Object(),menuWebRoot1:=Object(),menuWebList1:=Object()
 ;菜单级别：初始为根菜单RunAny
@@ -243,9 +244,12 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 							Hotkey,% menuKeys[2],Menu_Key_Show,On
 						}
 					}
-				}else if(menuRootFn[menuLevel]){
-					Menu,% menuRootFn[menuLevel],Add
-					MenuObjTree%TREE_NO%[(menuRootFn[menuLevel])].Push(Z_LoopField)
+				}else if(menuRootFn[menuLevel]){	;[添加分隔符]
+					menuRootFnLevel:=menuRootFn[menuLevel]
+					Menu,%menuRootFnLevel%,Add
+					MenuObjTree%TREE_NO%[menuRootFnLevel].Push(Z_LoopField)
+					if(MenuWebRootSplit[menuRootFnLevel])
+						Menu,%menuRootFnLevel%:,Add
 				}
 				continue
 			}
@@ -443,6 +447,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 			Menu,%menuName%:,add,%menuItem%,Menu_Run
 			Menu_Item_Icon(menuName,menuItem,"SHELL32.dll","2")
 			Menu_Item_Icon(menuName ":",menuItem,"SHELL32.dll","2")
+			MenuWebRootSplit[menuName]:=true
 			if(menuName = menuRootFn[1]){
 				Menu,% menuWebRootFn[1],Add,%menuItem%,Menu_Run
 				Menu_Item_Icon(menuWebRootFn[1],menuItem,"SHELL32.dll","2")
@@ -464,6 +469,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 			webIcon:=RunIconDir "\" website ".ico"
 			Menu,%menuName%,add,%menuItem%,Menu_Run
 			Menu,%menuName%:,add,%menuItem%,Menu_Run
+			MenuWebRootSplit[menuName]:=true
 			if(FileExist(webIcon)){
 				try{
 					Menu_Item_Icon(menuName,menuItem,webIcon,"0")
@@ -514,6 +520,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 			Menu,%menuName%:,add,%menuItem%,Menu_Run
 			Menu_Item_Icon(menuName,menuItem,FuncIconS[1],FuncIconS[2])
 			Menu_Item_Icon(menuName ":",menuItem,FuncIconS[1],FuncIconS[2])
+			MenuWebRootSplit[menuName]:=true
 			if(menuName = menuRootFn[1]){
 				Menu,% menuWebRootFn[1],Add,%menuItem%,Menu_Run
 				Menu_Item_Icon(menuWebRootFn[1],menuItem,FuncIconS[1],FuncIconS[2])
