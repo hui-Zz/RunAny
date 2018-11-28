@@ -1,4 +1,4 @@
-# 【RunAny】一劳永逸的快速启动工具 [v5.5.0](#)
+# 【RunAny】一劳永逸的快速启动工具 [v5.5.6](#)
 
 **RunAny区别一般的启动工具，适合家里、公司多台电脑的用户，不管软件装在C盘还是D盘，根据名字直接找到并运行**
 
@@ -6,7 +6,7 @@ __【多台电脑你只需配置一套软件列表，就能到处运行，配合
 
 另外更有  [一键直达]、[快捷打开文件]、[一键批量搜索]、[短语和热键映射]、[透明化启动]、[全局热键]...等你使用
 
-【RunAny稳定版下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.5.0.zip
+【RunAny稳定版下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.5.6.zip
 
 【异次元软件RunAny介绍文章：】https://www.iplaysoft.com/runany.html
 
