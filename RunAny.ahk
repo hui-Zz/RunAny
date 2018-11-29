@@ -3435,16 +3435,16 @@ Icon_FileExt_Set:
 	}
 	global ZzIconS:=StrSplit(ZzIconPath,",")
 	;[RunAny菜单图标初始化]
-	Menu,Tray,Icon,启动菜单(&Z)`t%MenuHotKey%,% ZzIconS[1],% ZzIconS[2]
-	Menu,Tray,Icon,修改菜单(&E)`t%TreeHotKey1%,% TreeIconS[1],% TreeIconS[2]
+	try Menu,Tray,Icon,启动菜单(&Z)`t%MenuHotKey%,% ZzIconS[1],% ZzIconS[2]
+	try Menu,Tray,Icon,修改菜单(&E)`t%TreeHotKey1%,% TreeIconS[1],% TreeIconS[2]
 	Menu,Tray,Icon,修改文件(&F)`t%TreeIniHotKey1%,SHELL32.dll,134
 	If(MENU2FLAG){
-		Menu,Tray,Icon,启动菜单2(&2)`t%MenuHotKey2%,% ZzIconS[1],% ZzIconS[2]
-		Menu,Tray,Icon,修改菜单2(&W)`t%TreeHotKey2%,% TreeIconS[1],% TreeIconS[2]
+		try Menu,Tray,Icon,启动菜单2(&2)`t%MenuHotKey2%,% ZzIconS[1],% ZzIconS[2]
+		try Menu,Tray,Icon,修改菜单2(&W)`t%TreeHotKey2%,% TreeIconS[1],% TreeIconS[2]
 		Menu,Tray,Icon,修改文件2(&G)`t%TreeIniHotKey2%,SHELL32.dll,134
 	}
-	Menu,Tray,Icon,设置RunAny(&D)`t%RunASetHotKey%,% MenuIconS[1],% MenuIconS[2]
-	Menu,Tray,Icon,关于RunAny(&A)...,% AnyIconS[1],% AnyIconS[2]
+	try Menu,Tray,Icon,设置RunAny(&D)`t%RunASetHotKey%,% MenuIconS[1],% MenuIconS[2]
+	try Menu,Tray,Icon,关于RunAny(&A)...,% AnyIconS[1],% AnyIconS[2]
 	Menu,Tray,Icon,插件管理(&C)`t%PluginsManageHotKey%,shell32.dll,166
 	Menu,Tray,Icon,检查更新(&U),shell32.dll,14
 	;~;[引入菜单项图标识别库]
@@ -3883,7 +3883,7 @@ return
 ;~;[托盘菜单]
 MenuTray:
 	Menu,Tray,NoStandard
-	Menu,Tray,Icon,% MenuIconS[1],% MenuIconS[2]
+	try Menu,Tray,Icon,% MenuIconS[1],% MenuIconS[2]
 	Menu,Tray,add,启动菜单(&Z)`t%MenuHotKey%,Menu_Show1
 	Menu,Tray,add,修改菜单(&E)`t%TreeHotKey1%,Menu_Edit1
 	Menu,Tray,add,修改文件(&F)`t%TreeIniHotKey1%,Menu_Ini
