@@ -808,7 +808,7 @@ Menu_Run:
 		}
 		;[按住Ctrl键打开应用所在目录，只有目录则直接打开]
 		if(!selectZz && !Candy_isFile){
-			if(GetKeyState("Ctrl") && GetKeyState("Shift")){	;[按住Ctrl+Shift则是管理员身份运行]
+			if(GetKeyState("Ctrl") && GetKeyState("Shift")){	;[按住Ctrl+Shift管理员身份运行]
 				Run,*RunAs %any%
 				return
 			}
@@ -835,7 +835,7 @@ Menu_Run:
 					selectZzStr.="""" . A_LoopField . """" . A_Space
 				}
 				StringTrimRight, selectZzStr, selectZzStr, 1
-				if(GetKeyState("Ctrl") && GetKeyState("Shift")){	;[按住Ctrl+Shift则是管理员身份运行]
+				if(GetKeyState("Ctrl") && GetKeyState("Shift")){	;[按住Ctrl+Shift管理员身份运行]
 					Run,*RunAs %any%%A_Space%%selectZzStr%
 					return
 				}
@@ -1732,9 +1732,10 @@ TVAdd:
 	gosub,Menu_Item_Edit
 return
 TVEdit:
-	if(selIDTVEdit="")
-		selIDTVEdit:=TV_GetSelection()
-	TV_GetText(ItemText, selIDTVEdit)
+	selID:=TV_GetSelection()
+	if(selIDTVEdit!="")
+		selID:=selIDTVEdit
+	TV_GetText(ItemText, selID)
 	;分解已有菜单项到编辑框中
 	itemGlobalWinKey:=0
 	itemName:=fileName:=itemGlobalHotKey:=itemGlobalKey:=selectZz:=""
