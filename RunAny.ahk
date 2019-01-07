@@ -622,19 +622,23 @@ Menu_Show:
 							Menu,%extMenuName%,Icon,0【添加到此菜单】,SHELL32.dll,166
 						}
 						;添加后缀公共菜单
-						for k,v in MenuObjExt["public"]
-						{
-							Menu,%extMenuName%,Insert, 1&, %v%, :%v%
+						if(MenuObjExt["public"].MaxIndex()>0){
+							for k,v in MenuObjExt["public"]
+							{
+								Menu,%extMenuName%,Insert, 1&, %v%, :%v%
+							}
+							publicMaxNum:=MenuObjExt["public"].MaxIndex() + 1
+							Menu,%extMenuName%,Insert, %publicMaxNum%&
 						}
-						publicMaxNum:=MenuObjExt["public"].MaxIndex() + 1
-						Menu,%extMenuName%,Insert, %publicMaxNum%&
 						;[显示自定义后缀菜单]
 						Menu_Show_Show(extMenuName,FileName)
 						;删除临时添加的菜单
-						Menu,%extMenuName%,Delete, %publicMaxNum%&
-						for k,v in MenuObjExt["public"]
-						{
-							Menu,%extMenuName%,Delete,%v%
+						if(MenuObjExt["public"].MaxIndex()>0){
+							Menu,%extMenuName%,Delete, %publicMaxNum%&
+							for k,v in MenuObjExt["public"]
+							{
+								Menu,%extMenuName%,Delete,%v%
+							}
 						}
 						if(!HideAddItem)
 							Menu,%extMenuName%,Delete,0【添加到此菜单】
@@ -1807,7 +1811,7 @@ FileNameChange:
 	Gui,SaveItem:Submit, NoHide
 	filePath:=!vfileName && vitemName ? vitemName : vfileName
 	if(filePath){
-		if(Check_Obj_Ext(filePath))
+		if(InStr(filePath,";",,0,1)=StrLen(filePath) || Check_Obj_Ext(filePath))
 			GuiControl, SaveItem:Hide, vPrompt
 		else
 			GuiControl, SaveItem:Show, vPrompt
