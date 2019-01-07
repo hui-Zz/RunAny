@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.5.6 @2018.11.15
+║【RunAny】一劳永逸的快速启动工具 v5.5.8 @2019.01.07
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -20,8 +20,8 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
-global RunAny_update_version:="5.5.6"
-global RunAny_update_time:="2018.11.28"
+global RunAny_update_version:="5.5.8"
+global RunAny_update_time:="2019.01.07"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -808,6 +808,10 @@ Menu_Run:
 		}
 		;[按住Ctrl键打开应用所在目录，只有目录则直接打开]
 		if(!selectZz && !Candy_isFile){
+			if(GetKeyState("Ctrl") && GetKeyState("Shift")){	;[按住Ctrl+Shift则是管理员身份运行]
+				Run,*RunAs %any%
+				return
+			}
 			if(GetKeyState("Ctrl") || InStr(FileExist(any), "D")){
 				if(OpenFolderPathRun){
 					Run,%OpenFolderPathRun%%A_Space%"%any%"
@@ -819,13 +823,10 @@ Menu_Run:
 				return
 			}
 		}
+		global TVEditItem
 		if(selectZz!=""){
 			firstFile:=RegExReplace(selectZz,"(.*)(\n|\r).*","$1")  ;取第一行
 			if(Candy_isFile=1 || FileExist(selectZz) || FileExist(firstFile)){
-				if(GetKeyState("Ctrl")){
-					gosub,Menu_Add_File_Item
-					return
-				}
 				selectZzStr:=""
 				Loop, parse, selectZz, `n, `r, %A_Space%%A_Tab%
 				{
@@ -834,8 +835,18 @@ Menu_Run:
 					selectZzStr.="""" . A_LoopField . """" . A_Space
 				}
 				StringTrimRight, selectZzStr, selectZzStr, 1
-				if(GetKeyState("Shift")){
+				if(GetKeyState("Ctrl") && GetKeyState("Shift")){	;[按住Ctrl+Shift则是管理员身份运行]
 					Run,*RunAs %any%%A_Space%%selectZzStr%
+					return
+				}
+				if(GetKeyState("Ctrl")){
+					gosub,Menu_Add_File_Item
+					return
+				}
+				if(GetKeyState("Shift")){
+					TVEditItem:=A_ThisMenuItem
+					gosub,Menu_Edit%MENU_NO%
+					TVEditItem:=""
 					return
 				}
 				if(InStr(FileExist(any), "D")){
@@ -852,8 +863,10 @@ Menu_Run:
 			}
 			return
 		}
-		If(GetKeyState("Shift")){	;[按住Shift则是管理员身份运行]
-			Run,*RunAs %any%
+		if(GetKeyState("Shift")){	;[按住Shift编辑菜单项]
+			TVEditItem:=A_ThisMenuItem
+			gosub,Menu_Edit%MENU_NO%
+			TVEditItem:=""
 		}else{
 			menuKeys:=StrSplit(A_ThisMenuItem,"`t")
 			thisMenuName:=menuKeys[1]
@@ -1576,6 +1589,23 @@ Menu_Edit:
 	TVMenu("GuiMenu")
 	Gui, Menu, GuiMenu
 	Gui, Show, , %RunAnyZz%菜单树管理【%both%】(双击修改，右键操作) %RunAny_update_version% %RunAny_update_time%
+	if(TVEditItem!=""){
+		ItemEdit:=Get_Obj_Name(TVEditItem)
+		ItemID = 0
+		Loop
+		{
+			ItemID := TV_GetNext(ItemID, "Full")
+			if not ItemID
+				break
+			TV_GetText(ItemText, ItemID)
+			ItemName:=Get_Obj_Name(ItemText)
+			if(ItemName=ItemEdit){
+				TV_Modify(ItemID, "Expand Select")
+				selIDTVEdit:=ItemID
+				gosub,TVEdit
+			}
+		}
+	}
 return
 Menu_Edit1:
 	both:=1
@@ -1653,11 +1683,11 @@ TVMenu(addMenu){
 		Menu, %addMenu%, Add,注释, TVComments
 	;~ Menu, %addMenu%, Add
 	Menu, %addMenu%, Add,移动到..., :moveMenu%both%
-	Menu, %addMenu%, Icon,移动到...,% MoveIconS[1],% MoveIconS[2]
+	try Menu, %addMenu%, Icon,移动到...,% MoveIconS[1],% MoveIconS[2]
 	Menu, %addMenu%, Add,% flag ? "向下" : "向下`t(F5/PgDn)", TVDown
-	Menu, %addMenu%, Icon,% flag ? "向下" : "向下`t(F5/PgDn)",% DownIconS[1],% DownIconS[2]
+	try Menu, %addMenu%, Icon,% flag ? "向下" : "向下`t(F5/PgDn)",% DownIconS[1],% DownIconS[2]
 	Menu, %addMenu%, Add,% flag ? "向上" : "向上`t(F6/PgUp)", TVUp
-	Menu, %addMenu%, Icon,% flag ? "向上" : "向上`t(F6/PgUp)",% UpIconS[1],% UpIconS[2]
+	try Menu, %addMenu%, Icon,% flag ? "向上" : "向上`t(F6/PgUp)",% UpIconS[1],% UpIconS[2]
 	Menu, %addMenu%, Add
 	Menu, %addMenu%, Add,% flag ? "多选导入" : "多选导入`tF8", TVImportFile
 	Menu, %addMenu%, Icon,% flag ? "多选导入" : "多选导入`tF8", SHELL32.dll,55
@@ -1702,8 +1732,9 @@ TVAdd:
 	gosub,Menu_Item_Edit
 return
 TVEdit:
-	selID:=TV_GetSelection()
-	TV_GetText(ItemText, selID)
+	if(selIDTVEdit="")
+		selIDTVEdit:=TV_GetSelection()
+	TV_GetText(ItemText, selIDTVEdit)
 	;分解已有菜单项到编辑框中
 	itemGlobalWinKey:=0
 	itemName:=fileName:=itemGlobalHotKey:=itemGlobalKey:=selectZz:=""
@@ -1729,6 +1760,7 @@ TVEdit:
 		fileName:=ItemText
 	}
 	menuGuiFlag:=true
+	selIDTVEdit:=""
 	gosub,Menu_Item_Edit
 return
 Menu_Item_Edit:
