@@ -1,4 +1,4 @@
-# 【RunAny】一劳永逸的快速启动工具 [v5.5.6](#)
+# 【RunAny】一劳永逸的快速启动工具 [v5.5.8](#)
 
 **RunAny区别一般的启动工具，适合家里、公司多台电脑的用户，不管软件装在C盘还是D盘，根据名字直接找到并运行**
 
@@ -6,7 +6,7 @@ __【多台电脑你只需配置一套软件列表，就能到处运行，配合
 
 另外更有  [一键直达]、[快捷打开文件]、[一键批量搜索]、[短语和热键映射]、[透明化启动]、[全局热键]...等你使用
 
-【RunAny稳定版下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.5.6.zip
+【RunAny稳定版下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.5.8.zip
 
 【异次元软件RunAny介绍文章：】https://www.iplaysoft.com/runany.html
 
@@ -90,11 +90,12 @@ RunAny可以储存邮箱、手机号，想用时就快捷输出，更支持AHK�
 
    `当前时间|%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%;` 输出 `2018-08-08 08:08:08` （变量语法参考[AHK文档](https://wyagd001.github.io/zh-cn/docs/Variables.htm)）
 
-6. **区分同名程序：** 如果电脑上有多个同名程序，加上全路径指定运行其中一个，如：`IE(32位)|C:\Program Files (x86)\Internet Explorer\iexplore.exe`
+6. **区分重名程序：** 如果电脑上有多个重名程序，加上全路径指定运行其中一个，如：`IE(32位)|C:\Program Files (x86)\Internet Explorer\iexplore.exe`（或创建该程序的快捷方式，在RunAny中添加使用快捷方式解决重名问题）
 
-> 每个菜单名首字母(或用&指定任意)便是启动快捷键，如：`IE(&E)|iexplore.exe`快捷键是e
->
 > 默认支持exe、lnk、ahk、bat、cmd文件的无路径识别，其他后缀可以在RunAny设置中的Everything搜索参数，如支持doc文档免设路径识别
+>
+> 每个菜单名首字母(或用&指定任意)便是启动快捷键，如：`IE(&E)|iexplore.exe`快捷键是e
+
 
 ## 【进阶配置】：
 
@@ -134,11 +135,10 @@ RunAny可以储存邮箱、手机号，想用时就快捷输出，更支持AHK�
 
 ## 【RunAny其他功能】：
 
-> **所有应用独立全局热键集启动、最小化时激活，已激活时最小化、同应用多窗口切换功能于一体**
-
-> 按住Ctrl打开软件会打开软件所在的目录
-
-> 按住Shift打开软件会以管理员身份来运行
+1. **所有应用独立全局热键集启动、最小化时激活，已激活时最小化、同应用多窗口切换功能于一体**
+2. 按住<kbd>Ctrl</kbd>打开软件会打开软件所在的目录
+3. 按住<kbd>Shift</kbd>键打开软件快速直接跳转到编辑该菜单项
+4. 按住<kbd>Ctrl</kbd>+<kbd>Shift</kbd>键打开软件会以管理员身份来运行
 
 > 开启菜单2功能后，可在设置"绑定菜单1为一键搜索"，这样选中文字按<kbd>\`</kbd>就一键搜索，想用其他搜索再使用菜单2热键搜索
 
