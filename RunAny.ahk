@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.5.8 @2019.01.07
+║【RunAny】一劳永逸的快速启动工具 v5.5.8 @2019.01.19
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -21,7 +21,7 @@ global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.5.8"
-global RunAny_update_time:="2019.01.07"
+global RunAny_update_time:="2019.01.19"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -134,14 +134,17 @@ Gosub,Open_Ext_Set
 ;~;[后缀图标初始化]
 Gosub,Icon_FileExt_Set
 
+global M1:=RunAnyZz . "1"
+global M2:=RunAnyZz . "2"
 global MenuWebRootSplit:=Object()	;网址短语函数菜单的分隔符追加
+global MenuEmptyList:=Object()	;空内容菜单
 ;#应用菜单数组#网址菜单名数组及地址队列#
 menuRoot1:=Object(),menuWebRoot1:=Object(),menuWebList1:=Object()
 ;菜单级别：初始为根菜单RunAny
-menuRoot1.Push(RunAnyZz . "1")
+menuRoot1.Push(M1)
 menuWebRoot1.Push(RunAnyZz . "Web1")
-menuWebRoot1.Push(RunAnyZz . "1")
-MenuObjTree1[RunAnyZz . "1"]:=Object()
+menuWebRoot1.Push(M1)
+MenuObjTree1[M1]:=Object()
 global menu2:=MENU2FLAG
 ;~;[读取带图标的自定义应用菜单]
 Menu_Read(iniVar1,menuRoot1,1,menuWebRoot1,menuWebList1,false,1)
@@ -149,14 +152,21 @@ Menu_Read(iniVar1,menuRoot1,1,menuWebRoot1,menuWebList1,false,1)
 ;~;[如果有第2菜单则开始加载]
 if(menu2){
 	menuRoot2:=Object(),menuWebRoot2:=Object(),menuWebList2:=Object()
-	menuRoot2.Push(RunAnyZz . "2")
+	menuRoot2.Push(M2)
 	menuWebRoot2.Push(RunAnyZz . "Web2")
-	menuWebRoot2.Push(RunAnyZz . "2")
-	MenuObjTree2[RunAnyZz . "2"]:=Object()
+	menuWebRoot2.Push(M2)
+	MenuObjTree2[M2]:=Object()
 	Menu_Read(iniVar2,menuRoot2,1,menuWebRoot2,menuWebList2,false,2)
 }
 ;获得所有后缀公共菜单
 MenuObjExt["public"]:=MenuObjPublic
+;清除空内容的菜单
+For mn, mv in MenuEmptyList
+{
+
+	if(mn!=M1 && mn!=M2 && mv=0)
+		Menu,%mn%,Delete
+}
 ;~;[最近运行项]
 if(!HideRecent){
 	Menu,% menuRoot1[1],Add
@@ -250,6 +260,8 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 					MenuObjTree%TREE_NO%[menuRootFnLevel].Push(Z_LoopField)
 					if(MenuWebRootSplit[menuRootFnLevel])
 						Menu,%menuRootFnLevel%:,Add
+					if(menuLevel=1 && menuRootFnLevel=RunAnyZz . TREE_NO)
+						Menu,% menuWebRoot%TREE_NO%[1],Add
 				}
 				continue
 			}
@@ -455,8 +467,13 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 			}else{
 				Menu,% menuWebRootFn[1],Add,%menuName%:, :%menuName%:
 			}
-			if(HideSend)
+			if(HideSend){
 				Menu,%menuName%,Delete,%menuItem%
+				if(MenuEmptyList[menuName]!=1)
+					MenuEmptyList[menuName]:=0
+			}else{
+				MenuEmptyList[menuName]:=1
+			}
 			return
 		}
 		if(InStr(item,"::",,0,1)=itemLen-1){	; {发送热键}
@@ -465,20 +482,23 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 			return
 		}
 		if(RegExMatch(item,"iS)([\w-]+://?|www[.]).*")){  ; {网址}
+			webSearchFlag:=false
 			website:=RegExReplace(item,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
 			webIcon:=RunIconDir "\" website ".ico"
+			webIconNum:=0
+			if(InStr(item,"%s"))
+				webSearchFlag:=true
+			if(!FileExist(webIcon)){
+				webIcon:=UrlIconS[1]
+				webIconNum:=UrlIconS[2]
+			}
 			Menu,%menuName%,add,%menuItem%,Menu_Run
 			Menu,%menuName%:,add,%menuItem%,Menu_Run
 			MenuWebRootSplit[menuName]:=true
-			if(FileExist(webIcon)){
-				try{
-					Menu_Item_Icon(menuName,menuItem,webIcon,"0")
-					Menu_Item_Icon(menuName ":",menuItem,webIcon,"0")
-				} catch e {
-					Menu_Item_Icon(menuName,menuItem,UrlIconS[1],UrlIconS[2])
-					Menu_Item_Icon(menuName ":",menuItem,UrlIconS[1],UrlIconS[2])
-				}
-			}else{
+			try{
+				Menu_Item_Icon(menuName,menuItem,webIcon,webIconNum)
+				Menu_Item_Icon(menuName ":",menuItem,webIcon,webIconNum)
+			} catch e {
 				Menu_Item_Icon(menuName,menuItem,UrlIconS[1],UrlIconS[2])
 				Menu_Item_Icon(menuName ":",menuItem,UrlIconS[1],UrlIconS[2])
 			}
@@ -511,8 +531,13 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 				if(!HideWeb)
 					menuWebRootFn.Push(menuName)
 			}
-			if(HideWeb)
+			if(HideWeb && webSearchFlag){
 				Menu,%menuName%,Delete,%menuItem%
+				if(MenuEmptyList[menuName]!=1)
+					MenuEmptyList[menuName]:=0
+			}else{
+				MenuEmptyList[menuName]:=1
+			}
 			return
 		}
 		if(RegExMatch(item,"S).+?\[.+?\]%?\(.*?\)")){  ; {外接函数}
@@ -2889,8 +2914,8 @@ Menu_Set:
 	Gui,66:Add,GroupBox,xm-10 y+15 w%groupWidch66% h80,RunAny应用菜单
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
 	Gui,66:Add,Checkbox,Checked%HideRecent% x+130 vvHideRecent,隐藏最近运行
-	Gui,66:Add,Checkbox,Checked%HideWeb% xm yp+20 vvHideWeb,隐藏网址（选中文字显示）
-	Gui,66:Add,Checkbox,Checked%HideSend% x+46 vvHideSend,隐藏短语（选中文字显示）
+	Gui,66:Add,Checkbox,Checked%HideWeb% xm yp+20 vvHideWeb,隐藏带`%s网址（选中文字显示）
+	Gui,66:Add,Checkbox,Checked%HideSend% x+17 vvHideSend,隐藏短语（选中文字显示）
 	Gui,66:Add,Checkbox,Checked%HideAddItem% xm yp+20 vvHideAddItem,隐藏【添加到此菜单】
 	Gui,66:Add,Checkbox,Checked%HideMenuTray% x+70 vvHideMenuTray,隐藏托盘菜单
 	Gui,66:Add,GroupBox,xm-10 y+15 w%groupWidch66% h70,RunAny选中文字菜单
@@ -3285,7 +3310,7 @@ Var_Set:
 	global HideFail:=Var_Read("HideFail",0)
 	global HideUnSelect:=Var_Read("HideUnSelect",0)
 	global HideRecent:=Var_Read("HideRecent",0)
-	global HideWeb:=Var_Read("HideWeb",0)
+	global HideWeb:=Var_Read("HideWeb",1)
 	global HideSend:=Var_Read("HideSend",0)
 	global HideAddItem:=Var_Read("HideAddItem",0)
 	global HideMenuTray:=Var_Read("HideMenuTray",1)
