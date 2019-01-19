@@ -215,7 +215,7 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 				treeLevel:=RegExReplace(Z_LoopField,"S)(^-+).*","$1")
 				menuLevel:=StrLen(treeLevel)
 				if(InStr(menuItem,"|")){
-					menuItems:=StrSplit(menuItem,"|")
+					menuItems:=StrSplit(menuItem,"|",,2)
 					menuItem:=menuItems[1]
 					;~;[读取菜单关联后缀]
 					Loop, parse,% menuItems[2],%A_Space%
@@ -269,7 +269,7 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 			IconFail:=false			;~是否显示无效项图标
 			if(InStr(Z_LoopField,"|")){
 				;~;[生成有前缀备注的应用]
-				menuDiy:=StrSplit(Z_LoopField,"|")
+				menuDiy:=StrSplit(Z_LoopField,"|",,2)
 				appName:=RegExReplace(menuDiy[2],"iS)\.exe($| .*)")	;去掉后缀或参数，取应用名
 				item:=MenuObj[appName]
 				if(item){
@@ -566,13 +566,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 Menu_Item_Icon(menuName,menuItem,iconPath,iconNo=0,treeLevel=""){
 	try{
 		menuItemSet:=treeLevel ? treeLevel : menuItem
-		if(InStr(menuItemSet,"`t")){
-			menuKeyStr:=RegExReplace(menuItemSet, "S)\t+", A_Tab)
-			menuKeys:=StrSplit(menuKeyStr,"`t")
-			menuItemSet:=menuKeys[1]
-		}
-		if(RegExMatch(menuItemSet,"S).*_:\d{1,2}$"))
-			menuItemSet:=RegExReplace(menuItemSet,"S)(.*)_:\d{1,2}$","$1")
+		menuItemSet:=menuItemIconFileName(menuItemSet)
 		if(IconFolderList[menuItemSet]){
 			Menu,%menuName%,Icon,%menuItem%,% IconFolderList[menuItemSet],0
 		}else{
@@ -1740,7 +1734,7 @@ TVEdit:
 	itemGlobalWinKey:=0
 	itemName:=fileName:=itemGlobalHotKey:=itemGlobalKey:=selectZz:=""
 	if(InStr(ItemText,"|") || InStr(ItemText,"-")=1){
-		menuDiy:=StrSplit(ItemText,"|")
+		menuDiy:=StrSplit(ItemText,"|",,2)
 		itemName:=menuDiy[1]
 		fileName:=menuDiy[2]
 		;~;[分割Tab获取应用自定义热键]
@@ -2110,7 +2104,7 @@ Website_Icon:
 	}
 	if(selTextList.MaxIndex()=1){
 		try {
-			diyText:=StrSplit(ItemText,"|")
+			diyText:=StrSplit(ItemText,"|",,2)
 			webText:=(diyText[2]) ? diyText[2] : diyText[1]
 			if(RegExMatch(webText,"iS)^([\w-]+://?|www[.]).*")){
 				website:=RegExReplace(webText,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
@@ -2174,7 +2168,7 @@ Website_Icon:
 return
 Website_Icon_Down:
 	try {
-		diyText:=StrSplit(ItemText,"|")
+		diyText:=StrSplit(ItemText,"|",,2)
 		webText:=(diyText[2]) ? diyText[2] : diyText[1]
 		if(RegExMatch(webText,"iS)^([\w-]+://?|www[.]).*")){
 			website:=RegExReplace(webText,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
@@ -2386,14 +2380,16 @@ Set_Icon(itemVar,editVar=true){
 		return "Icon3"
 	if(FileName="cmd.exe")
 		FileName=%A_WinDir%\system32\cmd.exe
+	diyText:=StrSplit(itemVar,"|",,2)
 	;~;[获取网址图标]
 	if(RegExMatch(FileName,"iS)([\w-]+://?|www[.]).*")){
-		if(editVar){
-			return "Icon7"
-		}
 		try{
 			website:=RegExReplace(FileName,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
 			webIcon:=A_ScriptDir "\RunIcon\" website ".ico"
+			itemIconFile:=IconFolderList[menuItemIconFileName(diyText[1])]
+			if(itemIconFile && FileExist(itemIconFile)){
+				webIcon:=itemIconFile
+			}
 			if(FileExist(webIcon)){
 				Menu,exeTestMenu,Icon,SetCancel,%webIcon%,0
 				addNum:=IL_Add(ImageListID, webIcon, 0)
@@ -2408,7 +2404,6 @@ Set_Icon(itemVar,editVar=true){
 	;~;[编辑后图标重新加载]
 	if(editVar && FileName=""){
 		;~;[编辑后通过everything重新添加应用图标]
-		diyText:=StrSplit(itemVar,"|")
 		objText:=(diyText[2]) ? diyText[2] : diyText[1]
 		if(FileExt="exe"){
 			exeQueryPath:=exeQuery(objText)
