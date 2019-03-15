@@ -964,7 +964,7 @@ Menu_Key_Run:
 			}
 		}
 	} catch e {
-		MsgBox,16,%thisMenuName%运行出错,% "运行路径：" any "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+		MsgBox,16,%thisMenuName%热键运行出错,% "运行路径：" any "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 	}finally{
 		SetWorkingDir,%A_ScriptDir%
 	}
@@ -1009,6 +1009,12 @@ Menu_Run_Plugins_ObjReg:
 			if(RegExMatch(appParms[A_Index],"iS)%""(.+?)""%")){	;无路径应用变量
 				appNoPath:=RegExReplace(appParms[A_Index],"iS)%""(.+?)""%","$1")
 				appNoPathName:=RegExReplace(appNoPath,"iS)\.exe($| .*)")	;去掉后缀或参数，取应用名
+				appNoPathGetTfVal:=Get_Transform_Val("%" appNoPath "%")
+				if(appNoPathGetTfVal="%" appNoPath "%"){	;识别为系统自带软件
+					appParms[A_Index]:=RegExReplace(appParms[A_Index],"iS)%"".+?""%",appNoPath)
+				}else{
+					appParms[A_Index]:=appNoPathGetTfVal	;识别为自定义变量软件路径
+				}
 				if(MenuObj[appNoPathName]){
 					SplitPath,% MenuObj[appNoPathName],,, FileExt  ; 获取文件扩展名.
 					appNoPathParm:=RegExReplace(appNoPath,"iS).*?\." FileExt "($| .*)","$1")	;去掉应用名，取参数
