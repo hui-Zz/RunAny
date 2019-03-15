@@ -21,7 +21,7 @@ __【多台电脑你只需配置一套软件列表，就能到处运行，配合
 ## RunAny启动软件就跟五笔打字一样高效方便，3键直达（如Esc键下方的重音符键<kbd>\`</kbd>为热键）：
 
 - <kbd>\`</kbd><kbd>w</kbd><kbd>w</kbd>就是启动『work工作』分类下的Word
-- <kbd>\`</kbd><kbd>a</kbd><kbd>w</kbd>就是启动『app常用』分类下的Wiz
+- <kbd>\`</kbd><kbd>a</kbd><kbd>w</kbd>就是启动『app常用』分类下的微信
 - <kbd>\`</kbd><kbd>f</kbd><kbd>w</kbd>就是启动『file文件』分类下的WinRAR
 
 <img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/help/RunAny%E6%BC%94%E7%A4%BA.gif" alt="RunAny演示" style="max-width:50%;">
@@ -156,14 +156,30 @@ RunAny追求就是：<u>**一劳永逸**</u>
 **你的支持是我最大的动力！(金额随意)：**
 <img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.jpg" alt="支持RunAny" width="300" height="300"><img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.png" alt="支持RunAny" width="300" height="300">
 
-
+---
 
 ## 【特别感谢以下朋友对RunAny的赞助！有你们RunAny会越来越好！】
-
-| AHK-工兵 | Balance | °～童年不懂事° | 小雨果 | skystar      |
-| -------- | ------- | -------------- | ------ | ------------ |
-| Nicked   | 声仔    | 多多           | 涅槃   | 小川（Ever） |
-| E*d      | 鼠小天  | 杨伟华         |        |              |
-|          |         |                |        |              |
+| 昵称           | 时间              | 金额 |
+| -------------- | ----------------- | ---- |
+| Balance        | 2017              | 20   |
+| AHK-工兵       | 18-04-17 17:30:09 | 10   |
+| Nicked         | 18-05-15 15:25:42 | 10   |
+| 声仔           | 18-05-16 10:29:59 | 10   |
+| °～童年不懂事° | 18-05-16 22:55:26 | 20   |
+| skystar        | 18-05-27 16:39:36 | 12   |
+| AHK-工兵（2）  | 18-06-01 11:04:59 | 10   |
+| 小雨果         | 18-06-03 17:51:58 | 20   |
+| 多多           | 18-06-07 12:38:42 | 10   |
+| 涅槃           | 18-06-18 16:54:18 | 30   |
+| skystar（2）   | 18-06-26 14:24:17 | 66   |
+| 小川（Ever）   | 18-07-18 09:12:00 | 18.8 |
+| E*d            | 18-07-23 11:20:18 | 10   |
+| 鼠小天         | 18-10-20 17:06:00 | 8.8  |
+| *伟华          | 18-11-08 16:42:07 | 50   |
+| AHK-工兵（3）  | 18-11-29 10:01:21 | 10   |
+| K*a            | 18-12-04 15:22:41 | 1    |
+| *天（过年好）  | 19-01-30 21:37:40 | 8.88 |
+| *杭            | 19-02-27 18:29:58 | 5    |
+|                |                   |      |
 
 ---
