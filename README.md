@@ -1,4 +1,4 @@
-# 【RunAny】一劳永逸的快速启动工具 ![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat&logo=github&cacheSeconds=2592000)![GitHub downloads](https://img.shields.io/github/downloads/hui-Zz/RunAny/total.svg?style=flat&cacheSeconds=2592000)
+# 【RunAny】一劳永逸的快速启动工具 ![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat-square&logo=github&cacheSeconds=2592000) ![GitHub](https://img.shields.io/github/license/hui-Zz/RunAny.svg?style=flat-square) [![HitCount](http://hits.dwyl.io/hui-Zz/RunAny.svg)](http://hits.dwyl.io/hui-Zz/RunAny)
 
 **RunAny区别一般的启动工具，适合家里、公司多台电脑的用户，不管软件装在C盘还是D盘，根据名字直接找到并运行**
 
@@ -12,8 +12,7 @@ __【多台电脑你只需配置一套软件列表，就能到处运行，配合
 
 [【RunAny版本更新历史】](https://github.com/hui-Zz/RunAny/wiki/RunAny版本更新历史)
 
-> RunAny使用Everything神器来知道所有软件的位置，Everything可以秒搜Windows下任何文件
-
+> RunAny使用Everything神器来知道所有软件的位置，Everything可以秒搜Windows下任何文件 <br>
 > RunAny可以左键右鼠操作，也可以全键盘、全鼠标操作（配合鼠标手势软件更佳）
 
 ---
@@ -147,9 +146,10 @@ RunAny可以储存邮箱、手机号，想用时就快捷输出，更支持AHK�
 RunAny追求就是：<u>**一劳永逸**</u>
 ---
 
-联系作者：hui0.0713@gmail.com
+【联系作者】hui0.0713@gmail.com
+[【RunAny建议及意见】](https://github.com/hui-Zz/RunAny/issues)
 
-讨论QQ群：[246308937【RunAny快速启动一劳永逸】](https://jq.qq.com/?_wv=1027&k=445Ug7u)、[3222783【AutoHotkey高级群】](https://jq.qq.com/?_wv=1027&k=43uBHer)、[493194474【软客】](https://jq.qq.com/?_wv=1027&k=43trxF5)
+讨论QQ群：[246308937【RunAny快速启动一劳永逸】](https://jq.qq.com/?_wv=1027&k=445Ug7u)
 
 **欢迎大家多多提出建议！感谢各位网友和群里的AHK-工兵、Balance、☆☆天甜、°～童年不懂事°等等对RunAny提出好的建议和问题**
 
@@ -184,3 +184,6 @@ RunAny追求就是：<u>**一劳永逸**</u>
 | *杭（2）       | 19-03-29 17:06:15 | 2    |
 
 ---
+![GitHub stars](https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=social)
+![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat&logo=github&cacheSeconds=2592000) ![GitHub](https://img.shields.io/github/license/hui-Zz/RunAny.svg)
+![GitHub downloads](https://img.shields.io/github/downloads/hui-Zz/RunAny/total.svg?style=flat&cacheSeconds=2592000)[![996.icu](https://img.shields.io/badge/link-996.icu-red.svg)](https://996.icu)
