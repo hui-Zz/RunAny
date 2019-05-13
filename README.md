@@ -1,4 +1,4 @@
-# 【RunAny】一劳永逸的快速启动工具 [v5.5.8](#)
+# 【RunAny】一劳永逸的快速启动工具 ![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat&logo=github&cacheSeconds=2592000)![GitHub downloads](https://img.shields.io/github/downloads/hui-Zz/RunAny/total.svg?style=flat&cacheSeconds=2592000)
 
 **RunAny区别一般的启动工具，适合家里、公司多台电脑的用户，不管软件装在C盘还是D盘，根据名字直接找到并运行**
 
@@ -154,7 +154,7 @@ RunAny追求就是：<u>**一劳永逸**</u>
 **欢迎大家多多提出建议！感谢各位网友和群里的AHK-工兵、Balance、☆☆天甜、°～童年不懂事°等等对RunAny提出好的建议和问题**
 
 **你的支持是我最大的动力！(金额随意)：**
-<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.jpg" alt="支持RunAny" width="300" height="300"><img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.png" alt="支持RunAny" width="300" height="300">
+<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.jpg" alt="支持RunAny" width="280" height="280"><img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.png" alt="支持RunAny" width="280" height="280">
 
 ---
 
