@@ -20,8 +20,8 @@ GroupAdd,maxApp,ahk_exe vmware-vmx.exe
 GroupAdd,maxApp,ahk_exe TeamViewer.exe
 GroupAdd,maxApp,ahk_exe dota2.exe
 GroupAdd,maxApp,ahk_exe League of Legends.exe
-GroupAdd,browserApp,ahk_class Chrome.exe
-GroupAdd,browserApp,ahk_class QQBrowser.exe
+GroupAdd,browserApp,ahk_exe chrome.exe
+GroupAdd,browserApp,ahk_exe QQBrowser.exe
 #If !WinActive("ahk_group maxApp") ;特定最大化程序下屏蔽
 	MButton:: ; 如不屏蔽中键原功能在前缀加~，但这样拖拽窗口时会实时激活
 		CoordMode,Mouse ; 切换到屏幕绝对坐标

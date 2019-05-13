@@ -173,6 +173,7 @@ class RunAnyObj {
 				WinWait,ahk_exe %editApp%
 			}
 			WinActivate,ahk_exe %editApp%
+			Sleep,200
 			this.Send_Str_Zz(getZz)
 		}
 	}
