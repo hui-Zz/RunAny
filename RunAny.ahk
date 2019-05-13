@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.5.8 @2019.01.19
+║【RunAny】一劳永逸的快速启动工具 v5.5.9 @2019.03.23
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：[246308937]、3222783、493194474
@@ -20,8 +20,8 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
-global RunAny_update_version:="5.5.8"
-global RunAny_update_time:="2019.01.19"
+global RunAny_update_version:="5.5.9"
+global RunAny_update_time:="2019.03.23"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -1491,7 +1491,7 @@ Menu_Add_File_Item:
 		return
 	menuGuiFlag:=false
 	thisMenuItemStr:=X_ThisMenuItem="0【添加到此菜单】" ? "" : "菜单项（" Z_ThisMenuItem "）的上面"
-	thisMenuStr:=Z_ThisMenu=RunAnyZz . TREE_NO ? "新增项会在『根目录』分类下" : "新增项会在『" Z_ThisMenu "』分类下"
+	thisMenuStr:=Z_ThisMenu=RunAnyZz . TREE_NO ? "新增项会在『根目录』分类下（如果没有用“-”回归1级会添加在最末的菜单内）" : "新增项会在『" Z_ThisMenu "』分类下"
 	gosub,Menu_Item_Edit
 return
 ;~;[保存新添加的菜单项]
@@ -1501,6 +1501,7 @@ SetSaveItem:
 	menuFlag:=false	;判断是否定位到要插入的菜单位置
 	endFlag:=false		;判断是否插入到末尾
 	rootFlag:=true		;判断是否为根目录
+	inputFlag:=false	;判断是否插入
 	itemIndex:=0
 	splitStr:=vitemName && vfileName ? "|" : ""
 	if(vitemGlobalKey){
@@ -1539,6 +1540,7 @@ SetSaveItem:
 			if(menuItem=Z_ThisMenuItem){
 				if(X_ThisMenuItem!="0【添加到此菜单】"){
 					saveText.=tabText . vitemName . itemGlobalKeyStr . splitStr . vfileName . "`n"
+					inputFlag:=true
 				}else{
 					endFind:=true
 				}
@@ -1552,9 +1554,13 @@ SetSaveItem:
 		if(endFind){
 			saveText.=tabText . vitemName . itemGlobalKeyStr . splitStr . vfileName . "`n"
 			endFind:=false
+			inputFlag:=true
 		}
 	}
 	if(saveText){
+		if(!inputFlag){
+			saveText.=tabText . vitemName . itemGlobalKeyStr . splitStr . vfileName . "`n"
+		}
 		stringtrimright, saveText, saveText, 1
 		FileDelete,%iniFileShow%
 		FileAppend,%saveText%,%iniFileShow%
@@ -3910,7 +3916,8 @@ Config_Update:
 	}
 return
 RunAny_Update:
-Run,https://github.com/hui-Zz/RunAny/wiki/RunAny版本更新历史
+;~ Run,https://github.com/hui-Zz/RunAny/wiki/RunAny版本更新历史
+TrayTip,,RunAny已经更新到最新版本。,5,1
 FileAppend,
 (
 @ECHO OFF & setlocal enabledelayedexpansion & TITLE RunAny更新版本
