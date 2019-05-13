@@ -3062,22 +3062,43 @@ Menu_Set:
 ;~;[关于]
 Menu_About:
 	Gui,99:Destroy
-	Gui,99:Margin,20,20
-	Gui,99:Font,Bold,Microsoft YaHei
-	Gui,99:Add,Text,y+10, 【%RunAnyZz%】一劳永逸的快速启动工具 v%RunAny_update_version% @%RunAny_update_time% 
-	Gui,99:Font
-	Gui,99:Add,Text,y+10, 默认启动菜单热键为``(Esc键下方的重音符键,Win+``输出``)
-	Gui,99:Add,Text,y+10, 右键任务栏RunAny图标自定义菜单、热键、图标等配置
-	Gui,99:Add,Text,y+10
-	Gui,99:Font,,Consolas
-	Gui,99:Add,Text,y+10, 作者：hui-Zz 建议：hui0.0713@gmail.com
-	Gui,99:Add,Link,y+10,<a href="https://github.com/hui-Zz/RunAny">GitHub：https://github.com/hui-Zz/RunAny</a>
+	Gui,99:Color,FFFFFF
+	Gui,99:Add, ActiveX, x0 y0 w500 h365 voWB, shell explorer
+	oWB.Navigate("about:blank")
+	vHtml = <meta http-equiv="X-UA-Compatible" content="IE=edge">`n
+	(
+	<html>
+	<title>name</title>
+	<body style="font-family:Microsoft YaHei;margin:30px;">
+	<h2>
+	【RunAnyZz】一劳永逸的快速启动工具 v%RunAny_update_version% @%RunAny_update_time% 
+	<img alt="GitHub stars" src="https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=social&cacheSeconds=2592000"/> 
+	<img src="http://hits.dwyl.io/hui-Zz/RunAny.svg)"/>
+	<br>
+	<font size="2">官网版本：</font><img src="https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat-square&logo=github&cacheSeconds=2592000"/>
+	</h2>
+	默认启动菜单热键为<kbd>``</kbd>（Esc键下方的重音符键~`` ）
+	<br>
+	（按<kbd>Win</kbd>+<kbd>``</kbd>输出<kbd>``</kbd>）
+	<br><br>
+	按住<kbd>Ctrl</kbd>键打开软件会打开软件所在的目录
+	<br>
+	按住<kbd>Shift</kbd>键打开软件快速直接跳转到编辑该菜单项
+	<br>
+	按住<kbd>Ctrl</kbd>+<kbd>Shift</kbd>键打开软件会以管理员身份来运行
+	<br><br>【右键任务栏RunAny图标进行配置】<br><br>
+	作者：hui-Zz 建议：hui0.0713@gmail.com
+	</body>
+	</html>
+	)
+	oWB.document.write(vHtml)
+	oWB.Refresh()
+	Gui,99:Font,s11 Bold,Microsoft YaHei
+	Gui,99:Add,Link,xm+18 y+10,官网地址：<a href="https://github.com/hui-Zz/RunAny">https://github.com/hui-Zz/RunAny</a>
 	Gui,99:Add,Text,y+10, 讨论QQ群：
-	Gui,99:Add,Link,y+10,<a href="https://jq.qq.com/?_wv=1027&k=445Ug7u">246308937【RunAny快速启动一劳永逸】</a>
-	Gui,99:Add,Link,y+10,<a href="https://jq.qq.com/?_wv=1027&k=43uBHer">3222783【AutoHotkey高级群】</a>
-	Gui,99:Add,Link,y+10,<a href="https://jq.qq.com/?_wv=1027&k=43trxF5">493194474【软客】</a>
+	Gui,99:Add,Link,x+8 yp,<a href="https://jq.qq.com/?_wv=1027&k=445Ug7u">246308937【RunAny快速启动一劳永逸】</a>`n`n
 	Gui,99:Font
-	Gui,99:Show,,关于%RunAnyZz%
+	Gui,99:Show,AutoSize Center,关于%RunAnyZz%
 	hCurs:=DllCall("LoadCursor","UInt",NULL,"Int",32649,"UInt") ;IDC_HAND
 	OnMessage(0x200,"WM_MOUSEMOVE")
 	return
