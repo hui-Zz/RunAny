@@ -21,7 +21,7 @@ global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.5.9"
-global RunAny_update_time:="2019.03.23"
+global RunAny_update_time:="2019.05.14"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -3137,37 +3137,39 @@ Menu_About:
 	Gui,99:Color,FFFFFF
 	Gui,99:Add, ActiveX, x0 y0 w500 h375 voWB, shell explorer
 	oWB.Navigate("about:blank")
-	vHtml = <meta http-equiv="X-UA-Compatible" content="IE=edge">`n
-	(
-	<html>
-	<title>name</title>
-	<body style="font-family:Microsoft YaHei;margin:30px;">
-	<h2>
-	【RunAnyZz】一劳永逸的快速启动工具 v%RunAny_update_version% @%RunAny_update_time% 
-	<img alt="GitHub stars" src="https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=social&cacheSeconds=2592000"/> 
-	<img src="http://hits.dwyl.io/hui-Zz/RunAny.svg)"/>
-	<br>
-	<font size="2">官网版本：</font><img src="https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat-square&logo=github&cacheSeconds=2592000"/>
-	</h2>
-	默认启动菜单热键为<kbd>``</kbd>（Esc键下方的重音符键~`` ）
-	<br>
-	（按<kbd>Win</kbd>+<kbd>``</kbd>输出<kbd>``</kbd>）
-	<br><br>
-	按住<kbd>Ctrl</kbd>键打开软件会打开软件所在的目录
-	<br>
-	按住<kbd>Shift</kbd>键打开软件快速直接跳转到编辑该菜单项
-	<br>
-	按住<kbd>Ctrl</kbd>+<kbd>Shift</kbd>键打开软件会以管理员身份来运行
-	<br><br>【右键任务栏RunAny图标进行配置】<br><br>
-	作者：hui-Zz 建议：hui0.0713@gmail.com
-	</body>
-	</html>
-	)
+vHtml = 
+(
+<html>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>name</title>
+<body style="font-family:Microsoft YaHei;margin:30px;">
+<h2>
+【RunAnyZz】一劳永逸的快速启动工具 v%RunAny_update_version% @%RunAny_update_time% 
+<img alt="GitHub stars" src="https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=social&cacheSeconds=2592000"/> 
+<img src="http://hits.dwyl.io/hui-Zz/RunAny.svg)"/>
+<br>
+<font size="2">官网版本：</font>
+<img alt="GitHub release" src="https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat-square&logo=github&cacheSeconds=2592000"/>
+</h2>
+默认启动菜单热键为<kbd>``</kbd>（Esc键下方的重音符键~`` ）
+<br>
+（按<kbd>Win</kbd>+<kbd>``</kbd>输出<kbd>``</kbd>）
+<br><br>
+按住<kbd>Ctrl</kbd>键打开软件会打开软件所在的目录
+<br>
+按住<kbd>Shift</kbd>键打开软件快速直接跳转到编辑该菜单项
+<br>
+按住<kbd>Ctrl</kbd>+<kbd>Shift</kbd>键打开软件会以管理员身份来运行
+<br><br>【右键任务栏RunAny图标进行配置】<br><br>
+作者：hui-Zz 建议：hui0.0713@gmail.com
+</body>
+</html>
+)
 	oWB.document.write(vHtml)
 	oWB.Refresh()
 	Gui,99:Font,s11 Bold,Microsoft YaHei
 	Gui,99:Add,Link,xm+18 y+10,官网地址：<a href="https://github.com/hui-Zz/RunAny">https://github.com/hui-Zz/RunAny</a>
-	Gui,99:Add,Link,xm+18 y+10,更新说明：<a href="https://github.com/hui-Zz/RunAny/wiki/RunAny%E7%89%88%E6%9C%AC%E6%9B%B4%E6%96%B0%E5%8E%86%E5%8F%B2">https://github.com/hui-Zz/RunAny/wiki/RunAny版本更新历史</a>
+	Gui,99:Add,Link,xm+18 y+10,更新说明：<a href="https://github.com/hui-Zz/RunAny/wiki/RunAny版本更新历史">https://github.com/hui-Zz/RunAny/wiki/RunAny版本更新历史</a>
 	Gui,99:Add,Text,y+10, 讨论QQ群：
 	Gui,99:Add,Link,x+8 yp,<a href="https://jq.qq.com/?_wv=1027&k=445Ug7u">246308937【RunAny快速启动一劳永逸】</a>`n`n
 	Gui,99:Font
