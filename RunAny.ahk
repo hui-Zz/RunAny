@@ -1,9 +1,9 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.5.9 @2019.03.23
+║【RunAny】一劳永逸的快速启动工具 v5.5.9 @2019.05.14
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
-║ 讨论QQ群：[246308937]、3222783、493194474
+║ 讨论QQ群：246308937
 ╚══════════════════════════════════════════════════
 */
 #NoEnv                  ;~不检查空变量为环境变量
@@ -1395,6 +1395,51 @@ funcPath2AbsoluteZz(aPath,ahkPath){
 	}
 	return false
 }
+/*
+【绝对路径转换为相对路径 by hui-Zz】
+fPath 被转换的全路径，可带文件名
+ahkPath 相对参照的执行脚本完整全路径，带文件名
+return -1 路径参数有误
+return -2 被转换路径和参照路径不在同一磁盘，不能转换
+*/
+funcPath2RelativeZz(fPath,ahkPath){
+	SplitPath, fPath, fname, fdir, fext, , fdrive
+	SplitPath, ahkPath, name, dir, ext, , drive
+	if(!fPath || !ahkPath || !dir || !fdir || !fdrive)
+		return -1
+	if(fdrive!=drive){
+		return -2
+	}
+	;下级目录直接去掉参照目录路径
+	if(InStr(fPath,dir)){
+		filePath:=StrReplace(fPath,dir)
+		StringTrimLeft, filePath, filePath, 1
+		return filePath
+	}
+	;上级目录根据层级递进添加多级前缀..\
+	pathList:=StrSplit(dir,"\")
+	Loop,% pathList.MaxIndex()
+	{
+		pathStr:=""
+		upperStr:=""
+		;每次向上递进，找到与启动项相匹配路径段替换成..\
+		Loop,% pathList.MaxIndex()-A_Index
+		{
+			pathStr.=pathList[A_Index] . "\"
+		}
+		StringTrimRight, pathStr, pathStr, 1
+		if(InStr(fdir,pathStr)){
+			Loop,% A_Index
+			{
+				upperStr.="..\"
+			}
+			StringTrimRight, upperStr, upperStr, 1
+			filePath:=StrReplace(fPath,pathStr,upperStr)
+			return filePath
+		}
+	}
+	return false
+}
 ;~;[利用HTML中JS的eval函数来计算]
 js_eval(exp)
 {
@@ -1804,7 +1849,7 @@ Menu_Item_Edit:
 	Gui,SaveItem:Destroy
 	Gui,SaveItem:Margin,20,20
 	Gui,SaveItem:Font,,Microsoft YaHei
-	Gui,SaveItem:Add, GroupBox,xm y+10 w500 h210,新增菜单项
+	Gui,SaveItem:Add, GroupBox,xm y+10 w500 h230,新增菜单项
 	Gui,SaveItem:Add, Text, xm+10 y+30 y35 w60, 菜单项名：
 	Gui,SaveItem:Add, Edit, x+5 yp-3 w250 vvitemName GFileNameChange, %itemName%
 	Gui,SaveItem:Add, Text, x+10 yp+3 w70, Tab制表符
@@ -1818,20 +1863,22 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add, Text, x+10 yp w350 cRed vvPrompt GSetSaveItemFullPath, 注意：RunAny不支持当前后缀无路径运行，%PromptStr%使用全路径
 	if(InStr(itemName,"-")){
 		Gui,SaveItem:Add, Text, xm+10 y+10 w60,文件后缀：
-	}else{
-		Gui,SaveItem:Add, Button, xm+5 y+6 w60 GSetItemPath,启动路径
-	}
-	if(fExt="lnk"){
-		Gui,SaveItem:Add, Button, xm+5 y+2 w60 GSetShortcut,快捷目标
-		Gui,SaveItem:Add, Edit, x+10 yp-22 w400 r3 vvfileName GFileNameChange, %fileName%
-	}else{
 		Gui,SaveItem:Add, Edit, x+10 yp w400 r3 vvfileName GFileNameChange, %fileName%
+	}else{
+		Gui,SaveItem:Add, Button, xm+6 y+6 w60 GSetItemPath,启动路径
+		Gui,SaveItem:Add, Button, xm+6 y+2 w60 GSetFileRelativePath,相对路径
+		if(fExt="lnk"){
+			Gui,SaveItem:Add, Button, xm+6 y+2 w60 GSetShortcut,快捷目标
+			Gui,SaveItem:Add, Edit, x+10 yp-55 w400 r4 vvfileName GFileNameChange, %fileName%
+		}else{
+			Gui,SaveItem:Add, Edit, x+10 yp-30 w400 r4 vvfileName GFileNameChange, %fileName%
+		}
 	}
 	Gui,SaveItem:Font
 	Gui,SaveItem:Add,Button,Default xm+150 y+10 w75 G%SaveLabel%,保存(&Y)
 	Gui,SaveItem:Add,Button,x+20 w75 GSetCancel,取消(&C)
 	Gui,SaveItem:Add, Text, xm y+25, %thisMenuStr% %thisMenuItemStr%
-	Gui,SaveItem:Show,,新增菜单项 - %RunAnyZz%
+	Gui,SaveItem:Show,,新增修改菜单项 - %RunAnyZz% - 支持拖放应用
 	GuiControl,SaveItem:Hide, vPrompt
 	if(itemIconFile)
 		GuiControl,SaveItem:Hide, vIconAdd
@@ -1886,6 +1933,31 @@ SetItemPath:
 	if(fileSelPath){
 		GuiControl,, vfileName, % Get_Item_Run_Path(fileSelPath)
 		gosub,FileNameChange
+	}
+return
+;[全路径转换为RunAnyCtrl的相对路径]
+SetFileRelativePath:
+	Gui,SaveItem:Submit, NoHide
+	if(InStr(vfileName,"`%A_ScriptDir`%\..\")=1){
+		funcResult:=RegExReplace(vfileName,"S)^`%A_ScriptDir`%\\")
+		funcResult:=funcPath2AbsoluteZz(funcResult,A_ScriptFullPath)
+		headPath=
+	}else{
+		headPath=`%A_ScriptDir`%\
+		funcResult:=funcPath2RelativeZz(vfileName,A_ScriptFullPath)
+	}
+	if(funcResult=-1){
+		ToolTip, 路径有误,155,125
+		SetTimer,RemoveToolTip,2000
+		return
+	}
+	if(funcResult=-2){
+		ToolTip, 与RunAny不在同一磁盘，不能转换为相对路径,155,125
+		SetTimer,RemoveToolTip,3000
+		return
+	}
+	if(funcResult){
+		GuiControl, SaveItem:, vfileName, %headPath%%funcResult%
 	}
 return
 SetItemIconPath:
@@ -3063,7 +3135,7 @@ Menu_Set:
 Menu_About:
 	Gui,99:Destroy
 	Gui,99:Color,FFFFFF
-	Gui,99:Add, ActiveX, x0 y0 w500 h365 voWB, shell explorer
+	Gui,99:Add, ActiveX, x0 y0 w500 h375 voWB, shell explorer
 	oWB.Navigate("about:blank")
 	vHtml = <meta http-equiv="X-UA-Compatible" content="IE=edge">`n
 	(
@@ -3095,13 +3167,14 @@ Menu_About:
 	oWB.Refresh()
 	Gui,99:Font,s11 Bold,Microsoft YaHei
 	Gui,99:Add,Link,xm+18 y+10,官网地址：<a href="https://github.com/hui-Zz/RunAny">https://github.com/hui-Zz/RunAny</a>
+	Gui,99:Add,Link,xm+18 y+10,更新说明：<a href="https://github.com/hui-Zz/RunAny/wiki/RunAny%E7%89%88%E6%9C%AC%E6%9B%B4%E6%96%B0%E5%8E%86%E5%8F%B2">https://github.com/hui-Zz/RunAny/wiki/RunAny版本更新历史</a>
 	Gui,99:Add,Text,y+10, 讨论QQ群：
 	Gui,99:Add,Link,x+8 yp,<a href="https://jq.qq.com/?_wv=1027&k=445Ug7u">246308937【RunAny快速启动一劳永逸】</a>`n`n
 	Gui,99:Font
 	Gui,99:Show,AutoSize Center,关于%RunAnyZz%
 	hCurs:=DllCall("LoadCursor","UInt",NULL,"Int",32649,"UInt") ;IDC_HAND
 	OnMessage(0x200,"WM_MOUSEMOVE")
-	return
+return
 SetEvPath:
 	FileSelectFile, evFilePath, 3, Everything.exe, Everything安装路径, (Everything.exe)
 	if(evFilePath)
