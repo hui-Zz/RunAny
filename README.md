@@ -2,11 +2,17 @@
 
 **RunAny区别一般的启动工具，适合家里、公司多台电脑的用户，不管软件装在C盘还是D盘，根据名字直接找到并运行**
 
-__【多台电脑你只需配置一套软件列表，就能到处运行，配合坚果云\OneDrive\Dropbox等网盘同步更是如虎添翼，达到一劳永逸！】😎__
+__多台电脑你只需配置一套软件列表(RunAny.ini)，就能到处运行，配合坚果云\OneDrive\Dropbox等网盘同步更是如虎添翼，达到一劳永逸！😎__
 
-另外更有  [一键直达]、[快捷打开文件]、[一键批量搜索]、[短语和热键映射]、[透明化启动]、[全局热键]...等你使用
+- ☑ 菜单分类界面，零记忆负担
+- ☑ 分类定位，三键启动，简单迅速
+- ☑ 一次配置，到处运行，永久使用
+- ☑ 一键直达，一键计算，一键批量搜索
+- ☑ 全局热键，热键映射，热字符串，多样快捷
+- ☑ 短语输出，透明化启动，快捷打开文件方式
+- ☑ 外接脚本，个性函数，自由定制
 
-【RunAny稳定版下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.5.8.zip
+【RunAny稳定版下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.5.9.zip
 
 【异次元软件RunAny介绍文章：】https://www.iplaysoft.com/runany.html
 
@@ -19,8 +25,8 @@ __【多台电脑你只需配置一套软件列表，就能到处运行，配合
 
 ## RunAny启动软件就跟五笔打字一样高效方便，3键直达（如Esc键下方的重音符键<kbd>\`</kbd>为热键）：
 
-- <kbd>\`</kbd><kbd>w</kbd><kbd>w</kbd>就是启动『work工作』分类下的Word
 - <kbd>\`</kbd><kbd>a</kbd><kbd>w</kbd>就是启动『app常用』分类下的微信
+- <kbd>\`</kbd><kbd>w</kbd><kbd>w</kbd>就是启动『work工作』分类下的Word
 - <kbd>\`</kbd><kbd>f</kbd><kbd>w</kbd>就是启动『file文件』分类下的WinRAR
 
 <img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/help/RunAny%E6%BC%94%E7%A4%BA.gif" alt="RunAny演示" style="max-width:50%;">
@@ -41,7 +47,7 @@ RunAny一键公式计算
 
 ---
 
-## RunAny让你告别繁琐的右键打开文件！
+## RunAny让你告别繁琐的右键打开文件方式！
 
 只要先选中文件，然后再按<kbd>\`</kbd>启动RunAny中的软件，即可用该软件打开选中文件，**就是这么方便！**
 
@@ -159,6 +165,7 @@ RunAny追求就是：<u>**一劳永逸**</u>
 ---
 
 ## 【特别感谢以下朋友对RunAny的赞助！有你们RunAny会越来越好！】
+
 | 昵称           | 时间              | 金额 |
 | -------------- | ----------------- | ---- |
 | Balance        | 2017              | 20   |
@@ -186,4 +193,4 @@ RunAny追求就是：<u>**一劳永逸**</u>
 ---
 ![GitHub stars](https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=social)
 ![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat&logo=github&cacheSeconds=2592000) ![GitHub](https://img.shields.io/github/license/hui-Zz/RunAny.svg)
-![GitHub downloads](https://img.shields.io/github/downloads/hui-Zz/RunAny/total.svg?style=flat&cacheSeconds=2592000)[![996.icu](https://img.shields.io/badge/link-996.icu-red.svg)](https://996.icu)
+![GitHub downloads](https://img.shields.io/github/downloads/hui-Zz/RunAny/total.svg?style=flat&cacheSeconds=2592000) [![996.icu](https://img.shields.io/badge/link-996.icu-red.svg)](https://996.icu)
