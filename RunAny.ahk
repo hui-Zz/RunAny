@@ -1938,7 +1938,7 @@ return
 ;[全路径转换为RunAnyCtrl的相对路径]
 SetFileRelativePath:
 	Gui,SaveItem:Submit, NoHide
-	if(InStr(vfileName,"`%A_ScriptDir`%\..\")=1){
+	if(InStr(vfileName,"`%A_ScriptDir`%\")=1){
 		funcResult:=RegExReplace(vfileName,"S)^`%A_ScriptDir`%\\")
 		funcResult:=funcPath2AbsoluteZz(funcResult,A_ScriptFullPath)
 		headPath=
