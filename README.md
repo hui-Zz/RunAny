@@ -1,4 +1,4 @@
-# 【RunAny】一劳永逸的快速启动工具 ![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat-square&logo=github&cacheSeconds=2592000) ![GitHub](https://img.shields.io/github/license/hui-Zz/RunAny.svg?style=flat-square) [![HitCount](http://hits.dwyl.io/hui-Zz/RunAny.svg)](http://hits.dwyl.io/hui-Zz/RunAny)
+# 【RunAny】一劳永逸的快速启动工具 ![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat-square&logo=github) ![GitHub](https://img.shields.io/github/license/hui-Zz/RunAny.svg?style=flat-square) [![HitCount](http://hits.dwyl.io/hui-Zz/RunAny.svg)](http://hits.dwyl.io/hui-Zz/RunAny)
 
 **RunAny区别一般的启动工具，适合家里、公司多台电脑的用户，不管软件装在C盘还是D盘，根据名字直接找到并运行**
 
@@ -192,5 +192,5 @@ RunAny追求就是：<u>**一劳永逸**</u>
 
 ---
 ![GitHub stars](https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=social)
-![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat&logo=github&cacheSeconds=2592000) ![GitHub](https://img.shields.io/github/license/hui-Zz/RunAny.svg)
-![GitHub downloads](https://img.shields.io/github/downloads/hui-Zz/RunAny/total.svg?style=flat&cacheSeconds=2592000) [![996.icu](https://img.shields.io/badge/link-996.icu-red.svg)](https://996.icu)
+![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat&logo=github) ![GitHub](https://img.shields.io/github/license/hui-Zz/RunAny.svg)
+![GitHub downloads](https://img.shields.io/github/downloads/hui-Zz/RunAny/total.svg?style=flat) [![996.icu](https://img.shields.io/badge/link-996.icu-red.svg)](https://996.icu)

@@ -1854,7 +1854,7 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add, Edit, x+5 yp-3 w250 vvitemName GFileNameChange, %itemName%
 	Gui,SaveItem:Add, Text, x+10 yp+3 w70, Tab制表符
 	Gui,SaveItem:Add, Picture, x+10 yp-3 w50 h-1 gSetItemIconPath, %itemIconFile%
-	Gui,SaveItem:Add, Text, xp-5 yp+3 w72 cGreen vvIconAdd gSetItemIconPath BackgroundTrans, 添加图标文件
+	Gui,SaveItem:Add, Text, xp-5 yp+3 w72 cGreen vvIconAdd gSetItemIconPath BackgroundTrans, 点击添加图标
 	Gui,SaveItem:Add, Text, xm+10 y+20 w60, 全局热键：
 	Gui,SaveItem:Add, Hotkey,x+5 yp-3 w150 vvitemGlobalKey,%itemGlobalKey%
 	Gui,SaveItem:Add, Checkbox,Checked%itemGlobalWinKey% x+5 yp+3 vvitemGlobalWinKey,Win
@@ -3145,11 +3145,11 @@ vHtml =
 <body style="font-family:Microsoft YaHei;margin:30px;">
 <h2>
 【RunAnyZz】一劳永逸的快速启动工具 v%RunAny_update_version% @%RunAny_update_time% 
-<img alt="GitHub stars" src="https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=social&cacheSeconds=2592000"/> 
+<img alt="GitHub stars" src="https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=social"/> 
 <img src="http://hits.dwyl.io/hui-Zz/RunAny.svg)"/>
 <br>
 <font size="2">官网版本：</font>
-<img alt="GitHub release" src="https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat-square&logo=github&cacheSeconds=2592000"/>
+<img alt="GitHub release" src="https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat-square&logo=github"/>
 </h2>
 默认启动菜单热键为<kbd>``</kbd>（Esc键下方的重音符键~`` ）
 <br>
