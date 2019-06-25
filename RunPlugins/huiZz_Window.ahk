@@ -2,7 +2,7 @@
 ;* 【ObjReg窗口操作脚本[窗口函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.1"
+global RunAny_Plugins_Version:="1.0.2"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent			 ;~让脚本持久运行
@@ -31,6 +31,9 @@ class RunAnyObj {
 	;[窗口置顶]
 	win_top_zz(t=1){
 		if(t=1){
+			if(WinActive("ahk_class CabinetWClass")){
+				WinSet,AlwaysOnTop,On,ahk_class CabinetWClass
+			}
 			WinSet,AlwaysOnTop,On,A
 		}else{
 			WinSet,AlwaysOnTop,Off,A
