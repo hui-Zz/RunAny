@@ -2221,7 +2221,7 @@ Website_Icon:
 			if(RegExMatch(webText,"iS)^([\w-]+://?|www[.]).*")){
 				website:=RegExReplace(webText,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
 				webIcon:=WebIconDir "\" menuItemIconFileName(diyText[1]) ".ico"
-				InputBox, webSiteInput, 重新下载网站图标,可以重新下载图标并匹配网址`n请修改以下网址再点击下载,,,,,,,,http://%website%/favicon.ico
+				InputBox, webSiteInput, 重新下载网站图标,可以重新下载图标并匹配网址`n`n请修改以下网址再点击下载,,,,,,,,http://%website%/favicon.ico
 				if !ErrorLevel
 				{
 					URLDownloadToFile(webSiteInput,webIcon)
@@ -2654,7 +2654,7 @@ Gui,P:Destroy
 Gui,P:Default
 Gui,P:+Resize
 Gui,P:Font, s10, Microsoft YaHei
-Gui,P:Add, Listview, xm w550 r20 grid AltSubmit vRunAnyLV glistview, 插件文件|运行状态|自动启动|插件描述
+Gui,P:Add, Listview, xm w580 r20 grid AltSubmit vRunAnyLV glistview, 插件文件|运行状态|自动启动|插件描述
 ;~;[读取启动项内容写入列表]
 GuiControl,P: -Redraw, RunAnyLV
 For runn, runv in PluginsObjList
@@ -2692,6 +2692,8 @@ LVMenu(addMenu){
 	Menu, %addMenu%, Icon,% flag ? "删除" : "删除`tF7", SHELL32.dll,132
 	Menu, %addMenu%, Add,% flag ? "下载插件" : "下载插件`tF8", LVAdd
 	Menu, %addMenu%, Icon,% flag ? "下载插件" : "下载插件`tF8", SHELL32.dll,194
+	Menu, %addMenu%, Add,% flag ? "新建插件" : "新建插件`tF9", LVCreate
+	Menu, %addMenu%, Icon,% flag ? "新建插件" : "新建插件`tF9", SHELL32.dll,1
 }
 LVRun:
 	menuItem:="启动"
@@ -2810,6 +2812,7 @@ return
 	F6::gosub,LVPause
 	F7::gosub,LVDel
 	F8::gosub,LVAdd
+	F9::gosub,LVCreate
 #If
 listview:
     if A_GuiEvent = DoubleClick
@@ -2845,6 +2848,56 @@ LVAdd:
 	Gui,D: Menu, ahkDownMenu
 	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
 	Gui,D:Show, , %RunAnyZz% 插件下载 %RunAny_update_version% %RunAny_update_time%
+return
+LVCreate:
+newObjRegCount:=1
+Loop,%A_ScriptDir%\%PluginsDir%\RunAny_NewObjReg_*.ahk
+{
+	newObjRegCount++
+}
+loop
+{
+	InputBox, newObjRegInput, ObjReg新建插件脚本名称,`n新建插件脚本并设为自动启动，名称建议为`n`n作者名_功能.ahk,,,,,,,,RunAny_NewObjReg_%newObjRegCount%.ahk
+	if !ErrorLevel
+	{
+		IfNotExist,%A_ScriptDir%\%PluginsDir%\%newObjRegInput%
+			break
+		else
+			MsgBox, 48, 文件重名, 已有同名的脚本存在，请重新输入
+	}else{
+		return
+	}
+}
+;[新建ObjReg插件脚本模板]
+FileAppend,
+(
+;************************
+;* 【ObjReg插件脚本 %newObjRegCount%】 *
+;************************
+global RunAny_Plugins_Version:="1.0.0"
+#NoTrayIcon             ;~不显示托盘图标
+#Persistent             ;~让脚本持久运行
+#SingleInstance,Force   ;~运行替换旧实例
+;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+#Include `%A_ScriptDir`%\RunAny_ObjReg.ahk
+
+class RunAnyObj {
+	;[新建：你自己的函数]
+	;保存到RunAny.ini为：菜单项名|你的脚本文件名[你的函数名](参数1,参数2)
+	你的函数名(参数1,参数2){
+		;函数内容写在这里
+`t`t
+	}
+}
+
+;独立使用方式
+;F1::
+	;RunAnyObj.你的函数名(参数1,参数2)
+;return
+),%A_ScriptDir%\%PluginsDir%\%newObjRegInput%,UTF-8
+IniWrite,1,%RunAnyConfig%,Plugins,%newObjRegInput%
+gosub,Plugins_Manage
+Run,notepad.exe %A_ScriptDir%\%PluginsDir%\%newObjRegInput%
 return
 PluginsDownVersion:
 	if(!Check_Github()){
