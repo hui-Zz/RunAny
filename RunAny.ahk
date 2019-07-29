@@ -128,6 +128,9 @@ if(EvAutoClose && EvPath){
 }
 DetectHiddenWindows,Off
 
+if(A_AhkVersion < 1.1.28){
+	MsgBox, 16, AutoHotKey版本过低！, 由于你的AHK版本没有高于1.1.28，会影响RunAny功能的使用`n1. 不支持StrSplit()函数的MaxParts`n2. 不支持动态Hotstring创建
+}
 ;══════════════════════════════════════════════════════════════════
 ;~;[自定义后缀打开方式]
 Gosub,Open_Ext_Set
@@ -2921,7 +2924,6 @@ LVDown:
 	}
 return
 AhkExeDown:
-	ahkName:=A_Is64bitOS ? "AHK64.exe" : "AHK.exe"
 	ahkDown:=false
 	if(!ahkFlag){
 		ahkDown:=true
@@ -2932,7 +2934,10 @@ AhkExeDown:
 	}
 	if(ahkDown){
 		TrayTip,,RunAny使用脚本插件需要后台下载AHK.exe，期间可正常使用RunAny，`n下载时间因网速可能比较缓慢，完成后会自动重启RunAny,3,1
-		URLDownloadToFile(RunAnyGithubDir "/" PluginsDir "/" ahkName,A_ScriptDir "\" PluginsDir "\AHK.exe")
+		URLDownloadToFile(RunAnyGithubDir "/" PluginsDir "/AHK.exe",A_ScriptDir "\" PluginsDir "\AHK.exe")
+		if(A_Is64bitOS){
+			URLDownloadToFile(RunAnyGithubDir "/" PluginsDir "/AHK64.exe",A_ScriptDir "\" PluginsDir "\AHK64.exe")
+		}
 		ahkFlag:=true
 	}
 return
