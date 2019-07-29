@@ -189,8 +189,10 @@ RunAny追求就是：<u>**一劳永逸**</u>
 | *杭            | 19-02-27 18:29:58 | 5    |
 | 禁誋           | 19-03-27 21:21:08 | 30   |
 | *杭（2）       | 19-03-29 17:06:15 | 2    |
+| *❎             | 19-07-10 09:32:15 | 30   |
+|                |                   |      |
 
 ---
 ![GitHub stars](https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=social)
 ![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat&logo=github) ![GitHub](https://img.shields.io/github/license/hui-Zz/RunAny.svg)
-![GitHub downloads](https://img.shields.io/github/downloads/hui-Zz/RunAny/total.svg?style=flat) [![996.icu](https://img.shields.io/badge/link-996.icu-red.svg)](https://996.icu)
+ [![996.icu](https://img.shields.io/badge/link-996.icu-red.svg)](https://996.icu)
