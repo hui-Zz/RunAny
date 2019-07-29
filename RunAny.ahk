@@ -2789,7 +2789,9 @@ LVApply:
 			IfMsgBox Yes
 			{
 				DelRowList := RowNumber . ":" . DelRowList
-				IniDelete,%RunAnyConfig%,Plugins,%FileName%
+				IniDelete,%RunAnyConfig%,Plugins,%FileName% ;删除插件管理数据
+				SplitPath,FileName,,,,o_name_no_ext
+				IniDelete,%RunAny_ObjReg_Path%,objreg,%o_name_no_ext% ;删除插件注册数据
 			}
 		}
 	}
@@ -3781,6 +3783,7 @@ return
 Plugins_Object_Register:
 	global PluginsObjRegGUID:=Object()	;~插件对象注册GUID列表
 	global PluginsObjRegActive:=Object()	;~插件对象注册Active列表
+	global RunAny_ObjReg_Path
 	RunAny_ObjReg_Path=%A_ScriptDir%\%PluginsDir%\%RunAny_ObjReg%
 	IfExist,%RunAny_ObjReg_Path%
 	{
