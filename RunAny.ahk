@@ -2859,7 +2859,7 @@ Loop,%A_ScriptDir%\%PluginsDir%\RunAny_NewObjReg_*.ahk
 }
 loop
 {
-	InputBox, newObjRegInput, ObjReg新建插件脚本名称,`n新建插件脚本并设为自动启动，名称建议为`n`n作者名_功能.ahk,,,,,,,,RunAny_NewObjReg_%newObjRegCount%.ahk
+	InputBox, newObjRegInput, ObjReg新建插件脚本名称,`n  新建插件脚本（默认自动启动），名称建议为`n`n  作者名_功能.ahk,,,,,,,,RunAny_NewObjReg_%newObjRegCount%.ahk
 	if !ErrorLevel
 	{
 		IfNotExist,%A_ScriptDir%\%PluginsDir%\%newObjRegInput%
