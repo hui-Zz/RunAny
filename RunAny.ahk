@@ -2688,8 +2688,8 @@ LVMenu(addMenu){
 	try Menu, %addMenu%, Icon,% flag ? "挂起" : "挂起`tF5", %ahkExePath%,3
 	Menu, %addMenu%, Add,% flag ? "暂停" : "暂停`tF6", LVPause
 	try Menu, %addMenu%, Icon,% flag ? "暂停" : "暂停`tF6", %ahkExePath%,4
-	Menu, %addMenu%, Add,% flag ? "删除" : "删除`tF7", LVDel
-	Menu, %addMenu%, Icon,% flag ? "删除" : "删除`tF7", SHELL32.dll,132
+	Menu, %addMenu%, Add,% flag ? "移除" : "移除`tF7", LVDel
+	Menu, %addMenu%, Icon,% flag ? "移除" : "移除`tF7", SHELL32.dll,132
 	Menu, %addMenu%, Add,% flag ? "下载插件" : "下载插件`tF8", LVAdd
 	Menu, %addMenu%, Icon,% flag ? "下载插件" : "下载插件`tF8", SHELL32.dll,194
 	Menu, %addMenu%, Add,% flag ? "新建插件" : "新建插件`tF9", LVCreate
@@ -2720,7 +2720,7 @@ LVPause:
 	gosub,LVApply
 	return
 LVDel:
-	menuItem:="删除"
+	menuItem:="移除"
 	gosub,LVApply
 	return
 LVApply:
@@ -2728,8 +2728,8 @@ LVApply:
 	DetectHiddenWindows,On      ;~显示隐藏窗口
 	Row:=LV_GetNext(0, "F")
 	RowNumber:=0
-	if(Row && menuItem="删除"){
-		MsgBox,35,确认删除？(Esc取消),确定删除选中的插件配置？(不会删除文件)
+	if(Row && menuItem="移除"){
+		MsgBox,35,确认移除？(Esc取消),确定移除选中的插件配置？(不会删除文件)
 		DelRowList:=""
 	}
 	Loop
@@ -2785,7 +2785,7 @@ LVApply:
 				IniWrite,0,%RunAnyConfig%,Plugins,%FileName%
 				LV_Modify(RowNumber, "", , ,"禁用")
 			}
-		}else if(menuItem="删除"){
+		}else if(menuItem="移除"){
 			IfMsgBox Yes
 			{
 				DelRowList := RowNumber . ":" . DelRowList
@@ -2795,7 +2795,7 @@ LVApply:
 			}
 		}
 	}
-	if(menuItem="删除"){
+	if(menuItem="移除"){
 		IfMsgBox Yes
 		{
 			stringtrimright, DelRowList, DelRowList, 1
@@ -2870,6 +2870,7 @@ loop
 		return
 	}
 }
+SplitPath, newObjRegInput,,,,inputNameNotExt
 ;[新建ObjReg插件脚本模板]
 FileAppend,
 (
@@ -2885,7 +2886,7 @@ global RunAny_Plugins_Version:="1.0.0"
 
 class RunAnyObj {
 	;[新建：你自己的函数]
-	;保存到RunAny.ini为：菜单项名|你的脚本文件名[你的函数名](参数1,参数2)
+	;保存到RunAny.ini为：菜单项名|你的脚本文件名%inputNameNotExt%[你的函数名](参数1,参数2)
 	你的函数名(参数1,参数2){
 		;函数内容写在这里
 `t`t
@@ -3754,11 +3755,11 @@ Plugins_Read:
 	}
 	Loop,%A_ScriptDir%\%PluginsDir%\*.*,2		;Plugins目录下文件夹内同名AHK脚本
 	{
-		IfExist,%A_ScriptDir%\%PluginsDir%\%A_LoopFileName%.ahk
+		IfExist,%A_LoopFileFullPath%\%A_LoopFileName%.ahk
 		{
 			PluginsObjList[(A_LoopFileName . ".ahk")]:=0
-			PluginsPathList[(A_LoopFileName . ".ahk")]:=A_LoopFileFullPath
-			PluginsTitleList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Title(A_LoopFileFullPath)
+			PluginsPathList[(A_LoopFileName . ".ahk")]:=A_LoopFileFullPath "\" A_LoopFileName ".ahk"
+			PluginsTitleList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Title(A_LoopFileFullPath "\" A_LoopFileName ".ahk")
 		}
 	}
 	IniRead,pluginsVar,%RunAnyConfig%,Plugins
