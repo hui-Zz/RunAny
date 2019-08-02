@@ -2,7 +2,7 @@
 ;* 【ObjReg文本操作脚本[文本函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.7"
+global RunAny_Plugins_Version:="1.0.8"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
@@ -106,7 +106,7 @@ class RunAnyObj {
 	;varStr：变量命名格式符号
 	;formatStr：格式化选项，详情查看(https://wyagd001.github.io/zh-cn/docs/commands/Format.htm)
 	;splitStr：分割用的字符，一般不用传使用默认值 ,._-|
-	text_var_name_zz(getZz:="",varStr:="",formatStr:="",splitStr:=" ,._-|"){
+	text_var_name_zz(getZz:="",varStr:="",formatStr:="",splitStr:=" ,._-|/\"){
 		textResult:=""
 		Loop, parse, getZz, `n, `r
 		{
@@ -129,6 +129,10 @@ class RunAnyObj {
 				}else{
 					getZzList.Push(A_LoopField)
 				}
+			}
+			if(getZzList.MaxIndex()=1){
+				textResult.=getZzLoop . "`n"
+				continue
 			}
 			lastFormat:=RegExReplace(formatLoop, ".*(\{[^{}]*\})","$1")
 			RegExReplace(formatLoop,"\{.*?\}","",formatCount)
