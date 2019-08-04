@@ -273,6 +273,28 @@ class RunAnyObj {
 	text_cn2_zz(getZz:="",cn=0){
 		this.Send_Str_Zz(cn ? this.n2c(getZz) : this.c2n(getZz))
 	}
+	;[文本删除重复行保留顺序]
+	;参数说明：getZz：选中的文本内容
+	text_remove_repeat(getZz:=""){
+		textResult:=""
+		textResultObj:={}
+		textResultList:=[]
+		Loop, parse, getZz, `n, `r
+		{
+			getZzLoop:=A_LoopField
+			textResultObj[getZzLoop]:=A_Index
+			textResultList.Push(getZzLoop)
+		}
+		For k, v in textResultList
+		{
+			if(textResultObj[v] <> ""){
+				textResult.=v . "`n"
+				textResultObj.Delete(v)
+			}
+		}
+		textResult:=RTrim(textResult,"`n")
+		this.Send_Str_Zz(textResult)
+	}
 }
 
 ;独立使用方式
