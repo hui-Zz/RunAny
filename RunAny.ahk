@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.5.9 @2019.05.14
+║【RunAny】一劳永逸的快速启动工具 v5.6.0 @2019.08.04
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：246308937
@@ -20,8 +20,8 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
-global RunAny_update_version:="5.5.9"
-global RunAny_update_time:="2019.05.14"
+global RunAny_update_version:="5.6.0"
+global RunAny_update_time:="2019.08.04"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -2955,9 +2955,21 @@ LVDown:
 			LV_GetText(FileName, RowNumber, ColumnName)
 			LV_GetText(FileStatus, RowNumber, ColumnStatus)
 			LV_GetText(FileContent, RowNumber, ColumnContent)
-			IfExist,%A_ScriptDir%\%PluginsDir%\%FileName%
-				FileMove,%A_ScriptDir%\%PluginsDir%\%FileName%,%A_Temp%\%RunAnyZz%\%PluginsDir%\%FileName%,1
-			URLDownloadToFile(RunAnyGithubDir "/" PluginsDir "/" FileName,A_ScriptDir "\" PluginsDir "\" FileName)
+			pluginsDownPath=%PluginsDir%
+			;如果插件需要创建目录
+			if(RegExMatch(FileContent,"iS)\{\}$")){
+				pluginsDownPath.="\" FileName
+				IfNotExist %pluginsDownPath%
+					FileCreateDir,%pluginsDownPath%
+			}
+			IfExist,%A_ScriptDir%\%pluginsDownPath%\%FileName%
+				FileMove,%A_ScriptDir%\%pluginsDownPath%\%FileName%,%A_Temp%\%RunAnyZz%\%pluginsDownPath%\%FileName%,1
+			URLDownloadToFile(RunAnyGithubDir "/" pluginsDownPath "/" FileName,A_ScriptDir "\" pluginsDownPath "\" FileName)
+			;特殊插件下载依赖
+			if(FileName="huiZz_QRCode.ahk"){
+				URLDownloadToFile(RunAnyGithubDir "/" pluginsDownPath "/quricol32.dll",A_ScriptDir "\" pluginsDownPath "\quricol32.dll")
+				URLDownloadToFile(RunAnyGithubDir "/" pluginsDownPath "/quricol64.dll",A_ScriptDir "\" pluginsDownPath "\quricol64.dll")
+			}
 			downFlag:=true
 			pluginsContent:=RegExReplace(FileContent, ".*\[([^\[\]]*)\]","$1")
 			if(pluginsContent){
