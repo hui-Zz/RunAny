@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.5.9 @2019.05.14
+║【RunAny】一劳永逸的快速启动工具 v5.6.0 @2019.08.04
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：246308937
@@ -20,8 +20,8 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
-global RunAny_update_version:="5.5.9"
-global RunAny_update_time:="2019.05.14"
+global RunAny_update_version:="5.6.0"
+global RunAny_update_time:="2019.08.04"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -128,6 +128,9 @@ if(EvAutoClose && EvPath){
 }
 DetectHiddenWindows,Off
 
+if(A_AhkVersion < 1.1.28){
+	MsgBox, 16, AutoHotKey版本过低！, 由于你的AHK版本没有高于1.1.28，会影响RunAny功能的使用`n1. 不支持StrSplit()函数的MaxParts`n2. 不支持动态Hotstring创建
+}
 ;══════════════════════════════════════════════════════════════════
 ;~;[自定义后缀打开方式]
 Gosub,Open_Ext_Set
@@ -1938,7 +1941,7 @@ return
 ;[全路径转换为RunAnyCtrl的相对路径]
 SetFileRelativePath:
 	Gui,SaveItem:Submit, NoHide
-	if(InStr(vfileName,"`%A_ScriptDir`%\..\")=1){
+	if(InStr(vfileName,"`%A_ScriptDir`%\")=1){
 		funcResult:=RegExReplace(vfileName,"S)^`%A_ScriptDir`%\\")
 		funcResult:=funcPath2AbsoluteZz(funcResult,A_ScriptFullPath)
 		headPath=
@@ -2218,7 +2221,7 @@ Website_Icon:
 			if(RegExMatch(webText,"iS)^([\w-]+://?|www[.]).*")){
 				website:=RegExReplace(webText,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
 				webIcon:=WebIconDir "\" menuItemIconFileName(diyText[1]) ".ico"
-				InputBox, webSiteInput, 重新下载网站图标,可以重新下载图标并匹配网址`n请修改以下网址再点击下载,,,,,,,,http://%website%/favicon.ico
+				InputBox, webSiteInput, 重新下载网站图标,可以重新下载图标并匹配网址`n`n请修改以下网址再点击下载,,,,,,,,http://%website%/favicon.ico
 				if !ErrorLevel
 				{
 					URLDownloadToFile(webSiteInput,webIcon)
@@ -2651,7 +2654,7 @@ Gui,P:Destroy
 Gui,P:Default
 Gui,P:+Resize
 Gui,P:Font, s10, Microsoft YaHei
-Gui,P:Add, Listview, xm w550 r20 grid AltSubmit vRunAnyLV glistview, 插件文件|运行状态|自动启动|插件描述
+Gui,P:Add, Listview, xm w580 r20 grid AltSubmit vRunAnyLV glistview, 插件文件|运行状态|自动启动|插件描述
 ;~;[读取启动项内容写入列表]
 GuiControl,P: -Redraw, RunAnyLV
 For runn, runv in PluginsObjList
@@ -2685,10 +2688,12 @@ LVMenu(addMenu){
 	try Menu, %addMenu%, Icon,% flag ? "挂起" : "挂起`tF5", %ahkExePath%,3
 	Menu, %addMenu%, Add,% flag ? "暂停" : "暂停`tF6", LVPause
 	try Menu, %addMenu%, Icon,% flag ? "暂停" : "暂停`tF6", %ahkExePath%,4
-	Menu, %addMenu%, Add,% flag ? "删除" : "删除`tF7", LVDel
-	Menu, %addMenu%, Icon,% flag ? "删除" : "删除`tF7", SHELL32.dll,132
+	Menu, %addMenu%, Add,% flag ? "移除" : "移除`tF7", LVDel
+	Menu, %addMenu%, Icon,% flag ? "移除" : "移除`tF7", SHELL32.dll,132
 	Menu, %addMenu%, Add,% flag ? "下载插件" : "下载插件`tF8", LVAdd
 	Menu, %addMenu%, Icon,% flag ? "下载插件" : "下载插件`tF8", SHELL32.dll,194
+	Menu, %addMenu%, Add,% flag ? "新建插件" : "新建插件`tF9", LVCreate
+	Menu, %addMenu%, Icon,% flag ? "新建插件" : "新建插件`tF9", SHELL32.dll,1
 }
 LVRun:
 	menuItem:="启动"
@@ -2715,7 +2720,7 @@ LVPause:
 	gosub,LVApply
 	return
 LVDel:
-	menuItem:="删除"
+	menuItem:="移除"
 	gosub,LVApply
 	return
 LVApply:
@@ -2723,8 +2728,8 @@ LVApply:
 	DetectHiddenWindows,On      ;~显示隐藏窗口
 	Row:=LV_GetNext(0, "F")
 	RowNumber:=0
-	if(Row && menuItem="删除"){
-		MsgBox,35,确认删除？(Esc取消),确定删除选中的插件配置？(不会删除文件)
+	if(Row && menuItem="移除"){
+		MsgBox,35,确认移除？(Esc取消),确定移除选中的插件配置？(不会删除文件)
 		DelRowList:=""
 	}
 	Loop
@@ -2780,15 +2785,17 @@ LVApply:
 				IniWrite,0,%RunAnyConfig%,Plugins,%FileName%
 				LV_Modify(RowNumber, "", , ,"禁用")
 			}
-		}else if(menuItem="删除"){
+		}else if(menuItem="移除"){
 			IfMsgBox Yes
 			{
 				DelRowList := RowNumber . ":" . DelRowList
-				IniDelete,%RunAnyConfig%,Plugins,%FileName%
+				IniDelete,%RunAnyConfig%,Plugins,%FileName% ;删除插件管理数据
+				SplitPath,FileName,,,,o_name_no_ext
+				IniDelete,%RunAny_ObjReg_Path%,objreg,%o_name_no_ext% ;删除插件注册数据
 			}
 		}
 	}
-	if(menuItem="删除"){
+	if(menuItem="移除"){
 		IfMsgBox Yes
 		{
 			stringtrimright, DelRowList, DelRowList, 1
@@ -2807,6 +2814,7 @@ return
 	F6::gosub,LVPause
 	F7::gosub,LVDel
 	F8::gosub,LVAdd
+	F9::gosub,LVCreate
 #If
 listview:
     if A_GuiEvent = DoubleClick
@@ -2842,6 +2850,57 @@ LVAdd:
 	Gui,D: Menu, ahkDownMenu
 	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
 	Gui,D:Show, , %RunAnyZz% 插件下载 %RunAny_update_version% %RunAny_update_time%
+return
+LVCreate:
+newObjRegCount:=1
+Loop,%A_ScriptDir%\%PluginsDir%\RunAny_NewObjReg_*.ahk
+{
+	newObjRegCount++
+}
+loop
+{
+	InputBox, newObjRegInput, ObjReg新建插件脚本名称,`n  新建插件脚本（默认自动启动），名称建议为`n`n  作者名_功能.ahk,,,,,,,,RunAny_NewObjReg_%newObjRegCount%.ahk
+	if !ErrorLevel
+	{
+		IfNotExist,%A_ScriptDir%\%PluginsDir%\%newObjRegInput%
+			break
+		else
+			MsgBox, 48, 文件重名, 已有同名的脚本存在，请重新输入
+	}else{
+		return
+	}
+}
+SplitPath, newObjRegInput,,,,inputNameNotExt
+;[新建ObjReg插件脚本模板]
+FileAppend,
+(
+;************************
+;* 【ObjReg插件脚本 %newObjRegCount%】 *
+;************************
+global RunAny_Plugins_Version:="1.0.0"
+#NoTrayIcon             ;~不显示托盘图标
+#Persistent             ;~让脚本持久运行
+#SingleInstance,Force   ;~运行替换旧实例
+;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+#Include `%A_ScriptDir`%\RunAny_ObjReg.ahk
+
+class RunAnyObj {
+	;[新建：你自己的函数]
+	;保存到RunAny.ini为：菜单项名|你的脚本文件名%inputNameNotExt%[你的函数名](参数1,参数2)
+	你的函数名(参数1,参数2){
+		;函数内容写在这里
+`t`t
+	}
+}
+
+;独立使用方式
+;F1::
+	;RunAnyObj.你的函数名(参数1,参数2)
+;return
+),%A_ScriptDir%\%PluginsDir%\%newObjRegInput%,UTF-8
+IniWrite,1,%RunAnyConfig%,Plugins,%newObjRegInput%
+gosub,Plugins_Manage
+Run,notepad.exe %A_ScriptDir%\%PluginsDir%\%newObjRegInput%
 return
 PluginsDownVersion:
 	if(!Check_Github()){
@@ -2896,9 +2955,21 @@ LVDown:
 			LV_GetText(FileName, RowNumber, ColumnName)
 			LV_GetText(FileStatus, RowNumber, ColumnStatus)
 			LV_GetText(FileContent, RowNumber, ColumnContent)
-			IfExist,%A_ScriptDir%\%PluginsDir%\%FileName%
-				FileMove,%A_ScriptDir%\%PluginsDir%\%FileName%,%A_Temp%\%RunAnyZz%\%PluginsDir%\%FileName%,1
-			URLDownloadToFile(RunAnyGithubDir "/" PluginsDir "/" FileName,A_ScriptDir "\" PluginsDir "\" FileName)
+			pluginsDownPath=%PluginsDir%
+			;如果插件需要创建目录
+			if(RegExMatch(FileContent,"iS)\{\}$")){
+				pluginsDownPath.="\" FileName
+				IfNotExist %pluginsDownPath%
+					FileCreateDir,%pluginsDownPath%
+			}
+			IfExist,%A_ScriptDir%\%pluginsDownPath%\%FileName%
+				FileMove,%A_ScriptDir%\%pluginsDownPath%\%FileName%,%A_Temp%\%RunAnyZz%\%pluginsDownPath%\%FileName%,1
+			URLDownloadToFile(RunAnyGithubDir "/" pluginsDownPath "/" FileName,A_ScriptDir "\" pluginsDownPath "\" FileName)
+			;特殊插件下载依赖
+			if(FileName="huiZz_QRCode.ahk"){
+				URLDownloadToFile(RunAnyGithubDir "/" pluginsDownPath "/quricol32.dll",A_ScriptDir "\" pluginsDownPath "\quricol32.dll")
+				URLDownloadToFile(RunAnyGithubDir "/" pluginsDownPath "/quricol64.dll",A_ScriptDir "\" pluginsDownPath "\quricol64.dll")
+			}
 			downFlag:=true
 			pluginsContent:=RegExReplace(FileContent, ".*\[([^\[\]]*)\]","$1")
 			if(pluginsContent){
@@ -2921,7 +2992,6 @@ LVDown:
 	}
 return
 AhkExeDown:
-	ahkName:=A_Is64bitOS ? "AHK64.exe" : "AHK.exe"
 	ahkDown:=false
 	if(!ahkFlag){
 		ahkDown:=true
@@ -2932,7 +3002,10 @@ AhkExeDown:
 	}
 	if(ahkDown){
 		TrayTip,,RunAny使用脚本插件需要后台下载AHK.exe，期间可正常使用RunAny，`n下载时间因网速可能比较缓慢，完成后会自动重启RunAny,3,1
-		URLDownloadToFile(RunAnyGithubDir "/" PluginsDir "/" ahkName,A_ScriptDir "\" PluginsDir "\AHK.exe")
+		URLDownloadToFile(RunAnyGithubDir "/" PluginsDir "/AHK.exe",A_ScriptDir "\" PluginsDir "\AHK.exe")
+		if(A_Is64bitOS){
+			URLDownloadToFile(RunAnyGithubDir "/" PluginsDir "/AHK64.exe",A_ScriptDir "\" PluginsDir "\AHK64.exe")
+		}
 		ahkFlag:=true
 	}
 return
@@ -3694,11 +3767,11 @@ Plugins_Read:
 	}
 	Loop,%A_ScriptDir%\%PluginsDir%\*.*,2		;Plugins目录下文件夹内同名AHK脚本
 	{
-		IfExist,%A_ScriptDir%\%PluginsDir%\%A_LoopFileName%.ahk
+		IfExist,%A_LoopFileFullPath%\%A_LoopFileName%.ahk
 		{
 			PluginsObjList[(A_LoopFileName . ".ahk")]:=0
-			PluginsPathList[(A_LoopFileName . ".ahk")]:=A_LoopFileFullPath
-			PluginsTitleList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Title(A_LoopFileFullPath)
+			PluginsPathList[(A_LoopFileName . ".ahk")]:=A_LoopFileFullPath "\" A_LoopFileName ".ahk"
+			PluginsTitleList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Title(A_LoopFileFullPath "\" A_LoopFileName ".ahk")
 		}
 	}
 	IniRead,pluginsVar,%RunAnyConfig%,Plugins
@@ -3723,6 +3796,7 @@ return
 Plugins_Object_Register:
 	global PluginsObjRegGUID:=Object()	;~插件对象注册GUID列表
 	global PluginsObjRegActive:=Object()	;~插件对象注册Active列表
+	global RunAny_ObjReg_Path
 	RunAny_ObjReg_Path=%A_ScriptDir%\%PluginsDir%\%RunAny_ObjReg%
 	IfExist,%RunAny_ObjReg_Path%
 	{

@@ -2,17 +2,17 @@
 ;* 【ObjReg文本操作脚本[文本函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.7"
+global RunAny_Plugins_Version:="1.0.8"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
-#Persistent			 ;~让脚本持久运行
+#Persistent             ;~让脚本持久运行
 #WinActivateForce       ;~强制激活窗口
 #SingleInstance,Force   ;~运行替换旧实例
 ListLines,Off           ;~不显示最近执行的脚本行
 SendMode,Input          ;~使用更速度和可靠方式发送键鼠点击
 SetBatchLines,-1        ;~脚本全速执行(默认10ms)
 SetControlDelay,0       ;~控件修改命令自动延时(默认20)
-SetWinDelay,0            ;~执行窗口命令自动延时(默认100)
+SetWinDelay,0           ;~执行窗口命令自动延时(默认100)
 SetTitleMatchMode,2     ;~窗口标题模糊匹配
 CoordMode,Menu,Window   ;~坐标相对活动窗口
 ;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
@@ -106,7 +106,7 @@ class RunAnyObj {
 	;varStr：变量命名格式符号
 	;formatStr：格式化选项，详情查看(https://wyagd001.github.io/zh-cn/docs/commands/Format.htm)
 	;splitStr：分割用的字符，一般不用传使用默认值 ,._-|
-	text_var_name_zz(getZz:="",varStr:="",formatStr:="",splitStr:=" ,._-|"){
+	text_var_name_zz(getZz:="",varStr:="",formatStr:="",splitStr:=" ,._-|/\"){
 		textResult:=""
 		Loop, parse, getZz, `n, `r
 		{
@@ -129,6 +129,10 @@ class RunAnyObj {
 				}else{
 					getZzList.Push(A_LoopField)
 				}
+			}
+			if(getZzList.MaxIndex()=1){
+				textResult.=getZzLoop . "`n"
+				continue
 			}
 			lastFormat:=RegExReplace(formatLoop, ".*(\{[^{}]*\})","$1")
 			RegExReplace(formatLoop,"\{.*?\}","",formatCount)
@@ -268,6 +272,28 @@ class RunAnyObj {
 	;cn：0-转为阿拉伯数字；1-转为中文数字
 	text_cn2_zz(getZz:="",cn=0){
 		this.Send_Str_Zz(cn ? this.n2c(getZz) : this.c2n(getZz))
+	}
+	;[文本删除重复行保留顺序]
+	;参数说明：getZz：选中的文本内容
+	text_remove_repeat(getZz:=""){
+		textResult:=""
+		textResultObj:={}
+		textResultList:=[]
+		Loop, parse, getZz, `n, `r
+		{
+			getZzLoop:=A_LoopField
+			textResultObj[getZzLoop]:=A_Index
+			textResultList.Push(getZzLoop)
+		}
+		For k, v in textResultList
+		{
+			if(textResultObj[v] <> ""){
+				textResult.=v . "`n"
+				textResultObj.Delete(v)
+			}
+		}
+		textResult:=RTrim(textResult,"`n")
+		this.Send_Str_Zz(textResult)
 	}
 }
 

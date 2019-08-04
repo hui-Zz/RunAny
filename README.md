@@ -4,7 +4,7 @@
 
 __多台电脑你只需配置一套软件列表(RunAny.ini)，就能到处运行，配合坚果云\OneDrive\Dropbox等网盘同步更是如虎添翼，达到一劳永逸！😎__
 
-- ☑ 菜单分类界面，零记忆负担
+- ☑ 一键菜单分类界面，找应用零记忆负担
 - ☑ 分类定位，三键启动，简单迅速
 - ☑ 一次配置，到处运行，永久使用
 - ☑ 一键直达，一键计算，一键批量搜索
@@ -189,8 +189,12 @@ RunAny追求就是：<u>**一劳永逸**</u>
 | *杭            | 19-02-27 18:29:58 | 5    |
 | 禁誋           | 19-03-27 21:21:08 | 30   |
 | *杭（2）       | 19-03-29 17:06:15 | 2    |
+| *❎             | 19-07-10 09:32:15 | 30   |
+| E*d（2）       | 19-07-30 16:51:02 | 30   |
+| *伟华（2）     | 19-08-03 23:22:57 | 100  |
+|                |                   |      |
 
 ---
 ![GitHub stars](https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=social)
 ![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat&logo=github) ![GitHub](https://img.shields.io/github/license/hui-Zz/RunAny.svg)
-![GitHub downloads](https://img.shields.io/github/downloads/hui-Zz/RunAny/total.svg?style=flat) [![996.icu](https://img.shields.io/badge/link-996.icu-red.svg)](https://996.icu)
+ [![996.icu](https://img.shields.io/badge/link-996.icu-red.svg)](https://996.icu)

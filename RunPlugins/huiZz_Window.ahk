@@ -2,17 +2,17 @@
 ;* 【ObjReg窗口操作脚本[窗口函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.1"
+global RunAny_Plugins_Version:="1.0.2"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
-#Persistent			 ;~让脚本持久运行
+#Persistent             ;~让脚本持久运行
 #WinActivateForce       ;~强制激活窗口
 #SingleInstance,Force   ;~运行替换旧实例
 ListLines,Off           ;~不显示最近执行的脚本行
 SendMode,Input          ;~使用更速度和可靠方式发送键鼠点击
 SetBatchLines,-1        ;~脚本全速执行(默认10ms)
 SetControlDelay,0       ;~控件修改命令自动延时(默认20)
-SetWinDelay,0            ;~执行窗口命令自动延时(默认100)
+SetWinDelay,0           ;~执行窗口命令自动延时(默认100)
 SetTitleMatchMode,2     ;~窗口标题模糊匹配
 CoordMode,Menu,Window   ;~坐标相对活动窗口
 ;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
@@ -31,6 +31,9 @@ class RunAnyObj {
 	;[窗口置顶]
 	win_top_zz(t=1){
 		if(t=1){
+			if(WinActive("ahk_class CabinetWClass")){
+				WinSet,AlwaysOnTop,On,ahk_class CabinetWClass
+			}
 			WinSet,AlwaysOnTop,On,A
 		}else{
 			WinSet,AlwaysOnTop,Off,A

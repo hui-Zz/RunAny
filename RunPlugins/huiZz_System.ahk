@@ -2,16 +2,16 @@
 ;* 【ObjReg系统操作脚本[系统函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.3"
+global RunAny_Plugins_Version:="1.0.4"
 #NoTrayIcon             ;~不显示托盘图标
-#Persistent			 ;~让脚本持久运行
+#Persistent             ;~让脚本持久运行
 #WinActivateForce       ;~强制激活窗口
 #SingleInstance,Force   ;~运行替换旧实例
 ListLines,Off           ;~不显示最近执行的脚本行
 SendMode,Input          ;~使用更速度和可靠方式发送键鼠点击
 SetBatchLines,-1        ;~脚本全速执行(默认10ms)
 SetControlDelay,0       ;~控件修改命令自动延时(默认20)
-SetWinDelay,0            ;~执行窗口命令自动延时(默认100)
+SetWinDelay,0           ;~执行窗口命令自动延时(默认100)
 SetTitleMatchMode,2     ;~窗口标题模糊匹配
 CoordMode,Menu,Window   ;~坐标相对活动窗口
 ;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
@@ -107,9 +107,21 @@ class RunAnyObj {
 			FileGetShortcut, %path%, lnkTarget, lnkDir, lnkArgs, lnkDesc, lnkIcon, lnkIconNum, lnkRunState
 		Clipboard:=%copy%
 	}
+	;[创建目标快捷方式]
+	;参数说明：getZz：选中的文件路径
+	;target：需要发送的目标路径,默认当前目录
+	;lnk：快捷方式名,默认是选中文件名
+	system_create_shortcut(getZz,target:="",lnk:=""){
+		SplitPath, getZz, name, dir, ext, nameNoExt
+		if(target="")
+			target:=dir
+		if(lnk="")
+			lnk:=nameNoExt ".lnk"
+		FileCreateShortcut, %getZz%, %target%\%lnk%
+	}
 }
 
 ;独立使用方式
 ;~ F2::
-	;~ RunAnyObj.system_ip_zz(1)
+	;~ RunAnyObj.system_ip_zz(0)
 ;~ return
