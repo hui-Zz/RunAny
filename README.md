@@ -1,198 +1,196 @@
-# 【RunAny】一劳永逸的快速启动工具 [v5.0 @2017.12.08 Logic重构计划(去GUI)](#ver)
+# 【RunAny】一劳永逸的快速启动工具 ![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat-square&logo=github) ![GitHub](https://img.shields.io/github/license/hui-Zz/RunAny.svg?style=flat-square) [![HitCount](http://hits.dwyl.io/hui-Zz/RunAny.svg)](http://hits.dwyl.io/hui-Zz/RunAny)
 
-只需配置一个自定义程序菜单，结合Everything神器仅需软件名，无路径就可以快速运行exe程序、lnk快捷方式！
+**RunAny区别一般的启动工具，适合家里、公司多台电脑的用户，不管软件装在C盘还是D盘，根据名字直接找到并运行**
 
-不用考虑在哪台电脑、哪个路径的程序，家里和公司电脑都用同一套配置，云端同步更是如虎添翼😎
+__多台电脑你只需配置一套软件列表(RunAny.ini)，就能到处运行，配合坚果云\OneDrive\Dropbox等网盘同步更是如虎添翼，达到一劳永逸！😎__
+
+- ☑ 菜单分类界面，零记忆负担
+- ☑ 分类定位，三键启动，简单迅速
+- ☑ 一次配置，到处运行，永久使用
+- ☑ 一键直达，一键计算，一键批量搜索
+- ☑ 全局热键，热键映射，热字符串，多样快捷
+- ☑ 短语输出，透明化启动，快捷打开文件方式
+- ☑ 外接脚本，个性函数，自由定制
+
+【RunAny稳定版下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.5.9.zip
+
+【异次元软件RunAny介绍文章：】https://www.iplaysoft.com/runany.html
+
+[【RunAny版本更新历史】](https://github.com/hui-Zz/RunAny/wiki/RunAny版本更新历史)
+
+> RunAny使用Everything神器来知道所有软件的位置，Everything可以秒搜Windows下任何文件 <br>
+> RunAny可以左键右鼠操作，也可以全键盘、全鼠标操作（配合鼠标手势软件更佳）
 
 ---
 
-## RunAny启动软件就跟打字一样高效方便（如<kbd>\`</kbd>为热键）：
+## RunAny启动软件就跟五笔打字一样高效方便，3键直达（如Esc键下方的重音符键<kbd>\`</kbd>为热键）：
 
-- <kbd>\`</kbd><kbd>w</kbd><kbd>w</kbd>就是启动work工作分类下的Word
-- <kbd>\`</kbd><kbd>a</kbd><kbd>w</kbd>就是启动app常用分类下的Wiz
-- <kbd>\`</kbd><kbd>f</kbd><kbd>w</kbd>就是启动file文件分类下的WinRAR
+- <kbd>\`</kbd><kbd>a</kbd><kbd>w</kbd>就是启动『app常用』分类下的微信
+- <kbd>\`</kbd><kbd>w</kbd><kbd>w</kbd>就是启动『work工作』分类下的Word
+- <kbd>\`</kbd><kbd>f</kbd><kbd>w</kbd>就是启动『file文件』分类下的WinRAR
 
----
-
-## RunAny让你告别繁琐的右键打开文件！
-只要先选中文件，然后再启动RunAny中的软件，即可用该软件打开选中文件，**就是这么方便！**
+<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/help/RunAny%E6%BC%94%E7%A4%BA.gif" alt="RunAny演示" style="max-width:50%;">
 
 ---
 
-## RunAny除了运行还能搜索！
-在菜单配置添加搜索网址，先选中任意文字，然后用RunAny运行网址即可搜索，更有一次批量搜索功能，**就是这么高效！**
+## RunAny一键直达，没有比按一个键更快的操作！
+
+如果选中的文字就是网址，那按<kbd>\`</kbd>直接会在浏览器打开。
+
+如果是文件夹目录、文件路径、磁力链接，一样一键打开，**就是这么高效！**
+
+<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/help/RunAny一键直达功能.gif" alt="RunAny一键直达功能">
+
+RunAny一键公式计算
+
+<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/help/RunAny公式计算.gif" alt="RunAny公式计算">
 
 ---
+
+## RunAny让你告别繁琐的右键打开文件方式！
+
+只要先选中文件，然后再按<kbd>\`</kbd>启动RunAny中的软件，即可用该软件打开选中文件，**就是这么方便！**
+
+<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/help/RunAny%E6%BC%94%E7%A4%BA%E6%89%93%E5%BC%80%E6%96%87%E4%BB%B6.gif" alt="RunAny演示打开文件">
+
+---
+
+## RunAny除了运行还能搜索，还能批量搜索！
+
+在菜单中添加搜索网址，先选中任意文字，按<kbd>\`</kbd>后就可以选择想用的搜索，更有一次批量搜索功能。
+
+详见“实用配置”目录下[搜索网址.ini](https://github.com/hui-Zz/RunAny/blob/master/%E5%AE%9E%E7%94%A8%E9%85%8D%E7%BD%AE/%E6%90%9C%E7%B4%A2%E7%BD%91%E5%9D%80.ini)（内置购物、视频、图片、软件、音乐类等等搜索网站，复制需要的到【RunAny.ini】内使用）
+
+<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/help/RunAny%E6%BC%94%E7%A4%BA%E6%89%B9%E9%87%8F%E6%90%9C%E7%B4%A2.gif" alt="RunAny演示批量搜索">
+
+---
+
+## RunAny短语和热键映射功能：
+
+RunAny可以储存邮箱、手机号，想用时就快捷输出，更支持AHK实时变量，输出当前时间。
+
+**有了RunAny左键右鼠不是梦，左边有大量未使用快捷组合键，利用好这些键，左手再也不用移到键盘的右边😁**
+
+<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/help/RunAny短语和热键映射功能.gif" alt="RunAny短语和热键映射功能">
+
+---
+
+## RunAny的菜单不止一种用法
+
+<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/help/RunAny菜单多种使用方式.gif" alt="RunAny菜单多种使用方式">
+
+---
+
+## <a name="tree">首次使用请阅读：【自定义树形菜单配置方法】</a>
+
+1. **分类/目录：** 以 `-`开头为1级目录名， `--`名称为2级，以此类推，如：`-app应用`、`-work办公`、`--img图像处理`
+
+2. **分隔符：** 单独一个 `-`是1级分隔符， `--`2级分隔符，如：`-`、`--`
+
+3. **菜单别名：** 在竖 `|` 前面添加程序的别名，如：`word|winword.exe`菜单上只会显示word
+
+4. **注释：** 前加 `;`可以注释暂时不用的，如：`;cmd.exe`
+
+5. **快捷短语：** 末尾分号 `;`识别为短语，会直接打字输出，如：`hui0.0713@gmail.com;` 用于注册时输出邮箱，
+
+   `当前时间|%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%;` 输出 `2018-08-08 08:08:08` （变量语法参考[AHK文档](https://wyagd001.github.io/zh-cn/docs/Variables.htm)）
+
+6. **区分重名程序：** 如果电脑上有多个重名程序，加上全路径指定运行其中一个，如：`IE(32位)|C:\Program Files (x86)\Internet Explorer\iexplore.exe`（或创建该程序的快捷方式，在RunAny中添加使用快捷方式解决重名问题）
+
+> 默认支持exe、lnk、ahk、bat、cmd文件的无路径识别，其他后缀可以在RunAny设置中的Everything搜索参数，如支持doc文档免设路径识别
+>
+> 每个菜单名首字母(或用&指定任意)便是启动快捷键，如：`IE(&E)|iexplore.exe`快捷键是e
+
+
+## 【进阶配置】：
+
+7. **不同后缀不同菜单：** 在分类/目录名后加 `|`和后缀，选中不同文件出不同菜单
+
+   如：`-影音(&Video)|avi mkv mp4 rm rmvb flv wmv swf` 
+   选中视频文件按<kbd>\`</kbd>只弹出`影音(&Video)`分类内容，多款播放软件选择使用
+
+8. **半透明启动程序：** 在应用别名后面添加 `_:数字`形式来透明启动应用（默认不透明,1-100是全透明到不透明），如88%透明度：
+
+```ini
+记事本(&N)_:88|Notepad.exe
+```
+9. **热键映射：** 映射空闲的组合键转变为常用键功能，如：
+
+   映射 左手的Shift+空格键 转变成 `回车键` 的功能
+
+   映射 左手的Shift+大小写键(CapsLock) 转变成 `删除键` 的功能
+```ini
+左手回车	<+Space|{Enter}::
+左手删除	LShift & CapsLock|{Delete}::
+```
+   > [了解更多AHK热键写法文档](https://wyagd001.github.io/zh-cn/docs/Hotkeys.htm)
+10. **全局热键：** 在别名最末尾添加<kbd>Tab</kbd>制表符+热键（热键格式参考AHK写法:^代表<kbd>Ctrl</kbd> !代表<kbd>Alt</kbd> #代表<kbd>Win</kbd>+代表<kbd>Shift</kbd>），如按 `Alt+b`一键百度、 `Win+z`一键翻译、按 `Alt+z`启动或激活浏览器：
+```ini
+百度(&B)	!b|https://www.baidu.com/s?wd=
+谷歌(&G)	!g|http://www.google.com/search?q=%s&gws_rd=ssl
+翻译(&F)	#z|http://translate.google.cn/#auto/zh-CN/
+浏览器(&Z)	!z|chrome.exe
+```
+> 搜索网址的关键字，如果在中间而不是在末尾，用%s表示，默认不加就是加在末尾来搜索
+
+- 在选中文字的情况下按全局热键，可以直接用搜索网址搜索选中文字~
+- 在选中文件情况下按全局热键，就可以直接用该热键的应用打开该文件；
+
+---
+
+## 【RunAny其他功能】：
+
+1. **所有应用独立全局热键集启动、最小化时激活，已激活时最小化、同应用多窗口切换功能于一体**
+2. 按住<kbd>Ctrl</kbd>打开软件会打开软件所在的目录
+3. 按住<kbd>Shift</kbd>键打开软件快速直接跳转到编辑该菜单项
+4. 按住<kbd>Ctrl</kbd>+<kbd>Shift</kbd>键打开软件会以管理员身份来运行
+
+> 开启菜单2功能后，可在设置"绑定菜单1为一键搜索"，这样选中文字按<kbd>\`</kbd>就一键搜索，想用其他搜索再使用菜单2热键搜索
+
+> （PS:输出\`可以<kbd>Win</kbd>+<kbd>\`</kbd>输入）
 
 RunAny追求就是：<u>**一劳永逸**</u>
 ---
 
-[首次使用请阅读：【自定义树形菜单配置方法】](#tree)
+【联系作者】hui0.0713@gmail.com
+[【RunAny建议及意见】](https://github.com/hui-Zz/RunAny/issues)
 
-[【RunAny版本更新历史】](#ver)
+讨论QQ群：[246308937【RunAny快速启动一劳永逸】](https://jq.qq.com/?_wv=1027&k=445Ug7u)
 
----
+**欢迎大家多多提出建议！感谢各位网友和群里的AHK-工兵、Balance、☆☆天甜、°～童年不懂事°等等对RunAny提出好的建议和问题**
 
-RunAny演示：
-
-<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/RunAny%E6%BC%94%E7%A4%BA.gif" alt="RunAny演示" style="max-width:50%;">
-
-RunAny演示打开文件：
-
-<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/RunAny%E6%BC%94%E7%A4%BA%E6%89%93%E5%BC%80%E6%96%87%E4%BB%B6.gif" alt="RunAny演示打开文件">
-
-RunAny演示批量搜索：
-
-<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/RunAny%E6%BC%94%E7%A4%BA%E6%89%B9%E9%87%8F%E6%90%9C%E7%B4%A2.gif" alt="RunAny演示批量搜索">
+**你的支持是我最大的动力！(金额随意)：**
+<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.jpg" alt="支持RunAny" width="280" height="280"><img src="https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.png" alt="支持RunAny" width="280" height="280">
 
 ---
 
-建议：hui0.0713@gmail.com
+## 【特别感谢以下朋友对RunAny的赞助！有你们RunAny会越来越好！】
 
-讨论QQ群：[246308937【RunAny快速启动一劳永逸】](https://jq.qq.com/?_wv=1027&k=445Ug7u)、[3222783【AutoHotkey高级群】](https://jq.qq.com/?_wv=1027&k=43uBHer)、[493194474【软客】](https://jq.qq.com/?_wv=1027&k=43trxF5)
-
-支持RunAny：![支付宝](https://raw.githubusercontent.com/hui-Zz/RunAny/master/支持RunAny.jpg)
-
-**在此特别感谢 AHK-工兵、Balance、☆☆天甜 等对RunAny的大力支持，欢迎大家多多提出建议！**
-
-> 这里是隐藏功能：
-
-> 按住Ctrl打开软件会打开软件所在的目录
-> 按住Shift打开软件会以管理员身份来运行
-
-> (PS:输入\`可以<kbd>Win</kbd>+<kbd>\`</kbd>输入)
+| 昵称           | 时间              | 金额 |
+| -------------- | ----------------- | ---- |
+| Balance        | 2017              | 20   |
+| AHK-工兵       | 18-04-17 17:30:09 | 10   |
+| Nicked         | 18-05-15 15:25:42 | 10   |
+| 声仔           | 18-05-16 10:29:59 | 10   |
+| °～童年不懂事° | 18-05-16 22:55:26 | 20   |
+| skystar        | 18-05-27 16:39:36 | 12   |
+| AHK-工兵（2）  | 18-06-01 11:04:59 | 10   |
+| 小雨果         | 18-06-03 17:51:58 | 20   |
+| 多多           | 18-06-07 12:38:42 | 10   |
+| 涅槃           | 18-06-18 16:54:18 | 30   |
+| skystar（2）   | 18-06-26 14:24:17 | 66   |
+| 小川（Ever）   | 18-07-18 09:12:00 | 18.8 |
+| E*d            | 18-07-23 11:20:18 | 10   |
+| 鼠小天         | 18-10-20 17:06:00 | 8.8  |
+| *伟华          | 18-11-08 16:42:07 | 50   |
+| AHK-工兵（3）  | 18-11-29 10:01:21 | 10   |
+| K*a            | 18-12-04 15:22:41 | 1    |
+| *天（过年好）  | 19-01-30 21:37:40 | 8.88 |
+| *杭            | 19-02-27 18:29:58 | 5    |
+| 禁誋           | 19-03-27 21:21:08 | 30   |
+| *杭（2）       | 19-03-29 17:06:15 | 2    |
 
 ---
-
-## <a name="tree">【自定义树形菜单配置方法】</a>
-
-* 以-开头+名称为1级目录名,--名称为2级以此类推，如：`-app`、`--img`
-* 单独一个-是1级分隔符，--2级亦是如此，如：`-`、`--`
-* 每个菜单名首字母(或用&指定任意)便是启动快捷键，如：`IE(&E)|iexplore.exe`快捷键是e
-* 可用竖|添加别名前缀,菜单便会显示别名，如：`TC|Totalcmd.exe`会显示TC
-* 前加;可以注释暂时不需要用的，如：`;cmd.exe`
-* 末尾;识别为短语可以直接输出，如：`hui0.0713@gmail.com;`
-
-* 如果电脑上有多个同名程序，加上全路径指定运行其中一个
-* 运行除exe、lnk后缀之外的可以创建快捷方式变为lnk来放入RunAny菜单，也可以修改Everything搜索参数
-* 搜索网址的关键字，如果在中间而不是在末尾，用%s表示，默认不加就是加在末尾来搜索
-
-* 【4.6版本新增应用的透明化和热键配置】
-* 在应用别名后面添加_:数字形式来透明启动应用(默认不透明,0-100是全透明到不透明)，如88%透明度：Notepad_:88|Notepad.exe
-* 在别名最末尾添加<kbd>Tab</kbd>制表符+热键(热键格式参考AHK写法:^代表<kbd>Ctrl</kbd> !代表<kbd>Alt</kbd> #代表<kbd>Win</kbd>)，如按Alt+b百度：百度(&B)<kbd>Tab</kbd>!b|https://www.baidu.com/s?wd=
-* 可以在选中文件情况下按热键，就可以直接用该热键的应用打开该文件；在选中文字的情况下按热键，可以直接用搜索网址搜索选中文字~
----
-
-## <a name="ver">【RunAny版本更新历史】</a>
-
-### 【RunAny】 v4.7 ~ 4.9
-+ **增加RunAny所有配置热键**
-+ **启动软件支持带参数**
-+ **选中不同后缀文件，出现不同菜单**
-
-### 【RunAny】 v4.3 ~ 4.6 热键直达,透明启动
-+ **新增所有软件、网址、短语等自定义热键设置**
-+ **新增所有软件的透明化启动方式**
-* 优化加快重启RunAny的速度
-
-### 【RunAny】 v4.2 一键直达，一步到位
-+ **新增选中网址、目录、文件路径文字后一键直达**
-+ 新增使用ini文件配置绿色化，方便U盘便携
-+ 选中文字后菜单增加短语，方便替换文本
-+ 现在可自定义菜单里显示不同类型的项目
-* 修复不能注释目录的情况
-
-### 【RunAny】 v4.1 Run Anything!
-+ 增加菜单1和2的树形快捷管理按键设置
-+ 一键搜索网址现在支持一次搜索多个网址
-* **启动菜单显示速度加快100%**
-
-### 【RunAny】 v4.0 Run Anything!
-+ 程序菜单可显示任意后缀文件的图标
-+ [修改菜单]也可显示任意后缀文件图标
-+ 在已有一个菜单再增加一个菜单，更加强大
-+ 现在可以自定义Everything的搜索参数！
-  在参数中添加任意后缀，该后缀文件便无需路径在RunAny中运行
-
-### 【RunAny】 v3.1 ~ v3.9
-+ v3.2 双重菜单➿
-+ 新增[修改菜单]中树节点上下移动功能，便捷大提升
-* 重新设计了[设置RunAny]的Gui界面
-* 优化了初始菜单的名称
-* 修复运行一些软件工作目录变为RunAny目录的问题
-* 修复单个搜索关键词没与%s替代而在末尾的问题
-
-### 【RunAny】v3.0 批量搜索🔍
-+ 选中文本只弹出网址菜单搜索(也可在配置中取消)
-+ **增加批量打开网址和选中文字批量搜索功能！**
-+ 菜单配置中添加/修改/移动后通过Everything显示应用图标
-
-### 【RunAny】v2.9
-* 修复选中某些情况下选中文字文件RunAny未提取到的问题
-* 批量网址下载失败情况，可单选某个网址修改下载地址再重新下载
-
-### 【RunAny】v2.8
-* 显示"多选导入"和"批量导入"的应用图标
-+ 可以多选下载指定网址的图标
-
-### 【RunAny】v2.7 极速🚀
-+ 初始打开即可用，后台渐步加载应用图标，重启RunAny毫秒级加载
-
-### 【RunAny】v2.6 图标优化🖼
-+ 现在菜单配置中程序将显示自己的图标！
-+ 在菜单配置加入"网站图标"功能，点击即可下载菜单中所有网站图标
-  + 下载完成后网站无论是快捷启动还是菜单配置都将显示自己的图标
-+ ZzIcon.dll中加入树节点、移动、上、下4个图标，更好的支持xp系统
-
-### 【RunAny】v2.5 组合功能🔩
-+ **先选中文件，然后RunAny中运行程序将打开选中的文件**
-  + 如在资源管理器先选中1.txt，再按启动RunAny中notepad.exe就打开了1.txt
-+ **先选中文字，然后RunAny运行网址将文件作为搜索条件**
-  + 如先选中AHK，再启动RunAny中的百度(&B)|https://www.baidu.com/s?wd=，就变成了搜索AHK
-+ **菜单配置增加有复选框**
-  + TreeView的全选全不选功能
-  + 批量移动项目到指定的节点下，并自动匹配级别
-  + 批量勾选项目删除
-
-### 【RunAny】v2.4 便利
-+ 新增一键搜索选中文字
-+ 记录最近运行程序
-* 独立导入桌面程序功能
-
-### 【RunAny】v2.3
-+ 支持Ctrl键用TC打开应用目录
-* 修复不能正确打开带空格路径
-* 重置功能取消开机自动启动
-
-### 【RunAny】v2.2 快捷🎈
-+ **增加快捷方式lnk全盘路径和图标识别**
-+ **增加开机自动选项**
-+ **增加一键Everything[搜索选中文字][激活][隐藏]**
-+ *增加输出简单短语的功能*
-+ *新增屏蔽RunAny热键的程序列表*
-+ *支持TotalCommander打开文件夹*
-+ ~~现在可以隐藏失效的项目~~
-+ 菜单编辑添加树时自动为其增加子项目
-+ 初次运行的菜单配置增加了通用分类和流行软件
-+ 初次运行自动添加桌面快捷方式
-* 修复菜单删除项目时Del与删文字冲突
-* 修复了批量导入问题且现在可以导入快捷方式
-* 修正了网址的正则
-
-### 【RunAny】v2.1 酷炫😉
-+ 批量导入程序名称
-+ 图标自定义化(包括托盘图标)
-+ 优化搜索条件，排除C:\Windows及其他升级文件夹
-* 现在会自动检查Everything.dll的可用性，需要用Everything64.dll时提示
-
-### v2.0 正式更名为RunAny，易用性大幅提升，兼容菜单文件编辑和GUI界面编辑
-
-### v1.9 自定义配置优化
-
-+ 添加Everything路径配置选项
-+ 添加显示热键自定义配置选项
-+ 菜单配置现在单独保存在RunMenuZz.ini
-+ 只有在用户设置与默认不同才将配置保存在注册表HKEY_CURRENT_USER\Software\RunAny
-+ 添加重置按钮，清除注册表配置，不留痕迹
-
-### v1.8 集成Everything自动检索程序，从此程序随便放目录都能用RunMenu运行了😀
+![GitHub stars](https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=social)
+![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat&logo=github) ![GitHub](https://img.shields.io/github/license/hui-Zz/RunAny.svg)
+![GitHub downloads](https://img.shields.io/github/downloads/hui-Zz/RunAny/total.svg?style=flat) [![996.icu](https://img.shields.io/badge/link-996.icu-red.svg)](https://996.icu)
