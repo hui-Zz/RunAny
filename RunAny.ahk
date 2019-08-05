@@ -2833,7 +2833,7 @@ LVAdd:
 	Gui,D:Destroy
 	Gui,D:Default
 	Gui,D:Font, s10, Microsoft YaHei
-	Gui,D:Add, Listview, xm w600 r10 grid AltSubmit Checked vRunAnyDownLV, 插件文件|状态|版本号|最新版本|插件描述
+	Gui,D:Add, Listview, xm w620 r15 grid AltSubmit Checked vRunAnyDownLV, 插件文件|状态|版本号|最新版本|插件描述
 	;~;[读取启动项内容写入列表]
 	GuiControl,D: -Redraw, RunAnyDownLV
 	For pk, pv in pluginsDownList
@@ -2904,7 +2904,7 @@ Run,notepad.exe %A_ScriptDir%\%PluginsDir%\%newObjRegInput%
 return
 PluginsDownVersion:
 	if(!Check_Github()){
-		TrayTip,网络异常，无法从https://github.com/hui-Zz/RunAny上读取最新版本文件，请手动下载,3,1
+		TrayTip,网络异常，无法从https://github.com/hui-Zz/RunAny上读取最新文件，请手动下载,5,1
 		pluginsDownList:=PluginsObjList
 		checkGithub:=false
 		return
@@ -2951,28 +2951,44 @@ LVDown:
 			RowNumber := LV_GetNext(RowNumber, "Checked")  ; 再找勾选的行
 			if not RowNumber  ; 上面返回零, 所以选择的行已经都找到了.
 				break
-			TrayTip,,RunAny开始下载插件，请稍等……,2,1
 			LV_GetText(FileName, RowNumber, ColumnName)
 			LV_GetText(FileStatus, RowNumber, ColumnStatus)
 			LV_GetText(FileContent, RowNumber, ColumnContent)
+			TrayTip,,RunAny开始下载%FileName%，请稍等……,3,1
 			pluginsDownPath=%PluginsDir%
 			;如果插件需要创建目录
 			if(RegExMatch(FileContent,"iS)\{\}$")){
-				pluginsDownPath.="\" FileName
-				IfNotExist %pluginsDownPath%
-					FileCreateDir,%pluginsDownPath%
+				SplitPath, FileName, fName,, fExt, name_no_ext
+				pluginsDownPath.="\" name_no_ext
+				IfNotExist %A_ScriptDir%\%pluginsDownPath%
+					FileCreateDir,%A_ScriptDir%\%pluginsDownPath%
 			}
-			IfExist,%A_ScriptDir%\%pluginsDownPath%\%FileName%
-				FileMove,%A_ScriptDir%\%pluginsDownPath%\%FileName%,%A_Temp%\%RunAnyZz%\%pluginsDownPath%\%FileName%,1
-			URLDownloadToFile(RunAnyGithubDir "/" pluginsDownPath "/" FileName,A_ScriptDir "\" pluginsDownPath "\" FileName)
 			;特殊插件下载依赖
 			if(FileName="huiZz_QRCode.ahk"){
-				URLDownloadToFile(RunAnyGithubDir "/" pluginsDownPath "/quricol32.dll",A_ScriptDir "\" pluginsDownPath "\quricol32.dll")
-				URLDownloadToFile(RunAnyGithubDir "/" pluginsDownPath "/quricol64.dll",A_ScriptDir "\" pluginsDownPath "\quricol64.dll")
+				TrayTip,,huiZz_QRCode需要下载quricol32.dll，请稍等……,3,1
+				URLDownloadToFile(RunAnyGithubDir "/" PluginsDir "/" name_no_ext "/quricol32.dll",A_ScriptDir "\" pluginsDownPath "\quricol32.dll")
+				if(A_Is64bitOS){
+					URLDownloadToFile(RunAnyGithubDir "/" PluginsDir "/" name_no_ext "/quricol64.dll",A_ScriptDir "\" pluginsDownPath "\quricol64.dll")
+					FileRead, quricol64, %A_ScriptDir%\%pluginsDownPath%\quricol64.dll
+					if(quricol64="404: Not Found`n"){
+						MsgBox,二维码插件quricol64.dll下载异常，请重新更新或到官网下载！
+						return
+					}
+				}
+				FileRead, quricol32, %A_ScriptDir%\%pluginsDownPath%\quricol32.dll
+				if(quricol32="404: Not Found`n"){
+					MsgBox,二维码插件quricol32.dll下载异常，请重新更新或到官网下载！
+					return
+				}
 			}
+			;[下载插件脚本]
+			IfExist,%A_ScriptDir%\%pluginsDownPath%\%FileName%
+				FileMove,%A_ScriptDir%\%pluginsDownPath%\%FileName%,%A_Temp%\%RunAnyZz%\%pluginsDownPath%\%FileName%,1
+			URLDownloadToFile(RunAnyGithubDir "/" PluginsDir "/" name_no_ext "/" FileName,A_ScriptDir "\" pluginsDownPath "\" FileName)
+
 			downFlag:=true
 			pluginsContent:=RegExReplace(FileContent, ".*\[([^\[\]]*)\]","$1")
-			if(pluginsContent){
+			if(RegExMatch(FileContent,"iS)\]$") && pluginsContent){
 				IfNotExist %A_Temp%\%RunAnyZz%\实用配置
 					FileCreateDir,%A_Temp%\%RunAnyZz%\实用配置
 				IfExist,%featureDir%\%pluginsContent%
@@ -4021,6 +4037,7 @@ Check_Github(){
 }
 Check_Update:
 	checkUpdateFlag:=true
+	TrayTip,,RunAny检查更新中……,2,1
 	gosub,Auto_Update
 return
 Auto_Update:
