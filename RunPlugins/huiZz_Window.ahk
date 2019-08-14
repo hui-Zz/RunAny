@@ -43,7 +43,7 @@ class RunAnyObj {
 			WinSet,AlwaysOnTop,Off,A
 		}
 	}
-	;[窗口边角置顶观影]
+	;[窗口移至边角置顶观影]
 	;参数说明：
 	;mode：1-左上,2-右上,3-左下,4-右下
 	;x：正数向左偏移像素，负数向右偏移像素

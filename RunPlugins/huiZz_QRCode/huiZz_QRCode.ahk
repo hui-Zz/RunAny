@@ -12,6 +12,7 @@ global RunAny_Plugins_Version:="1.1.1"
 class RunAnyObj {
 	;[二维码生成]
 	;参数说明：getZz：选中的文本内容
+	;在RunAny.ini中使用：二维码生成|huiZz_QRCode[qr_code](%getZz%)
 	qr_code(getZz){
 		global
 		if(StrLen(getZz) < 200){
