@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.0 @2019.08.04
+║【RunAny】一劳永逸的快速启动工具 v5.6.0 @2019.08.14
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：246308937
@@ -21,7 +21,7 @@ global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.6.0"
-global RunAny_update_time:="2019.08.04"
+global RunAny_update_time:="2019.08.14"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -2887,10 +2887,11 @@ global RunAny_Plugins_Version:="1.0.0"
 class RunAnyObj {
 	;[新建：你自己的函数]
 	;保存到RunAny.ini为：菜单项名|你的脚本文件名%inputNameNotExt%[你的函数名](参数1,参数2)
-	你的函数名(参数1,参数2){
+	;你的函数名(参数1,参数2){
 		;函数内容写在这里
 `t`t
-	}
+	;}
+`t
 }
 
 ;独立使用方式
@@ -4084,17 +4085,13 @@ Auto_Update:
 	}
 return
 Config_Update:
-	if(InStr(EvCommand,"!C:\*Windows* file:*.exe")=1){
-		vEvCommand:=StrReplace(EvCommand,"!C:\*Windows* file:*.exe","!C:\*Windows* !?:\$RECYCLE.BIN* file:*.exe")
-		Reg_Set(vEvCommand,EvCommand,"EvCommand")
-	}
 	IfNotExist %featureDir%
 		FileCreateDir,%featureDir%
 	configDownList:=["实用命令.ini","搜索网址.ini","热键映射.ini"]
-	For i, v in configDownList
-	{
-		URLDownloadToFile(RunAnyGithubDir "/实用配置/" v,A_ScriptDir "\实用配置\" v)
-	}
+	;~ For i, v in configDownList
+	;~ {
+		;~ URLDownloadToFile(RunAnyGithubDir "/实用配置/" v,A_ScriptDir "\实用配置\" v)
+	;~ }
 	if(FileExist(A_ScriptDir "\ZzIcon.dll")){
 		FileGetSize, ZzIconSize, %A_ScriptDir%\ZzIcon.dll
 		if(ZzIconSize=610304){
@@ -4363,7 +4360,7 @@ Desktop_Import:
 	}
 return
 Desktop_Append:
-	desktopItem:="`n-桌面(&D)`n"
+	desktopItem:="`n-桌面(&Desktop)`n"
 	desktopDir:=""
 	Loop,%A_Desktop%\*.lnk,0,1
 	{
@@ -4397,7 +4394,7 @@ FileAppend,
 	--
 	StrokesPlus鼠标手势|StrokesPlus.exe
 	Ditto剪贴板|Ditto.exe
--办公(Wo&rk)|doc docx xls xlsx ppt pptx wps et dps
+-办公(wo&Rk)|doc docx xls xlsx ppt pptx wps et dps
 	word(&W)|winword.exe
 	Excel(&E)|excel.exe
 	PPT(&T)|powerpnt.exe
@@ -4412,11 +4409,11 @@ FileAppend,
 	百度(&B)	!z|https://www.baidu.com/s?wd=
 	谷歌(&G)	!g|https://www.google.com/search?q=`%s&gws_rd=ssl
 	翻译(&F)	#z|https://translate.google.cn/#auto/zh-CN/
-	异次元软件|http://www.iplaysoft.com/search/?s=548512288484505211&q=
-	淘宝(&T)|https://s.taobao.com/search?q=
+	异次元软件|http://www.iplaysoft.com/search/?s=548512288484505211&q=`%s
+	淘宝(&T)|https://s.taobao.com/search?q=`%s
 	京东(&D)|https://search.jd.com/Search?keyword=`%s&enc=utf-8
 	知乎(&Z)|https://www.zhihu.com/search?type=content&q=
-	B站|http://search.bilibili.com/all?keyword=
+	B站|http://search.bilibili.com/all?keyword=`%s
 	--
 	RunAny地址|https://github.com/hui-Zz/RunAny
 -图片(im&G)|bmp gif jpeg jpg png
@@ -4443,7 +4440,7 @@ FileAppend,
 	控制面板(&S)|Control.exe
 	;在程序名后空格+带参数启动
 	hosts文件|notepad.exe `%A_WinDir`%\System32\drivers\etc\hosts
--其他(&Other)
+-输入(inpu&T)
 	;当前时间（变量语法参考AHK文档https://wyagd001.github.io/zh-cn/docs/Variables.htm）
 	当前时间|`%A_YYYY`%-`%A_MM`%-`%A_DD`% `%A_Hour`%:`%A_Min`%:`%A_Sec`%;
 	;热键映射,快捷方便,左边Shift+空格=回车键;左手Shift+大小写键=删除键
