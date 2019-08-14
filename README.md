@@ -7,9 +7,9 @@ __多台电脑你只需配置一套软件列表(RunAny.ini)，就能到处运行
 - ☑ 一键菜单分类界面，找应用零记忆负担
 - ☑ 分类定位，三键启动，简单迅速
 - ☑ 一次配置，到处运行，永久使用
-- ☑ 一键直达，一键计算，一键批量搜索
-- ☑ 全局热键，热键映射，热字符串，多样快捷
-- ☑ 短语输出，透明化启动，快捷打开文件方式
+- ☑[ 一键直达](#oneKey)，[一键计算](#oneKeyCalc)，[一键批量搜索](#oneKeySearch)
+- ☑ [全局热键，热键映射](#advancedConfig)，[热字符串](https://github.com/hui-Zz/RunAny/wiki#menuHotStringRun)，多样快捷
+- ☑ [短语输出](#wordOutput)，[透明化启动](#advancedConfig)，[快捷打开文件方式](#quickOpenFile)
 - ☑ 外接脚本，个性函数，自由定制
 
 【RunAny稳定版下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.5.9.zip
@@ -33,7 +33,7 @@ __多台电脑你只需配置一套软件列表(RunAny.ini)，就能到处运行
 
 ---
 
-## RunAny一键直达，没有比按一个键更快的操作！
+## <a name="oneKey">RunAny一键直达，没有比按一个键更快的操作！</a>
 
 如果选中的文字就是网址，那按<kbd>\`</kbd>直接会在浏览器打开。
 
@@ -41,13 +41,13 @@ __多台电脑你只需配置一套软件列表(RunAny.ini)，就能到处运行
 
 <img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/help/RunAny一键直达功能.gif" alt="RunAny一键直达功能">
 
-RunAny一键公式计算
+<a name="oneKeyCalc">RunAny一键公式计算</a>
 
 <img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/help/RunAny公式计算.gif" alt="RunAny公式计算">
 
 ---
 
-## RunAny让你告别繁琐的右键打开文件方式！
+## <a name="quickOpenFile">RunAny让你告别繁琐的右键打开文件方式！</a>
 
 只要先选中文件，然后再按<kbd>\`</kbd>启动RunAny中的软件，即可用该软件打开选中文件，**就是这么方便！**
 
@@ -55,7 +55,7 @@ RunAny一键公式计算
 
 ---
 
-## RunAny除了运行还能搜索，还能批量搜索！
+## <a name="oneKeySearch">RunAny除了运行还能搜索，还能批量搜索！</a>
 
 在菜单中添加搜索网址，先选中任意文字，按<kbd>\`</kbd>后就可以选择想用的搜索，更有一次批量搜索功能。
 
@@ -65,7 +65,7 @@ RunAny一键公式计算
 
 ---
 
-## RunAny短语和热键映射功能：
+## <a name="wordOutput">RunAny短语和热键映射功能：</a>
 
 RunAny可以储存邮箱、手机号，想用时就快捷输出，更支持AHK实时变量，输出当前时间。
 
@@ -102,7 +102,7 @@ RunAny可以储存邮箱、手机号，想用时就快捷输出，更支持AHK�
 > 每个菜单名首字母(或用&指定任意)便是启动快捷键，如：`IE(&E)|iexplore.exe`快捷键是e
 
 
-## 【进阶配置】：
+## <a name="advancedConfig">【进阶配置】：</a>
 
 7. **不同后缀不同菜单：** 在分类/目录名后加 `|`和后缀，选中不同文件出不同菜单
 
