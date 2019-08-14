@@ -2,7 +2,7 @@
 ;* 【ObjReg二维码脚本{}】  *
 ;*               by hui-Zz *
 ;***************************
-global RunAny_Plugins_Version:="1.0.0"
+global RunAny_Plugins_Version:="1.1.1"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
 #SingleInstance,Force   ;~运行替换旧实例
@@ -14,9 +14,17 @@ class RunAnyObj {
 	;参数说明：getZz：选中的文本内容
 	qr_code(getZz){
 		global
+		if(StrLen(getZz) < 200){
+			picHeight:=400
+		}else if(StrLen(getZz) <= 600){
+			picHeight:=StrLen(getZz) + 200
+		}else if(StrLen(getZz) > 600){
+			picHeight:=A_ScreenHeight-50
+		}
+		guiWH:=picHeight+20
 		GUI,pic:Destroy
-		GUI,pic:Add,Picture,w400 h-1 hwndhimage gSaveAs,% f:=this.GEN_QR_CODE(getZz)
-		GUI,pic:Show,w420 h420,点击保存图片 Esc关闭
+		GUI,pic:Add,Picture,w-1 h%picHeight% hwndhimage gSaveAs,% f:=this.GEN_QR_CODE(getZz)
+		GUI,pic:Show,w%guiWH% h%guiWH%,点击保存图片 Esc关闭
 		return
 		SaveAs:
 		  Fileselectfile,nf,s16,,另存为,PNG图片(*.png)
