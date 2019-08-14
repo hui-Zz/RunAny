@@ -7,7 +7,7 @@ __多台电脑你只需配置一套软件列表(RunAny.ini)，就能到处运行
 - ☑ 一键菜单分类界面，找应用零记忆负担
 - ☑ 分类定位，三键启动，简单迅速
 - ☑ 一次配置，到处运行，永久使用
-- ☑[ 一键直达](#oneKey)，[一键计算](#oneKeyCalc)，[一键批量搜索](#oneKeySearch)
+- ☑ [一键直达](#oneKey)，[一键计算](#oneKeyCalc)，[一键批量搜索](#oneKeySearch)
 - ☑ [全局热键，热键映射](#advancedConfig)，[热字符串](https://github.com/hui-Zz/RunAny/wiki#menuHotStringRun)，多样快捷
 - ☑ [短语输出](#wordOutput)，[透明化启动](#advancedConfig)，[快捷打开文件方式](#quickOpenFile)
 - ☑ 外接脚本，个性函数，自由定制
