@@ -1,6 +1,6 @@
 # 【RunAny】一劳永逸的快速启动工具 ![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat-square&logo=github)  [![HitCount](http://hits.dwyl.io/hui-Zz/RunAny.svg)](http://hits.dwyl.io/hui-Zz/RunAny)
 
-**RunAny区别一般的启动工具，适合家里、公司多台电脑的用户，不管软件装在C盘还是D盘，根据名字直接找到并运行**
+**RunAny区别一般的启动工具，适合家里、公司多台电脑的用户，不管软件装在C盘还是D盘Anywhere，根据名字直接找到并运行**
 
 __多台电脑你只需配置一套软件列表(RunAny.ini)，就能到处运行，配合坚果云\OneDrive\Dropbox等网盘同步更是如虎添翼，达到一劳永逸！😎__
 
@@ -61,7 +61,7 @@ __多台电脑你只需配置一套软件列表(RunAny.ini)，就能到处运行
 
 在菜单中添加搜索网址，先选中任意文字，按<kbd>\`</kbd>后就可以选择想用的搜索，更有一次批量搜索功能。
 
-详见“实用配置”目录下[搜索网址.ini](https://github.com/hui-Zz/RunAny/blob/logic/%E5%AE%9E%E7%94%A8%E9%85%8D%E7%BD%AE/%E6%90%9C%E7%B4%A2%E7%BD%91%E5%9D%80.ini)（内置购物、视频、图片、软件、音乐类等等搜索网站，复制需要的到【RunAny.ini】内使用）
+详见“实用配置”目录下[搜索网址.ini](https://github.com/hui-Zz/RunAny/blob/master/%E5%AE%9E%E7%94%A8%E9%85%8D%E7%BD%AE/%E6%90%9C%E7%B4%A2%E7%BD%91%E5%9D%80.ini)（内置购物、视频、图片、软件、音乐类等等搜索网站，复制需要的到【RunAny.ini】内使用）
 
 <img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/help/RunAny%E6%BC%94%E7%A4%BA%E6%89%B9%E9%87%8F%E6%90%9C%E7%B4%A2.gif" alt="RunAny演示批量搜索">
 
@@ -80,6 +80,22 @@ RunAny可以储存邮箱、手机号，想用时就快捷输出，更支持AHK�
 ## RunAny的菜单不止一种用法
 
 <img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/help/RunAny菜单多种使用方式.gif" alt="RunAny菜单多种使用方式">
+
+---
+
+## RunAny插件脚本
+
+<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/help/RunAny_huiZz_Text变量命名功能.gif" alt="RunAny_huiZz_Text变量命名功能">
+
+| 插件文件      | 插件分类     | 插件功能                                                     |
+| ------------- | ------------ | ------------------------------------------------------------ |
+| huiZz_MButton | 独立功能插件 | 鼠标中键任意位置拖拽窗口                                     |
+| huiZz_QRCode  | 二维码脚本   | 选中文字生成二维码                                           |
+| huiZz_System  | 系统操作脚本 | 注册表路径定位、本机IP地址显示并剪贴板、复制选中文件信息、显示隐藏文件等 |
+| huiZz_Text    | 文本操作脚本 | 对选中文本：Markdown格式化、加序号转大小写、转驼峰下划线等命名、多行合并字符替换、排序去重、直入编辑器、与剪贴板对比 |
+| huiZz_Window  | 窗口操作脚本 | 对当前窗口：居中、置顶、透明、比例或指定像素缩小放大、移动至屏幕边角 |
+
+[点击查看更多RunAny插件功能详细内容](https://github.com/hui-Zz/RunAny/wiki/RunAny插件功能详细内容)
 
 ---
 
