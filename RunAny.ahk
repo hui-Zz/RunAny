@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.0 @2019.08.20
+║【RunAny】一劳永逸的快速启动工具 v5.6.1 @2019.08.21
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：246308937
@@ -20,8 +20,8 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
-global RunAny_update_version:="5.6.0"
-global RunAny_update_time:="2019.08.20"
+global RunAny_update_version:="5.6.1"
+global RunAny_update_time:="2019.08.21"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -32,6 +32,7 @@ global MenuObjParam:=Object()   ;~程序参数
 global MenuObjExt:=Object()     ;~后缀对应菜单
 global MenuObjPublic:=Object()  ;~后缀公共菜单
 global MenuExeList:=Object()    ;~程序数据数组
+global MenuHotStrList:=Object() ;~热字符串数据数组
 global MenuTreeKey:=Object()    ;~分类热键
 global MenuObjTree1:=Object()   ;~分类目录程序全数据1
 global MenuObjTree2:=Object()   ;~分类目录程序全数据2
@@ -350,6 +351,8 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 						MenuObjName[hotstr]:=menuKeys[1]
 						if(RegExMatch(hotstr,":[^:]*?X[^:]*?:[^:]*")){
 							Hotstring(hotstr,"Menu_Key_Run","On")
+							if(!HideHotStr)
+								Menu_HotStr_Hint_Read(hotstr,itemParam)
 						}else{
 							Hotstring(hotstr,itemParam,"On")
 						}
@@ -447,6 +450,51 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 		Menu,% menuRootFn[1],Icon,RunAny设置,% AnyIconS[1],% AnyIconS[2]
 	}
 }
+;~;[读取热字串用作提示文字]
+Menu_HotStr_Hint_Read(hotstr,itemParam){
+	menuHotStrShow:=RegExReplace(hotstr,"^:[^:]*?X[^:]*?:")
+	menuHotStrLen:=StrLen(menuHotStrShow)
+	if(menuHotStrLen=0)
+		return
+	if(menuHotStrLen=1){
+		menuHotStrHint:=menuHotStrShow
+	}else if(menuHotStrLen<4){
+		menuHotStrHint:=SubStr(menuHotStrShow, 1, menuHotStrLen-1)
+	}else{
+		loop, % menuHotStrLen - 3
+		{
+			MenuObjHotStr:=Object()	;~热字符对象
+			menuHotStrHint:=SubStr(menuHotStrShow, 1, A_Index + 2)
+			MenuObjHotStr["hotStrAny"]:=itemParam
+			MenuObjHotStr["hotStrHint"]:=menuHotStrHint
+			MenuObjHotStr["hotStrShow"]:=menuHotStrShow
+			MenuHotStrList.Push(MenuObjHotStr)
+			Hotstring(":*Xb0:" . menuHotStrHint,"Menu_HotStr_Hint_Run","On")
+		}
+		return
+	}
+	MenuObjHotStr:=Object()	;~热字符对象
+	MenuObjHotStr["hotStrAny"]:=itemParam
+	MenuObjHotStr["hotStrHint"]:=menuHotStrHint
+	MenuObjHotStr["hotStrShow"]:=menuHotStrShow
+	MenuHotStrList.Push(MenuObjHotStr)
+	Hotstring(":*Xb0:" . menuHotStrHint,"Menu_HotStr_Hint_Run","On")
+}
+Menu_HotStr_Hint_Run:
+	runHotStrHint:=RegExReplace(A_ThisHotkey,"^:[^:]*?Xb0:")
+	HintTip:=""
+	for k , v in MenuHotStrList
+	{
+		if(v["hotStrHint"]=runHotStrHint){
+			HintTip.=v["hotStrShow"] "`t" v["hotStrAny"] "`n"
+		}
+	}
+	HintTip:=RTrim(HintTip,"`n")
+	ToolTip,%HintTip%
+	Sleep,100
+	WinSet, Transparent, %HotStrShowTransparent%, ahk_class tooltips_class32
+	SetTimer,RemoveToolTip,%HotStrShowTime%
+return
 ;══════════════════════════════════════════════════════════════════
 ;~;[生成菜单(判断后缀创建图标)]
 ;══════════════════════════════════════════════════════════════════
@@ -813,6 +861,12 @@ Menu_Run:
 		gosub,Menu_Recent
 	try {
 		anyLen:=StrLen(any)
+		;[按住Shift编辑菜单项]
+		if(!GetKeyState("Alt") && !GetKeyState("LWin") && !GetKeyState("Ctrl") && GetKeyState("Shift")){
+			TVEditItem:=A_ThisMenuItem
+			gosub,Menu_Edit%MENU_NO%
+			TVEditItem:=""
+		}
 		If(InStr(any,";",,0,1)=anyLen){
 			StringLeft, any, any, anyLen-1
 			Send_Str_Zz(any,true)	;[输出短语]
@@ -864,12 +918,6 @@ Menu_Run:
 					gosub,Menu_Add_File_Item
 					return
 				}
-				if(GetKeyState("Shift")){
-					TVEditItem:=A_ThisMenuItem
-					gosub,Menu_Edit%MENU_NO%
-					TVEditItem:=""
-					return
-				}
 				if(InStr(FileExist(any), "D")){
 					Run,%any%
 				}else{
@@ -884,25 +932,19 @@ Menu_Run:
 			}
 			return
 		}
-		if(GetKeyState("Shift")){	;[按住Shift编辑菜单项]
-			TVEditItem:=A_ThisMenuItem
-			gosub,Menu_Edit%MENU_NO%
-			TVEditItem:=""
+		menuKeys:=StrSplit(A_ThisMenuItem,"`t")
+		thisMenuName:=menuKeys[1]
+		if(thisMenuName && RegExMatch(thisMenuName,"S).*?_:(\d{1,2})$")){
+			menuTrNum:=RegExReplace(thisMenuName,"S).*?_:(\d{1,2})$","$1")
+			Run_Tr(any,menuTrNum,true)
+		}else if(ext && openExtRunList[ext]){
+			Run,% openExtRunList[ext] . A_Space . """" any """"
+		}else if(RegExMatch(any,"iS)^.*?\.exe ([\w-]+://?|www[.]).*")){
+			gosub,Menu_Run_Exe_Url
+		}else if(RegExMatch(any,"iS)^([\w-]+://?|www[.]).*")){
+			Run_Search(any)
 		}else{
-			menuKeys:=StrSplit(A_ThisMenuItem,"`t")
-			thisMenuName:=menuKeys[1]
-			if(thisMenuName && RegExMatch(thisMenuName,"S).*?_:(\d{1,2})$")){
-				menuTrNum:=RegExReplace(thisMenuName,"S).*?_:(\d{1,2})$","$1")
-				Run_Tr(any,menuTrNum,true)
-			}else if(ext && openExtRunList[ext]){
-				Run,% openExtRunList[ext] . A_Space . """" any """"
-			}else if(RegExMatch(any,"iS)^.*?\.exe ([\w-]+://?|www[.]).*")){
-				gosub,Menu_Run_Exe_Url
-			}else if(RegExMatch(any,"iS)^([\w-]+://?|www[.]).*")){
-				Run_Search(any)
-			}else{
-				Run,%any%
-			}
+			Run,%any%
 		}
 	} catch e {
 		MsgBox,16,%A_ThisMenuItem%运行出错,% "运行路径：" any "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
@@ -3522,10 +3564,13 @@ Var_Set:
 	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
 	OneKeyUrl:=StrReplace(OneKeyUrl, "|", "`n")
 	;[隐藏配置]开始
-	global ShowGetZzLen:=Var_Read("ShowGetZzLen",30)     ;菜单显示选中文字最大截取字数
-	global JumpSearch:=Var_Read("JumpSearch",0)          ;批量搜索忽略确认弹窗
-	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)    ;获取选中目标到剪贴板等待时间
-	ClipWaitApp:=Var_Read("ClipWaitApp","")              ;上一项剪贴板等待时间生效的应用
+	global ShowGetZzLen:=Var_Read("ShowGetZzLen",30)			;菜单显示选中文字最大截取字数
+	global HideHotStr:=Var_Read("HideHotStr",0)				;是否隐藏热字符串提示
+	global HotStrShowTime:=Var_Read("HotStrShowTime",3000)	;热字符串提示显示时长
+	global HotStrShowTransparent:=Var_Read("HotStrShowTransparent",205)	;热字符串提示显示透明度
+	global JumpSearch:=Var_Read("JumpSearch",0)				;批量搜索忽略确认弹窗
+	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)    	;获取选中目标到剪贴板等待时间
+	ClipWaitApp:=Var_Read("ClipWaitApp","")					;上一项剪贴板等待时间生效的应用
 	Loop,parse,ClipWaitApp,`,
 	{
 		GroupAdd,ClipWaitGUI,ahk_exe %A_LoopField%
