@@ -342,17 +342,18 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 				}
 				;~;[设置热字符串启动方式]
 				if(RegExMatch(menuKeys[1],"S):[*?a-zA-Z0-9]+?:[^:]*")){
-					hotstr:=menuKeys[1]
-					if(RegExMatch(hotstr,"S).*_:\d{1,2}$"))
-						hotstr:=RegExReplace(hotstr,"S)(.*)_:\d{1,2}$","$1")
-					hotstr:=RegExReplace(hotstr,"S)^[^:]*?(:[*?a-zA-Z0-9]+?:[^:]*)","$1")
+					hotStrName:=menuKeys[1]
+					if(RegExMatch(hotStrName,"S).*_:\d{1,2}$"))
+						hotStrName:=RegExReplace(hotStrName,"S)(.*)_:\d{1,2}$","$1")
+					hotstr:=RegExReplace(hotStrName,"S)^[^:]*?(:[*?a-zA-Z0-9]+?:[^:]*)","$1")
+					hotStrName:=RegExReplace(hotStrName,"S)^([^:]*?):[*?a-zA-Z0-9]+?:[^:]*","$1")
 					if(hotstr){
 						MenuObjKey[hotstr]:=itemParam
 						MenuObjName[hotstr]:=menuKeys[1]
 						if(RegExMatch(hotstr,":[^:]*?X[^:]*?:[^:]*")){
 							Hotstring(hotstr,"Menu_Key_Run","On")
 							if(!HideHotStr)
-								Menu_HotStr_Hint_Read(hotstr,itemParam)
+								Menu_HotStr_Hint_Read(hotstr,hotStrName,itemParam)
 						}else{
 							Hotstring(hotstr,itemParam,"On")
 						}
@@ -451,7 +452,7 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 	}
 }
 ;~;[读取热字串用作提示文字]
-Menu_HotStr_Hint_Read(hotstr,itemParam){
+Menu_HotStr_Hint_Read(hotstr,hotStrName,itemParam){
 	menuHotStrShow:=RegExReplace(hotstr,"^:[^:]*?X[^:]*?:")
 	menuHotStrLen:=StrLen(menuHotStrShow)
 	if(menuHotStrLen=0)
@@ -468,6 +469,7 @@ Menu_HotStr_Hint_Read(hotstr,itemParam){
 			MenuObjHotStr["hotStrAny"]:=itemParam
 			MenuObjHotStr["hotStrHint"]:=menuHotStrHint
 			MenuObjHotStr["hotStrShow"]:=menuHotStrShow
+			MenuObjHotStr["hotStrName"]:=hotStrName
 			MenuHotStrList.Push(MenuObjHotStr)
 			Hotstring(":*Xb0:" . menuHotStrHint,"Menu_HotStr_Hint_Run","On")
 		}
@@ -477,6 +479,7 @@ Menu_HotStr_Hint_Read(hotstr,itemParam){
 	MenuObjHotStr["hotStrAny"]:=itemParam
 	MenuObjHotStr["hotStrHint"]:=menuHotStrHint
 	MenuObjHotStr["hotStrShow"]:=menuHotStrShow
+	MenuObjHotStr["hotStrName"]:=hotStrName
 	MenuHotStrList.Push(MenuObjHotStr)
 	Hotstring(":*Xb0:" . menuHotStrHint,"Menu_HotStr_Hint_Run","On")
 }
@@ -486,13 +489,15 @@ Menu_HotStr_Hint_Run:
 	for k , v in MenuHotStrList
 	{
 		if(v["hotStrHint"]=runHotStrHint){
-			HintTip.=v["hotStrShow"] "`t" v["hotStrAny"] "`n"
+			hotStrName:=v["hotStrName"]!=""?"`t" v["hotStrName"]:""
+			hotStrAny:=StrLen(v["hotStrAny"])>30 ? SubStr(v["hotStrAny"], 1, 30) . "..." : v["hotStrAny"]
+			HintTip.=v["hotStrShow"] hotStrName "`t" hotStrAny "`n"
 		}
 	}
 	HintTip:=RTrim(HintTip,"`n")
 	ToolTip,%HintTip%
 	Sleep,100
-	WinSet, Transparent, %HotStrShowTransparent%, ahk_class tooltips_class32
+	WinSet, Transparent, % HotStrShowTransparent/100*255, ahk_class tooltips_class32
 	SetTimer,RemoveToolTip,%HotStrShowTime%
 return
 ;══════════════════════════════════════════════════════════════════
@@ -866,6 +871,7 @@ Menu_Run:
 			TVEditItem:=A_ThisMenuItem
 			gosub,Menu_Edit%MENU_NO%
 			TVEditItem:=""
+			return
 		}
 		If(InStr(any,";",,0,1)=anyLen){
 			StringLeft, any, any, anyLen-1
@@ -1257,6 +1263,8 @@ Ext_Check(name,len,ext){
 }
 ;~;[输出短语]
 Send_Str_Zz(strZz,tf=false){
+	;切换Win10输入法为英文
+	try DllCall("SendMessage",UInt,DllCall("imm32\ImmGetDefaultIMEWnd",Uint,WinExist("A")),UInt,0x0283,Int,0x002,Int,0x00)
 	if(tf){
 		strZz:=Get_Transform_Val(strZz)
 	}
@@ -1887,18 +1895,22 @@ return
 Menu_Item_Edit:
 	SaveLabel:=menuGuiFlag ? "SetSaveItemGui" : "SetSaveItem"
 	PromptStr:=menuGuiFlag ? "需要" : "请点击此"
+	If(InStr(fileName,";",,0,1)=StrLen(fileName)){
+		fileName:=StrReplace(fileName,"``n","`n")
+	}
 	SplitPath, fileName, fName,, fExt, name_no_ext
 	itemIconName:=itemName ? itemName : name_no_ext
 	itemIconFile:=IconFolderList[menuItemIconFileName(itemIconName)]
 	Gui,SaveItem:Destroy
+	Gui,SaveItem:+Owner
 	Gui,SaveItem:Margin,20,20
 	Gui,SaveItem:Font,,Microsoft YaHei
-	Gui,SaveItem:Add, GroupBox,xm y+10 w500 h230,新增菜单项
+	Gui,SaveItem:Add, GroupBox,xm y+10 w600 h250,新增菜单项
 	Gui,SaveItem:Add, Text, xm+10 y+30 y35 w60, 菜单项名：
 	Gui,SaveItem:Add, Edit, x+5 yp-3 w250 vvitemName GFileNameChange, %itemName%
 	Gui,SaveItem:Add, Text, x+10 yp+3 w70, Tab制表符
-	Gui,SaveItem:Add, Picture, x+10 yp-3 w50 h-1 gSetItemIconPath, %itemIconFile%
-	Gui,SaveItem:Add, Text, xp-5 yp+3 w72 cGreen vvIconAdd gSetItemIconPath BackgroundTrans, 点击添加图标
+	Gui,SaveItem:Add, Picture, x+20 yp-3 w50 h-1 gSetItemIconPath, %itemIconFile%
+	Gui,SaveItem:Add, Text, xp+5 yp+3 w72 cGreen vvIconAdd gSetItemIconPath BackgroundTrans, 点击添加图标
 	Gui,SaveItem:Add, Text, xm+10 y+20 w60, 全局热键：
 	Gui,SaveItem:Add, Hotkey,x+5 yp-3 w150 vvitemGlobalKey,%itemGlobalKey%
 	Gui,SaveItem:Add, Checkbox,Checked%itemGlobalWinKey% x+5 yp+3 vvitemGlobalWinKey,Win
@@ -1913,13 +1925,13 @@ Menu_Item_Edit:
 		Gui,SaveItem:Add, Button, xm+6 y+2 w60 GSetFileRelativePath,相对路径
 		if(fExt="lnk"){
 			Gui,SaveItem:Add, Button, xm+6 y+2 w60 GSetShortcut,快捷目标
-			Gui,SaveItem:Add, Edit, x+10 yp-55 w400 r4 vvfileName GFileNameChange, %fileName%
+			Gui,SaveItem:Add, Edit, x+10 yp-55 w510 r5 vvfileName GFileNameChange, %fileName%
 		}else{
-			Gui,SaveItem:Add, Edit, x+10 yp-30 w400 r4 vvfileName GFileNameChange, %fileName%
+			Gui,SaveItem:Add, Edit, x+10 yp-30 w510 r5 vvfileName GFileNameChange, %fileName%
 		}
 	}
 	Gui,SaveItem:Font
-	Gui,SaveItem:Add,Button,Default xm+150 y+10 w75 G%SaveLabel%,保存(&Y)
+	Gui,SaveItem:Add,Button,Default xm+220 y+10 w75 G%SaveLabel%,保存(&Y)
 	Gui,SaveItem:Add,Button,x+20 w75 GSetCancel,取消(&C)
 	Gui,SaveItem:Add, Text, xm y+25, %thisMenuStr% %thisMenuItemStr%
 	Gui,SaveItem:Show,,新增修改菜单项 - %RunAnyZz% - 支持拖放应用
@@ -1945,6 +1957,7 @@ SetSaveItemGui:
 		itemGlobalKeyStr:=A_Tab . itemGlobalKey
 	}
 	splitStr:=vitemName && vfileName ? "|" : ""
+	vfileName:=StrReplace(vfileName,"`n","``n")
 	saveText:=vitemName . itemGlobalKeyStr . splitStr . vfileName
 	Gui,SaveItem:Destroy
 	Gui,1:Default
@@ -3565,9 +3578,9 @@ Var_Set:
 	OneKeyUrl:=StrReplace(OneKeyUrl, "|", "`n")
 	;[隐藏配置]开始
 	global ShowGetZzLen:=Var_Read("ShowGetZzLen",30)			;菜单显示选中文字最大截取字数
-	global HideHotStr:=Var_Read("HideHotStr",0)				;是否隐藏热字符串提示
-	global HotStrShowTime:=Var_Read("HotStrShowTime",3000)	;热字符串提示显示时长
-	global HotStrShowTransparent:=Var_Read("HotStrShowTransparent",205)	;热字符串提示显示透明度
+	global HideHotStr:=Var_Read("HideHotStr",0)				;是否隐藏热字符串提示，0-不隐藏；1-隐藏
+	global HotStrShowTime:=Var_Read("HotStrShowTime",3000)	;热字符串提示显示时长，默认3000为3秒
+	global HotStrShowTransparent:=Var_Read("HotStrShowTransparent",80)	;热字符串提示显示透明度，默认80%的透明度
 	global JumpSearch:=Var_Read("JumpSearch",0)				;批量搜索忽略确认弹窗
 	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)    	;获取选中目标到剪贴板等待时间
 	ClipWaitApp:=Var_Read("ClipWaitApp","")					;上一项剪贴板等待时间生效的应用
