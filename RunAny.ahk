@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.1 @2019.08.21
+║【RunAny】一劳永逸的快速启动工具 v5.6.1 @2019.08.22
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：246308937
@@ -21,7 +21,7 @@ global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.6.1"
-global RunAny_update_time:="2019.08.21"
+global RunAny_update_time:="2019.08.22"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -490,7 +490,7 @@ Menu_HotStr_Hint_Run:
 	{
 		if(v["hotStrHint"]=runHotStrHint){
 			hotStrName:=v["hotStrName"]!=""?"`t" v["hotStrName"]:""
-			hotStrAny:=StrLen(v["hotStrAny"])>30 ? SubStr(v["hotStrAny"], 1, 30) . "..." : v["hotStrAny"]
+			hotStrAny:=StrLen(v["hotStrAny"])>HotStrShowLen ? SubStr(v["hotStrAny"], 1, HotStrShowLen) . "..." : v["hotStrAny"]
 			HintTip.=v["hotStrShow"] hotStrName "`t" hotStrAny "`n"
 		}
 	}
@@ -3134,7 +3134,7 @@ Menu_Set:
 	Gui,66:Font,,Microsoft YaHei
 	Gui,66:Margin,30,20
 	Gui,66:Default
-	Gui,66:Add,Tab,x10 y10 w550 h500,RunAny设置|配置热键|Everything设置|一键搜索|自定义打开后缀|图标设置
+	Gui,66:Add,Tab,x10 y10 w550 h500,RunAny设置|配置热键|Everything设置|一键搜索|自定义打开后缀|热字符串|图标设置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+5 w%groupWidch66% h50,RunAny设置
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+25 vvAutoRun,开机自动启动
@@ -3226,7 +3226,7 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%OneKeyMenu% x+38 vvOneKeyMenu,绑定菜单1热键为一键搜索
 	Gui,66:Add,Text,xm yp+40 w325,一键搜索网址(`%s为选中文字的替代参数，多行搜索多个网址)
 	Gui,66:Add,Edit,xm yp+20 w485 r8 vvOneKeyUrl,%OneKeyUrl%
-	Gui,66:Add,Text,xm y+40 w325,非默认浏览器打开网址(适用一键搜索和一键直达)
+	Gui,66:Add,Text,xm y+40 w325,非默认浏览器打开网址(适用一键搜索和一键网址直达)
 	Gui,66:Add,Button,xm yp+20 w50 GSetBrowserPath,选择
 	Gui,66:Add,Edit,xm+60 yp w420 r3 -WantReturn vvBrowserPath,%BrowserPath%
 	
@@ -3244,6 +3244,16 @@ Menu_Set:
 	}
 	LV_ModifyCol()
 	GuiControl, 66:+Redraw, RunAnyOpenExtLV
+	
+	Gui,66:Tab,热字符串,,Exact
+	Gui,66:Add,GroupBox,xm-10 y+10 w%groupWidch66% h250,热字符串设置
+	Gui,66:Add,Checkbox,Checked%HideHotStr% xm yp+30 vvHideHotStr,隐藏热字符串提示
+	Gui,66:Add,Text,xm yp+40 w250,提示显示最长字数
+	Gui,66:Add,Edit,xm+150 yp-3 w200 r1 vvHotStrShowLen,%HotStrShowLen%
+	Gui,66:Add,Text,xm yp+40 w250,提示显示时长(毫秒)
+	Gui,66:Add,Edit,xm+150 yp-3 w200 r1 vvHotStrShowTime,%HotStrShowTime%
+	Gui,66:Add,Text,xm yp+40 w250,提示显示百分比透明度
+	Gui,66:Add,Slider,xm+150 yp ToolTip w200 r1 vvHotStrShowTransparent,%HotStrShowTransparent%
 	
 	Gui,66:Tab,图标设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+10 w%groupWidch66% h230,图标自定义设置（图片或图标文件路径 , 序号不填默认1）
@@ -3381,6 +3391,7 @@ SetOK:
 	SetValueList.Push("HideFail","HideUnSelect","HideRecent","HideWeb","HideSend","HideAddItem","HideMenuTray","HideGetZz")
 	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu")
 	SetValueList.Push("BrowserPath","IconFolderPath","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon","AnyIcon","MenuIcon")
+	SetValueList.Push("HideHotStr","HotStrShowLen","HotStrShowTime","HotStrShowTransparent")
 	SetValueList.Push("TreeKey1", "TreeWinKey1", "TreeIniKey1", "TreeIniWinKey1")
 	If(MENU2FLAG){
 		SetValueList.Push("MenuKey2", "MenuWinKey2", "TreeKey2", "TreeWinKey2", "TreeIniKey2", "TreeIniWinKey2")
@@ -3579,6 +3590,7 @@ Var_Set:
 	;[隐藏配置]开始
 	global ShowGetZzLen:=Var_Read("ShowGetZzLen",30)			;菜单显示选中文字最大截取字数
 	global HideHotStr:=Var_Read("HideHotStr",0)				;是否隐藏热字符串提示，0-不隐藏；1-隐藏
+	global HotStrShowLen:=Var_Read("HotStrShowLen",30)		;热字符串提示显示最长字数，默认30个
 	global HotStrShowTime:=Var_Read("HotStrShowTime",3000)	;热字符串提示显示时长，默认3000为3秒
 	global HotStrShowTransparent:=Var_Read("HotStrShowTransparent",80)	;热字符串提示显示透明度，默认80%的透明度
 	global JumpSearch:=Var_Read("JumpSearch",0)				;批量搜索忽略确认弹窗
