@@ -490,8 +490,14 @@ Menu_HotStr_Hint_Run:
 	{
 		if(v["hotStrHint"]=runHotStrHint){
 			hotStrName:=v["hotStrName"]!=""?"`t" v["hotStrName"]:""
-			hotStrAny:=StrLen(v["hotStrAny"])>HotStrShowLen ? SubStr(v["hotStrAny"], 1, HotStrShowLen) . "..." : v["hotStrAny"]
-			HintTip.=v["hotStrShow"] hotStrName "`t" hotStrAny "`n"
+			if(HotStrShowLen<=0){
+				hotStrAny:=""
+			}else if(StrLen(v["hotStrAny"])>HotStrShowLen){
+				hotStrAny:="`t" SubStr(v["hotStrAny"], 1, HotStrShowLen) . "..."
+			}else{
+				hotStrAny:="`t" v["hotStrAny"]
+			}
+			HintTip.=v["hotStrShow"] hotStrName hotStrAny "`n"
 		}
 	}
 	HintTip:=RTrim(HintTip,"`n")
@@ -874,8 +880,13 @@ Menu_Run:
 			return
 		}
 		If(InStr(any,";",,0,1)=anyLen){
+			If(InStr(any,";;",,0,1)=anyLen-1){
+				StringLeft, any, any, anyLen-2
+				Send_Str_Input_Zz(any,true)	;[键盘输出短语]
+				return
+			}
 			StringLeft, any, any, anyLen-1
-			Send_Str_Zz(any,true)	;[输出短语]
+			Send_Str_Zz(any,true)	;[粘贴输出短语]
 			return
 		}
 		;[输出热键]
@@ -975,8 +986,13 @@ Menu_Key_Run:
 			return
 		}
 		If(InStr(any,";",,0,1)=anyLen){
+			If(InStr(any,";;",,0,1)=anyLen-1){
+				StringLeft, any, any, anyLen-2
+				Send_Str_Input_Zz(any,true)	;[键盘输出短语]
+				return
+			}
 			StringLeft, any, any, anyLen-1
-			Send_Str_Zz(any,true)	;[输出短语]
+			Send_Str_Zz(any,true)	;[粘贴输出短语]
 			return
 		}
 		selectZz:=Get_Zz()
@@ -1261,18 +1277,25 @@ Ext_Check(name,len,ext){
 	site:=InStr(name,ext,,0,1)
 	return site!=0 && site=len-len_ext+1
 }
-;~;[输出短语]
+;~;[粘贴输出短语]
 Send_Str_Zz(strZz,tf=false){
+	Candy_Saved:=ClipboardAll
 	;切换Win10输入法为英文
 	try DllCall("SendMessage",UInt,DllCall("imm32\ImmGetDefaultIMEWnd",Uint,WinExist("A")),UInt,0x0283,Int,0x002,Int,0x00)
 	if(tf){
 		strZz:=Get_Transform_Val(strZz)
 	}
-	Candy_Saved:=ClipboardAll
 	Clipboard:=strZz
 	SendInput,^v
-	Sleep,200
+	Sleep,80
 	Clipboard:=Candy_Saved
+}
+;~;[键盘输出短语]
+Send_Str_Input_Zz(strZz,tf=false){
+	if(tf){
+		strZz:=Get_Transform_Val(strZz)
+	}
+	SendInput,{Text}%strZz%
 }
 ;~;[输出热键]
 Send_Key_Zz(keyZz,keyLevel=0){
@@ -3248,12 +3271,12 @@ Menu_Set:
 	Gui,66:Tab,热字符串,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+10 w%groupWidch66% h250,热字符串设置
 	Gui,66:Add,Checkbox,Checked%HideHotStr% xm yp+30 vvHideHotStr,隐藏热字符串提示
-	Gui,66:Add,Text,xm yp+40 w250,提示显示最长字数
-	Gui,66:Add,Edit,xm+150 yp-3 w200 r1 vvHotStrShowLen,%HotStrShowLen%
+	Gui,66:Add,Text,xm yp+40 w250,提示启动路径最长字数(0为隐藏)
+	Gui,66:Add,Edit,xm+200 yp-3 w200 r1 vvHotStrShowLen,%HotStrShowLen%
 	Gui,66:Add,Text,xm yp+40 w250,提示显示时长(毫秒)
-	Gui,66:Add,Edit,xm+150 yp-3 w200 r1 vvHotStrShowTime,%HotStrShowTime%
-	Gui,66:Add,Text,xm yp+40 w250,提示显示百分比透明度
-	Gui,66:Add,Slider,xm+150 yp ToolTip w200 r1 vvHotStrShowTransparent,%HotStrShowTransparent%
+	Gui,66:Add,Edit,xm+200 yp-3 w200 r1 vvHotStrShowTime,%HotStrShowTime%
+	Gui,66:Add,Text,xm yp+40 w250,提示显示透明度百分比(`%)
+	Gui,66:Add,Slider,xm+200 yp ToolTip w200 r1 vvHotStrShowTransparent,%HotStrShowTransparent%
 	
 	Gui,66:Tab,图标设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+10 w%groupWidch66% h230,图标自定义设置（图片或图标文件路径 , 序号不填默认1）
