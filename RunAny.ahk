@@ -1919,6 +1919,7 @@ Menu_Item_Edit:
 	SaveLabel:=menuGuiFlag ? "SetSaveItemGui" : "SetSaveItem"
 	PromptStr:=menuGuiFlag ? "需要" : "请点击此"
 	If(InStr(fileName,";",,0,1)=StrLen(fileName)){
+		fileName:=StrReplace(fileName,"``t","`t")
 		fileName:=StrReplace(fileName,"``n","`n")
 	}
 	SplitPath, fileName, fName,, fExt, name_no_ext
@@ -1948,9 +1949,11 @@ Menu_Item_Edit:
 		Gui,SaveItem:Add, Button, xm+6 y+2 w60 GSetFileRelativePath,相对路径
 		if(fExt="lnk"){
 			Gui,SaveItem:Add, Button, xm+6 y+2 w60 GSetShortcut,快捷目标
-			Gui,SaveItem:Add, Edit, x+10 yp-55 w510 r5 vvfileName GFileNameChange, %fileName%
+			Gui,SaveItem:Font,, Consolas
+			Gui,SaveItem:Add, Edit, x+10 yp-55 WantTab w510 r5 vvfileName GFileNameChange, %fileName%
 		}else{
-			Gui,SaveItem:Add, Edit, x+10 yp-30 w510 r5 vvfileName GFileNameChange, %fileName%
+			Gui,SaveItem:Font,, Consolas
+			Gui,SaveItem:Add, Edit, x+10 yp-30 WantTab w510 r5 vvfileName GFileNameChange, %fileName%
 		}
 	}
 	Gui,SaveItem:Font
@@ -1980,6 +1983,7 @@ SetSaveItemGui:
 		itemGlobalKeyStr:=A_Tab . itemGlobalKey
 	}
 	splitStr:=vitemName && vfileName ? "|" : ""
+	vfileName:=StrReplace(vfileName,"`t","``t")
 	vfileName:=StrReplace(vfileName,"`n","``n")
 	saveText:=vitemName . itemGlobalKeyStr . splitStr . vfileName
 	Gui,SaveItem:Destroy
@@ -3254,7 +3258,7 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+60 yp w420 r3 -WantReturn vvBrowserPath,%BrowserPath%
 	
 	Gui,66:Tab,自定义打开后缀,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+10 w%groupWidch66% h400,使用自定义软件打开%RunAnyZz%菜单内不同后缀的文件(合并原来TC打开目录功能)
+	Gui,66:Add,GroupBox,xm-10 y+10 w%groupWidch66% h400,使用自定义软件打开【%RunAnyZz%菜单内】不同后缀的文件(合并原来TC打开目录功能)
 	Gui,66:Add,Button, xm yp+30 w50 GLVOpenExtAdd, + 增加
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtEdit, * 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtRemove, - 减少
