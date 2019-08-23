@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.1 @2019.08.22
+║【RunAny】一劳永逸的快速启动工具 v5.6.1 @2019.08.23
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：246308937
@@ -21,7 +21,7 @@ global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.6.1"
-global RunAny_update_time:="2019.08.22"
+global RunAny_update_time:="2019.08.23"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -3757,6 +3757,12 @@ Icon_Set:
 	global MoveIconS:=StrSplit(MoveIcon,",")
 	global UpIconS:=StrSplit(UpIcon,",")
 	global DownIconS:=StrSplit(DownIcon,",")
+	global EditFileIcon:=Var_Read("EditFileIcon","shell32.dll,134")
+	global EditFileIconS:=StrSplit(EditFileIcon,",")
+	global PluginsManageIcon:=Var_Read("PluginsManageIcon","shell32.dll,166")
+	global PluginsManageIconS:=StrSplit(PluginsManageIcon,",")
+	global CheckUpdateIcon:=Var_Read("CheckUpdateIcon","shell32.dll,14")
+	global CheckUpdateIconS:=StrSplit(CheckUpdateIcon,",")
 return
 ;~;[后缀图标初始化]
 Icon_FileExt_Set:
@@ -3784,16 +3790,16 @@ Icon_FileExt_Set:
 	;[RunAny菜单图标初始化]
 	try Menu,Tray,Icon,启动菜单(&Z)`t%MenuHotKey%,% ZzIconS[1],% ZzIconS[2]
 	try Menu,Tray,Icon,修改菜单(&E)`t%TreeHotKey1%,% TreeIconS[1],% TreeIconS[2]
-	Menu,Tray,Icon,修改文件(&F)`t%TreeIniHotKey1%,SHELL32.dll,134
+	Menu,Tray,Icon,修改文件(&F)`t%TreeIniHotKey1%,% EditFileIconS[1],% EditFileIconS[2]
 	If(MENU2FLAG){
 		try Menu,Tray,Icon,启动菜单2(&2)`t%MenuHotKey2%,% ZzIconS[1],% ZzIconS[2]
 		try Menu,Tray,Icon,修改菜单2(&W)`t%TreeHotKey2%,% TreeIconS[1],% TreeIconS[2]
-		Menu,Tray,Icon,修改文件2(&G)`t%TreeIniHotKey2%,SHELL32.dll,134
+		Menu,Tray,Icon,修改文件2(&G)`t%TreeIniHotKey2%,% EditFileIconS[1],% EditFileIconS[2]
 	}
 	try Menu,Tray,Icon,设置RunAny(&D)`t%RunASetHotKey%,% MenuIconS[1],% MenuIconS[2]
 	try Menu,Tray,Icon,关于RunAny(&A)...,% AnyIconS[1],% AnyIconS[2]
-	Menu,Tray,Icon,插件管理(&C)`t%PluginsManageHotKey%,shell32.dll,166
-	Menu,Tray,Icon,检查更新(&U),shell32.dll,14
+	Menu,Tray,Icon,插件管理(&C)`t%PluginsManageHotKey%,% PluginsManageIconS[1],% PluginsManageIconS[2]
+	Menu,Tray,Icon,检查更新(&U),% CheckUpdateIconS[1],% CheckUpdateIconS[2]
 	;~;[引入菜单项图标识别库]
 	global IconFolderPath:=Var_Read("IconFolderPath","%A_ScriptDir%\RunIcon\ExeIcon|%A_ScriptDir%\RunIcon\WebIcon|%A_ScriptDir%\RunIcon\MenuIcon")
 	global IconFolderList:={}
