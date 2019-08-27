@@ -3419,7 +3419,7 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+82 yp w400 r1 vvEXEIcon,%EXEIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetFuncIcon,外接函数
 	Gui,66:Add,Edit,xm+82 yp w400 r1 vvFuncIcon,%FuncIcon%
-	Gui,66:Add,GroupBox,xm-10 y+20 w%groupWidch66% h145,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含后面热键）
+	Gui,66:Add,GroupBox,xm-10 y+20 w%groupWidch66% h145,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含热字符串和全局热键）
 	Gui,66:Add,Text, xm yp+20 w380,如图标文件名可以为：-常用(&&App).ico、cmd.png、百度(&&B).ico
 	if(ResourcesExtractExist)
 		Gui,66:Add,Button,x+5 yp w110 GMenu_Exe_Icon_Create,生成所有EXE图标
@@ -4219,6 +4219,11 @@ menuItemIconFileName(menuItem){
 	}
 	if(RegExMatch(menuItem,"S).*_:\d{1,2}$"))
 		menuItem:=RegExReplace(menuItem,"S)(.*)_:\d{1,2}$","$1")
+	if(RegExMatch(menuItem,"S):[*?a-zA-Z0-9]+?:[^:]*")){
+		menuItemTemp:=RegExReplace(menuItem,"S)^([^:]*?):[*?a-zA-Z0-9]+?:[^:]*","$1")
+		if(menuItemTemp)
+			menuItem:=menuItemTemp
+	}
 	return menuItem
 }
 ;~;[自动启动生效]
