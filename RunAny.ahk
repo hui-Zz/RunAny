@@ -212,6 +212,59 @@ if(ReloadEditFlag){
 return
 
 ;══════════════════════════════════════════════════════════════════
+;~;[多种启动菜单热键]
+#If MenuDoubleCtrlKey=1
+Ctrl::
+	KeyWait,Ctrl
+	KeyWait,Ctrl,d,t0.2
+	if !Errorlevel
+		gosub,Menu_Show1
+	return
+#If
+#If MenuDoubleAltKey=1
+Alt::
+	KeyWait,Alt
+	KeyWait,Alt,d,t0.2
+	if !Errorlevel
+		gosub,Menu_Show1
+	return
+#If
+#If MenuDoubleLWinKey=1
+LWin::
+	KeyWait,LWin
+	KeyWait,LWin,d,t0.2
+	if !Errorlevel
+		gosub,Menu_Show1
+	else
+		SendInput,{LWin}
+	return
+#If
+#If MenuDoubleRWinKey=1
+RWin::
+	KeyWait,RWin
+	KeyWait,RWin,d,t0.2
+	if !Errorlevel
+		gosub,Menu_Show1
+	else
+		SendInput,{RWin}
+	return
+#If
+#If MenuCtrlRightKey=1
+~Ctrl & RButton::gosub,Menu_Show1
+#If
+#If MenuShiftRightKey=1
+~Shift & RButton::gosub,Menu_Show1
+#If
+#If MenuXButton1Key=1
+XButton1::gosub,Menu_Show1
+#If
+#If MenuXButton2Key=1
+XButton2::gosub,Menu_Show1
+#If
+#If MenuMButtonKey=1
+~MButton::gosub,Menu_Show1
+#If
+;══════════════════════════════════════════════════════════════════
 ;~;[读取配置并开始创建菜单]
 ;══════════════════════════════════════════════════════════════════
 Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,TREE_NO){
@@ -3215,32 +3268,47 @@ Menu_Set:
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+5 w%groupWidch66% h50,RunAny设置
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+25 vvAutoRun,开机自动启动
-	Gui,66:Add,Checkbox,Checked%IniConfig% x+118 vvIniConfig,RunAnyConfig.ini移动盘绿色配置
+	Gui,66:Add,Checkbox,Checked%IniConfig% x+128 vvIniConfig,RunAnyConfig.ini移动盘绿色配置
 	Gui,66:Add,GroupBox,xm-10 y+15 w%groupWidch66% h85,RunAny应用菜单
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
-	Gui,66:Add,Checkbox,Checked%HideRecent% x+130 vvHideRecent,隐藏最近运行
+	Gui,66:Add,Checkbox,Checked%HideRecent% x+140 vvHideRecent,隐藏最近运行
 	Gui,66:Add,Checkbox,Checked%HideWeb% xm yp+20 vvHideWeb,隐藏带`%s网址（选中文字显示）
-	Gui,66:Add,Checkbox,Checked%HideSend% x+17 vvHideSend,隐藏短语（选中文字显示）
+	Gui,66:Add,Checkbox,Checked%HideSend% x+27 vvHideSend,隐藏短语（选中文字显示）
 	Gui,66:Add,Checkbox,Checked%HideAddItem% xm yp+20 vvHideAddItem,隐藏【添加到此菜单】
-	Gui,66:Add,Checkbox,Checked%HideMenuTray% x+70 vvHideMenuTray,隐藏托盘菜单
+	Gui,66:Add,Checkbox,Checked%HideMenuTray% x+80 vvHideMenuTray,隐藏托盘菜单
 	Gui,66:Add,GroupBox,xm-10 y+15 w%groupWidch66% h45,RunAny选中文字菜单
 	Gui,66:Add,Checkbox,Checked%HideUnSelect% xm yp+20 vvHideUnSelect gUnCheckWebSend,选中文字依然显示应用菜单
-	Gui,66:Add,Checkbox,Checked%HideGetZz% x+46 vvHideGetZz,隐藏选中提示信息
+	Gui,66:Add,Checkbox,Checked%HideGetZz% x+56 vvHideGetZz,隐藏选中提示信息
 
-	Gui,66:Add,GroupBox,xm-10 y+20 w185 h55,RunAny菜单热键 %MenuHotKey%
-	Gui,66:Add,Hotkey,xm yp+20 w128 vvMenuKey,%MenuKey%
-	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+133 yp+3 w40 vvMenuWinKey,Win
+	Gui,66:Add,GroupBox,xm-10 y+20 w225 h55,RunAny菜单热键 %MenuHotKey%
+	Gui,66:Add,Hotkey,xm yp+20 w150 vvMenuKey,%MenuKey%
+	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+155 yp+3 w40 vvMenuWinKey,Win
+	;~ Gui,66:Add,GroupBox,x+20 yp-23 w120 h55,其他热键启动
+	;~ Gui,66:Add,DropDownList,xp+10 yp+20 w100 AltSubmit vvMenuDoubleClickKey Choose%MenuDoubleClickKey%,|Ctrl双击|Win双击|Alt双击
+	
 	If(MENU2FLAG){
-		Gui,66:Add,GroupBox,x+15 yp-23 w185 h55,菜单2热键 %MenuHotKey2%
-		Gui,66:Add,Hotkey,xp+10 yp+20 w128 vvMenuKey2,%MenuKey2%
-		Gui,66:Add,Checkbox,Checked%MenuWinKey2% xp+133 yp+3 w40 vvMenuWinKey2,Win
+		Gui,66:Add,GroupBox,x+35 yp-23 w225 h55,菜单2热键 %MenuHotKey2%
+		Gui,66:Add,Hotkey,xp+10 yp+20 w150 vvMenuKey2,%MenuKey2%
+		Gui,66:Add,Checkbox,Checked%MenuWinKey2% xp+155 yp+3 w40 vvMenuWinKey2,Win
 	}else{
 		Gui,66:Add,Button,x+35 yp-5 w150 GSetMenu2,开启第2个菜单
 	}
+
 	Gui,66:Add,GroupBox,xm-10 y+25 w%groupWidch66% h115,屏蔽RunAny程序列表（逗号分隔）
 	Gui,66:Add,Edit,xm yp+25 w480 r4 -WantReturn vvDisableApp,%DisableApp%
 	
 	Gui,66:Tab,配置热键,,Exact
+	Gui,66:Add,GroupBox,xm-10 y+5 w%groupWidch66% h125,RunAny多种方式启动菜单
+	Gui,66:Add,Checkbox,Checked%MenuDoubleCtrlKey% xm yp+20 vvMenuDoubleCtrlKey,双击Ctrl键
+	Gui,66:Add,Checkbox,Checked%MenuDoubleAltKey% x+144 vvMenuDoubleAltKey,双击Alt键
+	Gui,66:Add,Checkbox,Checked%MenuDoubleLWinKey% xm yp+20 vvMenuDoubleLWinKey,双击左Win键
+	Gui,66:Add,Checkbox,Checked%MenuDoubleRWinKey% x+130 vvMenuDoubleRWinKey,双击右Win键
+	Gui,66:Add,Checkbox,Checked%MenuCtrlRightKey% xm yp+20 w160 vvMenuCtrlRightKey,按住Ctrl再按鼠标右键
+	Gui,66:Add,Checkbox,Checked%MenuShiftRightKey% x+65 vvMenuShiftRightKey,按住Shift再按鼠标右键
+	Gui,66:Add,Checkbox,Checked%MenuXButton1Key% xm yp+20 vvMenuXButton1Key,鼠标X1键
+	Gui,66:Add,Checkbox,Checked%MenuXButton2Key% x+149 vvMenuXButton2Key,鼠标X2键
+	Gui,66:Add,Checkbox,Checked%MenuMButtonKey% xm yp+20 vvMenuMButtonKey,鼠标中键（需要关闭插件huiZz_MButton.ahk）
+	
 	Gui,66:Add,GroupBox,xm-10 y+20 w225 h55,RunAny托盘菜单：%RunATrayHotKey%
 	Gui,66:Add,Hotkey,xm yp+20 w150 vvRunATrayKey,%RunATrayKey%
 	Gui,66:Add,Checkbox,Checked%RunATrayWinKey% xm+155 yp+3 vvRunATrayWinKey,Win
@@ -3248,7 +3316,7 @@ Menu_Set:
 	Gui,66:Add,Hotkey,xp+10 yp+20 w150 vvPluginsManageKey,%PluginsManageKey%
 	Gui,66:Add,Checkbox,Checked%PluginsManageWinKey% xp+155 yp+3 vvPluginsManageWinKey,Win
 	
-	Gui,66:Add,GroupBox,xm-10 y+40 w225 h55,修改菜单管理(1)：%TreeHotKey1%
+	Gui,66:Add,GroupBox,xm-10 y+15 w225 h55,修改菜单管理(1)：%TreeHotKey1%
 	Gui,66:Add,Hotkey,xm yp+20 w150 vvTreeKey1,%TreeKey1%
 	Gui,66:Add,Checkbox,Checked%TreeWinKey1% xm+155 yp+3 vvTreeWinKey1,Win
 	If(MENU2FLAG){
@@ -3256,7 +3324,7 @@ Menu_Set:
 		Gui,66:Add,Hotkey,xp+10 yp+20 w150 vvTreeKey2,%TreeKey2%
 		Gui,66:Add,Checkbox,Checked%TreeWinKey2% xp+155 yp+3 vvTreeWinKey2,Win
 	}
-	Gui,66:Add,GroupBox,xm-10 y+20 w225 h55,修改菜单文件(1)：%TreeIniHotKey1%
+	Gui,66:Add,GroupBox,xm-10 y+15 w225 h55,修改菜单文件(1)：%TreeIniHotKey1%
 	Gui,66:Add,Hotkey,xm yp+20 w150 vvTreeIniKey1,%TreeIniKey1%
 	Gui,66:Add,Checkbox,Checked%TreeIniWinKey1% xm+155 yp+3 vvTreeIniWinKey1,Win
 	If(MENU2FLAG){
@@ -3265,13 +3333,13 @@ Menu_Set:
 		Gui,66:Add,Checkbox,Checked%TreeIniWinKey2% xp+155 yp+3 vvTreeIniWinKey2,Win
 	}
 
-	Gui,66:Add,GroupBox,xm-10 y+40 w225 h55,设置RunAny：%RunASetHotKey%
+	Gui,66:Add,GroupBox,xm-10 y+15 w225 h55,设置RunAny：%RunASetHotKey%
 	Gui,66:Add,Hotkey,xm yp+20 w150 vvRunASetKey,%RunASetKey%
 	Gui,66:Add,Checkbox,Checked%RunASetWinKey% xm+155 yp+3 vvRunASetWinKey,Win
 	Gui,66:Add,GroupBox,x+35 yp-23 w225 h55,重启RunAny：%RunAReloadHotKey%
 	Gui,66:Add,Hotkey,xp+10 yp+20 w150 vvRunAReloadKey,%RunAReloadKey%
 	Gui,66:Add,Checkbox,Checked%RunAReloadWinKey% xp+155 yp+3 vvRunAReloadWinKey,Win
-	Gui,66:Add,GroupBox,xm-10 y+20 w225 h55,停用RunAny：%RunASuspendHotKey%
+	Gui,66:Add,GroupBox,xm-10 y+15 w225 h55,停用RunAny：%RunASuspendHotKey%
 	Gui,66:Add,Hotkey,xm yp+20 w150 vvRunASuspendKey,%RunASuspendKey%
 	Gui,66:Add,Checkbox,Checked%RunASuspendWinKey% xm+155 yp+3 vvRunASuspendWinKey,Win
 	Gui,66:Add,GroupBox,x+35 yp-23 w225 h55,退出RunAny：%RunAExitHotKey%
@@ -3473,6 +3541,8 @@ SetOK:
 	SetValueList.Push("BrowserPath","IconFolderPath","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon","AnyIcon","MenuIcon")
 	SetValueList.Push("HideHotStr","HotStrShowLen","HotStrShowTime","HotStrShowTransparent")
 	SetValueList.Push("TreeKey1", "TreeWinKey1", "TreeIniKey1", "TreeIniWinKey1")
+	SetValueList.Push("MenuDoubleCtrlKey", "MenuDoubleAltKey", "MenuDoubleLWinKey", "MenuDoubleRWinKey")
+	SetValueList.Push("MenuCtrlRightKey", "MenuShiftRightKey", "MenuXButton1Key", "MenuXButton2Key", "MenuMButtonKey")
 	If(MENU2FLAG){
 		SetValueList.Push("MenuKey2", "MenuWinKey2", "TreeKey2", "TreeWinKey2", "TreeIniKey2", "TreeIniWinKey2")
 	}
@@ -3650,6 +3720,16 @@ Var_Set:
 		if ErrorLevel
 			IniConfig:=1
 	}
+	global MenuDoubleCtrlKey:=Var_Read("MenuDoubleCtrlKey",0)
+	global MenuDoubleAltKey:=Var_Read("MenuDoubleAltKey",0)
+	global MenuDoubleLWinKey:=Var_Read("MenuDoubleLWinKey",0)
+	global MenuDoubleRWinKey:=Var_Read("MenuDoubleRWinKey",0)
+	global MenuMButtonKey:=Var_Read("MenuMButtonKey",0)
+	global MenuCtrlRightKey:=Var_Read("MenuCtrlRightKey",0)
+	global MenuShiftRightKey:=Var_Read("MenuShiftRightKey",0)
+	global MenuXButton1Key:=Var_Read("MenuXButton1Key",0)
+	global MenuXButton2Key:=Var_Read("MenuXButton2Key",0)
+	global MenuMButtonKey:=Var_Read("MenuMButtonKey",0)
 	global HideFail:=Var_Read("HideFail",0)
 	global HideUnSelect:=Var_Read("HideUnSelect",0)
 	global HideRecent:=Var_Read("HideRecent",0)
