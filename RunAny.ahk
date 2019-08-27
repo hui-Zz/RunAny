@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.1 @2019.08.23
+║【RunAny】一劳永逸的快速启动工具 v5.6.2 @2019.08.27
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：246308937
@@ -20,8 +20,8 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
-global RunAny_update_version:="5.6.1"
-global RunAny_update_time:="2019.08.23"
+global RunAny_update_version:="5.6.2"
+global RunAny_update_time:="2019.08.27"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -1701,7 +1701,7 @@ Menu_Edit:
 	;~;[树型菜单初始化]
 	Gui, Destroy
 	Gui, +Resize
-	Gui, Font,, Microsoft YaHei
+	Gui, Font,s10, Microsoft YaHei
 	Gui, Add, TreeView,vRunAnyTV w505 r30 -Readonly AltSubmit Checked hwndHTV gTVClick ImageList%ImageListID%
 	Gui, Add, Progress,vMyProgress w450 cBlue
 	GuiControl, Hide, MyProgress
@@ -1888,26 +1888,37 @@ TVEdit:
 		selID:=selIDTVEdit
 	TV_GetText(ItemText, selID)
 	;分解已有菜单项到编辑框中
-	itemGlobalWinKey:=0
-	itemName:=fileName:=itemGlobalHotKey:=itemGlobalKey:=selectZz:=""
+	itemGlobalWinKey:=itemTrNum:=0
+	itemName:=fileName:=hotStrOption:=hotStrShow:=itemGlobalHotKey:=itemGlobalKey:=selectZz:=""
 	if(InStr(ItemText,"|") || InStr(ItemText,"-")=1){
 		menuDiy:=StrSplit(ItemText,"|",,2)
 		itemName:=menuDiy[1]
 		fileName:=menuDiy[2]
 		;~;[分割Tab获取应用自定义热键]
-		if(InStr(menuDiy[1],"`t")){
-			menuKeyStr:=RegExReplace(menuDiy[1], "S)\t+", A_Tab)
-			menuKeys:=StrSplit(menuKeyStr,"`t")
-			if(menuKeys[2]){
-				itemName:=menuKeys[1]
-				itemGlobalHotKey:=menuKeys[2]
-				itemGlobalKey:=menuKeys[2]
-				if(InStr(menuKeys[2],"#")){
-					itemGlobalWinKey:=1
-					itemGlobalKey:=StrReplace(menuKeys[2], "#")
-				}
+		menuKeyStr:=RegExReplace(menuDiy[1], "S)\t+", A_Tab)
+		menuKeys:=StrSplit(menuKeyStr,"`t")
+		itemName:=menuKeys[1]
+		if(InStr(itemName,"`t") && menuKeys[2]){
+			itemGlobalHotKey:=menuKeys[2]
+			itemGlobalKey:=menuKeys[2]
+			if(InStr(menuKeys[2],"#")){
+				itemGlobalWinKey:=1
+				itemGlobalKey:=StrReplace(menuKeys[2], "#")
 			}
 		}
+		;~;[设置透明度]
+		if(RegExMatch(itemName,"S).*?_:(\d{1,2})$")){
+			itemTrNum:=RegExReplace(itemName,"S).*?_:(\d{1,2})$","$1")
+			itemName:=RegExReplace(itemName,"S)(.*)_:\d{1,2}$","$1")
+		}
+		;~;[设置热字符串启动方式]
+		if(RegExMatch(itemName,"S):[*?a-zA-Z0-9]+?:[^:]*")){
+			hotStr:=RegExReplace(itemName,"S)^[^:]*?(:[*?a-zA-Z0-9]+?:[^:]*)","$1")
+			hotStrOption:=RegExReplace(hotstr,"S)^(:[*?a-zA-Z0-9]+?:)[^:]*","$1")
+			hotStrShow:=RegExReplace(hotstr,"S)^:[^:]*?X[^:]*?:")
+			itemName:=RegExReplace(itemName,"S)^([^:]*?):[*?a-zA-Z0-9]+?:[^:]*","$1")
+		}
+
 	}else{
 		fileName:=ItemText
 	}
@@ -1929,31 +1940,38 @@ Menu_Item_Edit:
 	Gui,SaveItem:+Owner
 	Gui,SaveItem:Margin,20,20
 	Gui,SaveItem:Font,,Microsoft YaHei
-	Gui,SaveItem:Add, GroupBox,xm y+10 w600 h250,新增菜单项
+	Gui,SaveItem:Add, GroupBox,xm y+10 w600 h330,新增修改菜单项
 	Gui,SaveItem:Add, Text, xm+10 y+30 y35 w60, 菜单项名：
-	Gui,SaveItem:Add, Edit, x+5 yp-3 w250 vvitemName GFileNameChange, %itemName%
-	Gui,SaveItem:Add, Text, x+10 yp+3 w70, Tab制表符
-	Gui,SaveItem:Add, Picture, x+20 yp-3 w50 h-1 gSetItemIconPath, %itemIconFile%
-	Gui,SaveItem:Add, Text, xp+5 yp+3 w72 cGreen vvIconAdd gSetItemIconPath BackgroundTrans, 点击添加图标
-	Gui,SaveItem:Add, Text, xm+10 y+20 w60, 全局热键：
+	Gui,SaveItem:Add, Edit, x+5 yp-3 w350 vvitemName GFileNameChange, %itemName%
+	Gui,SaveItem:Add, Picture, x+50 yp+3 w64 h-1 gSetItemIconPath, %itemIconFile%
+	Gui,SaveItem:Add, Text, xp yp+8 w72 cGreen vvTextIconAdd gSetItemIconPath BackgroundTrans, 点击添加图标
+	if(!InStr(itemName,"-")){
+		Gui,SaveItem:Add, Text, xm+10 y+10 w60 vvTextHotStr, 热字符串：
+		Gui,SaveItem:Add, Edit, x+5 yp-3 w50 vvhotStrOption, % hotStrShow="" ? ":*X:" : hotStrOption
+		Gui,SaveItem:Add, Edit, x+5 yp w100 vvhotStrShow GHotStrShowChange, %hotStrShow%
+		Gui,SaveItem:Add, Text, x+5 yp+3 w55 vvTextTransparent,透明度(`%)
+		Gui,SaveItem:Add, Slider, x+5 yp ToolTip w135 r1 vvitemTrNum,%itemTrNum%
+	}
+	Gui,SaveItem:Add, Text, xm+10 y+15 w100, 制 表 符 ：  Tab
+	Gui,SaveItem:Add, Text, xm+10 y+10 w60, 全局热键：
 	Gui,SaveItem:Add, Hotkey,x+5 yp-3 w150 vvitemGlobalKey,%itemGlobalKey%
 	Gui,SaveItem:Add, Checkbox,Checked%itemGlobalWinKey% x+5 yp+3 vvitemGlobalWinKey,Win
 	Gui,SaveItem:Add, Text, x+5 yp cBlue w200 BackgroundTrans, %itemGlobalHotKey%
-	Gui,SaveItem:Add, Text, xm+10 y+10 w100, 分 隔 符 ：  |
+	Gui,SaveItem:Add, Text, xm+10 y+15 w100, 分 隔 符 ：  |
 	Gui,SaveItem:Add, Text, x+10 yp w350 cRed vvPrompt GSetSaveItemFullPath, 注意：RunAny不支持当前后缀无路径运行，%PromptStr%使用全路径
 	if(InStr(itemName,"-")){
 		Gui,SaveItem:Add, Text, xm+10 y+10 w60,文件后缀：
-		Gui,SaveItem:Add, Edit, x+10 yp w400 r3 vvfileName GFileNameChange, %fileName%
+		Gui,SaveItem:Add, Edit, x+10 yp w510 r5 vvfileName GFileNameChange, %fileName%
 	}else{
 		Gui,SaveItem:Add, Button, xm+6 y+6 w60 GSetItemPath,启动路径
 		Gui,SaveItem:Add, Button, xm+6 y+2 w60 GSetFileRelativePath,相对路径
 		if(fExt="lnk"){
 			Gui,SaveItem:Add, Button, xm+6 y+2 w60 GSetShortcut,快捷目标
 			Gui,SaveItem:Font,, Consolas
-			Gui,SaveItem:Add, Edit, x+10 yp-55 WantTab w510 r5 vvfileName GFileNameChange, %fileName%
+			Gui,SaveItem:Add, Edit, x+10 yp-58 WantTab w510 r7 vvfileName GFileNameChange, %fileName%
 		}else{
 			Gui,SaveItem:Font,, Consolas
-			Gui,SaveItem:Add, Edit, x+10 yp-30 WantTab w510 r5 vvfileName GFileNameChange, %fileName%
+			Gui,SaveItem:Add, Edit, x+10 yp-30 WantTab w510 r7 vvfileName GFileNameChange, %fileName%
 		}
 	}
 	Gui,SaveItem:Font
@@ -1963,10 +1981,15 @@ Menu_Item_Edit:
 	Gui,SaveItem:Show,,新增修改菜单项 - %RunAnyZz% - 支持拖放应用
 	GuiControl,SaveItem:Hide, vPrompt
 	if(itemIconFile)
-		GuiControl,SaveItem:Hide, vIconAdd
+		GuiControl,SaveItem:Hide, vTextIconAdd
+	if(hotStrShow=""){
+		GuiControl,SaveItem:Hide, vhotStrOption
+		GuiControl,SaveItem:Move, vhotStrShow, x95 y67
+	}
 	thisMenuStr:=thisMenuItemStr:=""
 	gosub,FileNameChange
 return
+;[保存新增修改菜单项内容]
 SetSaveItemGui:
 	Gui,SaveItem:Submit,NoHide
 	itemGlobalKeyStr:=""
@@ -1981,6 +2004,15 @@ SetSaveItemGui:
 		}
 		itemGlobalKey:=vitemGlobalWinKey ? "#" . vitemGlobalKey : vitemGlobalKey
 		itemGlobalKeyStr:=A_Tab . itemGlobalKey
+	}
+	;保存热字符串
+	if(vhotStrOption && vhotStrShow){
+		vitemName.=vhotStrOption . vhotStrShow
+	}else if(vhotStrShow){
+		vitemName.=":*X:" vhotStrShow
+	}
+	if(vitemTrNum){
+		vitemName.="_:" vitemTrNum
 	}
 	splitStr:=vitemName && vfileName ? "|" : ""
 	vfileName:=StrReplace(vfileName,"`t","``t")
@@ -2010,6 +2042,22 @@ FileNameChange:
 			GuiControl, SaveItem:Hide, vPrompt
 		else
 			GuiControl, SaveItem:Show, vPrompt
+		fileValue:=RegExReplace(filePath,"iS)(.*?\..*?)($| .*)","$1")	;去掉参数
+		SplitPath, fileValue, fName,, fExt  ; 获取扩展名
+		if(fExt="exe"){
+			GuiControl, SaveItem:Show, vTextTransparent
+			GuiControl, SaveItem:Show, vitemTrNum
+		}else{
+			GuiControl, SaveItem:Hide, vTextTransparent
+			GuiControl, SaveItem:Hide, vitemTrNum
+		}
+	}
+return
+HotStrShowChange:
+	Gui,SaveItem:Submit, NoHide
+	if(vhotStrShow){
+		GuiControl,SaveItem:Show, vhotStrOption
+		GuiControl,SaveItem:Move, vhotStrShow, x150 y67
 	}
 return
 SetItemPath:
@@ -2036,12 +2084,13 @@ SetFileRelativePath:
 		return
 	}
 	if(funcResult=-2){
-		ToolTip, 与RunAny不在同一磁盘，不能转换为相对路径,155,125
+		ToolTip, 与RunAny不在同一磁盘，不能转换为相对路径,155,200
 		SetTimer,RemoveToolTip,3000
 		return
 	}
 	if(funcResult){
 		GuiControl, SaveItem:, vfileName, %headPath%%funcResult%
+		gosub,FileNameChange
 	}
 return
 SetItemIconPath:
@@ -2089,11 +2138,13 @@ SetShortcut:
 	if(filePath && fExt="lnk"){
 		FileGetShortcut, %filePath%, exePath, OutDir, exeArgs
 		exeArgs:=exeArgs ? A_Space exeArgs : ""
-		if(exePath)
+		if(exePath){
 			GuiControl, SaveItem:, vfileName, %exePath%%exeArgs%
+		}
 	}else{
 		gosub,SetSaveItemFullPath
 	}
+	gosub,FileNameChange
 return
 GuiDropFiles:  ; 对拖放提供支持.
 SaveItemGuiDropFiles:
@@ -3240,7 +3291,7 @@ Menu_Set:
 	Gui,66:Add,GroupBox,xm-10 y+30 w%groupWidch66% h100,Everything安装路径（支持内置变量和相对路径..\为RunAny相对上级目录）
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp w420 r3 -WantReturn vvEvPath,%EvPath%
-	Gui,66:Add,GroupBox,xm-10 y+30 w%groupWidch66% h140,Everything搜索参数（搜索结果程序可无路径用RunAny运行）
+	Gui,66:Add,GroupBox,xm-10 y+30 w%groupWidch66% h140,Everything搜索参数（搜索结果中程序可无路径用RunAny运行，搜索不到尝试强制重建索引）
 	Gui,66:Add,Button,xm yp+20 w50 GSetEvCommand,修改
 	Gui,66:Add,Text,xm+60 yp,!C:\*Windows*为排除系统缓存和系统程序
 	Gui,66:Add,Text,xm+60 yp+15,file:*.exe|*.lnk|后面类推增加想要的后缀
