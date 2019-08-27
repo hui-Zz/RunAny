@@ -8,6 +8,7 @@ global RunAny_Plugins_Version:="1.05.31"
 #NoTrayIcon             ;~不显示托盘图标
 #SingleInstance,Force   ;~运行替换旧实例
 SetBatchLines,-1        ;~脚本全速执行(默认10ms)
+DetectHiddenWindows, On
 
 ;等待RunAny菜单显示，最多等待3秒
 WinWait, ahk_class #32768, , 3
