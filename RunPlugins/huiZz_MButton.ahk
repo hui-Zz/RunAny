@@ -20,6 +20,7 @@ GroupAdd,maxApp,ahk_exe vmware-vmx.exe
 GroupAdd,maxApp,ahk_exe TeamViewer.exe
 GroupAdd,maxApp,ahk_exe dota2.exe
 GroupAdd,maxApp,ahk_exe League of Legends.exe
+GroupAdd,maxApp,ahk_exe scrcpy.exe
 GroupAdd,browserApp,ahk_exe chrome.exe
 GroupAdd,browserApp,ahk_exe QQBrowser.exe
 #If !WinActive("ahk_group maxApp") ;特定最大化程序下屏蔽
