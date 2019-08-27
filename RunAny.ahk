@@ -1918,7 +1918,6 @@ TVEdit:
 			hotStrShow:=RegExReplace(hotstr,"S)^:[^:]*?X[^:]*?:")
 			itemName:=RegExReplace(itemName,"S)^([^:]*?):[*?a-zA-Z0-9]+?:[^:]*","$1")
 		}
-
 	}else{
 		fileName:=ItemText
 	}
@@ -2011,7 +2010,7 @@ SetSaveItemGui:
 	}else if(vhotStrShow){
 		vitemName.=":*X:" vhotStrShow
 	}
-	if(vitemTrNum){
+	if(vitemTrNum && vitemTrNum<100){
 		vitemName.="_:" vitemTrNum
 	}
 	splitStr:=vitemName && vfileName ? "|" : ""
@@ -2166,7 +2165,7 @@ SaveItemGuiDropFiles:
 	if(control="Edit1"){
 		GuiControl,SaveItem:, vitemName, % Get_Item_Run_Path(SelectedFileName)
 	}
-	if(control="Edit2"){
+	if(control="Edit4"){
 		GuiControl,SaveItem:, vfileName, % Get_Item_Run_Path(SelectedFileName)
 	}
 return
@@ -3212,33 +3211,29 @@ Menu_Set:
 	Gui,66:Font,,Microsoft YaHei
 	Gui,66:Margin,30,20
 	Gui,66:Default
-	Gui,66:Add,Tab,x10 y10 w550 h500,RunAny设置|配置热键|Everything设置|一键搜索|自定义打开后缀|热字符串|图标设置
+	Gui,66:Add,Tab,x10 y10 w550 h500,RunAny设置|配置热键|Everything设置|一键直达|自定义打开后缀|热字符串|图标设置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+5 w%groupWidch66% h50,RunAny设置
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+25 vvAutoRun,开机自动启动
 	Gui,66:Add,Checkbox,Checked%IniConfig% x+118 vvIniConfig,RunAnyConfig.ini移动盘绿色配置
-	Gui,66:Add,GroupBox,xm-10 y+15 w%groupWidch66% h80,RunAny应用菜单
+	Gui,66:Add,GroupBox,xm-10 y+15 w%groupWidch66% h85,RunAny应用菜单
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
 	Gui,66:Add,Checkbox,Checked%HideRecent% x+130 vvHideRecent,隐藏最近运行
 	Gui,66:Add,Checkbox,Checked%HideWeb% xm yp+20 vvHideWeb,隐藏带`%s网址（选中文字显示）
 	Gui,66:Add,Checkbox,Checked%HideSend% x+17 vvHideSend,隐藏短语（选中文字显示）
 	Gui,66:Add,Checkbox,Checked%HideAddItem% xm yp+20 vvHideAddItem,隐藏【添加到此菜单】
 	Gui,66:Add,Checkbox,Checked%HideMenuTray% x+70 vvHideMenuTray,隐藏托盘菜单
-	Gui,66:Add,GroupBox,xm-10 y+15 w%groupWidch66% h70,RunAny选中文字菜单
+	Gui,66:Add,GroupBox,xm-10 y+15 w%groupWidch66% h45,RunAny选中文字菜单
 	Gui,66:Add,Checkbox,Checked%HideUnSelect% xm yp+20 vvHideUnSelect gUnCheckWebSend,选中文字依然显示应用菜单
 	Gui,66:Add,Checkbox,Checked%HideGetZz% x+46 vvHideGetZz,隐藏选中提示信息
-	Gui,66:Add,Text,xm yp+25 w120,选中后直接一键打开：
-	Gui,66:Add,Checkbox,Checked%OneKeyWeb% x+20 yp vvOneKeyWeb,网址
-	Gui,66:Add,Checkbox,Checked%OneKeyFile% x+10 yp vvOneKeyFile,文件路径
-	Gui,66:Add,Checkbox,Checked%OneKeyFolder% x+10 yp vvOneKeyFolder,文件夹路径
-	Gui,66:Add,Checkbox,Checked%OneKeyMagnet% x+10 yp vvOneKeyMagnet,磁力链接
-	Gui,66:Add,GroupBox,xm-10 y+15 w225 h55,RunAny菜单自定义热键 %MenuHotKey%
-	Gui,66:Add,Hotkey,xm yp+20 w150 vvMenuKey,%MenuKey%
-	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+155 yp+3 vvMenuWinKey,Win
+
+	Gui,66:Add,GroupBox,xm-10 y+20 w185 h55,RunAny菜单热键 %MenuHotKey%
+	Gui,66:Add,Hotkey,xm yp+20 w128 vvMenuKey,%MenuKey%
+	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+133 yp+3 w40 vvMenuWinKey,Win
 	If(MENU2FLAG){
-		Gui,66:Add,GroupBox,x+35 yp-23 w225 h55,菜单2自定义热键 %MenuHotKey2%
-		Gui,66:Add,Hotkey,xp+10 yp+20 w150 vvMenuKey2,%MenuKey2%
-		Gui,66:Add,Checkbox,Checked%MenuWinKey2% xp+155 yp+3 vvMenuWinKey2,Win
+		Gui,66:Add,GroupBox,x+15 yp-23 w185 h55,菜单2热键 %MenuHotKey2%
+		Gui,66:Add,Hotkey,xp+10 yp+20 w128 vvMenuKey2,%MenuKey2%
+		Gui,66:Add,Checkbox,Checked%MenuWinKey2% xp+133 yp+3 w40 vvMenuWinKey2,Win
 	}else{
 		Gui,66:Add,Button,x+35 yp-5 w150 GSetMenu2,开启第2个菜单
 	}
@@ -3297,14 +3292,21 @@ Menu_Set:
 	Gui,66:Add,Text,xm+60 yp+15,file:*.exe|*.lnk|后面类推增加想要的后缀
 	Gui,66:Add,Edit,ReadOnly xm+10 yp+25 w470 r3 -WantReturn vvEvCommand,%EvCommand%
 	
-	Gui,66:Tab,一键搜索,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+20 w%groupWidch66% h260,一键搜索选中文字
+	Gui,66:Tab,一键直达,,Exact
+	Gui,66:Add,GroupBox,xm-10 y+10 w%groupWidch66% h50,一键直达
+	Gui,66:Add,Text,xm yp+25 w120,选中后直接一键打开：
+	Gui,66:Add,Checkbox,Checked%OneKeyWeb% x+20 yp vvOneKeyWeb,网址
+	Gui,66:Add,Checkbox,Checked%OneKeyFile% x+10 yp vvOneKeyFile,文件路径
+	Gui,66:Add,Checkbox,Checked%OneKeyFolder% x+10 yp vvOneKeyFolder,文件夹路径
+	Gui,66:Add,Checkbox,Checked%OneKeyMagnet% x+10 yp vvOneKeyMagnet,磁力链接
+	
+	Gui,66:Add,GroupBox,xm-10 y+20 w%groupWidch66% h220,一键搜索选中文字
 	Gui,66:Add,Hotkey,xm yp+30 w150 vvOneKey,%OneKey%
 	Gui,66:Add,Checkbox,Checked%OneWinKey% xm+155 yp+3 vvOneWinKey,Win
 	Gui,66:Add,Checkbox,Checked%OneKeyMenu% x+38 vvOneKeyMenu,绑定菜单1热键为一键搜索
 	Gui,66:Add,Text,xm yp+40 w325,一键搜索网址(`%s为选中文字的替代参数，多行搜索多个网址)
-	Gui,66:Add,Edit,xm yp+20 w485 r8 vvOneKeyUrl,%OneKeyUrl%
-	Gui,66:Add,Text,xm y+40 w325,非默认浏览器打开网址(适用一键搜索和一键网址直达)
+	Gui,66:Add,Edit,xm yp+20 w485 r6 vvOneKeyUrl,%OneKeyUrl%
+	Gui,66:Add,Text,xm y+30 w325,非默认浏览器打开网址(适用一键搜索和一键网址直达)
 	Gui,66:Add,Button,xm yp+20 w50 GSetBrowserPath,选择
 	Gui,66:Add,Edit,xm+60 yp w420 r3 -WantReturn vvBrowserPath,%BrowserPath%
 	
