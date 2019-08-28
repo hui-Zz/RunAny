@@ -265,6 +265,32 @@ XButton2::gosub,Menu_Show1
 ~MButton::gosub,Menu_Show1
 #If
 ;══════════════════════════════════════════════════════════════════
+;~;[获取菜单项启动模式]1-启动路径|2-短语模式|3-模拟打字短语|4-热键映射|5-AHK热键映射|6-网址|7-文件夹|8-插件脚本函数|10-菜单节点|11-分割符|12-注释说明
+GetMenuItemMode(item,fullItemFlag:=false){
+	len:=StrLen(item)
+	if(fullItemFlag){
+		if(InStr(item,";")=1 || len=0)
+			return 12
+		if(RegExMatch(item,"S)^-+[^-]+.*"))
+			return 10
+		if(RegExMatch(item,"S)^-+"))
+			return 11
+	}
+	if(len=0)
+		return 1
+	if(InStr(item,";",,0,1)=len)
+		return InStr(item,";;",,0,1)=len-1 ? 3 : 2
+	if(InStr(item,"::",,0,1)=len-1)
+		return InStr(item,":::",,0,1)=len-2 ? 5 : 4
+	if(RegExMatch(item,"iS)([\w-]+://?|www[.]).*"))
+		return 6
+	if(InStr(FileExist(item), "D"))
+		return 7
+	if(RegExMatch(item,"S).+?\[.+?\]%?\(.*?\)"))
+		return 8
+	return 1
+}
+;══════════════════════════════════════════════════════════════════
 ;~;[读取配置并开始创建菜单]
 ;══════════════════════════════════════════════════════════════════
 Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,TREE_NO){
@@ -1941,7 +1967,7 @@ TVEdit:
 		selID:=selIDTVEdit
 	TV_GetText(ItemText, selID)
 	;分解已有菜单项到编辑框中
-	itemGlobalWinKey:=itemTrNum:=0
+	itemGlobalWinKey:=itemTrNum:=setItemMode:=0
 	itemName:=fileName:=hotStrOption:=hotStrShow:=itemGlobalHotKey:=itemGlobalKey:=selectZz:=""
 	if(InStr(ItemText,"|") || InStr(ItemText,"-")=1){
 		menuDiy:=StrSplit(ItemText,"|",,2)
@@ -1980,8 +2006,9 @@ TVEdit:
 return
 Menu_Item_Edit:
 	SaveLabel:=menuGuiFlag ? "SetSaveItemGui" : "SetSaveItem"
-	PromptStr:=menuGuiFlag ? "需要" : "请点击此"
-	If(InStr(fileName,";",,0,1)=StrLen(fileName)){
+	PromptStr:=menuGuiFlag ? "需要" : "点击此处"
+	setItemMode:=GetMenuItemMode(fileName)
+	If(setItemMode=2 || setItemMode=3){
 		fileName:=StrReplace(fileName,"``t","`t")
 		fileName:=StrReplace(fileName,"``n","`n")
 	}
@@ -1999,8 +2026,10 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add, Text, xp yp+8 w72 cGreen vvTextIconAdd gSetItemIconPath BackgroundTrans, 点击添加图标
 	if(!InStr(itemName,"-")){
 		Gui,SaveItem:Add, Text, xm+10 y+10 w60 vvTextHotStr, 热字符串：
-		Gui,SaveItem:Add, Edit, x+5 yp-3 w50 vvhotStrOption, % hotStrShow="" ? ":*X:" : hotStrOption
-		Gui,SaveItem:Add, Edit, x+5 yp w100 vvhotStrShow GHotStrShowChange, %hotStrShow%
+		Gui,SaveItem:Font,,Consolas
+		Gui,SaveItem:Add, Edit, x+5 yp-3 w60 vvhotStrOption, % hotStrShow="" ? ":*X:" : hotStrOption
+		Gui,SaveItem:Add, Edit, x+5 yp w90 vvhotStrShow GHotStrShowChange, %hotStrShow%
+		Gui,SaveItem:Font,,Microsoft YaHei
 		Gui,SaveItem:Add, Text, x+5 yp+3 w55 vvTextTransparent,透明度(`%)
 		Gui,SaveItem:Add, Slider, x+5 yp ToolTip w135 r1 vvitemTrNum,%itemTrNum%
 	}
@@ -2010,7 +2039,9 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add, Checkbox,Checked%itemGlobalWinKey% x+5 yp+3 vvitemGlobalWinKey,Win
 	Gui,SaveItem:Add, Text, x+5 yp cBlue w200 BackgroundTrans, %itemGlobalHotKey%
 	Gui,SaveItem:Add, Text, xm+10 y+15 w100, 分 隔 符 ：  |
-	Gui,SaveItem:Add, Text, x+10 yp w350 cRed vvPrompt GSetSaveItemFullPath, 注意：RunAny不支持当前后缀无路径运行，%PromptStr%使用全路径
+	Gui,SaveItem:Add, Text, x+5 yp w345 cRed vvPrompt GSetSaveItemFullPath, 注意：RunAny不支持当前后缀无路径运行，%PromptStr%使用全路径
+	Gui,SaveItem:Add, DropDownList,x+5 yp-5 w120 AltSubmit vvItemMode GSetItemMode Choose%setItemMode%,启动路径|短语模式|模拟打字短语|热键映射|AHK热键映射|网址|文件夹|插件脚本函数
+	
 	if(InStr(itemName,"-")){
 		Gui,SaveItem:Add, Text, xm+10 y+10 w60,文件后缀：
 		Gui,SaveItem:Add, Edit, x+10 yp w510 r5 vvfileName GFileNameChange, %fileName%
@@ -2019,14 +2050,14 @@ Menu_Item_Edit:
 		Gui,SaveItem:Add, Button, xm+6 y+2 w60 GSetFileRelativePath,相对路径
 		if(fExt="lnk"){
 			Gui,SaveItem:Add, Button, xm+6 y+2 w60 GSetShortcut,快捷目标
-			Gui,SaveItem:Font,, Consolas
+			Gui,SaveItem:Font,,Consolas
 			Gui,SaveItem:Add, Edit, x+10 yp-58 WantTab w510 r7 vvfileName GFileNameChange, %fileName%
 		}else{
-			Gui,SaveItem:Font,, Consolas
+			Gui,SaveItem:Font,,Consolas
 			Gui,SaveItem:Add, Edit, x+10 yp-30 WantTab w510 r7 vvfileName GFileNameChange, %fileName%
 		}
 	}
-	Gui,SaveItem:Font
+	Gui,SaveItem:Font,,Microsoft YaHei
 	Gui,SaveItem:Add,Button,Default xm+220 y+10 w75 G%SaveLabel%,保存(&Y)
 	Gui,SaveItem:Add,Button,x+20 w75 GSetCancel,取消(&C)
 	Gui,SaveItem:Add, Text, xm y+25, %thisMenuStr% %thisMenuItemStr%
@@ -2104,13 +2135,39 @@ FileNameChange:
 			GuiControl, SaveItem:Hide, vitemTrNum
 		}
 	}
+	GuiControl, SaveItem:Choose, vItemMode,% GetMenuItemMode(filePath)
 return
 HotStrShowChange:
 	Gui,SaveItem:Submit, NoHide
 	if(vhotStrShow){
 		GuiControl,SaveItem:Show, vhotStrOption
-		GuiControl,SaveItem:Move, vhotStrShow, x150 y67
+		GuiControl,SaveItem:Move, vhotStrShow, x160 y67
 	}
+return
+;[启动模式变换]
+SetItemMode:
+	Gui,SaveItem:Submit, NoHide
+	getItemMode:=GetMenuItemMode(vfileName)
+	if((vItemMode=1 || vItemMode!=2) && getItemMode=2){	;清除短语
+		StringTrimRight, vfileName, vfileName, 1
+	}else if((vItemMode=1 || vItemMode!=3) && getItemMode=3){	;清除打字短语
+		StringTrimRight, vfileName, vfileName, 2
+	}else if((vItemMode=1 || vItemMode!=4) && getItemMode=4){		;清除热键映射
+		StringTrimRight, vfileName, vfileName, 2
+	}else if((vItemMode=1 || vItemMode!=5) && getItemMode=5){		;清除AHK热键映射
+		StringTrimRight, vfileName, vfileName, 3
+	}
+	if(vItemMode=2){
+		vfileName.=";"
+	}else if(vItemMode=3){
+		vfileName.=";;"
+	}else if(vItemMode=4){
+		vfileName.="::"
+	}else if(vItemMode=5){
+		vfileName.=":::"
+	}
+	GuiControl,, vfileName, %vfileName%
+	gosub,FileNameChange
 return
 SetItemPath:
 	FileSelectFile, fileSelPath, , , 启动文件路径
@@ -2131,7 +2188,7 @@ SetFileRelativePath:
 		funcResult:=funcPath2RelativeZz(vfileName,A_ScriptFullPath)
 	}
 	if(funcResult=-1){
-		ToolTip, 路径有误,155,125
+		ToolTip, 路径有误,155,185
 		SetTimer,RemoveToolTip,2000
 		return
 	}
@@ -2221,6 +2278,7 @@ SaveItemGuiDropFiles:
 	if(control="Edit4"){
 		GuiControl,SaveItem:, vfileName, % Get_Item_Run_Path(SelectedFileName)
 	}
+	gosub,FileNameChange
 return
 TVDown:
 	TV_Move(true)
@@ -3273,7 +3331,7 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
 	Gui,66:Add,Checkbox,Checked%HideRecent% x+140 vvHideRecent,隐藏最近运行
 	Gui,66:Add,Checkbox,Checked%HideWeb% xm yp+20 vvHideWeb,隐藏带`%s网址（选中文字显示）
-	Gui,66:Add,Checkbox,Checked%HideSend% x+27 vvHideSend,隐藏短语（选中文字显示）
+	Gui,66:Add,Checkbox,Checked%HideSend% x+28 vvHideSend,隐藏短语（选中文字显示）
 	Gui,66:Add,Checkbox,Checked%HideAddItem% xm yp+20 vvHideAddItem,隐藏【添加到此菜单】
 	Gui,66:Add,Checkbox,Checked%HideMenuTray% x+80 vvHideMenuTray,隐藏托盘菜单
 	Gui,66:Add,GroupBox,xm-10 y+15 w%groupWidch66% h45,RunAny选中文字菜单
@@ -3283,9 +3341,7 @@ Menu_Set:
 	Gui,66:Add,GroupBox,xm-10 y+20 w225 h55,RunAny菜单热键 %MenuHotKey%
 	Gui,66:Add,Hotkey,xm yp+20 w150 vvMenuKey,%MenuKey%
 	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+155 yp+3 w40 vvMenuWinKey,Win
-	;~ Gui,66:Add,GroupBox,x+20 yp-23 w120 h55,其他热键启动
-	;~ Gui,66:Add,DropDownList,xp+10 yp+20 w100 AltSubmit vvMenuDoubleClickKey Choose%MenuDoubleClickKey%,|Ctrl双击|Win双击|Alt双击
-	
+
 	If(MENU2FLAG){
 		Gui,66:Add,GroupBox,x+35 yp-23 w225 h55,菜单2热键 %MenuHotKey2%
 		Gui,66:Add,Hotkey,xp+10 yp+20 w150 vvMenuKey2,%MenuKey2%
@@ -3304,7 +3360,7 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%MenuDoubleLWinKey% xm yp+20 vvMenuDoubleLWinKey,双击左Win键
 	Gui,66:Add,Checkbox,Checked%MenuDoubleRWinKey% x+130 vvMenuDoubleRWinKey,双击右Win键
 	Gui,66:Add,Checkbox,Checked%MenuCtrlRightKey% xm yp+20 w160 vvMenuCtrlRightKey,按住Ctrl再按鼠标右键
-	Gui,66:Add,Checkbox,Checked%MenuShiftRightKey% x+65 vvMenuShiftRightKey,按住Shift再按鼠标右键
+	Gui,66:Add,Checkbox,Checked%MenuShiftRightKey% x+63 vvMenuShiftRightKey,按住Shift再按鼠标右键
 	Gui,66:Add,Checkbox,Checked%MenuXButton1Key% xm yp+20 vvMenuXButton1Key,鼠标X1键
 	Gui,66:Add,Checkbox,Checked%MenuXButton2Key% x+149 vvMenuXButton2Key,鼠标X2键
 	Gui,66:Add,Checkbox,Checked%MenuMButtonKey% xm yp+20 vvMenuMButtonKey,鼠标中键（需要关闭插件huiZz_MButton.ahk）
