@@ -1702,13 +1702,13 @@ SetSaveItem:
 	rootFlag:=true		;判断是否为根目录
 	inputFlag:=false	;判断是否插入
 	itemIndex:=0
-	splitStr:=vitemName && vfileName ? "|" : ""
+	splitStr:=vitemName && vitemPath ? "|" : ""
 	if(vitemGlobalKey){
 		if(!vitemName){
 			MsgBox, 48, ,设置热键后必须填写菜单项名
 			return
 		}
-		if(!vfileName && InStr(vitemName,"-")!=1){
+		if(!vitemPath && InStr(vitemName,"-")!=1){
 			MsgBox, 48, ,应用设置热键后必须填写启动路径
 			return
 		}
@@ -1738,7 +1738,7 @@ SetSaveItem:
 			menuItem:=Get_Obj_Name(itemContent)
 			if(menuItem=Z_ThisMenuItem){
 				if(X_ThisMenuItem!="0【添加到此菜单】"){
-					saveText.=tabText . vitemName . itemGlobalKeyStr . splitStr . vfileName . "`n"
+					saveText.=tabText . vitemName . itemGlobalKeyStr . splitStr . vitemPath . "`n"
 					inputFlag:=true
 				}else{
 					endFind:=true
@@ -1751,14 +1751,14 @@ SetSaveItem:
 		}
 		saveText.=A_LoopField . "`n"
 		if(endFind){
-			saveText.=tabText . vitemName . itemGlobalKeyStr . splitStr . vfileName . "`n"
+			saveText.=tabText . vitemName . itemGlobalKeyStr . splitStr . vitemPath . "`n"
 			endFind:=false
 			inputFlag:=true
 		}
 	}
 	if(saveText){
 		if(!inputFlag){
-			saveText.=tabText . vitemName . itemGlobalKeyStr . splitStr . vfileName . "`n"
+			saveText.=tabText . vitemName . itemGlobalKeyStr . splitStr . vitemPath . "`n"
 		}
 		stringtrimright, saveText, saveText, 1
 		FileDelete,%iniFileShow%
@@ -1957,7 +1957,7 @@ return
 TVAdd:
 	selID:=TV_Add("",TV_GetParent(TV_GetSelection()),TV_GetSelection())
 	itemGlobalWinKey:=0
-	itemName:=fileName:=itemGlobalHotKey:=itemGlobalKey:=selectZz:=""
+	itemName:=itemPath:=itemGlobalHotKey:=itemGlobalKey:=selectZz:=""
 	menuGuiFlag:=true
 	gosub,Menu_Item_Edit
 return
@@ -1968,11 +1968,11 @@ TVEdit:
 	TV_GetText(ItemText, selID)
 	;分解已有菜单项到编辑框中
 	itemGlobalWinKey:=itemTrNum:=setItemMode:=0
-	itemName:=fileName:=hotStrOption:=hotStrShow:=itemGlobalHotKey:=itemGlobalKey:=selectZz:=""
+	itemName:=itemPath:=hotStrOption:=hotStrShow:=itemGlobalHotKey:=itemGlobalKey:=selectZz:=""
 	if(InStr(ItemText,"|") || InStr(ItemText,"-")=1){
 		menuDiy:=StrSplit(ItemText,"|",,2)
 		itemName:=menuDiy[1]
-		fileName:=menuDiy[2]
+		itemPath:=menuDiy[2]
 		;~;[分割Tab获取应用自定义热键]
 		menuKeyStr:=RegExReplace(menuDiy[1], "S)\t+", A_Tab)
 		menuKeys:=StrSplit(menuKeyStr,"`t")
@@ -1998,7 +1998,7 @@ TVEdit:
 			itemName:=RegExReplace(itemName,"S)^([^:]*?):[*?a-zA-Z0-9]+?:[^:]*","$1")
 		}
 	}else{
-		fileName:=ItemText
+		itemPath:=ItemText
 	}
 	menuGuiFlag:=true
 	selIDTVEdit:=""
@@ -2007,12 +2007,12 @@ return
 Menu_Item_Edit:
 	SaveLabel:=menuGuiFlag ? "SetSaveItemGui" : "SetSaveItem"
 	PromptStr:=menuGuiFlag ? "需要" : "点击此处"
-	setItemMode:=GetMenuItemMode(fileName)
+	setItemMode:=GetMenuItemMode(itemPath)
 	If(setItemMode=2 || setItemMode=3){
-		fileName:=StrReplace(fileName,"``t","`t")
-		fileName:=StrReplace(fileName,"``n","`n")
+		itemPath:=StrReplace(itemPath,"``t","`t")
+		itemPath:=StrReplace(itemPath,"``n","`n")
 	}
-	SplitPath, fileName, fName,, fExt, name_no_ext
+	SplitPath, itemPath, fName,, fExt, name_no_ext
 	itemIconName:=itemName ? itemName : name_no_ext
 	itemIconFile:=IconFolderList[menuItemIconFileName(itemIconName)]
 	Gui,SaveItem:Destroy
@@ -2021,7 +2021,7 @@ Menu_Item_Edit:
 	Gui,SaveItem:Font,,Microsoft YaHei
 	Gui,SaveItem:Add, GroupBox,xm y+10 w600 h330,新增修改菜单项
 	Gui,SaveItem:Add, Text, xm+10 y+30 y35 w60, 菜单项名：
-	Gui,SaveItem:Add, Edit, x+5 yp-3 w350 vvitemName GFileNameChange, %itemName%
+	Gui,SaveItem:Add, Edit, x+5 yp-3 w350 vvitemName GEditItemPathChange, %itemName%
 	Gui,SaveItem:Add, Picture, x+50 yp+3 w64 h-1 gSetItemIconPath, %itemIconFile%
 	Gui,SaveItem:Add, Text, xp yp+8 w72 cGreen vvTextIconAdd gSetItemIconPath BackgroundTrans, 点击添加图标
 	if(!InStr(itemName,"-")){
@@ -2044,17 +2044,17 @@ Menu_Item_Edit:
 	
 	if(InStr(itemName,"-")){
 		Gui,SaveItem:Add, Text, xm+10 y+10 w60,文件后缀：
-		Gui,SaveItem:Add, Edit, x+10 yp w510 r5 vvfileName GFileNameChange, %fileName%
+		Gui,SaveItem:Add, Edit, x+10 yp w510 r5 vvitemPath GEditItemPathChange, %itemPath%
 	}else{
 		Gui,SaveItem:Add, Button, xm+6 y+6 w60 GSetItemPath,启动路径
 		Gui,SaveItem:Add, Button, xm+6 y+2 w60 GSetFileRelativePath,相对路径
 		if(fExt="lnk"){
 			Gui,SaveItem:Add, Button, xm+6 y+2 w60 GSetShortcut,快捷目标
 			Gui,SaveItem:Font,,Consolas
-			Gui,SaveItem:Add, Edit, x+10 yp-58 WantTab w510 r7 vvfileName GFileNameChange, %fileName%
+			Gui,SaveItem:Add, Edit, x+10 yp-58 WantTab w510 r7 vvitemPath GEditItemPathChange, %itemPath%
 		}else{
 			Gui,SaveItem:Font,,Consolas
-			Gui,SaveItem:Add, Edit, x+10 yp-30 WantTab w510 r7 vvfileName GFileNameChange, %fileName%
+			Gui,SaveItem:Add, Edit, x+10 yp-30 WantTab w510 r7 vvitemPath GEditItemPathChange, %itemPath%
 		}
 	}
 	Gui,SaveItem:Font,,Microsoft YaHei
@@ -2070,7 +2070,7 @@ Menu_Item_Edit:
 		GuiControl,SaveItem:Move, vhotStrShow, x95 y67
 	}
 	thisMenuStr:=thisMenuItemStr:=""
-	gosub,FileNameChange
+	gosub,EditItemPathChange
 return
 ;[保存新增修改菜单项内容]
 SetSaveItemGui:
@@ -2081,7 +2081,7 @@ SetSaveItemGui:
 			MsgBox, 48, ,设置热键后必须填写菜单项名
 			return
 		}
-		if(!vfileName && InStr(vitemName,"-")!=1){
+		if(!vitemPath && InStr(vitemName,"-")!=1){
 			MsgBox, 48, ,应用设置热键后必须填写启动路径
 			return
 		}
@@ -2097,10 +2097,10 @@ SetSaveItemGui:
 	if(vitemTrNum && vitemTrNum<100){
 		vitemName.="_:" vitemTrNum
 	}
-	splitStr:=vitemName && vfileName ? "|" : ""
-	vfileName:=StrReplace(vfileName,"`t","``t")
-	vfileName:=StrReplace(vfileName,"`n","``n")
-	saveText:=vitemName . itemGlobalKeyStr . splitStr . vfileName
+	splitStr:=vitemName && vitemPath ? "|" : ""
+	vitemPath:=StrReplace(vitemPath,"`t","``t")
+	vitemPath:=StrReplace(vitemPath,"`n","``n")
+	saveText:=vitemName . itemGlobalKeyStr . splitStr . vitemPath
 	Gui,SaveItem:Destroy
 	Gui,1:Default
 	TV_Modify(selID, , saveText)
@@ -2117,9 +2117,9 @@ SetSaveItemGui:
 		TV_MoveMenuClean()
 	}
 return
-FileNameChange:
+EditItemPathChange:
 	Gui,SaveItem:Submit, NoHide
-	filePath:=!vfileName && vitemName ? vitemName : vfileName
+	filePath:=!vitemPath && vitemName ? vitemName : vitemPath
 	if(filePath){
 		if(InStr(filePath,";",,0,1)=StrLen(filePath) || Check_Obj_Ext(filePath))
 			GuiControl, SaveItem:Hide, vPrompt
@@ -2147,45 +2147,45 @@ return
 ;[启动模式变换]
 SetItemMode:
 	Gui,SaveItem:Submit, NoHide
-	getItemMode:=GetMenuItemMode(vfileName)
+	getItemMode:=GetMenuItemMode(vitemPath)
 	if((vItemMode=1 || vItemMode!=2) && getItemMode=2){	;清除短语
-		StringTrimRight, vfileName, vfileName, 1
+		StringTrimRight, vitemPath, vitemPath, 1
 	}else if((vItemMode=1 || vItemMode!=3) && getItemMode=3){	;清除打字短语
-		StringTrimRight, vfileName, vfileName, 2
+		StringTrimRight, vitemPath, vitemPath, 2
 	}else if((vItemMode=1 || vItemMode!=4) && getItemMode=4){		;清除热键映射
-		StringTrimRight, vfileName, vfileName, 2
+		StringTrimRight, vitemPath, vitemPath, 2
 	}else if((vItemMode=1 || vItemMode!=5) && getItemMode=5){		;清除AHK热键映射
-		StringTrimRight, vfileName, vfileName, 3
+		StringTrimRight, vitemPath, vitemPath, 3
 	}
 	if(vItemMode=2){
-		vfileName.=";"
+		vitemPath.=";"
 	}else if(vItemMode=3){
-		vfileName.=";;"
+		vitemPath.=";;"
 	}else if(vItemMode=4){
-		vfileName.="::"
+		vitemPath.="::"
 	}else if(vItemMode=5){
-		vfileName.=":::"
+		vitemPath.=":::"
 	}
-	GuiControl,, vfileName, %vfileName%
-	gosub,FileNameChange
+	GuiControl,, vitemPath, %vitemPath%
+	gosub,EditItemPathChange
 return
 SetItemPath:
 	FileSelectFile, fileSelPath, , , 启动文件路径
 	if(fileSelPath){
-		GuiControl,, vfileName, % Get_Item_Run_Path(fileSelPath)
-		gosub,FileNameChange
+		GuiControl,, vitemPath, % Get_Item_Run_Path(fileSelPath)
+		gosub,EditItemPathChange
 	}
 return
 ;[全路径转换为RunAnyCtrl的相对路径]
 SetFileRelativePath:
 	Gui,SaveItem:Submit, NoHide
-	if(InStr(vfileName,"`%A_ScriptDir`%\")=1){
-		funcResult:=RegExReplace(vfileName,"S)^`%A_ScriptDir`%\\")
+	if(InStr(vitemPath,"`%A_ScriptDir`%\")=1){
+		funcResult:=RegExReplace(vitemPath,"S)^`%A_ScriptDir`%\\")
 		funcResult:=funcPath2AbsoluteZz(funcResult,A_ScriptFullPath)
 		headPath=
 	}else{
 		headPath=`%A_ScriptDir`%\
-		funcResult:=funcPath2RelativeZz(vfileName,A_ScriptFullPath)
+		funcResult:=funcPath2RelativeZz(vitemPath,A_ScriptFullPath)
 	}
 	if(funcResult=-1){
 		ToolTip, 路径有误,155,185
@@ -2198,19 +2198,19 @@ SetFileRelativePath:
 		return
 	}
 	if(funcResult){
-		GuiControl, SaveItem:, vfileName, %headPath%%funcResult%
-		gosub,FileNameChange
+		GuiControl, SaveItem:, vitemPath, %headPath%%funcResult%
+		gosub,EditItemPathChange
 	}
 return
 SetItemIconPath:
 	Gui,SaveItem:Submit, NoHide
-	if(!vitemName && !vfileName){
+	if(!vitemName && !vitemPath){
 		MsgBox, 48, ,菜单项名和启动路径不能同时为空时设置图标
 		return
 	}
 	FileSelectFile, iconSelPath, , , 图标文件路径
 	if(iconSelPath){
-		SplitPath, vfileName, fName,, fExt, name_no_ext
+		SplitPath, vitemPath, fName,, fExt, name_no_ext
 		itemIconName:=vitemName ? vitemName : name_no_ext
 		itemIconName:=menuItemIconFileName(itemIconName)
 		if(FileExist(itemIconFile)){
@@ -2221,7 +2221,7 @@ SetItemIconPath:
 		}
 		if(fExt="exe"){
 			iconCopyDir:=ExeIconDir
-		}else if(RegExMatch(vfileName,"iS)([\w-]+://?|www[.]).*")){
+		}else if(RegExMatch(vitemPath,"iS)([\w-]+://?|www[.]).*")){
 			iconCopyDir:=WebIconDir
 		}else{
 			iconCopyDir:=MenuIconDir
@@ -2233,13 +2233,13 @@ SetItemIconPath:
 return
 SetSaveItemFullPath:
 	if(selectZz && !menuGuiFlag){
-		GuiControl, SaveItem:, vfileName, %selectZz%
+		GuiControl, SaveItem:, vitemPath, %selectZz%
 		GuiControl, SaveItem:Hide, vPrompt
 	}
 return
 SetShortcut:
 	Gui,SaveItem:Submit, NoHide
-	filePath:=!vfileName && vitemName ? vitemName : vfileName
+	filePath:=!vitemPath && vitemName ? vitemName : vitemPath
 	filePath:=Get_Obj_Path(filePath)	;补全路径
 	if(!filePath)	;如果没补全，还原原选中文件地址
 		filePath:=selectZz
@@ -2248,12 +2248,12 @@ SetShortcut:
 		FileGetShortcut, %filePath%, exePath, OutDir, exeArgs
 		exeArgs:=exeArgs ? A_Space exeArgs : ""
 		if(exePath){
-			GuiControl, SaveItem:, vfileName, %exePath%%exeArgs%
+			GuiControl, SaveItem:, vitemPath, %exePath%%exeArgs%
 		}
 	}else{
 		gosub,SetSaveItemFullPath
 	}
-	gosub,FileNameChange
+	gosub,EditItemPathChange
 return
 GuiDropFiles:  ; 对拖放提供支持.
 SaveItemGuiDropFiles:
@@ -2276,9 +2276,9 @@ SaveItemGuiDropFiles:
 		GuiControl,SaveItem:, vitemName, % Get_Item_Run_Path(SelectedFileName)
 	}
 	if(control="Edit4"){
-		GuiControl,SaveItem:, vfileName, % Get_Item_Run_Path(SelectedFileName)
+		GuiControl,SaveItem:, vitemPath, % Get_Item_Run_Path(SelectedFileName)
 	}
-	gosub,FileNameChange
+	gosub,EditItemPathChange
 return
 TVDown:
 	TV_Move(true)
