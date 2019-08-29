@@ -1678,7 +1678,7 @@ Menu_Add_File_Item:
 	;初始化要添加的内容
 	itemGlobalWinKey:=0
 	itemName:=itemGlobalHotKey:=itemGlobalKey:=X_ThisMenuItem:=""
-	fileName:=Get_Item_Run_Path(selectZz)
+	itemPath:=Get_Item_Run_Path(selectZz)
 	Z_ThisMenu:=A_ThisMenu
 	Z_ThisMenuItem:=A_ThisMenuItem
 	if(Z_ThisMenuItem="0【添加到此菜单】"){
@@ -2150,21 +2150,25 @@ SetItemMode:
 	getItemMode:=GetMenuItemMode(vitemPath)
 	if((vItemMode=1 || vItemMode!=2) && getItemMode=2){	;清除短语
 		StringTrimRight, vitemPath, vitemPath, 1
-	}else if((vItemMode=1 || vItemMode!=3) && getItemMode=3){	;清除打字短语
+	}else if((vItemMode=1 || vItemMode!=3) && getItemMode=3){		;清除打字短语
 		StringTrimRight, vitemPath, vitemPath, 2
 	}else if((vItemMode=1 || vItemMode!=4) && getItemMode=4){		;清除热键映射
 		StringTrimRight, vitemPath, vitemPath, 2
 	}else if((vItemMode=1 || vItemMode!=5) && getItemMode=5){		;清除AHK热键映射
 		StringTrimRight, vitemPath, vitemPath, 3
 	}
-	if(vItemMode=2){
+	if(vItemMode=2 && getItemMode!=2){
 		vitemPath.=";"
-	}else if(vItemMode=3){
+	}else if(vItemMode=3 && getItemMode!=3){
 		vitemPath.=";;"
-	}else if(vItemMode=4){
+		ToolTip, 此模式``n和``r转换为Enter键击，``t转换为Tab，``b转换为Backspace退格,95,183
+		SetTimer,RemoveToolTip,8000
+	}else if(vItemMode=4 && getItemMode!=4){
 		vitemPath.="::"
-	}else if(vItemMode=5){
+	}else if(vItemMode=5 && getItemMode!=5){
 		vitemPath.=":::"
+		ToolTip, 此模式可以映射发送任意已运行AHK脚本中的热键键击,115,184
+		SetTimer,RemoveToolTip,8000
 	}
 	GuiControl,, vitemPath, %vitemPath%
 	gosub,EditItemPathChange
@@ -2188,12 +2192,12 @@ SetFileRelativePath:
 		funcResult:=funcPath2RelativeZz(vitemPath,A_ScriptFullPath)
 	}
 	if(funcResult=-1){
-		ToolTip, 路径有误,155,185
+		ToolTip, 路径有误,155,183
 		SetTimer,RemoveToolTip,2000
 		return
 	}
 	if(funcResult=-2){
-		ToolTip, 与RunAny不在同一磁盘，不能转换为相对路径,155,200
+		ToolTip, 与RunAny不在同一磁盘，不能转换为相对路径,155,183
 		SetTimer,RemoveToolTip,3000
 		return
 	}
