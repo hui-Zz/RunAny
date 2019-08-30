@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.2 @2019.08.27
+║【RunAny】一劳永逸的快速启动工具 v5.6.2 @2019.08.29
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：246308937
@@ -21,7 +21,7 @@ global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.6.2"
-global RunAny_update_time:="2019.08.27"
+global RunAny_update_time:="2019.08.29"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -349,11 +349,13 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 			}
 			if(menuRootFn[menuLevel]="")
 				continue
-			;短语、网址、外接函数除外的菜单项直接转换%%为系统变量值
+			;短语、网址、脚本插件函数除外的菜单项直接转换%%为系统变量值
 			itemLen:=StrLen(Z_LoopField)
 			transformValFlag:=false
 			if(InStr(Z_LoopField,";",,0,1)!=itemLen && !RegExMatch(Z_LoopField,"iS)([\w-]+://?|www[.]).*") && !RegExMatch(Z_LoopField,"iS).+?\[.+?\]%?\(.*?\)")){
+				Z_LoopField:=StrReplace(Z_LoopField,"%getZz%",Chr(3))
 				Z_LoopField:=Get_Transform_Val(Z_LoopField)
+				Z_LoopField:=StrReplace(Z_LoopField,Chr(3),"%getZz%")
 				transformValFlag:=true
 			}
 			;~添加到分类目录程序全数据
@@ -680,7 +682,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 			}
 			return
 		}
-		if(RegExMatch(item,"S).+?\[.+?\]%?\(.*?\)")){  ; {外接函数}
+		if(RegExMatch(item,"S).+?\[.+?\]%?\(.*?\)")){  ; {脚本插件函数}
 			Menu,%menuName%,add,%menuItem%,Menu_Run
 			Menu,%menuName%:,add,%menuItem%,Menu_Run
 			Menu_Item_Icon(menuName,menuItem,FuncIconS[1],FuncIconS[2])
@@ -754,17 +756,17 @@ return
 ;══════════════════════════════════════════════════════════════════
 Menu_Show:
 	try{
-		global selectZz:=Get_Zz()
+		global getZz:=Get_Zz()
 		gosub,RunAny_Menu
-		selectCheck:=Trim(selectZz," `t`n`r")
+		selectCheck:=Trim(getZz," `t`n`r")
 		if(selectCheck=""){
 			;#无选中内容弹出应用菜单#
 			Menu,% menuRoot%MENU_NO%[1],Show
 			return
 		}
 		if(Candy_isFile){
-			SplitPath, selectZz,FileName,, FileExt  ; 获取文件扩展名.
-			if(InStr(FileExist(selectZz), "D")){  ; {目录}
+			SplitPath, getZz,FileName,, FileExt  ; 获取文件扩展名.
+			if(InStr(FileExist(getZz), "D")){  ; {目录}
 				FileExt:="folder"
 			}
 			try{
@@ -819,7 +821,7 @@ Menu_Show:
 			calcFlag:=false
 			calcResult:=""
 			selectResult:=""
-			Loop, parse, selectZz, `n, `r
+			Loop, parse, getZz, `n, `r
 			{
 				S_LoopField=%A_LoopField%
 				if(S_LoopField=""){
@@ -898,18 +900,18 @@ Menu_Show:
 		}
 		;#选中文本弹出网址菜单#
 		if(!HideUnSelect){
-			Menu_Show_Show(menuWebRoot%MENU_NO%[1],selectZz)
+			Menu_Show_Show(menuWebRoot%MENU_NO%[1],getZz)
 		}else{
-			Menu_Show_Show(menuRoot%MENU_NO%[1],selectZz)
+			Menu_Show_Show(menuRoot%MENU_NO%[1],getZz)
 		}
 	}catch{}
 return
 ;~;[菜单热键显示]
 Menu_Key_Show:
-	global selectZz:=Get_Zz()
+	global getZz:=Get_Zz()
 	try {
 		gosub,RunAny_Menu
-		Menu_Show_Show(menuTreekey[(A_ThisHotkey)],selectZz)
+		Menu_Show_Show(menuTreekey[(A_ThisHotkey)],getZz)
 	}catch{}
 return
 RunAny_Menu:
@@ -973,12 +975,12 @@ Menu_Run:
 			gosub,Menu_Run_Send_Zz
 			return
 		}
-		if(RegExMatch(any,"iS).+?\[.+?\]%?\(.*?\)")){  ; {外接函数}
+		if(RegExMatch(any,"iS).+?\[.+?\]%?\(.*?\)")){  ; {脚本插件函数}
 			gosub,Menu_Run_Plugins_ObjReg
 			return
 		}
 		;[按住Ctrl键打开应用所在目录，只有目录则直接打开]
-		if(!selectZz && !Candy_isFile){
+		if(!getZz && !Candy_isFile){
 			if(GetKeyState("Ctrl") && GetKeyState("Shift")){	;[按住Ctrl+Shift管理员身份运行]
 				Run,*RunAs %any%
 				return
@@ -995,19 +997,19 @@ Menu_Run:
 			}
 		}
 		global TVEditItem
-		if(selectZz!=""){
-			firstFile:=RegExReplace(selectZz,"(.*)(\n|\r).*","$1")  ;取第一行
-			if(Candy_isFile=1 || FileExist(selectZz) || FileExist(firstFile)){
-				selectZzStr:=""
-				Loop, parse, selectZz, `n, `r, %A_Space%%A_Tab%
+		if(getZz!=""){
+			firstFile:=RegExReplace(getZz,"(.*)(\n|\r).*","$1")  ;取第一行
+			if(Candy_isFile=1 || FileExist(getZz) || FileExist(firstFile)){
+				getZzStr:=""
+				Loop, parse, getZz, `n, `r, %A_Space%%A_Tab%
 				{
 					if(!A_LoopField)
 						continue
-					selectZzStr.="""" . A_LoopField . """" . A_Space
+					getZzStr.="""" . A_LoopField . """" . A_Space
 				}
-				StringTrimRight, selectZzStr, selectZzStr, 1
+				StringTrimRight, getZzStr, getZzStr, 1
 				if(GetKeyState("Ctrl") && GetKeyState("Shift")){	;[按住Ctrl+Shift管理员身份运行]
-					Run,*RunAs %any%%A_Space%%selectZzStr%
+					Run,*RunAs %any%%A_Space%%getZzStr%
 					return
 				}
 				if(GetKeyState("Ctrl")){
@@ -1017,14 +1019,14 @@ Menu_Run:
 				if(InStr(FileExist(any), "D")){
 					Run,%any%
 				}else{
-					Run,%any%%A_Space%%selectZzStr%
+					Run,%any%%A_Space%%getZzStr%
 				}
 			}else if(RegExMatch(any,"iS)^.*?\.exe ([\w-]+://?|www[.]).*")){
 				gosub,Menu_Run_Exe_Url
 			}else if(RegExMatch(any,"iS)^([\w-]+://?|www[.]).*")){
-				Run_Search(any,selectZz)
+				Run_Search(any,getZz)
 			}else{
-				Run,%any%%A_Space%%selectZz%
+				Run,%any%%A_Space%%getZz%
 			}
 			return
 		}
@@ -1052,6 +1054,7 @@ return
 ;~;[菜单热键运行]
 ;══════════════════════════════════════════════════════════════════
 Menu_Key_Run:
+	getZz:=Get_Zz()
 	any:=menuObjkey[(A_ThisHotkey)]
 	thisMenuName:=MenuObjName[(A_ThisHotkey)]
 	SplitPath, any, , dir
@@ -1074,27 +1077,26 @@ Menu_Key_Run:
 			Send_Str_Zz(any,true)	;[粘贴输出短语]
 			return
 		}
-		selectZz:=Get_Zz()
-		if(RegExMatch(any,"iS).+?\[.+?\]%?\(.*?\)")){  ; {外接函数}
+		if(RegExMatch(any,"iS).+?\[.+?\]%?\(.*?\)")){  ; {脚本插件函数}
 			gosub,Menu_Run_Plugins_ObjReg
 			return
 		}
-		if(selectZz){
-			firstFile:=RegExReplace(selectZz,"(.*)(\n|\r).*","$1")  ;取第一行
-			if(Candy_isFile=1 || FileExist(selectZz) || FileExist(firstFile)){
-				selectZzStr:=""
-				Loop, parse, selectZz, `n, `r, %A_Space%%A_Tab%
+		if(getZz){
+			firstFile:=RegExReplace(getZz,"(.*)(\n|\r).*","$1")  ;取第一行
+			if(Candy_isFile=1 || FileExist(getZz) || FileExist(firstFile)){
+				getZzStr:=""
+				Loop, parse, getZz, `n, `r, %A_Space%%A_Tab%
 				{
 					if(!A_LoopField)
 						continue
-					selectZzStr.="""" . A_LoopField . """" . A_Space
+					getZzStr.="""" . A_LoopField . """" . A_Space
 				}
-				StringTrimRight, selectZzStr, selectZzStr, 1
-				Run,%any%%A_Space%%selectZzStr%
+				StringTrimRight, getZzStr, getZzStr, 1
+				Run,%any%%A_Space%%getZzStr%
 			}else if(RegExMatch(any,"iS)^.*?\.exe ([\w-]+://?|www[.]).*")){
 				gosub,Menu_Run_Exe_Url
 			}else if(RegExMatch(any,"iS)^([\w-]+://?|www[.]).*")){
-				Run_Search(any,selectZz)
+				Run_Search(any,getZz)
 			}else{
 				Run_Zz(any)
 			}
@@ -1126,7 +1128,7 @@ return
 Menu_Run_Exe_Url:
 	BrowserPath:=RegExReplace(any,"iS)(.*?\.exe) .*","$1")	;只去参数
 	anyUrl:=RegExReplace(any,"iS).*?\.exe (.*)","$1")	;去掉应用名，取参数
-	Run_Search(anyUrl,selectZz,BrowserPath)
+	Run_Search(anyUrl,getZz,BrowserPath)
 return
 Menu_Run_Plugins_ObjReg:
 	appPlugins:=RegExReplace(any,"iS)(.+?)\[.+?\]%?\(.*?\)","$1")	;取插件名
@@ -1138,14 +1140,13 @@ Menu_Run_Plugins_ObjReg:
 		return
 	}
 	if(RegExMatch(any,"iS).+?\[.+?\]%\(.*?\)")){  ;动态函数执行
-		DynaExpr_ObjRegisterActive(PluginsObjRegGUID[appPlugins],appFunc,appParmStr,selectZz)
+		DynaExpr_ObjRegisterActive(PluginsObjRegGUID[appPlugins],appFunc,appParmStr,getZz)
 	}else{
 		try {
 			PluginsObjRegActive[appPlugins]:=ComObjActive(PluginsObjRegGUID[appPlugins])
 		} catch {
 			TrayTip,,%appPlugins% 外接脚本失败`n请检查是否已经启动(在插件管理中设为自动启动)，并重启RunAny重试,3,1
 		}
-		getZz:=selectZz
 		appParmStr:=StrReplace(appParmStr,"``,",Chr(3))
 		appParms:=StrSplit(appParmStr,",")
 		Loop,% appParms.MaxIndex()
@@ -1247,7 +1248,7 @@ Web_Run:
 	if(JumpSearch){
 		gosub,Web_Search
 	}else{
-		MsgBox,33,开始批量搜索%webName%,确定用【%selectZz%】批量搜索以下网站：`n%webList%
+		MsgBox,33,开始批量搜索%webName%,确定用【%getZz%】批量搜索以下网站：`n%webList%
 		IfMsgBox Ok
 		{
 			gosub,Web_Search
@@ -1259,7 +1260,7 @@ Web_Search:
 	{
 		if(A_LoopField){
 			any:=MenuObj[(A_LoopField)]
-			Run_Search(any,selectZz,BrowserPathRun)
+			Run_Search(any,getZz,BrowserPathRun)
 		}
 	}
 return
@@ -1294,7 +1295,7 @@ Run_Tr(program,trNum,newOpen=false){
 		Run_Zz(program)
 	return
 }
-Run_Search(any,selectZz="",browser=""){
+Run_Search(any,getZz="",browser=""){
 	if(browser){
 		browserRun:=browser A_Space
 	}else if(RegExMatch(any,"iS)(www[.]).*") && openExtRunList["www"]){
@@ -1310,43 +1311,43 @@ Run_Search(any,selectZz="",browser=""){
 		}
 	}
 	if(InStr(any,"%s",true)){
-		Run,% browserRun """" StrReplace(any,"%s",selectZz) """"
+		Run,% browserRun """" StrReplace(any,"%s",getZz) """"
 	}else if(InStr(any,"%S",true)){
-		Run,% browserRun """" StrReplace(any,"%S",SkSub_UrlEncode(selectZz)) """"
+		Run,% browserRun """" StrReplace(any,"%S",SkSub_UrlEncode(getZz)) """"
 	}else{
-		Run,%browserRun%"%any%%selectZz%"
+		Run,%browserRun%"%any%%getZz%"
 	}
 }
 ;══════════════════════════════════════════════════════════════════
 ;~;[一键Everything][搜索选中文字][激活][隐藏]
 Ev_Show:
-	selectZz:=Get_Zz()
-	if(RegExMatch(selectZz,"S)^(\\\\|.:\\).*?$")){
-		SplitPath,selectZz,fileName
-		selectZz:=fileName
+	getZz:=Get_Zz()
+	if(RegExMatch(getZz,"S)^(\\\\|.:\\).*?$")){
+		SplitPath,getZz,fileName
+		getZz:=fileName
 	}
 	EvPathRun:=Get_Transform_Val(EvPath)
 	IfWinExist ahk_class EVERYTHING
-		if selectZz
-			Run % EvPathRun " -search """ selectZz """"
+		if getZz
+			Run % EvPathRun " -search """ getZz """"
 		else
 			IfWinNotActive
 				WinActivate
 			else
 				WinMinimize
 	else
-		Run % EvPathRun (selectZz ? " -search """ selectZz """" : "")
+		Run % EvPathRun (getZz ? " -search """ getZz """" : "")
 return
 ;~;[一键搜索]
 One_Show:
-	selectZz:=Get_Zz()
+	getZz:=Get_Zz()
 	gosub,One_Search
 return
 One_Search:
 	Loop,parse,OneKeyUrl,`n
 	{
 		if(A_LoopField){
-			Run_Search(A_LoopField,selectZz,BrowserPathRun)
+			Run_Search(A_LoopField,getZz,BrowserPathRun)
 		}
 	}
 return
@@ -1678,7 +1679,7 @@ Menu_Add_File_Item:
 	;初始化要添加的内容
 	itemGlobalWinKey:=0
 	itemName:=itemGlobalHotKey:=itemGlobalKey:=X_ThisMenuItem:=""
-	itemPath:=Get_Item_Run_Path(selectZz)
+	itemPath:=Get_Item_Run_Path(getZz)
 	Z_ThisMenu:=A_ThisMenu
 	Z_ThisMenuItem:=A_ThisMenuItem
 	if(Z_ThisMenuItem="0【添加到此菜单】"){
@@ -1957,7 +1958,7 @@ return
 TVAdd:
 	selID:=TV_Add("",TV_GetParent(TV_GetSelection()),TV_GetSelection())
 	itemGlobalWinKey:=0
-	itemName:=itemPath:=itemGlobalHotKey:=itemGlobalKey:=selectZz:=""
+	itemName:=itemPath:=itemGlobalHotKey:=itemGlobalKey:=getZz:=""
 	menuGuiFlag:=true
 	gosub,Menu_Item_Edit
 return
@@ -1968,7 +1969,7 @@ TVEdit:
 	TV_GetText(ItemText, selID)
 	;分解已有菜单项到编辑框中
 	itemGlobalWinKey:=itemTrNum:=setItemMode:=0
-	itemName:=itemPath:=hotStrOption:=hotStrShow:=itemGlobalHotKey:=itemGlobalKey:=selectZz:=""
+	itemName:=itemPath:=hotStrOption:=hotStrShow:=itemGlobalHotKey:=itemGlobalKey:=getZz:=""
 	if(InStr(ItemText,"|") || InStr(ItemText,"-")=1){
 		menuDiy:=StrSplit(ItemText,"|",,2)
 		itemName:=menuDiy[1]
@@ -2236,8 +2237,8 @@ SetItemIconPath:
 	}
 return
 SetSaveItemFullPath:
-	if(selectZz && !menuGuiFlag){
-		GuiControl, SaveItem:, vitemPath, %selectZz%
+	if(getZz && !menuGuiFlag){
+		GuiControl, SaveItem:, vitemPath, %getZz%
 		GuiControl, SaveItem:Hide, vPrompt
 	}
 return
@@ -2246,7 +2247,7 @@ SetShortcut:
 	filePath:=!vitemPath && vitemName ? vitemName : vitemPath
 	filePath:=Get_Obj_Path(filePath)	;补全路径
 	if(!filePath)	;如果没补全，还原原选中文件地址
-		filePath:=selectZz
+		filePath:=getZz
 	SplitPath, filePath, ,, fExt  ; 获取扩展名
 	if(filePath && fExt="lnk"){
 		FileGetShortcut, %filePath%, exePath, OutDir, exeArgs
@@ -2283,6 +2284,9 @@ SaveItemGuiDropFiles:
 		GuiControl,SaveItem:, vitemPath, % Get_Item_Run_Path(SelectedFileName)
 	}
 	gosub,EditItemPathChange
+return
+SaveItemGuiEscape:
+	Gui,SaveItem:Destroy
 return
 TVDown:
 	TV_Move(true)
@@ -2730,7 +2734,7 @@ Set_Icon(itemVar,editVar=true){
 		return "Icon4"
 	if(InStr(itemVar,"::",,0,1)=itemLen-1)	; {发送热键}
 		return InStr(itemVar,":::",,0,1)=itemLen-2 ? "Icon10" : "Icon9"
-	if(RegExMatch(itemVar,"S).+?\[.+?\]%?\(.*?\)"))  ; {外接函数}
+	if(RegExMatch(itemVar,"S).+?\[.+?\]%?\(.*?\)"))  ; {脚本插件函数}
 		return "Icon11"
 	;~;[获取全路径]
 	FileName:=Get_Obj_Path(itemVar)
@@ -3477,7 +3481,7 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+82 yp w400 r1 vvUrlIcon,%UrlIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetEXEIcon,EXE图标
 	Gui,66:Add,Edit,xm+82 yp w400 r1 vvEXEIcon,%EXEIcon%
-	Gui,66:Add,Button,xm yp+30 w80 GSetFuncIcon,外接函数
+	Gui,66:Add,Button,xm yp+30 w80 GSetFuncIcon,脚本插件函数
 	Gui,66:Add,Edit,xm+82 yp w400 r1 vvFuncIcon,%FuncIcon%
 	Gui,66:Add,GroupBox,xm-10 y+20 w%groupWidch66% h145,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含热字符串和全局热键）
 	Gui,66:Add,Text, xm yp+20 w380,如图标文件名可以为：-常用(&&App).ico、cmd.png、百度(&&B).ico
