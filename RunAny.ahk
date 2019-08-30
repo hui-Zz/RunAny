@@ -1004,6 +1004,9 @@ Menu_Run:
 			gosub,Menu_Run_Plugins_ObjReg
 			return
 		}
+		;[解析选中变量%getZz%]
+		any:=Get_Transform_Val(any)
+		any:=RTrim(any," `t`n`r")
 		;[按住Ctrl键打开应用所在目录，只有目录则直接打开]
 		if(!getZz && !Candy_isFile){
 			if(GetKeyState("Ctrl") && GetKeyState("Shift")){	;[按住Ctrl+Shift管理员身份运行]
@@ -1043,8 +1046,6 @@ Menu_Run:
 				}
 				if(InStr(FileExist(any), "D")){
 					Run,%any%
-				}else if(InStr(any,"%getZz%")){
-					Run,% StrReplace(any,"%getZz%",getZz)
 				}else{
 					Run,%any%%A_Space%%getZzStr%
 				}
@@ -1052,8 +1053,6 @@ Menu_Run:
 				gosub,Menu_Run_Exe_Url
 			}else if(RegExMatch(any,"iS)^([\w-]+://?|www[.]).*")){
 				Run_Search(any,getZz)
-			}else if(InStr(any,"%getZz%")){
-				Run,% StrReplace(any,"%getZz%",getZz)
 			}else{
 				Run,%any%%A_Space%%getZz%
 			}
@@ -1071,7 +1070,6 @@ Menu_Run:
 		}else if(RegExMatch(any,"iS)^([\w-]+://?|www[.]).*")){
 			Run_Search(any)
 		}else{
-			any:=StrReplace(any,"%getZz%")
 			Run,%any%
 		}
 	} catch e {
@@ -1111,6 +1109,9 @@ Menu_Key_Run:
 			gosub,Menu_Run_Plugins_ObjReg
 			return
 		}
+		;[解析选中变量%getZz%]
+		any:=Get_Transform_Val(any)
+		any:=RTrim(any," `t`n`r")
 		if(getZz){
 			firstFile:=RegExReplace(getZz,"(.*)(\n|\r).*","$1")  ;取第一行
 			if(Candy_isFile=1 || FileExist(getZz) || FileExist(firstFile)){
@@ -2008,7 +2009,7 @@ TVEdit:
 		menuKeyStr:=RegExReplace(menuDiy[1], "S)\t+", A_Tab)
 		menuKeys:=StrSplit(menuKeyStr,"`t")
 		itemName:=menuKeys[1]
-		if(InStr(itemName,"`t") && menuKeys[2]){
+		if(InStr(menuKeyStr,"`t") && menuKeys[2]){
 			itemGlobalHotKey:=menuKeys[2]
 			itemGlobalKey:=menuKeys[2]
 			if(InStr(menuKeys[2],"#")){
@@ -2079,13 +2080,14 @@ Menu_Item_Edit:
 	}else{
 		Gui,SaveItem:Add, Button, xm+6 y+6 w60 GSetItemPath,启动路径
 		Gui,SaveItem:Add, Button, xm+6 y+2 w60 GSetFileRelativePath,相对路径
+		Gui,SaveItem:Add, Button, xm+6 y+2 w60 GSetItemPathGetZz,选中变量
 		if(fExt="lnk"){
 			Gui,SaveItem:Add, Button, xm+6 y+2 w60 GSetShortcut,快捷目标
 			Gui,SaveItem:Font,,Consolas
-			Gui,SaveItem:Add, Edit, x+10 yp-58 WantTab w510 r7 vvitemPath GEditItemPathChange, %itemPath%
+			Gui,SaveItem:Add, Edit, x+10 yp-88 WantTab w510 r7 vvitemPath GEditItemPathChange, %itemPath%
 		}else{
 			Gui,SaveItem:Font,,Consolas
-			Gui,SaveItem:Add, Edit, x+10 yp-30 WantTab w510 r7 vvitemPath GEditItemPathChange, %itemPath%
+			Gui,SaveItem:Add, Edit, x+10 yp-60 WantTab w510 r7 vvitemPath GEditItemPathChange, %itemPath%
 		}
 	}
 	Gui,SaveItem:Font,,Microsoft YaHei
@@ -2211,6 +2213,16 @@ SetItemPath:
 		gosub,EditItemPathChange
 	}
 return
+SetItemPathGetZz:
+	Gui,SaveItem:Submit, NoHide
+	SetTimer,RemoveToolTip,8000
+	if(vItemMode=6){
+		GuiControl,, vitemPath, %vitemPath%`%s
+	}else{
+		ToolTip, `%getZz`%在运行时会转换为你鼠标选中的文本内容,115,184
+		GuiControl,, vitemPath, %vitemPath% `%getZz`%
+	}
+return
 ;[全路径转换为RunAnyCtrl的相对路径]
 SetFileRelativePath:
 	Gui,SaveItem:Submit, NoHide
@@ -2316,6 +2328,7 @@ SaveItemGuiDropFiles:
 	gosub,EditItemPathChange
 return
 SaveItemGuiEscape:
+	ToolTip
 	Gui,SaveItem:Destroy
 return
 TVDown:
