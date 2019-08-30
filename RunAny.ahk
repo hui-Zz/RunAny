@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.2 @2019.08.29
+║【RunAny】一劳永逸的快速启动工具 v5.6.3 @2019.08.30
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：246308937
@@ -20,8 +20,8 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
-global RunAny_update_version:="5.6.2"
-global RunAny_update_time:="2019.08.29"
+global RunAny_update_version:="5.6.3"
+global RunAny_update_time:="2019.08.30"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -192,9 +192,6 @@ For k, v in MenuExeList
 {
 	if(!HideMenuAppIconList[(v["menuName"])]){
 		Menu_Item_Icon(v["menuName"],v["menuItem"],v["itemFile"])
-		if(InStr(v["itemPath"],"%getZz%")){
-			Menu_Item_Icon(v["menuName"] ":",v["menuItem"],v["itemFile"])
-		}
 	}
 }
 ;#菜单已经加载完毕，托盘图标变化
@@ -396,7 +393,7 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 				}
 				if(FileExt="exe"){
 					if(flagEXE){
-						MenuExeListPush(menuRootFn[menuLevel],menuDiy[1],item,menuDiy[2])
+						MenuExeListPush(menuRootFn[menuLevel],menuDiy[1],item,menuDiy[2],menuRootFn,menuWebRootFn)
 					}else{
 						IconFail:=true
 					}
@@ -448,7 +445,7 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 				SplitPath,Z_LoopField,fileName,,,nameNotExt
 				MenuObjParam[nameNotExt]:=Z_LoopField . appParm
 				if(FileExist(Z_LoopField)){
-					MenuExeListPush(menuRootFn[menuLevel],nameNotExt,Z_LoopField,Z_LoopField . appParm)
+					MenuExeListPush(menuRootFn[menuLevel],nameNotExt,Z_LoopField,Z_LoopField . appParm,menuRootFn,menuWebRootFn)
 					flagEXE:=true
 				}else{
 					IconFail:=true
@@ -464,18 +461,23 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 				continue
 			}
 			;~;[生成已取到的应用]
-			if(RegExMatch(Z_LoopField,"iS)\.exe$")){
+			if(RegExMatch(Z_LoopField,"iS)\.exe($| .*)")){
+				appParm:=RegExReplace(Z_LoopField,"iS).*?\.exe($| .*)","$1")	;去掉应用名，取参数
+				Z_LoopField:=RegExReplace(Z_LoopField,"iS)(.*?\.exe)($| .*)","$1")
 				appName:=RegExReplace(Z_LoopField,"iS)\.exe$")
 				if(MenuObj[appName]){
 					flagEXE:=true
+					MenuObjParam[appName]:=MenuObj[appName] . appParm
 				}else if(FileExist(A_WinDir "\" Z_LoopField) || FileExist(A_WinDir "\system32\" Z_LoopField)){
 					flagEXE:=true
 					MenuObj[appName]:=Z_LoopField
+					MenuObjParam[appName]:=Z_LoopField . appParm
 				}else if(!HideFail){
 					MenuObj[appName]:=Z_LoopField
+					MenuObjParam[appName]:=Z_LoopField . appParm
 				}
 				if(flagEXE){
-					MenuExeListPush(menuRootFn[menuLevel],appName,MenuObj[appName],MenuObj[appName])
+					MenuExeListPush(menuRootFn[menuLevel],appName,MenuObj[appName],MenuObj[appName] . appParm,menuRootFn,menuWebRootFn)
 				}else{
 					IconFail:=true
 				}
@@ -527,13 +529,25 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 		Menu,% menuRootFn[1],Icon,RunAny设置,% AnyIconS[1],% AnyIconS[2]
 	}
 }
-MenuExeListPush(menuName,menuItem,itemFile,itemPath){
+;~;[统一集合菜单中软件运行项]
+MenuExeListPush(menuName,menuItem,itemFile,itemAny,menuRootFn,menuWebRootFn){
 	MenuObjEXE:=Object()	;~软件对象
 	MenuObjEXE["menuName"]:=menuName
 	MenuObjEXE["menuItem"]:=menuItem
 	MenuObjEXE["itemFile"]:=itemFile
-	MenuObjEXE["itemPath"]:=itemPath
+	MenuObjEXE["itemAny"]:=itemAny
 	MenuExeList.Push(MenuObjEXE)
+	;带有%getZz%的菜单项都显示在选中内容菜单中
+	if(InStr(itemAny,"%getZz%")){
+		Menu,%menuName%:,add,%menuItem%,Menu_Run
+		Menu_Item_Icon(menuName ":",menuItem,itemFile)
+		if(menuName = menuRootFn[1]){
+			Menu,% menuWebRootFn[1],Add,%menuItem%,Menu_Run
+			Menu_Item_Icon(menuWebRootFn[1],menuItem,itemFile)
+		}else{
+			Menu,% menuWebRootFn[1],Add,%menuName%:, :%menuName%:
+		}
+	}
 }
 ;~;[读取热字串用作提示文字]
 Menu_HotStr_Hint_Read(hotstr,hotStrName,itemParam){
@@ -1029,6 +1043,8 @@ Menu_Run:
 				}
 				if(InStr(FileExist(any), "D")){
 					Run,%any%
+				}else if(InStr(any,"%getZz%")){
+					Run,% StrReplace(any,"%getZz%",getZz)
 				}else{
 					Run,%any%%A_Space%%getZzStr%
 				}
@@ -1036,6 +1052,8 @@ Menu_Run:
 				gosub,Menu_Run_Exe_Url
 			}else if(RegExMatch(any,"iS)^([\w-]+://?|www[.]).*")){
 				Run_Search(any,getZz)
+			}else if(InStr(any,"%getZz%")){
+				Run,% StrReplace(any,"%getZz%",getZz)
 			}else{
 				Run,%any%%A_Space%%getZz%
 			}
@@ -1053,6 +1071,7 @@ Menu_Run:
 		}else if(RegExMatch(any,"iS)^([\w-]+://?|www[.]).*")){
 			Run_Search(any)
 		}else{
+			any:=StrReplace(any,"%getZz%")
 			Run,%any%
 		}
 	} catch e {
