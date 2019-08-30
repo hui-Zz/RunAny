@@ -1005,6 +1005,7 @@ Menu_Run:
 			return
 		}
 		;[解析选中变量%getZz%]
+		getZzFlag:=InStr(any,"%getZz%") ? true : false
 		any:=Get_Transform_Val(any)
 		any:=RTrim(any," `t`n`r")
 		;[按住Ctrl键打开应用所在目录，只有目录则直接打开]
@@ -1053,6 +1054,8 @@ Menu_Run:
 				gosub,Menu_Run_Exe_Url
 			}else if(RegExMatch(any,"iS)^([\w-]+://?|www[.]).*")){
 				Run_Search(any,getZz)
+			}else if(getZzFlag){
+				Run,%any%
 			}else{
 				Run,%any%%A_Space%%getZz%
 			}
@@ -1110,11 +1113,14 @@ Menu_Key_Run:
 			return
 		}
 		;[解析选中变量%getZz%]
+		getZzFlag:=InStr(any,"%getZz%") ? true : false
 		any:=Get_Transform_Val(any)
 		any:=RTrim(any," `t`n`r")
 		if(getZz){
 			firstFile:=RegExReplace(getZz,"(.*)(\n|\r).*","$1")  ;取第一行
-			if(Candy_isFile=1 || FileExist(getZz) || FileExist(firstFile)){
+			if(getZzFlag){
+				Run,%any%
+			}else if(Candy_isFile=1 || FileExist(getZz) || FileExist(firstFile)){
 				getZzStr:=""
 				Loop, parse, getZz, `n, `r, %A_Space%%A_Tab%
 				{
@@ -2593,11 +2599,11 @@ TV_Move(moveMode = true){
 	if(moveID!=0){
 		TV_GetText(selVar, selID)
 		TV_GetText(moveVar, moveID)
-		selTreeFalg:=RegExMatch(selVar,"S)^-+[^-]+.*")
-		moveTreeFalg:=RegExMatch(moveVar,"S)^-+[^-]+.*")
+		selTreeFlag:=RegExMatch(selVar,"S)^-+[^-]+.*")
+		moveTreeFlag:=RegExMatch(moveVar,"S)^-+[^-]+.*")
 		selNextID:=moveMode ? moveID : TV_GetNext(selID)	; 向下：moveID即为树末节点，向上：选中树的下个同级节点为树末节点
 		moveNextID:=!moveMode ? selID : TV_GetNext(moveID)	; 向上：selID即为树末节点，向下：目标树的下个同级节点为树末节点
-		if((selTreeFalg || moveTreeFalg) && selNextID && moveNextID){
+		if((selTreeFlag || moveTreeFlag) && selNextID && moveNextID){
 			DelListID:=Object()		; 需要删除的旧节点
 			selTextList:=Object()	; 选中树的所有节点名列表
 			moveTextList:=Object()	; 目标树的所有节点名列表
