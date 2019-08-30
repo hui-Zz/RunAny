@@ -2071,31 +2071,29 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add, Checkbox,Checked%itemGlobalWinKey% x+5 yp+3 vvitemGlobalWinKey,Win
 	Gui,SaveItem:Add, Text, x+5 yp cBlue w200 BackgroundTrans, %itemGlobalHotKey%
 	Gui,SaveItem:Add, Text, xm+10 y+15 w100, 分 隔 符 ：  |
-	Gui,SaveItem:Add, Text, x+5 yp w345 cRed vvPrompt GSetSaveItemFullPath, 注意：RunAny不支持当前后缀无路径运行，%PromptStr%使用全路径
-	Gui,SaveItem:Add, DropDownList,x+5 yp-5 w120 AltSubmit vvItemMode GSetItemMode Choose%setItemMode%,启动路径|短语模式|模拟打字短语|热键映射|AHK热键映射|网址|文件夹|插件脚本函数
+	Gui,SaveItem:Add, Text, xm+90 yp w355 cRed vvExtPrompt GSetSaveItemFullPath, 注意：RunAny不支持当前后缀无路径运行，%PromptStr%使用全路径
+	Gui,SaveItem:Add, DropDownList,x+30 yp-5 w110 AltSubmit vvItemMode GSetItemMode Choose%setItemMode%,启动路径|短语模式|模拟打字短语|热键映射|AHK热键映射|网址|文件夹|插件脚本函数
 	
 	if(InStr(itemName,"-")){
 		Gui,SaveItem:Add, Text, xm+10 y+10 w60,文件后缀：
 		Gui,SaveItem:Add, Edit, x+10 yp w510 r5 vvitemPath GEditItemPathChange, %itemPath%
 	}else{
 		Gui,SaveItem:Add, Button, xm+6 y+6 w60 GSetItemPath,启动路径
-		Gui,SaveItem:Add, Button, xm+6 y+2 w60 GSetFileRelativePath,相对路径
-		Gui,SaveItem:Add, Button, xm+6 y+2 w60 GSetItemPathGetZz,选中变量
-		if(fExt="lnk"){
-			Gui,SaveItem:Add, Button, xm+6 y+2 w60 GSetShortcut,快捷目标
-			Gui,SaveItem:Font,,Consolas
-			Gui,SaveItem:Add, Edit, x+10 yp-88 WantTab w510 r7 vvitemPath GEditItemPathChange, %itemPath%
-		}else{
-			Gui,SaveItem:Font,,Consolas
-			Gui,SaveItem:Add, Edit, x+10 yp-60 WantTab w510 r7 vvitemPath GEditItemPathChange, %itemPath%
-		}
+		Gui,SaveItem:Font,,Consolas
+		Gui,SaveItem:Add, Edit, x+10 yp WantTab w510 r7 vvitemPath GEditItemPathChange, %itemPath%
+		Gui,SaveItem:Font,,Microsoft YaHei
+		Gui,SaveItem:Add, Button, xm+6 yp+27 w60 GSetFileRelativePath,相对路径
+		Gui,SaveItem:Add, Button, xm+6 yp+27 w60 GSetItemPathGetZz,选中变量
+		Gui,SaveItem:Add, Button, xm+6 yp+27 w60 vvSetShortcut GSetShortcut,快捷目标
 	}
 	Gui,SaveItem:Font,,Microsoft YaHei
 	Gui,SaveItem:Add,Button,Default xm+220 y+10 w75 G%SaveLabel%,保存(&Y)
 	Gui,SaveItem:Add,Button,x+20 w75 GSetCancel,取消(&C)
-	Gui,SaveItem:Add, Text, xm y+25, %thisMenuStr% %thisMenuItemStr%
+	Gui,SaveItem:Add, Text, xm y+25 w590 cBlue vvStatusBar, %thisMenuStr% %thisMenuItemStr%
 	Gui,SaveItem:Show,,新增修改菜单项 - %RunAnyZz% - 支持拖放应用
-	GuiControl,SaveItem:Hide, vPrompt
+	GuiControl,SaveItem:Hide, vExtPrompt
+	if(fExt!="lnk")
+		GuiControl,SaveItem:Hide, vSetShortcut
 	if(itemIconFile)
 		GuiControl,SaveItem:Hide, vTextIconAdd
 	if(hotStrShow=""){
@@ -2154,10 +2152,12 @@ EditItemPathChange:
 	Gui,SaveItem:Submit, NoHide
 	filePath:=!vitemPath && vitemName ? vitemName : vitemPath
 	if(filePath){
-		if(InStr(filePath,";",,0,1)=StrLen(filePath) || Check_Obj_Ext(filePath))
-			GuiControl, SaveItem:Hide, vPrompt
-		else
-			GuiControl, SaveItem:Show, vPrompt
+		getItemMode:=GetMenuItemMode(filePath)
+		if(getItemMode!=1 || Check_Obj_Ext(filePath)){
+			GuiControl, SaveItem:Hide, vExtPrompt
+		}else{
+			GuiControl, SaveItem:Show, vExtPrompt
+		}
 		fileValue:=RegExReplace(filePath,"iS)(.*?\..*?)($| .*)","$1")	;去掉参数
 		SplitPath, fileValue, fName,, fExt  ; 获取扩展名
 		if(fExt="exe"){
@@ -2190,37 +2190,38 @@ SetItemMode:
 	}else if((vItemMode=1 || vItemMode!=5) && getItemMode=5){		;清除AHK热键映射
 		StringTrimRight, vitemPath, vitemPath, 3
 	}
+	if(InStr(vitemName,"-"))
+		return
 	if(vItemMode=2 && getItemMode!=2){
 		vitemPath.=";"
+		GuiControl, SaveItem:,vStatusBar,此模式可把保存的短语 输出到任意位置
 	}else if(vItemMode=3 && getItemMode!=3){
 		vitemPath.=";;"
-		ToolTip, 此模式``n和``r转换为Enter键击，``t转换为Tab，``b转换为Backspace退格,95,183
-		SetTimer,RemoveToolTip,8000
+		GuiControl, SaveItem:,vStatusBar,此模式除输出短语外 ``n和``r转换为Enter键击  ``t转换为Tab键击  ``b转换为Backspace键击
 	}else if(vItemMode=4 && getItemMode!=4){
 		vitemPath.="::"
+		GuiControl, SaveItem:,vStatusBar,此模式可以模拟人手发送键击 把全局热键映射成其他热键 ^代表Ctrl键 !代表Alt键 #代表Win键 +代表Shift键
 	}else if(vItemMode=5 && getItemMode!=5){
 		vitemPath.=":::"
-		ToolTip, 此模式可以映射发送任意已运行AHK脚本中的热键键击,115,184
-		SetTimer,RemoveToolTip,8000
+		GuiControl, SaveItem:,vStatusBar,此模式可以映射发送任意已运行AHK脚本中的热键键击
 	}
-	GuiControl,, vitemPath, %vitemPath%
+	GuiControl, SaveItem:, vitemPath, %vitemPath%
 	gosub,EditItemPathChange
 return
 SetItemPath:
 	FileSelectFile, fileSelPath, , , 启动文件路径
 	if(fileSelPath){
-		GuiControl,, vitemPath, % Get_Item_Run_Path(fileSelPath)
+		GuiControl, SaveItem:, vitemPath, % Get_Item_Run_Path(fileSelPath)
 		gosub,EditItemPathChange
 	}
 return
 SetItemPathGetZz:
 	Gui,SaveItem:Submit, NoHide
-	SetTimer,RemoveToolTip,8000
 	if(vItemMode=6){
-		GuiControl,, vitemPath, %vitemPath%`%s
+		GuiControl, SaveItem:, vitemPath, %vitemPath%`%s
 	}else{
-		ToolTip, `%getZz`%在运行时会转换为你鼠标选中的文本内容,115,184
-		GuiControl,, vitemPath, %vitemPath% `%getZz`%
+		GuiControl, SaveItem:, vStatusBar,`%getZz`%在运行时会转换为你鼠标选中的文本内容
+		GuiControl, SaveItem:, vitemPath, %vitemPath% `%getZz`%
 	}
 return
 ;[全路径转换为RunAnyCtrl的相对路径]
@@ -2235,13 +2236,11 @@ SetFileRelativePath:
 		funcResult:=funcPath2RelativeZz(vitemPath,A_ScriptFullPath)
 	}
 	if(funcResult=-1){
-		ToolTip, 路径有误,155,183
-		SetTimer,RemoveToolTip,2000
+		GuiControl, SaveItem:,vStatusBar,路径有误
 		return
 	}
 	if(funcResult=-2){
-		ToolTip, 与RunAny不在同一磁盘，不能转换为相对路径,155,183
-		SetTimer,RemoveToolTip,3000
+		GuiControl, SaveItem:,vStatusBar,与RunAny不在同一磁盘，不能转换为相对路径
 		return
 	}
 	if(funcResult){
@@ -2328,7 +2327,6 @@ SaveItemGuiDropFiles:
 	gosub,EditItemPathChange
 return
 SaveItemGuiEscape:
-	ToolTip
 	Gui,SaveItem:Destroy
 return
 TVDown:
