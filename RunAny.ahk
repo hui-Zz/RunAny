@@ -191,7 +191,10 @@ if(!iniFlag){
 For k, v in MenuExeList
 {
 	if(!HideMenuAppIconList[(v["menuName"])]){
-		Menu_Item_Icon(v["menuName"],v["menuItem"],v["itemPath"])
+		Menu_Item_Icon(v["menuName"],v["menuItem"],v["itemFile"])
+		if(InStr(v["itemPath"],"%getZz%")){
+			Menu_Item_Icon(v["menuName"] ":",v["menuItem"],v["itemFile"])
+		}
 	}
 }
 ;#菜单已经加载完毕，托盘图标变化
@@ -360,9 +363,8 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 			}
 			;~添加到分类目录程序全数据
 			MenuObjTree%TREE_NO%[(menuRootFn[menuLevel])].Push(Z_LoopField)
-			MenuObjEXE:=Object()	;~软件对象
 			flagEXE:=false			;~添加exe菜单项目
-			IconFail:=false			;~是否显示无效项图标
+			IconFail:=false		;~是否显示无效项图标
 			if(InStr(Z_LoopField,"|")){
 				;~;[生成有前缀备注的应用]
 				menuDiy:=StrSplit(Z_LoopField,"|",,2)
@@ -394,10 +396,7 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 				}
 				if(FileExt="exe"){
 					if(flagEXE){
-						MenuObjEXE["menuName"]:=menuRootFn[menuLevel]
-						MenuObjEXE["menuItem"]:=menuDiy[1]
-						MenuObjEXE["itemPath"]:=item
-						MenuExeList.Push(MenuObjEXE)
+						MenuExeListPush(menuRootFn[menuLevel],menuDiy[1],item,menuDiy[2])
 					}else{
 						IconFail:=true
 					}
@@ -443,14 +442,13 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 				continue
 			}
 			;~;[生成完全路径的应用]
-			if(RegExMatch(Z_LoopField,"iS)^(\\\\|.:\\).*?\.exe$")){
+			if(RegExMatch(Z_LoopField,"iS)^(\\\\|.:\\).*?\.exe($| .*)")){
+				appParm:=RegExReplace(Z_LoopField,"iS).*?\.exe($| .*)","$1")	;去掉应用名，取参数
+				Z_LoopField:=RegExReplace(Z_LoopField,"iS)(.*?\.exe)($| .*)","$1")
 				SplitPath,Z_LoopField,fileName,,,nameNotExt
-				MenuObj[nameNotExt]:=Z_LoopField
+				MenuObjParam[nameNotExt]:=Z_LoopField . appParm
 				if(FileExist(Z_LoopField)){
-					MenuObjEXE["menuName"]:=menuRootFn[menuLevel]
-					MenuObjEXE["menuItem"]:=nameNotExt
-					MenuObjEXE["itemPath"]:=Z_LoopField
-					MenuExeList.Push(MenuObjEXE)
+					MenuExeListPush(menuRootFn[menuLevel],nameNotExt,Z_LoopField,Z_LoopField . appParm)
 					flagEXE:=true
 				}else{
 					IconFail:=true
@@ -477,10 +475,7 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 					MenuObj[appName]:=Z_LoopField
 				}
 				if(flagEXE){
-					MenuObjEXE["menuName"]:=menuRootFn[menuLevel]
-					MenuObjEXE["menuItem"]:=appName
-					MenuObjEXE["itemPath"]:=MenuObj[appName]
-					MenuExeList.Push(MenuObjEXE)
+					MenuExeListPush(menuRootFn[menuLevel],appName,MenuObj[appName],MenuObj[appName])
 				}else{
 					IconFail:=true
 				}
@@ -531,6 +526,14 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 		Menu,% menuRootFn[1],add,RunAny设置,:Tray
 		Menu,% menuRootFn[1],Icon,RunAny设置,% AnyIconS[1],% AnyIconS[2]
 	}
+}
+MenuExeListPush(menuName,menuItem,itemFile,itemPath){
+	MenuObjEXE:=Object()	;~软件对象
+	MenuObjEXE["menuName"]:=menuName
+	MenuObjEXE["menuItem"]:=menuItem
+	MenuObjEXE["itemFile"]:=itemFile
+	MenuObjEXE["itemPath"]:=itemPath
+	MenuExeList.Push(MenuObjEXE)
 }
 ;~;[读取热字串用作提示文字]
 Menu_HotStr_Hint_Read(hotstr,hotStrName,itemParam){
@@ -705,9 +708,14 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 				FileGetShortcut, %item%, OutItem, , , , OutIcon, OutIconNum
 				if(OutIcon){
 					Menu_Item_Icon(menuName,menuItem,OutIcon,OutIconNum)
+					if(InStr(item,"%getZz%"))
+						Menu_Item_Icon(menuName ":",menuItem,OutIcon,OutIconNum)
 				}else{
 					Menu_Item_Icon(menuName,menuItem,OutItem)
+					if(InStr(item,"%getZz%"))
+						Menu_Item_Icon(menuName ":",menuItem,OutItem)
 				}
+				
 			} catch e {
 				Menu_Item_Icon(menuName,menuItem,LNKIconS[1],LNKIconS[2])
 			}
@@ -718,6 +726,9 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 					RegRead, regFileIcon, HKEY_CLASSES_ROOT, %regFileExt%\DefaultIcon
 					regFileIconS:=StrSplit(regFileIcon,",")
 					Menu_Item_Icon(menuName,menuItem,regFileIconS[1],regFileIconS[2])
+					if(InStr(item,"%getZz%")){
+						Menu_Item_Icon(menuName ":",menuItem,regFileIconS[1],regFileIconS[2])
+					}
 				}catch{}
 			}else if(!HideFail){
 				Menu_Item_Icon(menuName,menuItem,"SHELL32.dll","124")
@@ -4213,7 +4224,7 @@ Menu_Exe_Icon_Extract:
 	ToolTip,RunAny开始用ResourcesExtract生成EXE图标，请稍等……
 	For k, v in MenuExeList
 	{
-		exePath:=v["itemPath"]
+		exePath:=v["itemFile"]
 		if(FileExist(exePath) && !HideMenuAppIconList[(v["menuName"])]){
 			menuItem:=menuItemIconFileName(v["menuItem"])
 			if(!exeIconCreateFlag || !FileExist(ExeIconDir "\" menuItem ".ico")){
@@ -4240,7 +4251,7 @@ Menu_Exe_Icon_Set(){
 	For k, v in MenuExeList
 	{
 		if(!HideMenuAppIconList[(v["menuName"])]){
-			exePath:=v["itemPath"]
+			exePath:=v["itemFile"]
 			SplitPath, exePath, exeName, exeDir, ext, name_no_ext
 			iconNameFlag:=false
 			maxFileName=
