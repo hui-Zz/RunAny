@@ -781,7 +781,8 @@ return
 ;══════════════════════════════════════════════════════════════════
 Menu_Show:
 	try{
-		global getZz:=Get_Zz()
+		if(!extMenuHideFlag)
+			global getZz:=Get_Zz()
 		gosub,RunAny_Menu
 		selectCheck:=Trim(getZz," `t`n`r")
 		if(selectCheck=""){
@@ -796,12 +797,14 @@ Menu_Show:
 			}
 			try{
 				extMenuName:=MenuObjExt[FileExt]
-				if(MENU_NO=1 && extMenuName){
+				if(MENU_NO=1 && extMenuName && !extMenuHideFlag){
 					if(MenuObjTree%MENU_NO%[extMenuName].MaxIndex()=1){
 						itemContent:=MenuObjTree%MENU_NO%[extMenuName][1]
 						MenuShowMenuRun:=Get_Obj_Name(itemContent)
 						gosub,Menu_Run
 					}else{
+						Menu,%extMenuName%,Insert, ,-【显示菜单全部】,Menu_All_Show
+						Menu,%extMenuName%,Icon,-【显示菜单全部】,SHELL32.dll,40
 						if(!HideAddItem){
 							Menu,%extMenuName%,Insert, ,0【添加到此菜单】,Menu_Add_File_Item
 							Menu,%extMenuName%,Default,0【添加到此菜单】
@@ -826,12 +829,14 @@ Menu_Show:
 								Menu,%extMenuName%,Delete,%v%
 							}
 						}
+						Menu,%extMenuName%,Delete,-【显示菜单全部】
 						if(!HideAddItem)
 							Menu,%extMenuName%,Delete,0【添加到此菜单】
 					}
 				}else{
-					if(!HideAddItem)
+					if(!HideAddItem){
 						Menu_Add_Del_Temp(1,MENU_NO,"0【添加到此菜单】","Menu_Add_File_Item","SHELL32.dll","166")
+					}
 					Menu_Show_Show(menuRoot%MENU_NO%[1],FileName)
 					if(!HideAddItem)
 						Menu_Add_Del_Temp(0,MENU_NO,"0【添加到此菜单】")
@@ -938,6 +943,11 @@ Menu_Key_Show:
 		gosub,RunAny_Menu
 		Menu_Show_Show(menuTreekey[(A_ThisHotkey)],getZz)
 	}catch{}
+return
+Menu_All_Show:
+	extMenuHideFlag:=true
+	gosub,Menu_Show1
+	extMenuHideFlag:=false
 return
 RunAny_Menu:
 	RunAnyMenu:=A_ScriptDir "\" PluginsDir "\RunAny_Menu.ahk"
