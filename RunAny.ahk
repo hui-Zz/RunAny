@@ -3202,10 +3202,14 @@ Run,notepad.exe %A_ScriptDir%\%PluginsDir%\%newObjRegInput%
 return
 PluginsDownVersion:
 	if(!Check_Github()){
-		TrayTip,网络异常，无法从https://github.com/hui-Zz/RunAny上读取最新文件，请手动下载,5,1
-		pluginsDownList:=PluginsObjList
-		checkGithub:=false
-		return
+		lpszUrl:=githubUrl
+		RunAnyGithubDir:=lpszUrl . "/hui-Zz/RunAny/master"
+		if(!Check_Github()){
+			TrayTip,网络异常，无法连接网络读取最新版本文件，请手动下载,5,1
+			pluginsDownList:=PluginsObjList
+			checkGithub:=false
+			return
+		}
 	}
 	IfNotExist %A_Temp%\%RunAnyZz%\%PluginsDir%
 		FileCreateDir,%A_Temp%\%RunAnyZz%\%PluginsDir%
@@ -3221,11 +3225,26 @@ PluginsDownVersion:
 				varList:=StrSplit(A_LoopField,"=")
 				pluginsDownList[(varList[1])]:=varList[2]
 			}
-			IniRead,objRegIniVar,%ObjRegIniPath%,name
-			Loop, parse, objRegIniVar, `n, `r
-			{
-				varList:=StrSplit(A_LoopField,"=")
-				pluginsNameList[(varList[1])]:=varList[2]
+			if(lpszUrl=giteeUrl){
+				FileEncoding,UTF-8
+				FileRead,tmpObjRegIniVar,%ObjRegIniPath%
+				Loop, parse, tmpObjRegIniVar, `n, `r
+				{
+					if(nameReadFlag && A_LoopField){
+						varList:=StrSplit(A_LoopField,"=")
+						pluginsNameList[(varList[1])]:=varList[2]
+					}
+					if(A_LoopField="[name]")
+						nameReadFlag:=true
+				}
+				FileEncoding
+			}else{
+				IniRead,objRegIniVar,%ObjRegIniPath%,name
+				Loop, parse, objRegIniVar, `n, `r
+				{
+					varList:=StrSplit(A_LoopField,"=")
+					pluginsNameList[(varList[1])]:=varList[2]
+				}
 			}
 			checkGithub:=true
 			return
@@ -3239,8 +3258,12 @@ LVDown:
 	IfMsgBox Ok
 	{
 		if(!Check_Github()){
-			MsgBox,网络异常，无法从https://github.com/hui-Zz/RunAny上读取最新版本文件，请手动下载
-			return
+			lpszUrl:=githubUrl
+			RunAnyGithubDir:=lpszUrl . "/hui-Zz/RunAny/master"
+			if(!Check_Github()){
+				MsgBox,网络异常，无法连接网络读取最新版本文件，请手动下载
+				return
+			}
 		}
 		gosub,AhkExeDown
 		downFlag:=false
@@ -3282,7 +3305,7 @@ LVDown:
 			;[下载插件脚本]
 			IfExist,%A_ScriptDir%\%pluginsDownPath%\%FileName%
 				FileMove,%A_ScriptDir%\%pluginsDownPath%\%FileName%,%A_Temp%\%RunAnyZz%\%pluginsDownPath%\%FileName%,1
-			URLDownloadToFile(RunAnyGithubDir "/" PluginsDir "/" name_no_ext "/" FileName,A_ScriptDir "\" pluginsDownPath "\" FileName)
+			URLDownloadToFile(RunAnyGithubDir "/" PluginsDir "/" FileName,A_ScriptDir "\" pluginsDownPath "\" FileName)
 
 			downFlag:=true
 			pluginsContent:=RegExReplace(FileContent, ".*\[([^\[\]]*)\]","$1")
@@ -3548,7 +3571,7 @@ Menu_Set:
 Menu_About:
 	Gui,99:Destroy
 	Gui,99:Color,FFFFFF
-	Gui,99:Add, ActiveX, x0 y0 w500 h375 voWB, shell explorer
+	Gui,99:Add, ActiveX, x0 y0 w550 h375 voWB, shell explorer
 	oWB.Navigate("about:blank")
 vHtml = 
 (
@@ -3557,7 +3580,7 @@ vHtml =
 <title>name</title>
 <body style="font-family:Microsoft YaHei;margin:30px;">
 <h2>
-【RunAnyZz】一劳永逸的快速启动工具 v%RunAny_update_version% @%RunAny_update_time% 
+【%RunAnyZz%】一劳永逸的快速启动工具 v%RunAny_update_version% @%RunAny_update_time% 
 <img alt="GitHub stars" src="https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=social"/> 
 <img src="http://hits.dwyl.io/hui-Zz/RunAny.svg)"/>
 <br>
@@ -3582,6 +3605,7 @@ vHtml =
 	oWB.Refresh()
 	Gui,99:Font,s11 Bold,Microsoft YaHei
 	Gui,99:Add,Link,xm+18 y+10,官网地址：<a href="https://github.com/hui-Zz/RunAny">https://github.com/hui-Zz/RunAny</a>
+	Gui,99:Add,Link,xm+18 y+10,码云地址：<a href="https://gitee.com/hui-Zz/RunAny">https://gitee.com/hui-Zz/RunAny</a>
 	Gui,99:Add,Link,xm+18 y+10,更新说明：<a href="https://github.com/hui-Zz/RunAny/wiki/RunAny版本更新历史">https://github.com/hui-Zz/RunAny/wiki/RunAny版本更新历史</a>
 	Gui,99:Add,Text,y+10, 讨论QQ群：
 	Gui,99:Add,Link,x+8 yp,<a href="https://jq.qq.com/?_wv=1027&k=445Ug7u">246308937【RunAny快速启动一劳永逸】</a>`n`n
@@ -3899,6 +3923,11 @@ Var_Set:
 		}
 	}
 	;~[定期自动检查更新]
+	global githubUrl:="https://raw.githubusercontent.com"
+	global giteeUrl:="https://gitee.com"
+	global lpszUrl:=giteeUrl
+	global RunAnyGithubDir:=lpszUrl . "/hui-Zz/RunAny/raw/master"
+	global featureDir:=A_ScriptDir "\实用配置"
 	if(A_DD=01 || A_DD=15){
 		;当天已经检查过就不再更新
 		if(FileExist(A_Temp "\temp_RunAny.ahk")){
@@ -4390,11 +4419,6 @@ Check_Update:
 	gosub,Auto_Update
 return
 Auto_Update:
-	global githubUrl:="https://raw.githubusercontent.com"
-	global giteeUrl:="https://gitee.com"
-	global lpszUrl:=giteeUrl
-	global RunAnyGithubDir:=lpszUrl . "/hui-Zz/RunAny/raw/master"
-	global featureDir:=A_ScriptDir "\实用配置"
 	if(FileExist(A_Temp "\RunAny_Update.bat"))
 		FileDelete, %A_Temp%\RunAny_Update.bat
 	;[下载最新的更新脚本]
