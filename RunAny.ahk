@@ -3899,9 +3899,6 @@ Var_Set:
 		}
 	}
 	;~[定期自动检查更新]
-	global lpszUrl:="https://raw.githubusercontent.com"
-	global RunAnyGithubDir:=lpszUrl . "/hui-Zz/RunAny/master"
-	global featureDir:=A_ScriptDir "\实用配置"
 	if(A_DD=01 || A_DD=15){
 		;当天已经检查过就不再更新
 		if(FileExist(A_Temp "\temp_RunAny.ahk")){
@@ -4393,12 +4390,21 @@ Check_Update:
 	gosub,Auto_Update
 return
 Auto_Update:
+	global githubUrl:="https://raw.githubusercontent.com"
+	global giteeUrl:="https://gitee.com"
+	global lpszUrl:=giteeUrl
+	global RunAnyGithubDir:=lpszUrl . "/hui-Zz/RunAny/raw/master"
+	global featureDir:=A_ScriptDir "\实用配置"
 	if(FileExist(A_Temp "\RunAny_Update.bat"))
 		FileDelete, %A_Temp%\RunAny_Update.bat
 	;[下载最新的更新脚本]
 	if(!Check_Github()){
-		TrayTip,,网络异常，无法从https://github.com/hui-Zz/RunAny上读取最新版本文件,3,1
-		return
+		lpszUrl:=githubUrl
+		RunAnyGithubDir:=lpszUrl . "/hui-Zz/RunAny/master"
+		if(!Check_Github()){
+			TrayTip,,网络异常，无法连接网络读取最新版本文件,3,1
+			return
+		}
 	}
 	URLDownloadToFile(RunAnyGithubDir "/RunAny.ahk",A_Temp "\temp_RunAny.ahk")
 	versionReg=iS)^\t*\s*global RunAny_update_version:="([\d\.]*)"
@@ -4451,7 +4457,7 @@ Config_Update:
 	}
 return
 RunAny_Update:
-;~ Run,https://github.com/hui-Zz/RunAny/wiki/RunAny版本更新历史
+Run,https://github.com/hui-Zz/RunAny/wiki/RunAny版本更新历史
 TrayTip,,RunAny已经更新到最新版本。,5,1
 FileAppend,
 (
