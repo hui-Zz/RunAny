@@ -264,6 +264,20 @@ XButton2::gosub,Menu_Show1
 #If MenuMButtonKey=1
 ~MButton::gosub,Menu_Show1
 #If
+AutoReloadMTime:
+	RegRead, MTimeIniPathReg, HKEY_CURRENT_USER, Software\RunAny, MTimeIniPath
+	FileGetTime,MTimeIniPath, %iniPath%, M  ; 获取修改时间.
+	if(MTimeIniPathReg!=MTimeIniPath){
+		Reload
+	}
+	if(MENU2FLAG){
+		RegRead, MTimeIniPath2, HKEY_CURRENT_USER, Software\RunAny, MTimeIniPath2
+		FileGetTime,MTimeIniPath2Reg, %iniPath2%, M  ; 获取修改时间.
+		if(MTimeIniPath2!=MTimeIniPath2Reg){
+			Reload
+		}
+	}
+return
 ;══════════════════════════════════════════════════════════════════
 ;~;[获取菜单项启动模式]1-启动路径|2-短语模式|3-模拟打字短语|4-热键映射|5-AHK热键映射|6-网址|7-文件夹|8-插件脚本函数|10-菜单节点|11-分割符|12-注释说明
 GetMenuItemMode(item,fullItemFlag:=false){
@@ -3412,9 +3426,13 @@ Menu_Set:
 	Gui,66:Default
 	Gui,66:Add,Tab,x10 y10 w550 h500,RunAny设置|配置热键|Everything设置|一键直达|自定义打开后缀|热字符串|图标设置
 	Gui,66:Tab,RunAny设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+5 w%groupWidch66% h50,RunAny设置
+	Gui,66:Add,GroupBox,xm-10 y+5 w%groupWidch66% h70,RunAny设置
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+25 vvAutoRun,开机自动启动
-	Gui,66:Add,Checkbox,Checked%IniConfig% x+128 vvIniConfig,RunAnyConfig.ini移动盘绿色配置
+	
+	Gui,66:Add,Text,x+150 w180,RunAny.ini修改后自动重启(毫秒)0为不自动重启
+	Gui,66:Add,Edit,x+5 yp+5 w50 h20 vvAutoReloadMTime,%AutoReloadMTime%
+	
+	Gui,66:Add,Checkbox,Checked%IniConfig% xm yp+15 vvIniConfig,RunAnyConfig.ini移动盘绿色配置
 	Gui,66:Add,GroupBox,xm-10 y+15 w%groupWidch66% h85,RunAny应用菜单
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
 	Gui,66:Add,Checkbox,Checked%HideRecent% x+140 vvHideRecent,隐藏最近运行
@@ -3439,7 +3457,7 @@ Menu_Set:
 	}
 
 	Gui,66:Add,GroupBox,xm-10 y+25 w%groupWidch66% h115,屏蔽RunAny程序列表（逗号分隔）
-	Gui,66:Add,Edit,xm yp+25 w480 r4 -WantReturn vvDisableApp,%DisableApp%
+	Gui,66:Add,Edit,xm yp+25 w500 r4 -WantReturn vvDisableApp,%DisableApp%
 	
 	Gui,66:Tab,配置热键,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+5 w%groupWidch66% h125,RunAny多种方式启动菜单
@@ -3680,7 +3698,7 @@ SetOK:
 			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		}
 	}
-	SetValueList:=["IniConfig","DisableApp","EvPath","EvCommand","EvAutoClose"]
+	SetValueList:=["IniConfig","AutoReloadMTime","DisableApp","EvPath","EvCommand","EvAutoClose"]
 	SetValueList.Push("HideFail","HideUnSelect","HideRecent","HideWeb","HideSend","HideAddItem","HideMenuTray","HideGetZz")
 	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu")
 	SetValueList.Push("BrowserPath","IconFolderPath","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon","AnyIcon","MenuIcon")
@@ -3865,6 +3883,7 @@ Var_Set:
 		if ErrorLevel
 			IniConfig:=1
 	}
+	global AutoReloadMTime:=Var_Read("AutoReloadMTime",2000)
 	global MenuDoubleCtrlKey:=Var_Read("MenuDoubleCtrlKey",0)
 	global MenuDoubleAltKey:=Var_Read("MenuDoubleAltKey",0)
 	global MenuDoubleLWinKey:=Var_Read("MenuDoubleLWinKey",0)
@@ -4122,6 +4141,8 @@ Run_Exist:
 		global iniVar2:=""
 		global MENU2FLAG:=true
 		FileRead, iniVar2, %iniPath2%
+		FileGetTime,MTimeIniPath2, %iniPath2%, M  ; 获取修改时间.
+		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, MTimeIniPath2, %MTimeIniPath2%
 	}
 	;#判断配置文件
 	if(!FileExist(RunAnyConfig)){
@@ -4150,6 +4171,12 @@ Run_Exist:
 	global ahkExePath:=A_ScriptDir "\" PluginsDir "\AHK.exe"
 	if(FileExist(ahkExePath)){
 		ahkFlag:=true
+	}
+	;~[记录配置修改时间]
+	FileGetTime,MTimeIniPath, %iniPath%, M  ; 获取修改时间.
+	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, MTimeIniPath, %MTimeIniPath%
+	if(AutoReloadMTime>0){
+		SetTimer,AutoReloadMTime,%AutoReloadMTime%
 	}
 return
 ;~;[AHK插件脚本读取]
