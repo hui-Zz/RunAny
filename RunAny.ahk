@@ -2289,7 +2289,7 @@ SetItemIconPath:
 		SplitPath, vitemPath, fName,, fExt, name_no_ext
 		itemIconName:=vitemName ? vitemName : name_no_ext
 		itemIconName:=menuItemIconFileName(itemIconName)
-		if(FileExist(itemIconFile)){
+		if(FileExist(itemIconFile) && iconSelPath!=itemIconFile){
 			IfNotExist %A_Temp%\%RunAnyZz%\RunIcon
 				FileCreateDir,%A_Temp%\%RunAnyZz%\RunIcon
 			SplitPath, itemIconFile, iName
