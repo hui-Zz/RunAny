@@ -3227,7 +3227,7 @@ return
 PluginsDownVersion:
 	if(!Check_Github()){
 		lpszUrl:=githubUrl
-		RunAnyGithubDir:=lpszUrl . "/hui-Zz/RunAny/master"
+		RunAnyDownDir:=lpszUrl . RunAnyGithubDir
 		if(!Check_Github()){
 			TrayTip,网络异常，无法连接网络读取最新版本文件，请手动下载,5,1
 			pluginsDownList:=PluginsObjList
@@ -3238,7 +3238,7 @@ PluginsDownVersion:
 	IfNotExist %A_Temp%\%RunAnyZz%\%PluginsDir%
 		FileCreateDir,%A_Temp%\%RunAnyZz%\%PluginsDir%
 	ObjRegIniPath=%A_Temp%\%RunAnyZz%\%PluginsDir%\RunAny_ObjReg.ini
-	URLDownloadToFile(RunAnyGithubDir "/" PluginsDir "/RunAny_ObjReg.ini",ObjRegIniPath)
+	URLDownloadToFile(RunAnyDownDir "/" PluginsDir "/RunAny_ObjReg.ini",ObjRegIniPath)
 	IfExist,%ObjRegIniPath%
 	{
 		FileGetSize, ObjRegIniSize, %ObjRegIniPath%
@@ -3283,7 +3283,7 @@ LVDown:
 	{
 		if(!Check_Github()){
 			lpszUrl:=githubUrl
-			RunAnyGithubDir:=lpszUrl . "/hui-Zz/RunAny/master"
+			RunAnyDownDir:=lpszUrl . RunAnyGithubDir
 			if(!Check_Github()){
 				MsgBox,网络异常，无法连接网络读取最新版本文件，请手动下载
 				return
@@ -3311,9 +3311,9 @@ LVDown:
 			;特殊插件下载依赖
 			if(FileName="huiZz_QRCode.ahk"){
 				TrayTip,,huiZz_QRCode需要下载quricol32.dll，请稍等……,3,1
-				URLDownloadToFile(RunAnyGithubDir "/" PluginsDir "/" name_no_ext "/quricol32.dll",A_ScriptDir "\" pluginsDownPath "\quricol32.dll")
+				URLDownloadToFile(RunAnyDownDir "/" PluginsDir "/" name_no_ext "/quricol32.dll",A_ScriptDir "\" pluginsDownPath "\quricol32.dll")
 				if(A_Is64bitOS){
-					URLDownloadToFile(RunAnyGithubDir "/" PluginsDir "/" name_no_ext "/quricol64.dll",A_ScriptDir "\" pluginsDownPath "\quricol64.dll")
+					URLDownloadToFile(RunAnyDownDir "/" PluginsDir "/" name_no_ext "/quricol64.dll",A_ScriptDir "\" pluginsDownPath "\quricol64.dll")
 					FileRead, quricol64, %A_ScriptDir%\%pluginsDownPath%\quricol64.dll
 					if(quricol64="404: Not Found`n"){
 						MsgBox,二维码插件quricol64.dll下载异常，请重新更新或到官网下载！
@@ -3329,8 +3329,7 @@ LVDown:
 			;[下载插件脚本]
 			IfExist,%A_ScriptDir%\%pluginsDownPath%\%FileName%
 				FileMove,%A_ScriptDir%\%pluginsDownPath%\%FileName%,%A_Temp%\%RunAnyZz%\%pluginsDownPath%\%FileName%,1
-			URLDownloadToFile(RunAnyGithubDir "/" PluginsDir "/" FileName,A_ScriptDir "\" pluginsDownPath "\" FileName)
-
+			URLDownloadToFile(RunAnyDownDir "/" StrReplace(pluginsDownPath,"\","/") "/" FileName,A_ScriptDir "\" pluginsDownPath "\" FileName)
 			downFlag:=true
 			pluginsContent:=RegExReplace(FileContent, ".*\[([^\[\]]*)\]","$1")
 			if(RegExMatch(FileContent,"iS)\]$") && pluginsContent){
@@ -3338,7 +3337,7 @@ LVDown:
 					FileCreateDir,%A_Temp%\%RunAnyZz%\实用配置
 				IfExist,%featureDir%\%pluginsContent%
 					FileMove,%featureDir%\%pluginsContent%,%A_Temp%\%RunAnyZz%\实用配置\%pluginsContent%,1
-				URLDownloadToFile(RunAnyGithubDir "/实用配置/" pluginsContent,featureDir "\" pluginsContent)
+				URLDownloadToFile(RunAnyDownDir "/实用配置/" pluginsContent,featureDir "\" pluginsContent)
 				Run,%featureDir%\%pluginsContent%
 			}
 		}
@@ -3363,9 +3362,10 @@ AhkExeDown:
 	}
 	if(ahkDown){
 		TrayTip,,RunAny使用脚本插件需要后台下载AHK.exe，期间可正常使用RunAny，`n下载时间因网速可能比较缓慢，完成后会自动重启RunAny,3,1
-		URLDownloadToFile(RunAnyGithubDir "/" PluginsDir "/AHK.exe",A_ScriptDir "\" PluginsDir "\AHK.exe")
+		URLDownloadToFile(RunAnyDownDir "/" PluginsDir "/AHK.exe",A_ScriptDir "\" PluginsDir "\AHK.exe")
 		if(A_Is64bitOS){
-			URLDownloadToFile(RunAnyGithubDir "/" PluginsDir "/AHK64.exe",A_ScriptDir "\" PluginsDir "\AHK64.exe")
+			;gitee下载1M以上的AHK64.exe需要登录，固定为github下载
+			URLDownloadToFile(githubUrl RunAnyGithubDir "/" PluginsDir "/AHK64.exe",A_ScriptDir "\" PluginsDir "\AHK64.exe")
 		}
 		ahkFlag:=true
 	}
@@ -3954,8 +3954,10 @@ Var_Set:
 	;~[定期自动检查更新]
 	global githubUrl:="https://raw.githubusercontent.com"
 	global giteeUrl:="https://gitee.com"
+	global RunAnyGiteeDir:="/hui-Zz/RunAny/raw/master"
+	global RunAnyGithubDir:="/hui-Zz/RunAny/master"
 	global lpszUrl:=giteeUrl
-	global RunAnyGithubDir:=lpszUrl . "/hui-Zz/RunAny/raw/master"
+	global RunAnyDownDir:=lpszUrl . RunAnyGiteeDir
 	global featureDir:=A_ScriptDir "\实用配置"
 	if(A_DD=01 || A_DD=15){
 		;当天已经检查过就不再更新
@@ -4161,7 +4163,7 @@ Run_Exist:
 		MsgBox,17,,没有找到%everyDLL%，将不能识别菜单中程序的路径`n需要将%everyDLL%放到【%A_ScriptDir%】目录下`n是否需要从网上下载%everyDLL%？
 		IfMsgBox Ok
 		{
-			URLDownloadToFile(RunAnyGithubDir "/" everyDLL,A_ScriptDir "\" everyDLL)
+			URLDownloadToFile(RunAnyDownDir "/" everyDLL,A_ScriptDir "\" everyDLL)
 			Reload
 		}
 	}
@@ -4461,13 +4463,13 @@ Auto_Update:
 	;[下载最新的更新脚本]
 	if(!Check_Github()){
 		lpszUrl:=githubUrl
-		RunAnyGithubDir:=lpszUrl . "/hui-Zz/RunAny/master"
+		RunAnyDownDir:=lpszUrl . RunAnyGithubDir
 		if(!Check_Github()){
 			TrayTip,,网络异常，无法连接网络读取最新版本文件,3,1
 			return
 		}
 	}
-	URLDownloadToFile(RunAnyGithubDir "/RunAny.ahk",A_Temp "\temp_RunAny.ahk")
+	URLDownloadToFile(RunAnyDownDir "/RunAny.ahk",A_Temp "\temp_RunAny.ahk")
 	versionReg=iS)^\t*\s*global RunAny_update_version:="([\d\.]*)"
 	Loop, read, %A_Temp%\temp_RunAny.ahk
 	{
@@ -4487,7 +4489,7 @@ Auto_Update:
 			{
 				TrayTip,,RunAny下载最新版本并替换老版本...,5,1
 				gosub,Config_Update
-				URLDownloadToFile(RunAnyGithubDir "/RunAny.exe",A_Temp "\temp_RunAny.exe")
+				URLDownloadToFile(RunAnyDownDir "/RunAny.exe",A_Temp "\temp_RunAny.exe")
 				gosub,RunAny_Update
 				shell := ComObjCreate("WScript.Shell")
 				shell.run(A_Temp "\RunAny_Update.bat",0)
@@ -4508,12 +4510,12 @@ Config_Update:
 	configDownList:=["实用命令.ini","搜索网址.ini","热键映射.ini"]
 	;~ For i, v in configDownList
 	;~ {
-		;~ URLDownloadToFile(RunAnyGithubDir "/实用配置/" v,A_ScriptDir "\实用配置\" v)
+		;~ URLDownloadToFile(RunAnyDownDir "/实用配置/" v,A_ScriptDir "\实用配置\" v)
 	;~ }
 	if(FileExist(A_ScriptDir "\ZzIcon.dll")){
 		FileGetSize, ZzIconSize, %A_ScriptDir%\ZzIcon.dll
 		if(ZzIconSize=610304){
-			URLDownloadToFile(RunAnyGithubDir "/ZzIcon.dll",A_ScriptDir "\ZzIcon.dll")
+			URLDownloadToFile(RunAnyDownDir "/ZzIcon.dll",A_ScriptDir "\ZzIcon.dll")
 		}
 	}
 return
