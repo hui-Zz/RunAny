@@ -3460,7 +3460,7 @@ Menu_Set:
 	Gui,66:Add,Edit,xm yp+25 w500 r4 -WantReturn vvDisableApp,%DisableApp%
 	
 	Gui,66:Tab,配置热键,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+5 w%groupWidch66% h125,RunAny多种方式启动菜单
+	Gui,66:Add,GroupBox,xm-10 y+5 w%groupWidch66% h125,RunAny多种方式启动菜单（与第三方软件热键冲突则取消勾选）
 	Gui,66:Add,Checkbox,Checked%MenuDoubleCtrlKey% xm yp+20 vvMenuDoubleCtrlKey,双击Ctrl键
 	Gui,66:Add,Checkbox,Checked%MenuDoubleAltKey% x+144 vvMenuDoubleAltKey,双击Alt键
 	Gui,66:Add,Checkbox,Checked%MenuDoubleLWinKey% xm yp+20 vvMenuDoubleLWinKey,双击左Win键
@@ -3516,11 +3516,11 @@ Menu_Set:
 	Gui,66:Add,GroupBox,xm-10 y+30 w%groupWidch66% h100,Everything安装路径（支持内置变量和相对路径..\为RunAny相对上级目录）
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp w420 r3 -WantReturn vvEvPath,%EvPath%
-	Gui,66:Add,GroupBox,xm-10 y+30 w%groupWidch66% h140,Everything搜索参数（搜索结果中程序可无路径用RunAny运行，搜索不到尝试强制重建索引）
+	Gui,66:Add,GroupBox,xm-10 y+30 w%groupWidch66% h150,Everything搜索参数（搜索结果中程序可无路径用RunAny运行，搜索不到尝试强制重建索引）
 	Gui,66:Add,Button,xm yp+20 w50 GSetEvCommand,修改
 	Gui,66:Add,Text,xm+60 yp,!C:\*Windows*为排除系统缓存和系统程序
 	Gui,66:Add,Text,xm+60 yp+15,file:*.exe|*.lnk|后面类推增加想要的后缀
-	Gui,66:Add,Edit,ReadOnly xm+10 yp+25 w470 r3 -WantReturn vvEvCommand,%EvCommand%
+	Gui,66:Add,Edit,ReadOnly xm+10 yp+25 w470 r4 -WantReturn vvEvCommand,%EvCommand%
 	
 	Gui,66:Tab,一键直达,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+10 w%groupWidch66% h50,一键直达
@@ -3581,15 +3581,15 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+82 yp w400 r1 vvEXEIcon,%EXEIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetFuncIcon,脚本插件函数
 	Gui,66:Add,Edit,xm+82 yp w400 r1 vvFuncIcon,%FuncIcon%
-	Gui,66:Add,GroupBox,xm-10 y+20 w%groupWidch66% h145,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含热字符串和全局热键）
+	Gui,66:Add,GroupBox,xm-10 y+10 w%groupWidch66% h170,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含热字符串和全局热键）
 	Gui,66:Add,Text, xm yp+20 w380,如图标文件名可以为：-常用(&&App).ico、cmd.png、百度(&&B).ico
 	if(ResourcesExtractExist)
 		Gui,66:Add,Button,x+5 yp w110 GMenu_Exe_Icon_Create,生成所有EXE图标
 	Gui,66:Add,Button,xm yp+30 w50 GSetIconFolderPath,选择
-	Gui,66:Add,Edit,xm+60 yp w420 r4 vvIconFolderPath,%IconFolderPath%
+	Gui,66:Add,Edit,xm+60 yp w420 r6 vvIconFolderPath,%IconFolderPath%
 
 	Gui,66:Tab
-	Gui,66:Add,Button,Default xm+100 y+50 w75 GSetOK,确定(&Y)
+	Gui,66:Add,Button,Default xm+100 y+20 w75 GSetOK,确定(&Y)
 	Gui,66:Add,Button,x+15 w75 GSetCancel,取消(&C)
 	Gui,66:Add,Button,x+15 w75 GSetReSet,重置
 	Gui,66:Add,Text,x+40 yp+5 w75 GMenu_Config,RunAnyConfig.ini
@@ -3911,12 +3911,12 @@ Var_Set:
 	global EvAutoClose:=Var_Read("EvAutoClose",0)
 	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
 	OneKeyUrl:=StrReplace(OneKeyUrl, "|", "`n")
-	;[隐藏配置]开始
 	global ShowGetZzLen:=Var_Read("ShowGetZzLen",30)			;菜单显示选中文字最大截取字数
 	global HideHotStr:=Var_Read("HideHotStr",0)				;是否隐藏热字符串提示，0-不隐藏；1-隐藏
 	global HotStrShowLen:=Var_Read("HotStrShowLen",30)		;热字符串提示显示最长字数，默认30个
 	global HotStrShowTime:=Var_Read("HotStrShowTime",3000)	;热字符串提示显示时长，默认3000为3秒
 	global HotStrShowTransparent:=Var_Read("HotStrShowTransparent",80)	;热字符串提示显示透明度，默认80%的透明度
+	;[隐藏配置]开始
 	global JumpSearch:=Var_Read("JumpSearch",0)				;批量搜索忽略确认弹窗
 	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)    	;获取选中目标到剪贴板等待时间
 	ClipWaitApp:=Var_Read("ClipWaitApp","")					;上一项剪贴板等待时间生效的应用
