@@ -1739,8 +1739,9 @@ Menu_Add_File_Item:
 	}
 	;初始化要添加的内容
 	itemGlobalWinKey:=0
-	itemName:=itemGlobalHotKey:=itemGlobalKey:=X_ThisMenuItem:=""
+	itemGlobalHotKey:=itemGlobalKey:=X_ThisMenuItem:=""
 	itemPath:=Get_Item_Run_Path(getZz)
+	SplitPath, itemPath, fName,, fExt, itemName
 	Z_ThisMenu:=A_ThisMenu
 	Z_ThisMenuItem:=A_ThisMenuItem
 	if(Z_ThisMenuItem="0【添加到此菜单】"){
@@ -3079,7 +3080,8 @@ LVApply:
 				SetWorkingDir,%A_ScriptDir%
 			}
 		}else if(menuItem="编辑"){
-			PostMessage, 0x111, 65401,,, %FilePath% ahk_class AutoHotkey
+			;~ PostMessage, 0x111, 65401,,, %FilePath% ahk_class AutoHotkey
+			Run,edit "%FilePath%"
 		}else if(menuItem="挂起"){
 			PostMessage, 0x111, 65404,,, %FilePath% ahk_class AutoHotkey
 			LVStatusChange(RowNumber,FileStatus,"挂起")
