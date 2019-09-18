@@ -990,6 +990,7 @@ return
 ;~;[菜单运行]
 ;══════════════════════════════════════════════════════════════════
 Menu_Run:
+	anyRun:=""
 	any:=MenuObj[(A_ThisMenuItem)]
 	if(MenuShowMenuRun){
 		any:=MenuObj[(MenuShowMenuRun)]
@@ -1001,6 +1002,7 @@ Menu_Run:
 	if(!HideRecent && !RegExMatch(A_ThisMenuItem,"S)^&1|2"))
 		gosub,Menu_Recent
 	try {
+		global TVEditItem
 		anyLen:=StrLen(any)
 		;[按住Shift编辑菜单项]
 		if(!GetKeyState("Alt") && !GetKeyState("LWin") && !GetKeyState("Ctrl") && GetKeyState("Shift")){
@@ -1032,24 +1034,32 @@ Menu_Run:
 		getZzFlag:=InStr(any,"%getZz%") ? true : false
 		any:=Get_Transform_Val(any)
 		any:=RTrim(any," `t`n`r")
-		;[按住Ctrl键打开应用所在目录，只有目录则直接打开]
-		if(!getZz && !Candy_isFile){
-			if(GetKeyState("Ctrl") && GetKeyState("Shift")){	;[按住Ctrl+Shift管理员身份运行]
-				Run,*RunAs %any%
-				return
-			}
+		if(!getZz && !Candy_isFile && !GetKeyState("Alt") && !GetKeyState("LWin") && !GetKeyState("Shift")){
+			;[按住Ctrl键打开应用所在目录，只有目录则直接打开]
 			if(GetKeyState("Ctrl") || InStr(FileExist(any), "D")){
 				if(OpenFolderPathRun){
-					Run,%OpenFolderPathRun%%A_Space%"%any%"
+					anyRun=%anyRun%%OpenFolderPathRun%%A_Space%"%any%"
 				}else if(InStr(FileExist(any), "D")){
-					Run,%any%
+					anyRun=%anyRun%%any%
 				}else{
-					Run,% "explorer.exe /select," any
+					anyRun.="explorer.exe /select," any
 				}
+				Run,%anyRun%
 				return
 			}
 		}
-		global TVEditItem
+		if(RegExMatch(any,"iS)^.*?\.exe ([\w-]+://?|www[.]).*")){
+			gosub,Menu_Run_Exe_Url
+			return
+		}
+		if(RegExMatch(any,"iS)^([\w-]+://?|www[.]).*")){
+			Run_Search(any,getZz)
+			return
+		}
+		;[按住Ctrl+Shift管理员身份运行]
+		if(GetKeyState("Ctrl") && GetKeyState("Shift")){
+			anyRun.="*RunAs "
+		}
 		if(getZz!=""){
 			firstFile:=RegExReplace(getZz,"(.*)(\n|\r).*","$1")  ;取第一行
 			if(Candy_isFile=1 || FileExist(getZz) || FileExist(firstFile)){
@@ -1061,10 +1071,6 @@ Menu_Run:
 					getZzStr.="""" . A_LoopField . """" . A_Space
 				}
 				StringTrimRight, getZzStr, getZzStr, 1
-				if(GetKeyState("Ctrl") && GetKeyState("Shift")){	;[按住Ctrl+Shift管理员身份运行]
-					Run,*RunAs %any%%A_Space%%getZzStr%
-					return
-				}
 				if(GetKeyState("Ctrl")){
 					gosub,Menu_Add_File_Item
 					return
@@ -1074,30 +1080,25 @@ Menu_Run:
 				}else{
 					Run,%any%%A_Space%%getZzStr%
 				}
-			}else if(RegExMatch(any,"iS)^.*?\.exe ([\w-]+://?|www[.]).*")){
-				gosub,Menu_Run_Exe_Url
-			}else if(RegExMatch(any,"iS)^([\w-]+://?|www[.]).*")){
-				Run_Search(any,getZz)
-			}else if(getZzFlag){
-				Run,%any%
-			}else{
-				Run,%any%%A_Space%%getZz%
+				return
 			}
+			if(getZzFlag){
+				anyRun=%anyRun%%any%
+			}else{
+				anyRun=%anyRun%%any%%A_Space%%getZz%
+			}
+			Run,%anyRun%
 			return
 		}
 		menuKeys:=StrSplit(A_ThisMenuItem,"`t")
 		thisMenuName:=menuKeys[1]
-		if(thisMenuName && RegExMatch(thisMenuName,"S).*?_:(\d{1,2})$")){
+		if(ext && openExtRunList[ext]){
+			Run,% openExtRunList[ext] . A_Space . """" any """"
+		}else if(thisMenuName && RegExMatch(thisMenuName,"S).*?_:(\d{1,2})$")){
 			menuTrNum:=RegExReplace(thisMenuName,"S).*?_:(\d{1,2})$","$1")
 			Run_Tr(any,menuTrNum,true)
-		}else if(ext && openExtRunList[ext]){
-			Run,% openExtRunList[ext] . A_Space . """" any """"
-		}else if(RegExMatch(any,"iS)^.*?\.exe ([\w-]+://?|www[.]).*")){
-			gosub,Menu_Run_Exe_Url
-		}else if(RegExMatch(any,"iS)^([\w-]+://?|www[.]).*")){
-			Run_Search(any)
 		}else{
-			Run,%any%
+			Run,%anyRun%%any%
 		}
 	} catch e {
 		MsgBox,16,%A_ThisMenuItem%运行出错,% "运行路径：" any "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
