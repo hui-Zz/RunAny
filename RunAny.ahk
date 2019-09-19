@@ -1885,7 +1885,7 @@ Menu_Edit:
 	TVMenu("TVMenu")
 	TVMenu("GuiMenu")
 	Gui, Menu, GuiMenu
-	Gui, Show, , %RunAnyZz%菜单树管理【%both%】(双击修改，右键操作) %RunAny_update_version% %RunAny_update_time%
+	Gui, Show, , %RunAnyZz%菜单树管理【%both%】(双击修改，右键操作) %RunAny_update_version% %RunAny_update_time%%AdminMode%
 	if(TVEditItem!=""){
 		ItemEdit:=Get_Obj_Name(TVEditItem)
 		ItemID = 0
@@ -2024,7 +2024,7 @@ return
 TVAdd:
 	selID:=TV_Add("",TV_GetParent(TV_GetSelection()),TV_GetSelection())
 	itemGlobalWinKey:=0
-	itemName:=itemPath:=itemGlobalHotKey:=itemGlobalKey:=getZz:=""
+	itemName:=itemPath:=hotStrOption:=hotStrShow:=itemGlobalHotKey:=itemGlobalKey:=getZz:=""
 	menuGuiFlag:=true
 	gosub,Menu_Item_Edit
 return
@@ -2996,7 +2996,7 @@ LVMenu("LVMenu")
 LVMenu("ahkGuiMenu")
 Gui,P: Menu, ahkGuiMenu
 LVModifyCol(65,ColumnStatus,ColumnAutoRun)
-Gui,P:Show, , %RunAnyZz% 插件管理 %RunAny_update_version% %RunAny_update_time%
+Gui,P:Show, , %RunAnyZz% 插件管理 %RunAny_update_version% %RunAny_update_time%%AdminMode%
 DetectHiddenWindows,Off
 return
 
@@ -3599,7 +3599,7 @@ Menu_Set:
 	Gui,66:Add,Button,x+15 w75 GSetCancel,取消(&C)
 	Gui,66:Add,Button,x+15 w75 GSetReSet,重置
 	Gui,66:Add,Text,x+40 yp+5 w75 GMenu_Config,RunAnyConfig.ini
-	Gui,66:Show,,%RunAnyZz%设置 %RunAny_update_version% %RunAny_update_time%
+	Gui,66:Show,,%RunAnyZz%设置 %RunAny_update_version% %RunAny_update_time%%AdminMode%
 	return
 ;~;[关于]
 Menu_About:
@@ -3644,7 +3644,7 @@ vHtml =
 	Gui,99:Add,Text,y+10, 讨论QQ群：
 	Gui,99:Add,Link,x+8 yp,<a href="https://jq.qq.com/?_wv=1027&k=445Ug7u">246308937【RunAny快速启动一劳永逸】</a>`n`n
 	Gui,99:Font
-	Gui,99:Show,AutoSize Center,关于%RunAnyZz%
+	Gui,99:Show,AutoSize Center,关于%RunAnyZz%%AdminMode%
 	hCurs:=DllCall("LoadCursor","UInt",NULL,"Int",32649,"UInt") ;IDC_HAND
 	OnMessage(0x200,"WM_MOUSEMOVE")
 return
@@ -3876,6 +3876,7 @@ return
 ;~;[初始化]
 ;══════════════════════════════════════════════════════════════════
 Var_Set:
+	global AdminMode:=A_IsAdmin ? "【管理员】" : ""
 	;~;[RunAny设置参数]
 	RegRead, AutoRun, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 	AutoRun:=AutoRun ? 1 : 0
