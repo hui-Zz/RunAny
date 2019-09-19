@@ -986,11 +986,24 @@ Menu_Show_Show(menuName,itemName){
 Menu_Show_Select_Clipboard:
 	Clipboard:=Candy_Select
 return
+;~;[所有菜单(添加/删除)临时项]
+Menu_Add_Del_Temp(addDel=1,TREE_NO=1,mName="",LabelName="",mIcon="",mIconNum=""){
+	if(!mName)
+		return
+	For kk, vv in MenuObjTree%TREE_NO%
+	{
+		if(addDel){
+			Menu,%kk%,Insert, ,%mName%,%LabelName%
+			Menu,%kk%,Icon,%mName%,%mIcon%,%mIconNum%
+		}else{
+			Menu,%kk%,Delete,%mName%
+		}
+	}
+}
 ;══════════════════════════════════════════════════════════════════
 ;~;[菜单运行]
 ;══════════════════════════════════════════════════════════════════
 Menu_Run:
-	anyRun:=""
 	any:=MenuObj[(A_ThisMenuItem)]
 	if(MenuShowMenuRun){
 		any:=MenuObj[(MenuShowMenuRun)]
@@ -1026,14 +1039,23 @@ Menu_Run:
 			gosub,Menu_Run_Send_Zz
 			return
 		}
-		if(RegExMatch(any,"iS).+?\[.+?\]%?\(.*?\)")){  ; {脚本插件函数}
+		if(RegExMatch(any,"iS).+?\[.+?\]%?\(.*?\)")){  ;{脚本插件函数}
 			gosub,Menu_Run_Plugins_ObjReg
+			return
+		}
+		if(RegExMatch(any,"iS)^.*?\.exe ([\w-]+://?|www[.]).*")){
+			gosub,Menu_Run_Exe_Url
+			return
+		}
+		if(RegExMatch(any,"iS)^([\w-]+://?|www[.]).*")){	;网页
+			Run_Search(any,getZz)
 			return
 		}
 		;[解析选中变量%getZz%]
 		getZzFlag:=InStr(any,"%getZz%") ? true : false
 		any:=Get_Transform_Val(any)
 		any:=RTrim(any," `t`n`r")
+		anyRun:=""
 		if(!getZz && !Candy_isFile && !GetKeyState("Alt") && !GetKeyState("LWin") && !GetKeyState("Shift")){
 			;[按住Ctrl键打开应用所在目录，只有目录则直接打开]
 			if(GetKeyState("Ctrl") || InStr(FileExist(any), "D")){
@@ -1044,17 +1066,9 @@ Menu_Run:
 				}else{
 					anyRun.="explorer.exe /select," any
 				}
-				Run,%anyRun%
+				Run_Any(anyRun)
 				return
 			}
-		}
-		if(RegExMatch(any,"iS)^.*?\.exe ([\w-]+://?|www[.]).*")){
-			gosub,Menu_Run_Exe_Url
-			return
-		}
-		if(RegExMatch(any,"iS)^([\w-]+://?|www[.]).*")){
-			Run_Search(any,getZz)
-			return
 		}
 		;[按住Ctrl+Shift管理员身份运行]
 		if(GetKeyState("Ctrl") && GetKeyState("Shift")){
@@ -1076,9 +1090,9 @@ Menu_Run:
 					return
 				}
 				if(InStr(FileExist(any), "D")){
-					Run,%any%
+					Run_Any(any)
 				}else{
-					Run,%any%%A_Space%%getZzStr%
+					Run_Any(any . A_Space . getZzStr)
 				}
 				return
 			}
@@ -1087,18 +1101,18 @@ Menu_Run:
 			}else{
 				anyRun=%anyRun%%any%%A_Space%%getZz%
 			}
-			Run,%anyRun%
+			Run_Any(anyRun)
 			return
 		}
 		menuKeys:=StrSplit(A_ThisMenuItem,"`t")
 		thisMenuName:=menuKeys[1]
 		if(ext && openExtRunList[ext]){
-			Run,% openExtRunList[ext] . A_Space . """" any """"
+			Run_Any(openExtRunList[ext] . A_Space . """" any """")
 		}else if(thisMenuName && RegExMatch(thisMenuName,"S).*?_:(\d{1,2})$")){
 			menuTrNum:=RegExReplace(thisMenuName,"S).*?_:(\d{1,2})$","$1")
 			Run_Tr(any,menuTrNum,true)
 		}else{
-			Run,%anyRun%%any%
+			Run_Any(anyRun . any)
 		}
 	} catch e {
 		MsgBox,16,%A_ThisMenuItem%运行出错,% "运行路径：" any "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
@@ -1144,7 +1158,7 @@ Menu_Key_Run:
 		if(getZz){
 			firstFile:=RegExReplace(getZz,"(.*)(\n|\r).*","$1")  ;取第一行
 			if(getZzFlag){
-				Run,%any%
+				Run_Any(any)
 			}else if(Candy_isFile=1 || FileExist(getZz) || FileExist(firstFile)){
 				getZzStr:=""
 				Loop, parse, getZz, `n, `r, %A_Space%%A_Tab%
@@ -1154,7 +1168,7 @@ Menu_Key_Run:
 					getZzStr.="""" . A_LoopField . """" . A_Space
 				}
 				StringTrimRight, getZzStr, getZzStr, 1
-				Run,%any%%A_Space%%getZzStr%
+				Run_Any(any . A_Space . getZzStr)
 			}else if(RegExMatch(any,"iS)^.*?\.exe ([\w-]+://?|www[.]).*")){
 				gosub,Menu_Run_Exe_Url
 			}else if(RegExMatch(any,"iS)^([\w-]+://?|www[.]).*")){
@@ -1285,20 +1299,6 @@ Menu_Recent:
 	}
 	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, MenuCommonList, %commonStr%
 return
-;~;[所有菜单(添加/删除)临时项]
-Menu_Add_Del_Temp(addDel=1,TREE_NO=1,mName="",LabelName="",mIcon="",mIconNum=""){
-	if(!mName)
-		return
-	For kk, vv in MenuObjTree%TREE_NO%
-	{
-		if(addDel){
-			Menu,%kk%,Insert, ,%mName%,%LabelName%
-			Menu,%kk%,Icon,%mName%,%mIcon%,%mIconNum%
-		}else{
-			Menu,%kk%,Delete,%mName%
-		}
-	}
-}
 ;~;[执行批量搜索]
 Web_Run:
 	webName:=RegExReplace(A_ThisMenuItem,"iS)^&1批量搜索")
@@ -1326,12 +1326,15 @@ Web_Search:
 		}
 	}
 return
+Run_Any(any){
+	Run,%any%
+}
 Run_Zz(program){
 	fullPath:=Get_Obj_Path(program)
 	exePath:=fullPath ? fullPath : program
 	DetectHiddenWindows, Off
 	If !WinExist("ahk_exe" . exePath)
-		Run,%program%
+		Run_Any(program)
 	else
 		WinGet,l,List,ahk_exe %exePath%
 		if l=1
@@ -1348,7 +1351,7 @@ Run_Tr(program,trNum,newOpen=false){
 	exePath:=fullPath ? fullPath : program
 	DetectHiddenWindows, Off
 	If(newOpen || !WinExist("ahk_exe" . exePath)){
-		Run,%program%
+		Run_Any(program)
 		WinWait,ahk_exe %exePath%
 		;~ WinSet,Style,-0xC00000,
 		try WinSet,Style,-0x40000,ahk_exe %exePath%
