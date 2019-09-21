@@ -1312,7 +1312,13 @@ Web_Search:
 	}
 return
 Run_Any(any){
-	Run,%any%
+	;~ if(!A_IsAdmin){
+		Run,%any%
+	;~ }else{
+		;~ RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, RunAnyRunPath, %any%
+		;~ SendLevel,1
+		;~ SendInput,{XButton2}
+	;~ }
 }
 Run_Zz(program){
 	fullPath:=Get_Obj_Path(program)
@@ -3417,13 +3423,13 @@ Menu_Set:
 	Gui,66:Default
 	Gui,66:Add,Tab,x10 y10 w550 h500,RunAny设置|配置热键|Everything设置|一键直达|自定义打开后缀|热字符串|图标设置
 	Gui,66:Tab,RunAny设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+5 w%groupWidch66% h70,RunAny设置
+	Gui,66:Add,GroupBox,xm-10 y+5 w%groupWidch66% h85,RunAny设置
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+25 vvAutoRun,开机自动启动
-	
 	Gui,66:Add,Text,x+150 w180,RunAny.ini修改后自动重启(毫秒)0为不自动重启
 	Gui,66:Add,Edit,x+5 yp+5 w50 h20 vvAutoReloadMTime,%AutoReloadMTime%
+	Gui,66:Add,Checkbox,Checked%AdminRun% xm yp+15 vvAdminRun,管理员权限运行所有软件和插件
+	Gui,66:Add,Checkbox,Checked%IniConfig% xm yp+20 vvIniConfig,RunAnyConfig.ini移动盘绿色配置
 	
-	Gui,66:Add,Checkbox,Checked%IniConfig% xm yp+15 vvIniConfig,RunAnyConfig.ini移动盘绿色配置
 	Gui,66:Add,GroupBox,xm-10 y+15 w%groupWidch66% h85,RunAny应用菜单
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
 	Gui,66:Add,Checkbox,Checked%HideRecent% x+140 vvHideRecent,隐藏最近运行
@@ -3447,7 +3453,7 @@ Menu_Set:
 		Gui,66:Add,Button,x+35 yp-5 w150 GSetMenu2,开启第2个菜单
 	}
 
-	Gui,66:Add,GroupBox,xm-10 y+25 w%groupWidch66% h115,屏蔽RunAny程序列表（逗号分隔）
+	Gui,66:Add,GroupBox,xm-10 y+25 w%groupWidch66% h105,屏蔽RunAny程序列表（逗号分隔）
 	Gui,66:Add,Edit,xm yp+25 w500 r4 -WantReturn vvDisableApp,%DisableApp%
 	
 	Gui,66:Tab,配置热键,,Exact
@@ -3537,7 +3543,7 @@ Menu_Set:
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtEdit, * 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtRemove, - 减少
 	Gui,66:Add,Text, x+10 yp+5 w320,（特殊类型：文件夹folder 网址http https www ftp等）
-	Gui,66:Add,Listview,xm yp+30 w500 r14 grid AltSubmit -Multi vRunAnyOpenExtLV glistviewOpenExt, 文件后缀(用空格分隔)|打开方式(支持无路径)
+	Gui,66:Add,Listview,xm yp+30 w500 r16 grid AltSubmit -Multi vRunAnyOpenExtLV glistviewOpenExt, 文件后缀(用空格分隔)|打开方式(支持无路径)
 	GuiControl, 66:-Redraw, RunAnyOpenExtLV
 	For k, v in openExtIniList
 	{
@@ -3580,7 +3586,7 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+60 yp w420 r6 vvIconFolderPath,%IconFolderPath%
 
 	Gui,66:Tab
-	Gui,66:Add,Button,Default xm+100 y+20 w75 GSetOK,确定(&Y)
+	Gui,66:Add,Button,Default xm+100 y+30 w75 GSetOK,确定(&Y)
 	Gui,66:Add,Button,x+15 w75 GSetCancel,取消(&C)
 	Gui,66:Add,Button,x+15 w75 GSetReSet,重置
 	Gui,66:Add,Text,x+40 yp+5 w75 GMenu_Config,RunAnyConfig.ini
@@ -3689,7 +3695,7 @@ SetOK:
 			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		}
 	}
-	SetValueList:=["IniConfig","AutoReloadMTime","DisableApp","EvPath","EvCommand","EvAutoClose"]
+	SetValueList:=["AdminRun","IniConfig","AutoReloadMTime","DisableApp","EvPath","EvCommand","EvAutoClose"]
 	SetValueList.Push("HideFail","HideUnSelect","HideRecent","HideWeb","HideSend","HideAddItem","HideMenuTray","HideGetZz")
 	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu")
 	SetValueList.Push("BrowserPath","IconFolderPath","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon","AnyIcon","MenuIcon")
@@ -3861,7 +3867,6 @@ return
 ;~;[初始化]
 ;══════════════════════════════════════════════════════════════════
 Var_Set:
-	global AdminMode:=A_IsAdmin ? "【管理员】" : ""
 	;~;[RunAny设置参数]
 	RegRead, AutoRun, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 	AutoRun:=AutoRun ? 1 : 0
@@ -3875,6 +3880,17 @@ Var_Set:
 		if ErrorLevel
 			IniConfig:=1
 	}
+	global AdminRun:=Var_Read("AdminRun",0)
+	;#判断管理员权限#
+	if(AdminRun && !A_IsAdmin)
+	{
+		adminahkpath:=""
+		if(!A_IsCompiled)
+			adminahkpath:=A_AhkPath A_Space
+		Run *RunAs %adminahkpath%"%A_ScriptFullPath%"
+		ExitApp
+	}
+	global AdminMode:=A_IsAdmin ? "【管理员】" : ""
 	global AutoReloadMTime:=Var_Read("AutoReloadMTime",2000)
 	global MenuDoubleCtrlKey:=Var_Read("MenuDoubleCtrlKey",0)
 	global MenuDoubleAltKey:=Var_Read("MenuDoubleAltKey",0)
@@ -3892,7 +3908,7 @@ Var_Set:
 	global HideWeb:=Var_Read("HideWeb",1)
 	global HideSend:=Var_Read("HideSend",0)
 	global HideAddItem:=Var_Read("HideAddItem",0)
-	global HideMenuTray:=Var_Read("HideMenuTray",1)
+	global HideMenuTray:=Var_Read("HideMenuTray",0)
 	global HideGetZz:=Var_Read("HideGetZz",0)
 	global OneKeyWeb:=Var_Read("OneKeyWeb",1)
 	global OneKeyFolder:=Var_Read("OneKeyFolder",1)
