@@ -571,12 +571,12 @@ Menu_HotStr_Hint_Read(hotstr,hotStrName,itemParam){
 		return
 	if(menuHotStrLen=1){
 		menuHotStrHint:=menuHotStrShow
-	}else if(menuHotStrLen<4){
+	}else if(menuHotStrLen<4){ ;总长度小于4在减1长度时提示
 		menuHotStrHint:=SubStr(menuHotStrShow, 1, menuHotStrLen-1)
 	}else{
 		loop, % menuHotStrLen - 3
 		{
-			MenuObjHotStr:=Object()	;~热字符对象
+			MenuObjHotStr:=Object()	;热字符对象
 			menuHotStrHint:=SubStr(menuHotStrShow, 1, A_Index + 2)
 			MenuObjHotStr["hotStrAny"]:=itemParam
 			MenuObjHotStr["hotStrHint"]:=menuHotStrHint
@@ -587,7 +587,7 @@ Menu_HotStr_Hint_Read(hotstr,hotStrName,itemParam){
 		}
 		return
 	}
-	MenuObjHotStr:=Object()	;~热字符对象
+	MenuObjHotStr:=Object()	;热字符对象
 	MenuObjHotStr["hotStrAny"]:=itemParam
 	MenuObjHotStr["hotStrHint"]:=menuHotStrHint
 	MenuObjHotStr["hotStrShow"]:=menuHotStrShow
@@ -1016,7 +1016,6 @@ Menu_Run:
 		gosub,Menu_Recent
 	try {
 		global TVEditItem
-		anyLen:=StrLen(any)
 		;[按住Shift编辑菜单项]
 		if(!GetKeyState("Alt") && !GetKeyState("LWin") && !GetKeyState("Ctrl") && GetKeyState("Shift")){
 			TVEditItem:=A_ThisMenuItem
@@ -1024,33 +1023,11 @@ Menu_Run:
 			TVEditItem:=""
 			return
 		}
-		If(InStr(any,";",,0,1)=anyLen){
-			If(InStr(any,";;",,0,1)=anyLen-1){
-				StringLeft, any, any, anyLen-2
-				Send_Str_Input_Zz(any,true)	;[键盘输出短语]
-				return
-			}
-			StringLeft, any, any, anyLen-1
-			Send_Str_Zz(any,true)	;[粘贴输出短语]
+		returnFlag:=false
+		gosub,Menu_Run_Mode_Label
+		if(returnFlag)
 			return
-		}
-		;[输出热键]
-		If(InStr(any,"::",,0,1)=anyLen-1){
-			gosub,Menu_Run_Send_Zz
-			return
-		}
-		if(RegExMatch(any,"iS).+?\[.+?\]%?\(.*?\)")){  ;{脚本插件函数}
-			gosub,Menu_Run_Plugins_ObjReg
-			return
-		}
-		if(RegExMatch(any,"iS)^.*?\.exe ([\w-]+://?|www[.]).*")){
-			gosub,Menu_Run_Exe_Url
-			return
-		}
-		if(RegExMatch(any,"iS)^([\w-]+://?|www[.]).*")){	;网页
-			Run_Search(any,getZz)
-			return
-		}
+		
 		;[解析选中变量%getZz%]
 		getZzFlag:=InStr(any,"%getZz%") ? true : false
 		any:=Get_Transform_Val(any)
@@ -1131,26 +1108,11 @@ Menu_Key_Run:
 	if(dir && FileExist(dir))
 		SetWorkingDir,%dir%
 	try {
-		anyLen:=StrLen(any)
-		;[输出热键]
-		If(InStr(any,"::",,0,1)=anyLen-1){
-			gosub,Menu_Run_Send_Zz
+		returnFlag:=false
+		gosub,Menu_Run_Mode_Label
+		if(returnFlag)
 			return
-		}
-		If(InStr(any,";",,0,1)=anyLen){
-			If(InStr(any,";;",,0,1)=anyLen-1){
-				StringLeft, any, any, anyLen-2
-				Send_Str_Input_Zz(any,true)	;[键盘输出短语]
-				return
-			}
-			StringLeft, any, any, anyLen-1
-			Send_Str_Zz(any,true)	;[粘贴输出短语]
-			return
-		}
-		if(RegExMatch(any,"iS).+?\[.+?\]%?\(.*?\)")){  ; {脚本插件函数}
-			gosub,Menu_Run_Plugins_ObjReg
-			return
-		}
+		
 		;[解析选中变量%getZz%]
 		getZzFlag:=InStr(any,"%getZz%") ? true : false
 		any:=Get_Transform_Val(any)
@@ -1169,10 +1131,6 @@ Menu_Key_Run:
 				}
 				StringTrimRight, getZzStr, getZzStr, 1
 				Run_Any(any . A_Space . getZzStr)
-			}else if(RegExMatch(any,"iS)^.*?\.exe ([\w-]+://?|www[.]).*")){
-				gosub,Menu_Run_Exe_Url
-			}else if(RegExMatch(any,"iS)^([\w-]+://?|www[.]).*")){
-				Run_Search(any,getZz)
 			}else{
 				Run_Zz(any)
 			}
@@ -1180,8 +1138,6 @@ Menu_Key_Run:
 			if(thisMenuName && RegExMatch(thisMenuName,"S).*?_:(\d{1,2})$")){
 				menuTrNum:=RegExReplace(thisMenuName,"S).*?_:(\d{1,2})$","$1")
 				Run_Tr(any,menuTrNum)
-			}else if(RegExMatch(any,"iS)^.*?\.exe ([\w-]+://?|www[.]).*")){
-				gosub,Menu_Run_Exe_Url
 			}else{
 				Run_Zz(any)
 			}
@@ -1190,6 +1146,35 @@ Menu_Key_Run:
 		MsgBox,16,%thisMenuName%热键运行出错,% "运行路径：" any "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 	}finally{
 		SetWorkingDir,%A_ScriptDir%
+	}
+return
+Menu_Run_Mode_Label:
+	anyLen:=StrLen(any)
+	if(InStr(any,";",,0,1)=anyLen){
+		if(InStr(any,";;",,0,1)=anyLen-1){
+			StringLeft, any, any, anyLen-2
+			Send_Str_Input_Zz(any,true)  ;[键盘输出短语]
+			returnFlag:=true
+		}
+		StringLeft, any, any, anyLen-1
+		Send_Str_Zz(any,true)  ;[粘贴输出短语]
+		returnFlag:=true
+	}
+	if(InStr(any,"::",,0,1)=anyLen-1){
+		gosub,Menu_Run_Send_Zz  ;[输出热键]
+		returnFlag:=true
+	}
+	if(RegExMatch(any,"iS).+?\[.+?\]%?\(.*?\)")){
+		gosub,Menu_Run_Plugins_ObjReg  ;{脚本插件函数}
+		returnFlag:=true
+	}
+	if(RegExMatch(any,"iS)^.*?\.exe ([\w-]+://?|www[.]).*")){
+		gosub,Menu_Run_Exe_Url  ;指定浏览器打开网页
+		returnFlag:=true
+	}
+	if(RegExMatch(any,"iS)^([\w-]+://?|www[.]).*")){
+		Run_Search(any,getZz)  ;网页
+		returnFlag:=true
 	}
 return
 Menu_Run_Send_Zz:
