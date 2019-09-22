@@ -3541,7 +3541,7 @@ Menu_Set:
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtEdit, * 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtRemove, - 减少
 	Gui,66:Add,Text, x+10 yp+5 w320,（特殊类型：文件夹folder 网址http https www ftp等）
-	Gui,66:Add,Listview,xm yp+30 w500 r16 grid AltSubmit -Multi vRunAnyOpenExtLV glistviewOpenExt, 文件后缀(用空格分隔)|打开方式(支持无路径)
+	Gui,66:Add,Listview,xm yp+30 w500 r15 grid AltSubmit -Multi vRunAnyOpenExtLV glistviewOpenExt, 文件后缀(用空格分隔)|打开方式(支持无路径)
 	GuiControl, 66:-Redraw, RunAnyOpenExtLV
 	For k, v in openExtIniList
 	{
@@ -3688,7 +3688,7 @@ SetOK:
 	if(vAutoRun!=AutoRun){
 		AutoRun:=vAutoRun
 		if(AutoRun){
-			RegWrite, REG_SZ, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny, %A_ScriptFullPath%
+			RegWrite, REG_SZ, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny, %A_ScriptDir%\%RunAnyZz%.exe
 		}else{
 			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		}
