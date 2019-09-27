@@ -3425,7 +3425,7 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+25 vvAutoRun,开机自动启动
 	Gui,66:Add,Text,x+150 w180,RunAny.ini修改后自动重启(毫秒)0为不自动重启
 	Gui,66:Add,Edit,x+5 yp+5 w50 h20 vvAutoReloadMTime,%AutoReloadMTime%
-	Gui,66:Add,Checkbox,Checked%AdminRun% xm yp+15 vvAdminRun,管理员权限运行所有软件和插件
+	Gui,66:Add,Checkbox,Checked%AdminRun% xm yp+15 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
 	Gui,66:Add,Checkbox,Checked%IniConfig% xm yp+20 vvIniConfig,RunAnyConfig.ini移动盘绿色配置
 	
 	Gui,66:Add,GroupBox,xm-10 y+15 w%groupWidch66% h85,RunAny应用菜单
@@ -3688,7 +3688,8 @@ SetOK:
 	if(vAutoRun!=AutoRun){
 		AutoRun:=vAutoRun
 		if(AutoRun){
-			RegWrite, REG_SZ, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny, %A_ScriptDir%\%RunAnyZz%.exe
+			scriptName:=FileExist(RunAnyZz ".exe") ? RunAnyZz ".exe" : A_ScriptName
+			RegWrite, REG_SZ, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny, %A_ScriptDir%\%scriptName%
 		}else{
 			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		}
@@ -3745,7 +3746,13 @@ SetReSet:
 		Reload
 	}
 return
-setMenu2:
+SetAdminRun:
+	Gui,66:Submit, NoHide
+	if(vAdminRun){
+		MsgBox, 48, %RunAnyZz%管理员权限运行所有软件和插件, 注意！`n如果系统UAC未关闭，需要同时设置Everything管理员权限`n（Everything菜单-工具-选项-勾选"以管理员身份运行"），`n`n否则%RunAnyZz%启动后可能会长时间停留在红色图标状态
+	}
+return
+SetMenu2:
 	MsgBox,33,开启第2个菜单,确定开启第2个菜单吗？`n会在目录生成RunAny2.ini`n（还原1个菜单可以删除或重命名RunAny2.ini）
 	IfMsgBox Ok
 	{
