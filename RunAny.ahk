@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.6 @2019.09.21
+║【RunAny】一劳永逸的快速启动工具 v5.6.7 @2019.10.01
 ║ https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：246308937
@@ -20,8 +20,8 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
-global RunAny_update_version:="5.6.6"
-global RunAny_update_time:="2019.09.21"
+global RunAny_update_version:="5.6.7"
+global RunAny_update_time:="2019.10.01"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -141,6 +141,7 @@ global M1:=RunAnyZz . "1"
 global M2:=RunAnyZz . "2"
 global MenuWebRootSplit:=Object()	;网址短语函数菜单的分隔符追加
 global MenuEmptyList:=Object()		;空内容菜单
+global MenuObjTreeLevel:=Object()	;菜单对应级别
 global MenuObjPublic:=Object()		;后缀公共菜单
 ;#应用菜单数组#网址菜单名数组及地址队列#
 menuRoot1:=Object(),menuWebRoot1:=Object(),menuWebList1:=Object()
@@ -339,8 +340,10 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 					Menu,%menuItem%,Delete, 1&
 					menuLevel+=1	;比初始根菜单加一级
 					menuRootFn[menuLevel]:=menuItem		;从这之后内容项都添加到该级别菜单中
+					;记录全局菜单数据
 					if(!IsObject(MenuObjTree%TREE_NO%[menuItem]))
 						MenuObjTree%TREE_NO%[menuItem]:=Object()
+					MenuObjTreeLevel[menuItem]:=treeLevel
 					;~;[分割Tab获取菜单自定义热键]
 					if(InStr(menuItem,"`t")){
 						menuKeyStr:=RegExReplace(menuItem, "S)\t+", A_Tab)
@@ -560,6 +563,7 @@ MenuExeListPush(menuName,menuItem,itemFile,itemAny,menuRootFn,menuWebRootFn){
 			Menu_Item_Icon(menuWebRootFn[1],menuItem,itemFile)
 		}else{
 			Menu,% menuWebRootFn[1],Add,%menuName%:, :%menuName%:
+			Menu_Item_Icon(menuWebRootFn[1],menuName ":",TreeIconS[1],TreeIconS[2],MenuObjTreeLevel[menuName] . menuName)
 		}
 	}
 }
@@ -632,14 +636,15 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 			Menu,%menuName%:,add,%menuItem%,Menu_Run
 			Menu_Item_Icon(menuName,menuItem,"SHELL32.dll","2")
 			Menu_Item_Icon(menuName ":",menuItem,"SHELL32.dll","2")
-			MenuWebRootSplit[menuName]:=true
 			if(menuName = menuRootFn[1]){
 				Menu,% menuWebRootFn[1],Add,%menuItem%,Menu_Run
 				Menu_Item_Icon(menuWebRootFn[1],menuItem,"SHELL32.dll","2")
 				webRootShow:=true
-			}else{
+			}else if(!MenuWebRootSplit[menuName]){
 				Menu,% menuWebRootFn[1],Add,%menuName%:, :%menuName%:
+				Menu_Item_Icon(menuWebRootFn[1],menuName ":",TreeIconS[1],TreeIconS[2],MenuObjTreeLevel[menuName] . menuName)
 			}
+			MenuWebRootSplit[menuName]:=true
 			if(HideSend){
 				Menu,%menuName%,Delete,%menuItem%
 				if(MenuEmptyList[menuName]!=1)
@@ -667,7 +672,6 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 			}
 			Menu,%menuName%,add,%menuItem%,Menu_Run
 			Menu,%menuName%:,add,%menuItem%,Menu_Run
-			MenuWebRootSplit[menuName]:=true
 			try{
 				Menu_Item_Icon(menuName,menuItem,webIcon,webIconNum)
 				Menu_Item_Icon(menuName ":",menuItem,webIcon,webIconNum)
@@ -684,9 +688,11 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 					Menu_Item_Icon(menuWebRootFn[1],menuItem,UrlIconS[1],UrlIconS[2])
 				}
 				webRootShow:=true
-			}else{
+			}else if(!MenuWebRootSplit[menuName]){
 				Menu,% menuWebRootFn[1],Add,%menuName%:, :%menuName%:
+				Menu_Item_Icon(menuWebRootFn[1],menuName ":",TreeIconS[1],TreeIconS[2],MenuObjTreeLevel[menuName] . menuName)
 			}
+			MenuWebRootSplit[menuName]:=true
 			menuWebList[(menuName ":")].=menuItem "`n"	; 添加到批量搜索
 			if(!HideWeb)
 				menuWebList[(menuName)].=menuItem "`n"	; 添加到批量搜索
@@ -718,14 +724,15 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 			Menu,%menuName%:,add,%menuItem%,Menu_Run
 			Menu_Item_Icon(menuName,menuItem,FuncIconS[1],FuncIconS[2])
 			Menu_Item_Icon(menuName ":",menuItem,FuncIconS[1],FuncIconS[2])
-			MenuWebRootSplit[menuName]:=true
 			if(menuName = menuRootFn[1]){
 				Menu,% menuWebRootFn[1],Add,%menuItem%,Menu_Run
 				Menu_Item_Icon(menuWebRootFn[1],menuItem,FuncIconS[1],FuncIconS[2])
 				webRootShow:=true
-			}else{
+			}else if(!MenuWebRootSplit[menuName]){
 				Menu,% menuWebRootFn[1],Add,%menuName%:, :%menuName%:
+				Menu_Item_Icon(menuWebRootFn[1],menuName ":",TreeIconS[1],TreeIconS[2],MenuObjTreeLevel[menuName] . menuName)
 			}
+			MenuWebRootSplit[menuName]:=true
 			return
 		}
 		Menu,%menuName%,add,%menuItem%,Menu_Run
