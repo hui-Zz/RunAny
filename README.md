@@ -12,7 +12,7 @@ __多台电脑你只需配置一套软件列表(RunAny.ini)，就能到处运行
 - ☑ [短语输出](#wordOutput)，[透明化启动](#advancedConfig)，[快捷打开文件方式](#quickOpenFile)
 - ☑ [外接脚本，个性函数，自由定制](#runPlugins)
 
-【Github下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.6.5.zip
+【Github下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.6.7.zip
 - 蓝奏云下载：https://www.lanzous.com/b902490/
 - 百度云下载：https://pan.baidu.com/s/1qxbYAx0UA-u1dkoY-RXZJg
 
@@ -101,9 +101,9 @@ RunAny可以储存邮箱、手机号，想用时就快捷输出，更支持AHK�
 
 ## <a name="tree">首次使用请阅读：【自定义树形菜单配置方法】</a>
 
-1. **分类/目录：** 以 `-`开头为1级目录名， `--`名称为2级，以此类推，如：`-app应用`、`-work办公`、`--img图像处理`
+1. **分类/目录：** 以 `-`开头为1级菜单， `--`+名称为2级菜单，`---`+名称3级菜单……以此类推，如：`-app应用`、`--img图像处理`、……  `------六级菜单`
 
-2. **分隔符：** 单独一个 `-`是1级分隔符， `--`2级分隔符，如：`-`、`--`
+2. **分隔符：** 单独一个 `-`是1级分隔符， `--`2级分隔符……以此类推，如：`-`、`--`、……  `------`
 
 3. **菜单别名：** 在竖 `|` 前面添加程序的别名，如：`word|winword.exe`菜单上只会显示word
 
@@ -217,5 +217,5 @@ RunAny追求就是：<u>**一劳永逸**</u>
 
 ---
 ![GitHub stars](https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=social)
-![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat&logo=github) ![GitHub](https://img.shields.io/github/license/hui-Zz/RunAny.svg)
- [![996.icu](https://img.shields.io/badge/link-996.icu-red.svg)](https://996.icu)
+![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat&logo=github) 
+[![996.icu](https://img.shields.io/badge/link-996.icu-red.svg)](https://996.icu)
