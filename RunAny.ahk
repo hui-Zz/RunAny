@@ -30,7 +30,6 @@ global MenuObjKey:=Object()     ;~程序热键
 global MenuObjName:=Object()    ;~程序别名
 global MenuObjParam:=Object()   ;~程序参数
 global MenuObjExt:=Object()     ;~后缀对应菜单
-global MenuObjPublic:=Object()  ;~后缀公共菜单
 global MenuExeList:=Object()    ;~程序数据数组
 global MenuHotStrList:=Object() ;~热字符串数据数组
 global MenuTreeKey:=Object()    ;~分类热键
@@ -141,7 +140,8 @@ Gosub,Icon_FileExt_Set
 global M1:=RunAnyZz . "1"
 global M2:=RunAnyZz . "2"
 global MenuWebRootSplit:=Object()	;网址短语函数菜单的分隔符追加
-global MenuEmptyList:=Object()	;空内容菜单
+global MenuEmptyList:=Object()		;空内容菜单
+global MenuObjPublic:=Object()		;后缀公共菜单
 ;#应用菜单数组#网址菜单名数组及地址队列#
 menuRoot1:=Object(),menuWebRoot1:=Object(),menuWebList1:=Object()
 ;菜单级别：初始为根菜单RunAny
@@ -327,7 +327,7 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 					Loop, parse,% menuItems[2],%A_Space%
 					{
 						if(A_LoopField="public")
-							MenuObjPublic.Push(menuItem) ;公共后缀菜单
+							MenuObjPublic.Push(treeLevel . menuItem) ;公共后缀菜单
 						else
 							MenuObjExt[(A_LoopField)]:=menuItem
 					}
@@ -828,7 +828,9 @@ Menu_Show:
 						if(MenuObjExt["public"].MaxIndex()>0){
 							for k,v in MenuObjExt["public"]
 							{
-								Menu,%extMenuName%,Insert, 1&, %v%, :%v%
+								vn:=RegExReplace(v,"S)^-+")
+								Menu,%extMenuName%,Insert, 1&, %vn%, :%vn%
+								Menu_Item_Icon(extMenuName,vn,TreeIconS[1],TreeIconS[2],v)
 							}
 							publicMaxNum:=MenuObjExt["public"].MaxIndex() + 1
 							Menu,%extMenuName%,Insert, %publicMaxNum%&
@@ -840,7 +842,8 @@ Menu_Show:
 							Menu,%extMenuName%,Delete, %publicMaxNum%&
 							for k,v in MenuObjExt["public"]
 							{
-								Menu,%extMenuName%,Delete,%v%
+								vn:=RegExReplace(v,"S)^-+")
+								Menu,%extMenuName%,Delete,%vn%
 							}
 						}
 						Menu,%extMenuName%,Delete,-【显示菜单全部】
