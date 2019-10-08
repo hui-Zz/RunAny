@@ -3444,7 +3444,7 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%HideWeb% xm yp+20 vvHideWeb,隐藏带`%s网址（选中文字显示）
 	Gui,66:Add,Checkbox,Checked%HideSend% x+28 vvHideSend,隐藏短语（选中文字显示）
 	Gui,66:Add,Checkbox,Checked%HideAddItem% xm yp+20 vvHideAddItem,隐藏【添加到此菜单】
-	Gui,66:Add,Checkbox,Checked%HideMenuTray% x+80 vvHideMenuTray,隐藏托盘菜单
+	Gui,66:Add,Checkbox,Checked%HideMenuTray% x+80 vvHideMenuTray,隐藏底部“RunAny设置”
 	Gui,66:Add,GroupBox,xm-10 y+15 w%groupWidch66% h45,RunAny选中文字菜单
 	Gui,66:Add,Checkbox,Checked%HideUnSelect% xm yp+20 vvHideUnSelect gUnCheckWebSend,选中文字依然显示应用菜单
 	Gui,66:Add,Checkbox,Checked%HideGetZz% x+56 vvHideGetZz,隐藏选中提示信息
