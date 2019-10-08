@@ -1,0 +1,41 @@
+<footer class="site-footer">
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="page-list">
+          <li><strong>{{ site.title }}</strong></li>
+          {% for my_page in site.pages %}
+            {% if my_page.title %}
+            <li><a href="{{ my_page.url | prepend: site.baseurl }}">{{ my_page.title }}</a></li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <ul class="social-media-list">
+          <li><strong>Connect</strong></li>
+          {% if site.twitter_username %}
+          <li><a href="https://twitter.com/{{ site.twitter_username }}">Twitter</a></li>
+          {% endif %}
+
+          {% if site.facebook_username %}
+          <li><a href="https://facebook.com/{{ site.facebook_username }}">Facebook</a></li>
+          {% endif %}
+
+          {% if site.github_username %}
+          <li><a href="https://github.com/{{ site.github_username }}">GitHub</a></li>
+          {% endif %}
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-3">
+        <p>{{ site.description }}</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>

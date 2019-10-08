@@ -1,0 +1,36 @@
+---
+layout: default
+---
+
+<div class="home">
+
+  <ul class="post-list">
+    {% for post in paginator.posts %}
+      <li>
+        <h2>
+          <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
+        </h2>
+        <span class="post-meta">{% if post.author %}{{ post.author }}{% else %}{{ site.author }}{% endif %} | {{ post.date | date: "%b %-d, %Y" }}</span>
+        <div class="post-excerpt">{{ post.excerpt }}</div>
+        <div class="post-meta">{% if post.categories %}Filed under: <a href="{{ "/categories/" | prepend: site.baseurl }}#category-{{ post.categories.first | replace: ' ', '_' }}">{{ post.categories.first }}</a>{% for category in post.categories offset:1 %}, <a href="{{ "/categories/" | prepend: site.baseurl }}#category-{{ category | replace: ' ', '_' }}">{{ category }}</a>{% endfor %}{% endif %}{% if post.tags %}{% if post.categories %} | {% endif %}Tags: <a href="{{ "/tags/" | prepend: site.baseurl }}#tag-{{ post.tags.first | replace: ' ', '_' }}">{{ post.tags.first }}</a>{% for tag in post.tags offset:1 %}, <a href="{{ "/tags/" | prepend: site.baseurl }}#tag-{{ tag | replace: ' ', '_' }}">{{ tag }}</a>{% endfor %}{% endif %}</div>
+        <div class="read-more"><a href="{{ post.url | prepend: site.baseurl }}">Read more &raquo;</a></div>
+      </li>
+    {% endfor %}
+  </ul>
+  {% if paginator.total_pages > 1 %}
+  <div class="paginator">
+    {% if paginator.next_page %}
+      <a class="next_page" href="{{ paginator.next_page_path }}">← Older posts</a>
+    {% endif %}
+
+    {% if paginator.previous_page %}
+      {% if paginator.previous_page == 1 %}
+        <a class="prev_page" href="/">Newer posts →</a>
+      {% else %}
+        <a class="prev_page" href="{{ paginator.previous_page_path }}">Newer posts →</a>
+      {% endif %}
+    {% endif %}
+    <div style="clear:both"></div>
+  </div>
+  {% endif %}
+</div>
