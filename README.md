@@ -1,1 +1,0 @@
-Created by Jekyll Writer
