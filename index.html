@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <title>RunAny文档示例</title>
-  <link rel="icon" href="media/favicon.ico">
+  <link rel="icon" href="assets/favicon.ico">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
   <meta name="description" content="Description">
   <meta name="viewport"
@@ -14,14 +14,22 @@
   <!-- <link rel="stylesheet" href="//unpkg.com/docsify/lib/themes/dark.css"> -->
   <!-- <link rel="stylesheet" href="//unpkg.com/docsify/lib/themes/pure.css"> -->
   <!-- <link rel="stylesheet" href="//unpkg.com/docsify/lib/themes/dolphin.css"> -->
+  <style>
+    .cover-main {
+      position: absolute;
+      top: 50%;
+      margin: 0 auto;
+      width: 100%;
+    }
+  </style>
 </head>
 
-<body>
+<body class="body--ready">
   <div id="app">加载中</div>
   <script>
     window.$docsify = {
       name: 'RunAny文档示例',    // 文档标题，会显示在侧边栏顶部
-      logo: '/media/Z_Plus.jpg',
+      logo: '/assets/images/Z_Plus.jpg',
       repo: 'https://github.com/hui-Zz',
       loadNavbar: true,   // 配置导航
       coverpage: true,    // 开启渲染封面
@@ -38,17 +46,22 @@
   <script src="//unpkg.com/docsify/lib/docsify.min.js"></script>
   <script src="//unpkg.com/docsify-copy-code"></script>
   <script src="//unpkg.com/docsify-pagination/dist/docsify-pagination.min.js"></script>
-  <script src="//unpkg.com/docsify/lib/plugins/zoom-image.js"></script>
+  <!-- <script src="//unpkg.com/docsify/lib/plugins/zoom-image.js"></script>
   <script src="//unpkg.com/prismjs/components/prism-bash.min.js"></script>
   <script src="//unpkg.com/prismjs/components/prism-json.min.js"></script>
-  <script src="//unpkg.com/prismjs/components/prism-python.min.js"></script>
+  <script src="//unpkg.com/prismjs/components/prism-python.min.js"></script> -->
+
   <!-- <script src="//unpkg.com/prismjs/components/prism-markdown.min.js"></script> -->
   <!-- <script src="//unpkg.com/prismjs/components/prism-sql.min.js"></script> -->
   <!-- <script src="//unpkg.com/prismjs/components/prism-powershell.min.js"></script> -->
   <!-- <script src="//unpkg.com/prismjs/components/prism-sass.min.js"></script> -->
   <script src="//unpkg.com/prismjs/components/prism-scss.min.js"></script>
-  
+
+  <script src="//cdn.jsdelivr.net/gh/jquery/jquery@3.2.1/dist/jquery.min.js"></script>
+  <script src="/assets/js/drawing.js"></script>
+
   <!--代码高亮主题 https://github.com/PrismJS/prism/tree/gh-pages/components -->
+
 </body>
 
 </html>
