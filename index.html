@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>RunAny文档示例</title>
+  <title>RunAny文档</title>
   <link rel="icon" href="assets/favicon.ico">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
   <meta name="description" content="Description">
@@ -15,11 +15,8 @@
   <!-- <link rel="stylesheet" href="//unpkg.com/docsify/lib/themes/pure.css"> -->
   <!-- <link rel="stylesheet" href="//unpkg.com/docsify/lib/themes/dolphin.css"> -->
   <style>
-    .cover-main {
-      position: absolute;
-      top: 50%;
-      margin: 0 auto;
-      width: 100%;
+    .app-name {
+      width: 150px;
     }
   </style>
 </head>
@@ -29,8 +26,8 @@
   <script>
     window.$docsify = {
       name: 'RunAny文档示例',    // 文档标题，会显示在侧边栏顶部
-      logo: '/assets/images/Z_Plus.jpg',
-      repo: 'https://github.com/hui-Zz',
+      logo: '/assets/images/RunAny.svg',
+      repo: 'https://github.com/hui-Zz/RunAny',
       loadNavbar: true,   // 配置导航
       coverpage: true,    // 开启渲染封面
       loadSidebar: true,  // 加载自定义侧边栏
@@ -58,7 +55,22 @@
   <script src="//unpkg.com/prismjs/components/prism-scss.min.js"></script>
 
   <script src="//cdn.jsdelivr.net/gh/jquery/jquery@3.2.1/dist/jquery.min.js"></script>
-  <script src="assets/js/drawing.js"></script>
+
+  <script>
+    if ((navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i))) {
+      /*window.location.href="你的手机版地址";*/
+    } else {
+      /*window.location.href="你的电脑版地址";    */
+      $.getScript('assets/js/drawing.js', function () {
+        $(".cover-main").css({
+          position: "absolute",
+          top: "45%",
+          margin: "0 auto",
+          width: "100%"
+        });
+      });
+    }
+  </script>
 
   <!--代码高亮主题 https://github.com/PrismJS/prism/tree/gh-pages/components -->
 

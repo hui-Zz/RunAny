@@ -1,5 +1,4 @@
 $(function () {
-    
     $("<canvas class='canvas'></canvas>").insertBefore($(".cover-main"));
 
     var S = {
@@ -350,7 +349,7 @@ $(function () {
                 }
             }
 
-            return { dots: dots, w: w + fx, h: h + fy +300 }
+            return { dots: dots, w: w + fx, h: h + fy + 350 }
         }
 
         function setFontSize(s) {
