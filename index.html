@@ -26,16 +26,18 @@
 </head>
 
 <body class="body--ready">
-  <div id="app">加载中</div>
+  <div id="app">加载中请稍等...</div>
   <script>
     window.$docsify = {
       name: 'RunAny文档示例',    // 文档标题，会显示在侧边栏顶部
       logo: '/assets/images/RunAny.svg',
       repo: 'https://github.com/hui-Zz/RunAny',
-      loadNavbar: true,   // 配置导航
-      coverpage: true,    // 开启渲染封面
-      loadSidebar: true,  // 加载自定义侧边栏
       auto2top: true,     // 切换页面后是否自动跳转到页面顶部
+      coverpage: true,    // 开启渲染封面
+      loadNavbar: true,   // 配置导航
+      loadSidebar: true,  // 加载自定义侧边栏
+      maxLevel: 4,
+      subMaxLevel: 2,
       formatUpdated: '{YYYY}-{MM}-{DD} {HH}:{mm}:{ss}', // 显示文档更新日期
       pagination: {
         previousText: 'PREVIOUS',
