@@ -30,11 +30,11 @@ RunAny启动软件就跟五笔打字一样高效方便，3键直达（如Esc键�
 - <kbd>\`</kbd><kbd>w</kbd><kbd>w</kbd>就是启动『work工作』分类下的Word
 - <kbd>\`</kbd><kbd>f</kbd><kbd>w</kbd>就是启动『file文件』分类下的WinRAR
 
-<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/help/RunAny%E6%BC%94%E7%A4%BA.gif" alt="RunAny演示">
+![RunAny演示](/assets/images/RunAny演示.gif)
 
 ---
 
-<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/help/RunAny菜单多种使用方式.gif" alt="RunAny菜单多种使用方式">
+![RunAny菜单多种使用方式](/assets/images/RunAny菜单多种使用方式.gif)
 
 ## 下载地址
 
