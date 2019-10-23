@@ -9,15 +9,17 @@ __多台电脑你只需配置一套软件列表(RunAny.ini)，就能到处运行
 - ☑ 一键菜单分类界面，找应用零记忆负担
 - ☑ 分类定位，三键启动，简单迅速
 - ☑ 一次配置，到处运行，永久使用
-- ☑ [一键直达](#oneKey)，[一键计算](#oneKeyCalc)，[一键批量搜索](#oneKeySearch)
-- ☑ [全局热键，热键映射](#advancedConfig)，[热字符串](https://github.com/hui-Zz/RunAny/wiki#menuHotStringRun)，多样快捷
-- ☑ [短语输出](#wordOutput)，[透明化启动](#advancedConfig)，[快捷打开文件方式](#quickOpenFile)
+- ☑ [一键直达](/一键直达)，[一键计算](/一键直达?id=一键公式计算)，[一键批量搜索](/批量搜索)
+- ☑ [全局热键](/全局热键)，[热键映射](/热键映射)，[热字符串](/热字符串)，多样快捷
+- ☑ [短语输出](/短语输出)，[透明化启动](#advancedConfig)，[快捷打开文件方式](/打开方式)
 - ☑ [外接脚本，个性函数，自由定制](#runPlugins)
 
 【异次元软件RunAny介绍文章：】https://www.iplaysoft.com/runany.html
 
 > RunAny使用Everything神器来知道所有软件的位置，Everything可以秒搜Windows下任何文件 <br>
 > RunAny可以左键右鼠操作，也可以全键盘、全鼠标操作（配合鼠标手势软件更佳）
+
+?> [【RunAny版本更新历史】](https://github.com/hui-Zz/RunAny/wiki/RunAny版本更新历史)
 
 ---
 ## 演示效果
@@ -30,6 +32,9 @@ RunAny启动软件就跟五笔打字一样高效方便，3键直达（如Esc键�
 
 <img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/help/RunAny%E6%BC%94%E7%A4%BA.gif" alt="RunAny演示">
 
+---
+
+<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/help/RunAny菜单多种使用方式.gif" alt="RunAny菜单多种使用方式">
 
 ## 下载地址
 
