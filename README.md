@@ -6,8 +6,9 @@
 
 【Github地址】[https://github.com/hui-Zz/RunAny](https://github.com/hui-Zz/RunAny)
 
+【RunAny建议留言板】[https://github.com/hui-Zz/RunAny/issues](https://github.com/hui-Zz/RunAny/issues)
+
 【联系作者】hui0.0713@gmail.com
-[【RunAny建议及意见】](https://github.com/hui-Zz/RunAny/issues)
 
 【讨论QQ群】[246308937【RunAny快速启动一劳永逸】](https://jq.qq.com/?_wv=1027&k=445Ug7u)
 

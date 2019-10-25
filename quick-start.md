@@ -24,7 +24,7 @@ __多台电脑你只需配置一套软件列表(RunAny.ini)，就能到处运行
 ---
 ## 演示效果
 
-RunAny启动软件就跟五笔打字一样高效方便，3键直达（如Esc键下方的重音符键<kbd>\`</kbd>为热键）：
+RunAny启动软件就跟五笔打字一样高效方便，3键直达（如<kbd>Esc</kbd>键下方的重音符键<kbd>\`</kbd>为热键）：
 
 - <kbd>\`</kbd><kbd>a</kbd><kbd>w</kbd>就是启动『app常用』分类下的微信
 - <kbd>\`</kbd><kbd>w</kbd><kbd>w</kbd>就是启动『work工作』分类下的Word
