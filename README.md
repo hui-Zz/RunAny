@@ -4,9 +4,12 @@
 
 ---
 
-【Github地址】[https://github.com/hui-Zz/RunAny](https://github.com/hui-Zz/RunAny)
+【国内Gitee地址】[https://gitee.com/hui-Zz/RunAny](https://gitee.com/hui-Zz/RunAny) <br>
+【建议留言板】[https://gitee.com/hui-Zz/RunAny/issues](https://gitee.com/hui-Zz/RunAny/issues)
 
-【RunAny建议留言板】[https://github.com/hui-Zz/RunAny/issues](https://github.com/hui-Zz/RunAny/issues)
+【Github地址】[https://github.com/hui-Zz/RunAny](https://github.com/hui-Zz/RunAny) <br>
+【建议留言板】[https://github.com/hui-Zz/RunAny/issues](https://github.com/hui-Zz/RunAny/issues)
+
 
 【联系作者】hui0.0713@gmail.com
 
@@ -14,9 +17,9 @@
 
 **欢迎大家多多提出建议！感谢各位网友和群里的AHK-工兵、Balance、☆☆天甜、°～童年不懂事°等等对RunAny提出好的建议和问题**
 
-**你的支持是我最大的动力！(金额随意)：**
+**你的支持是我最大的动力！(金额随意，都是心意)：**
 
-<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/支持RunAny.jpg" alt="支持RunAny" width="280" height="280"><img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/支持RunAny.png" alt="支持RunAny" width="280" height="280">
+![logo](/assets/images/支持RunAny.jpg ':size=280x280')![logo](/assets/images/支持RunAny.png ':size=280x280')
 
 ---
 

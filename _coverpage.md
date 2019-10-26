@@ -9,5 +9,6 @@
 
 > ![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=for-the-badge&logo=github)![GitHub stars](https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=for-the-badge)
 
+[Gitee](https://gitee.com/hui-Zz/RunAny)
 [GitHub](https://github.com/hui-Zz/RunAny)
 [快速开始](/quick-start)
