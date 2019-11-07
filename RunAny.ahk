@@ -3254,26 +3254,11 @@ PluginsDownVersion:
 				varList:=StrSplit(A_LoopField,"=")
 				pluginsDownList[(varList[1])]:=varList[2]
 			}
-			if(lpszUrl=giteeUrl){
-				FileEncoding,UTF-8
-				FileRead,tmpObjRegIniVar,%ObjRegIniPath%
-				Loop, parse, tmpObjRegIniVar, `n, `r
-				{
-					if(nameReadFlag && A_LoopField){
-						varList:=StrSplit(A_LoopField,"=")
-						pluginsNameList[(varList[1])]:=varList[2]
-					}
-					if(A_LoopField="[name]")
-						nameReadFlag:=true
-				}
-				FileEncoding
-			}else{
-				IniRead,objRegIniVar,%ObjRegIniPath%,name
-				Loop, parse, objRegIniVar, `n, `r
-				{
-					varList:=StrSplit(A_LoopField,"=")
-					pluginsNameList[(varList[1])]:=varList[2]
-				}
+			IniRead,objRegIniVar,%ObjRegIniPath%,name
+			Loop, parse, objRegIniVar, `n, `r
+			{
+				varList:=StrSplit(A_LoopField,"=")
+				pluginsNameList[(varList[1])]:=varList[2]
 			}
 			checkGithub:=true
 			return
