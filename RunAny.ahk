@@ -752,7 +752,11 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 				}
 				
 			} catch e {
-				Menu_Item_Icon(menuName,menuItem,LNKIconS[1],LNKIconS[2])
+				if(!HideFail){
+					Menu_Item_Icon(menuName,menuItem,LNKIconS[1],LNKIconS[2])
+				}else{
+					Menu,%menuName%,Delete,%menuItem%
+				}
 			}
 		}else{  ; {处理未知的项目图标}
 			If(FileExt){
