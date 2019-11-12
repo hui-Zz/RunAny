@@ -3088,7 +3088,11 @@ LVApply:
 			}
 		}else if(menuItem="编辑"){
 			;~ PostMessage, 0x111, 65401,,, %FilePath% ahk_class AutoHotkey
-			Run,edit "%FilePath%"
+			if(A_AhkPath){
+				Run,edit "%FilePath%"
+			}else{
+				Run,notepad.exe "%FilePath%"
+			}
 		}else if(menuItem="挂起"){
 			PostMessage, 0x111, 65404,,, %FilePath% ahk_class AutoHotkey
 			LVStatusChange(RowNumber,FileStatus,"挂起")
@@ -3171,7 +3175,7 @@ LVAdd:
 		runStatus:=PluginsPathList[pk] ? "已下载" : "未下载"
 		pluginsLocalVersion:=Plugins_Read_Version(PluginsPathList[pk])
 		if(runStatus="已下载" && checkGithub)
-			runStatus:=pluginsLocalVersion < pv ? "可更新" : "已下载"
+			runStatus:=pluginsLocalVersion < pv ? "可更新" : "已最新"
 		LV_Add("", pk, runStatus, pluginsLocalVersion, checkGithub ? pv : "网络异常",checkGithub ? pluginsNameList[pk] : PluginsTitleList[pk])
 	}
 	GuiControl,D: +Redraw, RunAnyDownLV
