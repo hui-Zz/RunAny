@@ -10,6 +10,7 @@
   <title>RunAny文档</title>
   <link rel="icon" href="assets/favicon.ico">
   <link rel="stylesheet" href="//unpkg.com/docsify/lib/themes/vue.css">
+  <link rel="stylesheet" href="//unpkg.com/gitalk/dist/gitalk.css">
   <!-- <link rel="stylesheet" href="//unpkg.com/docsify/lib/themes/dolphin.css"> -->
   <style>
     .anchor {
@@ -36,6 +37,11 @@
       maxLevel: 4,
       subMaxLevel: 3,
       formatUpdated: '{YYYY}-{MM}-{DD} {HH}:{mm}:{ss}', // 显示文档更新日期
+      search: {
+        depth: 3,
+        noData: '找不到结果!',
+        placeholder: '搜索'
+      },
       pagination: {
         previousText: 'PREVIOUS',
         nextText: 'NEXT',
@@ -44,19 +50,32 @@
     };
   </script>
   <script src="//unpkg.com/docsify/lib/docsify.min.js"></script>
+  <script src="//unpkg.com/docsify/lib/plugins/search.js"></script>
   <script src="//unpkg.com/docsify-copy-code"></script>
   <script src="//unpkg.com/docsify-pagination/dist/docsify-pagination.min.js"></script>
-  <!-- <script src="//unpkg.com/docsify/lib/plugins/zoom-image.js"></script>
+  <script src="//unpkg.com/docsify/lib/plugins/zoom-image.js"></script>
+  <!--代码高亮主题 https://github.com/PrismJS/prism/tree/gh-pages/components -->
   <script src="//unpkg.com/prismjs/components/prism-bash.min.js"></script>
+  <script src="//unpkg.com/prismjs/components/prism-html.min.js"></script>
+  <script src="//unpkg.com/prismjs/components/prism-ini.min.js"></script>
   <script src="//unpkg.com/prismjs/components/prism-json.min.js"></script>
-  <script src="//unpkg.com/prismjs/components/prism-python.min.js"></script> -->
-
-  <!-- <script src="//unpkg.com/prismjs/components/prism-markdown.min.js"></script> -->
-  <!-- <script src="//unpkg.com/prismjs/components/prism-sql.min.js"></script> -->
-  <!-- <script src="//unpkg.com/prismjs/components/prism-powershell.min.js"></script> -->
-  <!-- <script src="//unpkg.com/prismjs/components/prism-sass.min.js"></script> -->
-  <script src="//unpkg.com/prismjs/components/prism-scss.min.js"></script>
-
+  <script src="//unpkg.com/prismjs/components/prism-autohotkey.min.js"></script>
+  <script src="//unpkg.com/prismjs/components/prism-markdown.min.js"></script>
+  <script src="//unpkg.com/prismjs/components/prism-powershell.min.js"></script>
+  <!-- Gitalk -->
+  <script src="//unpkg.com/docsify/lib/plugins/gitalk.min.js"></script>
+  <script src="//unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script>
+    const gitalk = new Gitalk({
+      clientID: 'a55fef3c562222b8cabd',
+      clientSecret: 'c46fad0f270137a2970c79ab2ee8706f5a9c1d08',
+      repo: 'RunAny',
+      owner: 'hui-Zz',
+      admin: ['hui-Zz'],
+      // facebook-like distraction free mode
+      distractionFreeMode: false
+    })
+  </script>
   <script src="//cdn.jsdelivr.net/gh/jquery/jquery@3.2.1/dist/jquery.min.js"></script>
 
   <script>
@@ -74,8 +93,6 @@
       });
     }
   </script>
-
-  <!--代码高亮主题 https://github.com/PrismJS/prism/tree/gh-pages/components -->
 
 </body>
 
