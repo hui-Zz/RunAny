@@ -1,7 +1,9 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.7 @2019.10.01
-║ https://github.com/hui-Zz/RunAny
+║【RunAny】一劳永逸的快速启动工具 v5.6.8 @2019.11.13
+║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
+║ Github文档：https://hui-zz.github.io/RunAny
+║ Github地址：https://github.com/hui-Zz/RunAny
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：246308937
 ╚══════════════════════════════════════════════════
@@ -20,8 +22,8 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
-global RunAny_update_version:="5.6.7"
-global RunAny_update_time:="2019.10.01"
+global RunAny_update_version:="5.6.8"
+global RunAny_update_time:="2019.11.13"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -3165,7 +3167,8 @@ return
 	F6::gosub,LVPause
 	F7::gosub,LVDel
 	F8::gosub,LVAdd
-	F9::gosub,LVCreate
+	F9::gosub,LVHelp
+	F10::gosub,LVCreate
 #If
 listview:
     if A_GuiEvent = DoubleClick
@@ -3645,9 +3648,9 @@ vHtml =
 	oWB.document.write(vHtml)
 	oWB.Refresh()
 	Gui,99:Font,s11 Bold,Microsoft YaHei
-	Gui,99:Add,Link,xm+18 y+10,官网地址：<a href="https://github.com/hui-Zz/RunAny">https://github.com/hui-Zz/RunAny</a>
-	Gui,99:Add,Link,xm+18 y+10,码云地址：<a href="https://gitee.com/hui-Zz/RunAny">https://gitee.com/hui-Zz/RunAny</a>
-	Gui,99:Add,Link,xm+18 y+10,更新说明：<a href="https://github.com/hui-Zz/RunAny/wiki/RunAny版本更新历史">https://github.com/hui-Zz/RunAny/wiki/RunAny版本更新历史</a>
+	Gui,99:Add,Link,xm+18 y+10,国内Gitee文档：<a href="https://hui-zz.gitee.io/RunAny">https://hui-zz.gitee.io/RunAny</a>
+	Gui,99:Add,Link,xm+18 y+10,Github文档：<a href="https://hui-zz.gitee.io/RunAny">https://hui-zz.gitee.io/RunAny</a>
+	Gui,99:Add,Link,xm+18 y+10,Github地址：<a href="https://github.com/hui-Zz/RunAny">https://github.com/hui-Zz/RunAny</a>
 	Gui,99:Add,Text,y+10, 讨论QQ群：
 	Gui,99:Add,Link,x+8 yp,<a href="https://jq.qq.com/?_wv=1027&k=445Ug7u">246308937【RunAny快速启动一劳永逸】</a>`n`n
 	Gui,99:Font
@@ -3985,6 +3988,8 @@ Var_Set:
 	;~[定期自动检查更新]
 	global githubUrl:="https://raw.githubusercontent.com"
 	global giteeUrl:="https://gitee.com"
+	global RunAnyGiteePages:="https://hui-zz.gitee.io"
+	global RunAnyGithubPages:="https://hui-zz.github.io"
 	global RunAnyGiteeDir:="/hui-Zz/RunAny/raw/master"
 	global RunAnyGithubDir:="/hui-Zz/RunAny/master"
 	global RunAnyDownDir:=giteeUrl . RunAnyGiteeDir ; 初始使用gitee地址
@@ -4216,8 +4221,6 @@ Plugins_Read:
 	global PluginsObjList:=Object()
 	global PluginsPathList:=Object()
 	global PluginsTitleList:=Object()
-	global RunAnyGiteePages:="https://hui-zz.gitee.io"
-	global RunAnyGithubPages:="https://hui-zz.github.io"
 	global PluginsObjNum:=0
 	Loop,%A_ScriptDir%\%PluginsDir%\*.ahk,0	;Plugins目录下AHK脚本
 	{
@@ -4551,7 +4554,11 @@ Config_Update:
 	}
 return
 RunAny_Update:
-Run,https://github.com/hui-Zz/RunAny/wiki/RunAny版本更新历史
+if(Check_Network(RunAnyGiteePages)){
+	Run,%RunAnyGiteePages%/runany/#/change-log
+}else{
+	Run,%RunAnyGithubPages%/RunAny/#/change-log
+}
 TrayTip,,RunAny已经更新到最新版本。,5,1
 FileAppend,
 (
