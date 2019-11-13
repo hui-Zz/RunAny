@@ -2974,6 +2974,12 @@ ToggleAllTheWay(_ItemID=0, _ChkUchk=True ) {
 ;══════════════════════════════════════════════════════════════════
 Plugins_Manage:
 gosub,Plugins_Read
+;根据网络自动选择对应插件说明网页地址
+pagesHash:=RunAnyGiteePages . "/runany/#/plugins-help?id="
+if(!Check_Network(RunAnyGiteePages)){
+	pagesHash:=RunAnyGithubPages . "/RunAny/#/plugins-help?id="
+}
+global PluginsHelpList:={"huiZz_QRCode.ahk":pagesHash "huiZz_QRCode二维码脚本使用方法", "huiZz_Window.ahk":pagesHash "huiZz_Window窗口操作插件使用方法","huiZz_System.ahk":pagesHash "huiZz_System系统操作插件使用方法","huiZz_Text.ahk":pagesHash "huiZz_Text文本操作插件使用方法"}
 global ColumnName:=1
 global ColumnStatus:=2
 global ColumnAutoRun:=3
@@ -3249,11 +3255,10 @@ gosub,Plugins_Manage
 Run,notepad.exe %A_ScriptDir%\%PluginsDir%\%newObjRegInput%
 return
 PluginsDownVersion:
-	if(!Check_Github()){
-		lpszUrl:=githubUrl
-		RunAnyDownDir:=lpszUrl . RunAnyGithubDir
-		if(!Check_Github()){
-			TrayTip,网络异常，无法连接网络读取最新版本文件，请手动下载,5,1
+	if(!Check_Network(giteeUrl)){
+		RunAnyDownDir:=githubUrl . RunAnyGithubDir
+		if(!Check_Network(githubUrl)){
+			TrayTip,,网络异常，无法连接网络读取最新版本文件，请手动下载,5,1
 			pluginsDownList:=PluginsObjList
 			checkGithub:=false
 			return
@@ -3290,10 +3295,9 @@ LVDown:
 	MsgBox,33,RunAny下载插件,是否下载插件？如有修改过插件代码请注意备份！`n(旧版文件会转移到%A_Temp%\%RunAnyZz%\%PluginsDir%)
 	IfMsgBox Ok
 	{
-		if(!Check_Github()){
-			lpszUrl:=githubUrl
-			RunAnyDownDir:=lpszUrl . RunAnyGithubDir
-			if(!Check_Github()){
+		if(!Check_Network(giteeUrl)){
+			RunAnyDownDir:=githubUrl . RunAnyGithubDir
+			if(!Check_Network(githubUrl)){
 				MsgBox,网络异常，无法连接网络读取最新版本文件，请手动下载
 				return
 			}
@@ -3983,8 +3987,7 @@ Var_Set:
 	global giteeUrl:="https://gitee.com"
 	global RunAnyGiteeDir:="/hui-Zz/RunAny/raw/master"
 	global RunAnyGithubDir:="/hui-Zz/RunAny/master"
-	global lpszUrl:=giteeUrl
-	global RunAnyDownDir:=lpszUrl . RunAnyGiteeDir
+	global RunAnyDownDir:=giteeUrl . RunAnyGiteeDir ; 初始使用gitee地址
 	global featureDir:=A_ScriptDir "\实用配置"
 	if(A_DD=01 || A_DD=15){
 		;当天已经检查过就不再更新
@@ -4213,9 +4216,8 @@ Plugins_Read:
 	global PluginsObjList:=Object()
 	global PluginsPathList:=Object()
 	global PluginsTitleList:=Object()
-	global RunAnyGiteePages:="https://hui-zz.gitee.io/runany/#/"
-	pagesHash:=RunAnyGiteePages . "plugins-help?id="
-	global PluginsHelpList:={"huiZz_QRCode.ahk":pagesHash "huiZz_QRCode二维码脚本使用方法", "huiZz_Window.ahk":pagesHash "huiZz_Window窗口操作插件使用方法","huiZz_System.ahk":pagesHash "huiZz_System系统操作插件使用方法","huiZz_Text.ahk":pagesHash "huiZz_Text文本操作插件使用方法"}
+	global RunAnyGiteePages:="https://hui-zz.gitee.io"
+	global RunAnyGithubPages:="https://hui-zz.github.io"
 	global PluginsObjNum:=0
 	Loop,%A_ScriptDir%\%PluginsDir%\*.ahk,0	;Plugins目录下AHK脚本
 	{
@@ -4479,7 +4481,7 @@ AutoClose_Effect:
 	}
 	DetectHiddenWindows,Off
 return
-Check_Github(){
+Check_Network(lpszUrl){
 	return DllCall("Wininet.dll\InternetCheckConnection", "Ptr", &lpszUrl, "UInt", 0x1, "UInt", 0x0, "Int")
 }
 Check_Update:
@@ -4491,10 +4493,9 @@ Auto_Update:
 	if(FileExist(A_Temp "\RunAny_Update.bat"))
 		FileDelete, %A_Temp%\RunAny_Update.bat
 	;[下载最新的更新脚本]
-	if(!Check_Github()){
-		lpszUrl:=githubUrl
-		RunAnyDownDir:=lpszUrl . RunAnyGithubDir
-		if(!Check_Github()){
+	if(!Check_Network(giteeUrl)){
+		RunAnyDownDir:=githubUrl . RunAnyGithubDir
+		if(!Check_Network(githubUrl)){
 			TrayTip,,网络异常，无法连接网络读取最新版本文件,3,1
 			return
 		}
