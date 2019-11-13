@@ -2983,7 +2983,7 @@ Gui,P:Destroy
 Gui,P:Default
 Gui,P:+Resize
 Gui,P:Font, s10, Microsoft YaHei
-Gui,P:Add, Listview, xm w580 r20 grid AltSubmit vRunAnyLV glistview, 插件文件|运行状态|自动启动|插件描述
+Gui,P:Add, Listview, xm w580 r20 grid AltSubmit vRunAnyLV glistview, 插件文件|运行状态|自动启动|插件描述|插件说明地址
 ;~;[读取启动项内容写入列表]
 GuiControl,P: -Redraw, RunAnyLV
 For runn, runv in PluginsObjList
@@ -2992,7 +2992,7 @@ For runn, runv in PluginsObjList
 	pluginsConfig:=runv ? "自启" : ""
 	if(!PluginsPathList[runn])
 		pluginsConfig:="未找到"
-	LV_Add("", runn, runStatus, pluginsConfig, PluginsTitleList[runn])
+	LV_Add("", runn, runStatus, pluginsConfig, PluginsTitleList[runn], PluginsHelpList[runn])
 }
 GuiControl,P: +Redraw, RunAnyLV
 LVMenu("LVMenu")
@@ -3021,8 +3021,10 @@ LVMenu(addMenu){
 	Menu, %addMenu%, Icon,% flag ? "移除" : "移除`tF7", SHELL32.dll,132
 	Menu, %addMenu%, Add,% flag ? "下载插件" : "下载插件`tF8", LVAdd
 	Menu, %addMenu%, Icon,% flag ? "下载插件" : "下载插件`tF8", SHELL32.dll,194
-	Menu, %addMenu%, Add,% flag ? "新建插件" : "新建插件`tF9", LVCreate
-	Menu, %addMenu%, Icon,% flag ? "新建插件" : "新建插件`tF9", SHELL32.dll,1
+	Menu, %addMenu%, Add,% flag ? "插件说明" : "插件说明`tF9", LVHelp
+	Menu, %addMenu%, Icon,% flag ? "插件说明" : "插件说明`tF9", SHELL32.dll,92
+	Menu, %addMenu%, Add,% flag ? "新建插件" : "新建插件`tF10", LVCreate
+	Menu, %addMenu%, Icon,% flag ? "新建插件" : "新建插件`tF10", SHELL32.dll,1
 }
 LVRun:
 	menuItem:="启动"
@@ -3052,6 +3054,11 @@ LVDel:
 	menuItem:="移除"
 	gosub,LVApply
 	return
+LVHelp:
+	menuItem:="帮助"
+	gosub,LVApply
+	return
+return
 LVApply:
 	Gui,P:Default
 	DetectHiddenWindows,On      ;~显示隐藏窗口
@@ -3126,6 +3133,10 @@ LVApply:
 				IniDelete,%RunAnyConfig%,Plugins,%FileName% ;删除插件管理数据
 				SplitPath,FileName,,,,o_name_no_ext
 				IniDelete,%RunAny_ObjReg_Path%,objreg,%o_name_no_ext% ;删除插件注册数据
+			}
+		}else if(menuItem="帮助"){
+			if(PluginsHelpList[FileName]){
+				Run,% PluginsHelpList[FileName]
 			}
 		}
 	}
@@ -4202,6 +4213,9 @@ Plugins_Read:
 	global PluginsObjList:=Object()
 	global PluginsPathList:=Object()
 	global PluginsTitleList:=Object()
+	global RunAnyGiteePages:="https://hui-zz.gitee.io/runany/#/"
+	pagesHash:=RunAnyGiteePages . "plugins-help?id="
+	global PluginsHelpList:={"huiZz_QRCode.ahk":pagesHash "huiZz_QRCode二维码脚本使用方法", "huiZz_Window.ahk":pagesHash "huiZz_Window窗口操作插件使用方法","huiZz_System.ahk":pagesHash "huiZz_System系统操作插件使用方法","huiZz_Text.ahk":pagesHash "huiZz_Text文本操作插件使用方法"}
 	global PluginsObjNum:=0
 	Loop,%A_ScriptDir%\%PluginsDir%\*.ahk,0	;Plugins目录下AHK脚本
 	{
