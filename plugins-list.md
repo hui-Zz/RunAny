@@ -76,16 +76,3 @@
 | qr_code      | 二维码生成         |
 
 
-
----
-
-## [新建自定义ObjReg插件]
-
-1. 右键RunAny图标 - 打开“插件管理”
-2. 点击右上角“新建插件”按钮，命名后确认创建
-3. RunAny会自动设置启用插件，在`class RunAnyObj{}`大括号中编写自己的函数
-4. 写好函数后保存脚本，打开`RunAny.ini`按格式把自己的函数放入RunAny菜单
-   - `菜单项名|你的脚本文件名RunAny_NewObjReg_1[你的函数名](参数1,参数2)`
-5. 保存`RunAny.ini`，重启RunAny后打开菜单测试使用刚刚写的函数功能。
-
-![ObjReg新建插件脚本](/assets/images/ObjReg新建插件脚本.png)

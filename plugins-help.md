@@ -1,14 +1,30 @@
 # 插件使用
 
+## 【独立运行插件使用方法】
+1. 请在右键RunAny图标“插件管理”下载独立运行插件,如`huiZz_MButton.ahk`、`huiZz_InputEnCn.ahk`  
+2. 下载后点击“启动”按钮即可使用，点击“编辑”按钮可以阅读说明和进行配置  
+3. 在插件管理点击“自启”按钮设置huiZz_MButton.ahk为随RunAny而自动启动  
 
+---
 
-## 【ObjReg插件配置】
+## 【ObjReg插件使用方法】
 以下插件配置需要ObjReg插件对象注册工具（不用自启）
 
 
-### 窗口函数插件配置
-使用请在插件管理下载插件huizz_Window.ahk和RunAny_ObjReg.ahk  
-下载后在插件管理设置huizz_Window.ahk为自动启动  
+### huiZz_QRCode二维码脚本使用方法
+1. 请在右键RunAny图标“插件管理”下载插件huiZz_QRCode.ahk和RunAny_ObjReg.ahk  
+2. 下载后在插件管理点击“自启”按钮设置huiZz_QRCode.ahk为自动启动  
+3. 复制以下执行项写入`RunAny.ini`文件保存，然后重启RunAny后打开菜单即可使用  
+
+```autohotkey
+二维码生成|huiZz_QRCode[qr_code](%getZz%)
+```
+
+
+### huiZz_Window窗口操作插件使用方法
+1. 请在右键RunAny图标“插件管理”下载插件huizz_Window.ahk和RunAny_ObjReg.ahk  
+2. 下载后在插件管理点击“自启”按钮设置huizz_Window.ahk为自动启动  
+3. 复制以下执行项写入`RunAny.ini`文件保存，然后重启RunAny后打开菜单即可使用  
 
 <details>
 <summary>【点击展开】复制需要的功能写入RunAny.ini文件</summary>
@@ -51,9 +67,10 @@
 
 </details>
 
-### 系统函数插件配置
-使用请在插件管理下载插件huiZz_System.ahk和RunAny_ObjReg.ahk  
-下载后在插件管理设置huiZz_System.ahk为自动启动  
+### huiZz_System系统操作插件使用方法
+1. 请在右键RunAny图标“插件管理”下载插件huiZz_System.ahk和RunAny_ObjReg.ahk  
+2. 下载后在插件管理点击“自启”按钮设置huiZz_System.ahk为自动启动  
+3. 复制以下执行项写入`RunAny.ini`文件保存，然后重启RunAny后打开菜单即可使用  
 
 <details>
 <summary>【点击展开】复制需要的功能写入RunAny.ini文件</summary>
@@ -105,9 +122,10 @@
 
 </details>
 
-### 文本函数插件配置
-使用请在插件管理下载插件huizz_Text.ahk和RunAny_ObjReg.ahk  
-下载后在插件管理设置huizz_Text.ahk为自动启动  
+### huiZz_Text文本操作插件使用方法
+1. 请在右键RunAny图标“插件管理”下载插件huizz_Text.ahk和RunAny_ObjReg.ahk  
+2. 下载后在插件管理点击“自启”按钮设置huizz_Text.ahk为自动启动  
+3. 复制以下执行项写入`RunAny.ini`文件保存，然后重启RunAny后打开菜单即可使用  
 
 <details>
 <summary>【点击展开】复制需要的功能写入RunAny.ini文件</summary>
@@ -171,6 +189,7 @@
 
 </details>
 
+<br>
 
 <details>
 <summary>【排序函数】复制需要的功能写入RunAny.ini文件</summary>
@@ -197,6 +216,7 @@
 
 </details>
 
+<br>
 
 <details>
 <summary>【Markdown】复制需要的功能写入RunAny.ini文件</summary>
@@ -234,3 +254,17 @@
 ```
 
 </details>
+
+
+---
+
+## [新建自定义ObjReg插件]
+
+1. 右键RunAny图标 - 打开“插件管理”
+2. 点击右上角“新建插件”按钮，命名后确认创建
+3. RunAny会自动设置启用插件，在`class RunAnyObj{}`大括号中编写自己的函数
+4. 写好函数后保存脚本，打开``RunAny.ini``按格式把自己的函数放入RunAny菜单
+   - `菜单项名|你的脚本文件名RunAny_NewObjReg_1[你的函数名](参数1,参数2)`
+5. 保存``RunAny.ini``，重启RunAny后打开菜单测试使用刚刚写的函数功能。
+
+![ObjReg新建插件脚本](/assets/images/ObjReg新建插件脚本.png)

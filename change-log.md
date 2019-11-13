@@ -1,11 +1,17 @@
 # RunAny已更新最新版本！感谢你的使用和支持！
 
-### 📢 RunAny完整文档完成了~
-### 国内文档地址：[https://hui-zz.gitee.io/runany](https://hui-zz.gitee.io/runany)
+### 📢 RunAny完整文档完成了！持续完善中，新增搜索、评论功能~
+### 国内Gitee地址：[https://hui-zz.gitee.io/runany](https://hui-zz.gitee.io/runany)
 ### Github文档：[https://hui-zz.github.io/RunAny](https://hui-zz.github.io/RunAny)
 
 
 ---
+
+## 【RunAny】v5.6.8
++ 增加：ObjReg插件点击“插件说明”按钮跳转到说明文档网页
+* 隐藏RunAny菜单中失效的快捷方式
+* 没安装AHK环境时编辑插件用记事本方式打开脚本
+* 修复码云gitee文本导致插件下载界面乱码问题
 
 ## 【RunAny】v5.6.6 ~ v5.6.7
 
@@ -62,7 +68,7 @@
 * 修复ObjReg插件中无路径没有处理,识别为系统自带软件的问题
 * 解决程序参数有竖杠|时冲突
 
-![RunAny相对路径功能演示](https://user-images.githubusercontent.com/9458347/59320042-69bc2d80-8cff-11e9-9222-7bef2ad563b6.gif)
+![RunAny相对路径功能演示](/assets/images/RunAny相对路径功能演示.gif)
 
 ## 【RunAny】v5.5.8
 1. 按住<kbd>Ctrl</kbd>打开软件会打开软件所在的目录
@@ -104,7 +110,7 @@
 ## 【RunAny】v5.5.1 ~ v5.5.4
 RunAny一键公式计算
 
-<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/help/RunAny公式计算.gif" alt="RunAny公式计算">
+![RunAny公式计算](/assets/images/RunAny公式计算.gif)
 
 + 菜单显示选中的文字信息提示，点击复制到剪贴板(可在设置中隐藏)
 
@@ -148,13 +154,13 @@ RunAny一键公式计算
 + （增加一个隐藏配置JumpSearch=1可以跳过批量搜索的确认弹窗）
 
 ## RunAny菜单多种使用方式：
-<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/help/RunAny菜单多种使用方式.gif" alt="RunAny菜单多种使用方式">
+![RunAny菜单多种使用方式](/assets/images/RunAny菜单多种使用方式.gif)
 
 ## RunAny一键直达功能：
-<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/help/RunAny一键直达功能.gif" alt="RunAny一键直达功能">
+![RunAny一键直达功能](/assets/images/RunAny一键直达功能.gif)
 
 ## RunAny短语和热键映射功能：
-<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/help/RunAny短语和热键映射功能.gif" alt="RunAny短语和热键映射功能">
+![RunAny短语和热键映射功能](/assets/images/RunAny短语和热键映射功能.gif)
 
 ## 【RunAny】v5.3.7 正式版
 

@@ -4,11 +4,13 @@
 
 在菜单中添加搜索网址，先选中任意文字，按<kbd>\`</kbd>后就可以选择想用的搜索，更有一次批量搜索功能。
 
-详见“实用配置”目录下[搜索网址.ini](https://github.com/hui-Zz/RunAny/blob/master/%E5%AE%9E%E7%94%A8%E9%85%8D%E7%BD%AE/%E6%90%9C%E7%B4%A2%E7%BD%91%E5%9D%80.ini)（内置购物、视频、图片、软件、音乐类等等搜索网站，复制需要的到【RunAny.ini】内使用）
+?> 内置购物、视频、图片、软件、音乐、网盘类等搜索网站，复制需要的到`RunAny.ini`内使用
 
 ![RunAny演示批量搜索](/assets/images/RunAny演示批量搜索.gif)
 
 ## 搜索网址
+
+**复制以下需要的功能写入`RunAny.ini`文件保存、重启RunAny，然后选中任意文字后打开菜单即可搜索**
 
 <details>
 <summary>日常搜索</summary>
@@ -26,6 +28,7 @@ github|https://github.com/search?utf8=%E2%9C%93&q=%s&type=
 ```
 
 </details>
+<br>
 <details>
 <summary>视频搜索</summary>
 
@@ -46,6 +49,7 @@ github|https://github.com/search?utf8=%E2%9C%93&q=%s&type=
 ```
 
 </details>
+<br>
 <details>
 <summary>购物搜索</summary>
 
@@ -62,6 +66,7 @@ github|https://github.com/search?utf8=%E2%9C%93&q=%s&type=
 ```
 
 </details>
+<br>
 <details>
 <summary>图片搜索</summary>
 
@@ -79,6 +84,7 @@ github|https://github.com/search?utf8=%E2%9C%93&q=%s&type=
 ```
 
 </details>
+<br>
 <details>
 <summary>音乐搜索</summary>
 
@@ -91,6 +97,7 @@ github|https://github.com/search?utf8=%E2%9C%93&q=%s&type=
 ```
 
 </details>
+<br>
 <details>
 <summary>绿软搜索</summary>
 
@@ -106,6 +113,7 @@ github|https://github.com/search?utf8=%E2%9C%93&q=%s&type=
 ```
 
 </details>
+<br>
 <details>
 <summary>网盘搜索</summary>
 
