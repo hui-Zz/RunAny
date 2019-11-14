@@ -8,7 +8,7 @@ __多台电脑你只需配置一套软件列表(RunAny.ini)，就能到处运行
 - ☑ 分类定位，三键启动，简单迅速
 - ☑ 一次配置，到处运行，永久使用
 - ☑ [一键直达](#oneKey)，[一键计算](#oneKeyCalc)，[一键批量搜索](#oneKeySearch)
-- ☑ [全局热键，热键映射](#advancedConfig)，[热字符串](https://github.com/hui-Zz/RunAny/wiki#menuHotStringRun)，多样快捷
+- ☑ [全局热键，热键映射](#advancedConfig)，[热字符串](https://hui-zz.github.io/RunAny/#/hotstring)，多样快捷
 - ☑ [短语输出](#wordOutput)，[透明化启动](#advancedConfig)，[快捷打开文件方式](#quickOpenFile)
 - ☑ [外接脚本，个性函数，自由定制](#runPlugins)
 
@@ -64,7 +64,7 @@ __多台电脑你只需配置一套软件列表(RunAny.ini)，就能到处运行
 
 在菜单中添加搜索网址，先选中任意文字，按<kbd>\`</kbd>后就可以选择想用的搜索，更有一次批量搜索功能。
 
-详见“实用配置”目录下[搜索网址.ini](https://github.com/hui-Zz/RunAny/blob/master/%E5%AE%9E%E7%94%A8%E9%85%8D%E7%BD%AE/%E6%90%9C%E7%B4%A2%E7%BD%91%E5%9D%80.ini)（内置购物、视频、图片、软件、音乐类等等搜索网站，复制需要的到【RunAny.ini】内使用）
+详见文档[批量搜索](https://hui-zz.github.io/RunAny/#/batch-search)（内置购物、视频、图片、软件、音乐类等等搜索网站，复制需要的到【RunAny.ini】内使用）
 
 <img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/help/RunAny%E6%BC%94%E7%A4%BA%E6%89%B9%E9%87%8F%E6%90%9C%E7%B4%A2.gif" alt="RunAny演示批量搜索">
 
@@ -98,7 +98,8 @@ RunAny可以储存邮箱、手机号，想用时就快捷输出，更支持AHK�
 | huiZz_Text    | 文本操作脚本 | 对选中文本：Markdown格式化、加序号转大小写、转驼峰下划线等命名、多行合并字符替换、排序去重、直入编辑器、与剪贴板对比 |
 | huiZz_Window  | 窗口操作脚本 | 对当前窗口：居中、置顶、透明、比例或指定像素缩小放大、移动至屏幕边角 |
 
-[点击查看更多RunAny插件功能详细内容](https://github.com/hui-Zz/RunAny/wiki/RunAny插件功能详细内容)
+[点击查看更多RunAny插件功能详细内容](https://hui-zz.github.io/RunAny/#/plugins-list)  
+[点击查看RunAny插件使用方法](https://hui-zz.github.io/RunAny/#/plugins-help)
 
 ---
 
