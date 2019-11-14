@@ -982,8 +982,8 @@ Menu_All_Show:
 return
 RunAny_Menu:
 	RunAnyMenu:=A_ScriptDir "\" PluginsDir "\RunAny_Menu.ahk"
-	if(ahkFlag && FileExist(RunAnyMenu) && PluginsObjList["RunAny_Menu.ahk"]){
-		Run,%ahkExePath%%A_Space%"%RunAnyMenu%"
+	if(A_AhkPath && FileExist(RunAnyMenu) && PluginsObjList["RunAny_Menu.ahk"]){
+		Run,%A_AhkPath%%A_Space%"%RunAnyMenu%"
 	}
 return
 Menu_Show_Show(menuName,itemName){
@@ -3015,7 +3015,7 @@ return
 LVMenu(addMenu){
 	flag:=addMenu="ahkGuiMenu" ? true : false
 	Menu, %addMenu%, Add,% flag ? "启动" : "启动`tF1", LVRun
-	try Menu, %addMenu%, Icon,% flag ? "启动" : "启动`tF1", %ahkExePath%,2
+	try Menu, %addMenu%, Icon,% flag ? "启动" : "启动`tF1", %A_AhkPath%,2
 	Menu, %addMenu%, Add,% flag ? "编辑" : "编辑`tF2", LVEdit
 	Menu, %addMenu%, Icon,% flag ? "编辑" : "编辑`tF2", SHELL32.dll,134
 	Menu, %addMenu%, Add,% flag ? "自启" : "自启`tF3", LVEnable
@@ -3023,9 +3023,9 @@ LVMenu(addMenu){
 	Menu, %addMenu%, Add,% flag ? "关闭" : "关闭`tF4", LVClose
 	Menu, %addMenu%, Icon,% flag ? "关闭" : "关闭`tF4", SHELL32.dll,28
 	Menu, %addMenu%, Add,% flag ? "挂起" : "挂起`tF5", LVSuspend
-	try Menu, %addMenu%, Icon,% flag ? "挂起" : "挂起`tF5", %ahkExePath%,3
+	try Menu, %addMenu%, Icon,% flag ? "挂起" : "挂起`tF5", %A_AhkPath%,3
 	Menu, %addMenu%, Add,% flag ? "暂停" : "暂停`tF6", LVPause
-	try Menu, %addMenu%, Icon,% flag ? "暂停" : "暂停`tF6", %ahkExePath%,4
+	try Menu, %addMenu%, Icon,% flag ? "暂停" : "暂停`tF6", %A_AhkPath%,4
 	Menu, %addMenu%, Add,% flag ? "移除" : "移除`tF7", LVDel
 	Menu, %addMenu%, Icon,% flag ? "移除" : "移除`tF7", SHELL32.dll,132
 	Menu, %addMenu%, Add,% flag ? "下载插件" : "下载插件`tF8", LVAdd
@@ -3093,8 +3093,8 @@ LVApply:
 				if(dir && FileExist(dir)){
 					SetWorkingDir,%dir%
 				}
-				if(ahkFlag && ext="ahk"){
-					Run,%ahkExePath%%A_Space%"%FilePath%"
+				if(A_AhkPath && ext="ahk"){
+					Run,%A_AhkPath%%A_Space%"%FilePath%"
 				}else{
 					Run,%FilePath%
 				}
@@ -3306,7 +3306,6 @@ LVDown:
 				return
 			}
 		}
-		gosub,AhkExeDown
 		downFlag:=false
 		firstUpdateFlag:=false
 		Loop
@@ -3369,25 +3368,6 @@ LVDown:
 			ToolTip,请至少选中一项
 			SetTimer,RemoveToolTip,2000
 		}
-	}
-return
-AhkExeDown:
-	ahkDown:=false
-	if(!ahkFlag){
-		ahkDown:=true
-	}
-	FileGetSize, ahkSize, %A_ScriptDir%\%PluginsDir%\AHK.exe
-	if(ahkSize<897024){
-		ahkDown:=true
-	}
-	if(ahkDown){
-		TrayTip,,RunAny使用脚本插件需要后台下载AHK.exe，期间可正常使用RunAny，`n下载时间因网速可能比较缓慢，完成后会自动重启RunAny,3,1
-		URLDownloadToFile(RunAnyDownDir "/" PluginsDir "/AHK.exe",A_ScriptDir "\" PluginsDir "\AHK.exe")
-		if(A_Is64bitOS){
-			;gitee下载1M以上的AHK64.exe需要登录，固定为github下载
-			URLDownloadToFile(githubUrl RunAnyGithubDir "/" PluginsDir "/AHK64.exe",A_ScriptDir "\" PluginsDir "\AHK64.exe")
-		}
-		ahkFlag:=true
 	}
 return
 ;[判断脚本当前状态]
@@ -4205,11 +4185,6 @@ Run_Exist:
 	}
 	IfNotExist,%A_ScriptDir%\%PluginsDir%
 		FileCreateDir, %A_ScriptDir%\%PluginsDir%
-	global ahkFlag:=false
-	global ahkExePath:=A_ScriptDir "\" PluginsDir "\AHK.exe"
-	if(FileExist(ahkExePath)){
-		ahkFlag:=true
-	}
 	;~[记录配置修改时间]
 	FileGetTime,MTimeIniPath, %iniPath%, M  ; 获取修改时间.
 	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, MTimeIniPath, %MTimeIniPath%
@@ -4440,11 +4415,8 @@ menuItemIconFileName(menuItem){
 }
 ;~;[自动启动生效]
 AutoRun_Effect:
-	if(PluginsObjNum>0){
-		gosub,AhkExeDown
-	}
 	try {
-		if(ahkFlag){
+		if(A_AhkPath){
 			For runn, runv in PluginsPathList	;循环启动项
 			{
 				;需要自动启动的项
@@ -4455,7 +4427,7 @@ AutoRun_Effect:
 						SetWorkingDir,%dir%
 					}
 					if(ext="ahk"){
-						Run,%ahkExePath%%A_Space%"%runv%"
+						Run,%A_AhkPath%%A_Space%"%runv%"
 					}else{
 						Run,%runv%
 					}
