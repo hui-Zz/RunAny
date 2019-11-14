@@ -1,7 +1,7 @@
 # 插件使用
 
 ## 【独立运行插件使用方法】
-1. 请在右键RunAny图标“插件管理”下载独立运行插件,如`huiZz_MButton.ahk`、`huiZz_InputEnCn.ahk`  
+1. 右键RunAny图标“插件管理”，下载独立运行插件,如`huiZz_MButton.ahk`、`huiZz_InputEnCn.ahk`  
 2. 下载后点击“启动”按钮即可使用，点击“编辑”按钮可以阅读说明和进行配置  
 3. 在插件管理点击“自启”按钮设置huiZz_MButton.ahk为随RunAny而自动启动  
 
@@ -12,7 +12,7 @@
 
 
 ### huiZz_QRCode二维码脚本使用方法
-1. 请在右键RunAny图标“插件管理”下载插件huiZz_QRCode.ahk和RunAny_ObjReg.ahk  
+1. 右键RunAny图标“插件管理”，下载插件huiZz_QRCode.ahk和RunAny_ObjReg.ahk  
 2. 下载后在插件管理点击“自启”按钮设置huiZz_QRCode.ahk为自动启动  
 3. 复制以下执行项写入`RunAny.ini`文件保存，然后重启RunAny后打开菜单即可使用  
 
@@ -22,7 +22,7 @@
 
 
 ### huiZz_Window窗口操作插件使用方法
-1. 请在右键RunAny图标“插件管理”下载插件huizz_Window.ahk和RunAny_ObjReg.ahk  
+1. 右键RunAny图标“插件管理”，下载插件huizz_Window.ahk和RunAny_ObjReg.ahk  
 2. 下载后在插件管理点击“自启”按钮设置huizz_Window.ahk为自动启动  
 3. 复制以下执行项写入`RunAny.ini`文件保存，然后重启RunAny后打开菜单即可使用  
 
@@ -68,7 +68,7 @@
 </details>
 
 ### huiZz_System系统操作插件使用方法
-1. 请在右键RunAny图标“插件管理”下载插件huiZz_System.ahk和RunAny_ObjReg.ahk  
+1. 右键RunAny图标“插件管理”，下载插件huiZz_System.ahk和RunAny_ObjReg.ahk  
 2. 下载后在插件管理点击“自启”按钮设置huiZz_System.ahk为自动启动  
 3. 复制以下执行项写入`RunAny.ini`文件保存，然后重启RunAny后打开菜单即可使用  
 
@@ -123,7 +123,7 @@
 </details>
 
 ### huiZz_Text文本操作插件使用方法
-1. 请在右键RunAny图标“插件管理”下载插件huizz_Text.ahk和RunAny_ObjReg.ahk  
+1. 右键RunAny图标“插件管理”，下载插件huizz_Text.ahk和RunAny_ObjReg.ahk  
 2. 下载后在插件管理点击“自启”按钮设置huizz_Text.ahk为自动启动  
 3. 复制以下执行项写入`RunAny.ini`文件保存，然后重启RunAny后打开菜单即可使用  
 
