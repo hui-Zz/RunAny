@@ -3103,12 +3103,7 @@ LVApply:
 				SetWorkingDir,%A_ScriptDir%
 			}
 		}else if(menuItem="编辑"){
-			;~ PostMessage, 0x111, 65401,,, %FilePath% ahk_class AutoHotkey
-			if(A_AhkPath){
-				Run,edit "%FilePath%"
-			}else{
-				Run,notepad.exe "%FilePath%"
-			}
+			Plugins_Edit(FilePath)
 		}else if(menuItem="挂起"){
 			PostMessage, 0x111, 65404,,, %FilePath% ahk_class AutoHotkey
 			LVStatusChange(RowNumber,FileStatus,"挂起")
@@ -3146,6 +3141,8 @@ LVApply:
 		}else if(menuItem="帮助"){
 			if(PluginsHelpList[FileName]){
 				Run,% PluginsHelpList[FileName]
+			}else{
+				Plugins_Edit(FilePath)
 			}
 		}
 	}
@@ -3159,6 +3156,15 @@ LVApply:
 	}
 	DetectHiddenWindows,Off
 return
+;[插件脚本编辑操作]
+Plugins_Edit(FilePath){
+	;~ PostMessage, 0x111, 65401,,, %FilePath% ahk_class AutoHotkey
+	if(A_AhkPath){
+		Run,edit "%FilePath%"
+	}else{
+		Run,notepad.exe "%FilePath%"
+	}
+}
 #If WinActive(RunAnyZz " 插件管理 " RunAny_update_version A_Space RunAny_update_time)
 	F1::gosub,LVRun
 	F2::gosub,LVEdit
