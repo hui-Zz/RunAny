@@ -208,9 +208,10 @@ if(iniFlag){
 	gosub,Menu_Show1
 }
 Gosub,GuiIcon_Set
-if(ReloadEditFlag){
-	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, ReloadEditFlag, 0
-	gosub,Menu_Edit
+RegRead, ReloadGosub, HKEY_CURRENT_USER, Software\RunAny, ReloadGosub
+if(ReloadGosub){
+	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, ReloadGosub, 0
+	gosub,%ReloadGosub%
 }
 return
 
@@ -2432,7 +2433,7 @@ TVSave:
 	IfMsgBox No
 	{
 		gosub,Menu_Save
-		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, ReloadEditFlag, 1
+		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, ReloadGosub, Menu_Edit
 		Reload
 	}
 return
@@ -3307,6 +3308,7 @@ LVDown:
 		}
 		gosub,AhkExeDown
 		downFlag:=false
+		firstUpdateFlag:=false
 		Loop
 		{
 			RowNumber := LV_GetNext(RowNumber, "Checked")  ; 再找勾选的行
@@ -3347,19 +3349,21 @@ LVDown:
 				FileMove,%A_ScriptDir%\%pluginsDownPath%\%FileName%,%A_Temp%\%RunAnyZz%\%pluginsDownPath%\%FileName%,1
 			URLDownloadToFile(RunAnyDownDir "/" StrReplace(pluginsDownPath,"\","/") "/" FileName,A_ScriptDir "\" pluginsDownPath "\" FileName)
 			downFlag:=true
-			pluginsContent:=RegExReplace(FileContent, ".*\[([^\[\]]*)\]","$1")
-			if(RegExMatch(FileContent,"iS)\]$") && pluginsContent){
-				IfNotExist %A_Temp%\%RunAnyZz%\实用配置
-					FileCreateDir,%A_Temp%\%RunAnyZz%\实用配置
-				IfExist,%featureDir%\%pluginsContent%
-					FileMove,%featureDir%\%pluginsContent%,%A_Temp%\%RunAnyZz%\实用配置\%pluginsContent%,1
-				URLDownloadToFile(RunAnyDownDir "/实用配置/" pluginsContent,featureDir "\" pluginsContent)
-				Run,%featureDir%\%pluginsContent%
+			if(FileStatus="未下载"){
+				firstUpdateFlag:=true
 			}
 		}
 		if(downFlag){
-			MsgBox,RunAny插件下载成功，自动重启后就可以使用了!
-			Sleep,1000
+			if(firstUpdateFlag){
+				if(PluginsHelpList[FileName]){
+					Run,%pagesHash%
+					Sleep,1000
+					MsgBox, 64, ,RunAny插件下载成功，请在网页上阅读对应插件使用说明后使用
+				}else{
+					MsgBox, 64, ,RunAny插件下载成功，在插件管理界面点击“编辑”按钮可以阅读说明和进行配置
+				}
+			}
+			RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, ReloadGosub, Plugins_Manage
 			Reload
 		}else{
 			ToolTip,请至少选中一项
@@ -3896,8 +3900,6 @@ Var_Set:
 	;~;[RunAny设置参数]
 	RegRead, AutoRun, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 	AutoRun:=AutoRun ? 1 : 0
-	RegRead, ReloadEditFlag, HKEY_CURRENT_USER, Software\RunAny, ReloadEditFlag
-	ReloadEditFlag:=ReloadEditFlag ? 1 : 0
 	;优先读取配置文件，后读注册表
 	global IniConfig:=1
 	if(FileExist(RunAnyConfig)){
@@ -3993,7 +3995,6 @@ Var_Set:
 	global RunAnyGiteeDir:="/hui-Zz/RunAny/raw/master"
 	global RunAnyGithubDir:="/hui-Zz/RunAny/master"
 	global RunAnyDownDir:=giteeUrl . RunAnyGiteeDir ; 初始使用gitee地址
-	global featureDir:=A_ScriptDir "\实用配置"
 	if(A_DD=01 || A_DD=15){
 		;当天已经检查过就不再更新
 		if(FileExist(A_Temp "\temp_RunAny.ahk")){
@@ -4539,13 +4540,6 @@ Auto_Update:
 	}
 return
 Config_Update:
-	IfNotExist %featureDir%
-		FileCreateDir,%featureDir%
-	configDownList:=["实用命令.ini","搜索网址.ini","热键映射.ini"]
-	;~ For i, v in configDownList
-	;~ {
-		;~ URLDownloadToFile(RunAnyDownDir "/实用配置/" v,A_ScriptDir "\实用配置\" v)
-	;~ }
 	if(FileExist(A_ScriptDir "\ZzIcon.dll")){
 		FileGetSize, ZzIconSize, %A_ScriptDir%\ZzIcon.dll
 		if(ZzIconSize=610304){
