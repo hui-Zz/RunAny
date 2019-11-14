@@ -2978,10 +2978,11 @@ ToggleAllTheWay(_ItemID=0, _ChkUchk=True ) {
 Plugins_Manage:
 gosub,Plugins_Read
 ;根据网络自动选择对应插件说明网页地址
-pagesHash:=RunAnyGiteePages . "/runany/#/plugins-help?id="
+pagesPluginsUrl:=RunAnyGiteePages . "/runany/#/plugins-help"
 if(!Check_Network(RunAnyGiteePages)){
-	pagesHash:=RunAnyGithubPages . "/RunAny/#/plugins-help?id="
+	pagesPluginsUrl:=RunAnyGiteePages . "/RunAny/#/plugins-help"
 }
+pagesHash:=pagesPluginsUrl . "?id="
 global PluginsHelpList:={"huiZz_QRCode.ahk":pagesHash "huiZz_QRCode二维码脚本使用方法", "huiZz_Window.ahk":pagesHash "huiZz_Window窗口操作插件使用方法","huiZz_System.ahk":pagesHash "huiZz_System系统操作插件使用方法","huiZz_Text.ahk":pagesHash "huiZz_Text文本操作插件使用方法"}
 global ColumnName:=1
 global ColumnStatus:=2
@@ -3361,7 +3362,7 @@ LVDown:
 		if(downFlag){
 			if(firstUpdateFlag){
 				if(PluginsHelpList[FileName]){
-					Run,%pagesHash%
+					Run,%pagesPluginsUrl%
 					Sleep,1000
 					MsgBox, 64, ,RunAny插件下载成功，请在网页上阅读对应插件使用说明后使用
 				}else{
