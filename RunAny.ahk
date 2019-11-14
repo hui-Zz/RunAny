@@ -3917,7 +3917,7 @@ Var_Set:
 	global MenuXButton1Key:=Var_Read("MenuXButton1Key",0)
 	global MenuXButton2Key:=Var_Read("MenuXButton2Key",0)
 	global MenuMButtonKey:=Var_Read("MenuMButtonKey",0)
-	global HideFail:=Var_Read("HideFail",0)
+	global HideFail:=Var_Read("HideFail",1)
 	global HideUnSelect:=Var_Read("HideUnSelect",0)
 	global HideRecent:=Var_Read("HideRecent",0)
 	global HideWeb:=Var_Read("HideWeb",1)
