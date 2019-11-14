@@ -3923,7 +3923,7 @@ Var_Set:
 	global OneKeyMagnet:=Var_Read("OneKeyMagnet",1)
 	global OneKeyFile:=Var_Read("OneKeyFile",1)
 	global OneKeyMenu:=Var_Read("OneKeyMenu",0)
-	global EvCommand:=Var_Read("EvCommand","!C:\*Windows* !?:\$RECYCLE.BIN* file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
+	global EvCommand:=Var_Read("EvCommand","!C:\*Windows* !?:\$RECYCLE.BIN* !C:\Users\" A_UserName "\scoop\shims\* file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
 	global EvAutoClose:=Var_Read("EvAutoClose",0)
 	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
 	OneKeyUrl:=StrReplace(OneKeyUrl, "|", "`n")
