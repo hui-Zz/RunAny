@@ -1,4 +1,4 @@
-# RunAny已更新最新版本！感谢你的使用和支持！
+# RunAny已更新最新版本！感谢你的使用和支持！[![HitCount](http://hits.dwyl.io/hui-Zz/RunAny.svg)](http://hits.dwyl.io/hui-Zz/RunAny)
 
 ### 📢 RunAny完整文档完成了！持续完善中，新增搜索、评论功能~
 ### 国内Gitee文档：[https://hui-zz.gitee.io/runany](https://hui-zz.gitee.io/runany)
