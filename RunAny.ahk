@@ -557,8 +557,8 @@ MenuExeListPush(menuName,menuItem,itemFile,itemAny,menuRootFn,menuWebRootFn){
 	MenuObjEXE["itemFile"]:=itemFile
 	MenuObjEXE["itemAny"]:=itemAny
 	MenuExeList.Push(MenuObjEXE)
-	;带有%getZz%的菜单项都显示在选中内容菜单中
-	if(InStr(itemAny,"%getZz%")){
+	;带有%getZz%和%s的菜单项都显示在选中内容菜单中
+	if(InStr(itemAny,"%getZz%") || InStr(itemAny,"%s")){
 		Menu,%menuName%:,add,%menuItem%,Menu_Run
 		Menu_Item_Icon(menuName ":",menuItem,itemFile)
 		if(menuName = menuRootFn[1]){
