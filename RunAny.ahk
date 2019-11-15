@@ -269,13 +269,13 @@ XButton2::gosub,Menu_Show1
 ~MButton::gosub,Menu_Show1
 #If
 AutoReloadMTime:
-	RegRead, MTimeIniPathReg, HKEY_CURRENT_USER, Software\RunAny, MTimeIniPath
+	RegRead, MTimeIniPathReg, HKEY_CURRENT_USER, Software\RunAny, %iniPath%
 	FileGetTime,MTimeIniPath, %iniPath%, M  ; 获取修改时间.
 	if(MTimeIniPathReg!=MTimeIniPath){
 		Reload
 	}
 	if(MENU2FLAG){
-		RegRead, MTimeIniPath2, HKEY_CURRENT_USER, Software\RunAny, MTimeIniPath2
+		RegRead, MTimeIniPath2, HKEY_CURRENT_USER, Software\RunAny, %iniPath2%
 		FileGetTime,MTimeIniPath2Reg, %iniPath2%, M  ; 获取修改时间.
 		if(MTimeIniPath2!=MTimeIniPath2Reg){
 			Reload
@@ -4167,7 +4167,7 @@ Run_Exist:
 		global MENU2FLAG:=true
 		FileRead, iniVar2, %iniPath2%
 		FileGetTime,MTimeIniPath2, %iniPath2%, M  ; 获取修改时间.
-		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, MTimeIniPath2, %MTimeIniPath2%
+		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, %iniPath2%, %MTimeIniPath2%
 	}
 	;#判断配置文件
 	if(!FileExist(RunAnyConfig)){
@@ -4194,7 +4194,7 @@ Run_Exist:
 		FileCreateDir, %A_ScriptDir%\%PluginsDir%
 	;~[记录配置修改时间]
 	FileGetTime,MTimeIniPath, %iniPath%, M  ; 获取修改时间.
-	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, MTimeIniPath, %MTimeIniPath%
+	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, %iniPath%, %MTimeIniPath%
 	if(AutoReloadMTime>0){
 		SetTimer,AutoReloadMTime,%AutoReloadMTime%
 	}
