@@ -1,16 +1,20 @@
 # RunAny已更新最新版本！感谢你的使用和支持！
 
 ### 📢 RunAny完整文档完成了！持续完善中，新增搜索、评论功能~
-### 国内Gitee地址：[https://hui-zz.gitee.io/runany](https://hui-zz.gitee.io/runany)
+### 国内Gitee文档：[https://hui-zz.gitee.io/runany](https://hui-zz.gitee.io/runany)
 ### Github文档：[https://hui-zz.github.io/RunAny](https://hui-zz.github.io/RunAny)
 
 
 ---
 
 ## 【RunAny】v5.6.8
++ 精简了实用配置文件等，移到了在线网页文档，方便以后实时更新，总体积到5.46MB
 + 增加：ObjReg插件点击“插件说明”按钮跳转到说明文档网页
-* 隐藏RunAny菜单中失效的快捷方式
++ 设置中“隐藏失效项”隐藏RunAny菜单中失效的快捷方式
++ RunAny默认支持过滤掉scoop的目录shims同名exe
 * 没安装AHK环境时编辑插件用记事本方式打开脚本
+* 修复了同时使用多个RunAny时的自动重启问题
+* 选中文字打开菜单会显示带有%getZz%和%s的菜单项
 * 修复码云gitee文本导致插件下载界面乱码问题
 
 ## 【RunAny】v5.6.6 ~ v5.6.7
