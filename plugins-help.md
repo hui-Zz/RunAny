@@ -8,8 +8,9 @@
 ---
 
 ## 【ObjReg插件使用方法】
-以下插件配置需要ObjReg插件对象注册工具（不用自启）
+以下插件配置需要同时下载`ObjReg插件对象注册工具（不用自启）`
 
+![RunAny插件设置自动启动](/assets/images/RunAny插件设置自动启动.png)
 
 ### huiZz_QRCode二维码脚本使用方法
 1. 右键RunAny图标“插件管理”，下载插件huiZz_QRCode.ahk和RunAny_ObjReg.ahk  
