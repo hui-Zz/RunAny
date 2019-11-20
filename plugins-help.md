@@ -30,18 +30,26 @@
 <details>
 <summary>【点击展开】复制需要的功能写入RunAny.ini文件</summary>
 
+<PRE>
+;使用左Win键搭配鼠标右键或滚轮的使用方式
+窗口居中&#9LWin & RButton|huiZz_Window[win_center_zz]()
+窗口透明化&#9LWin & WheelDown|huiZz_Window[win_transparency_zz](1,30)
+窗口不透明&#9LWin & WheelUp|huiZz_Window[win_transparency_zz](0,30)
+</PRE>
+
 ```autohotkey
 -窗口函数
 	;外接ahk脚本名[函数名](函数传参数，可以无参)
-	窗口居中	LWin & RButton|huiZz_Window[win_center_zz]()
+	窗口居中|huiZz_Window[win_center_zz]()
 	窗口置顶|huiZz_Window[win_top_zz](1)
 	窗口取消置顶|huiZz_Window[win_top_zz](0)
 	窗口置顶时透明|huiZz_Window[win_transparent_top_zz]()
 	--
-	窗口透明化	LWin & WheelDown|huiZz_Window[win_transparency_zz](1,30)
-	窗口不透明	LWin & WheelUp|huiZz_Window[win_transparency_zz](0,30)
+	窗口透明化|huiZz_Window[win_transparency_zz](1,20)
+	窗口不透明|huiZz_Window[win_transparency_zz](0,20)
 	窗口最大化显示|huiZz_Window[win_max_zz]()
 	--
+	窗口改变大小并移动|huiZz_Window[win_move_size_zz](0,0,800,600)
 	;外接函数参数明确数值的情况(速度最快，推荐)
 	窗口340x200|huiZz_Window[win_size_zz](340,200)
 	窗口650x384|huiZz_Window[win_size_zz](650,384)
@@ -54,7 +62,7 @@
 	窗口占比0.8x0.8|huiZz_Window[win_size_zz]%(A_ScreenWidth*0.8,A_ScreenHeight*0.8)
 	窗口占比0.8x0.9|huiZz_Window[win_size_zz]%(A_ScreenWidth*0.8,A_ScreenHeight*0.9)
 	--
-	;窗口边角置顶观影[win_movie_zz](mode=1,x=0,y=0,title=0)
+	;窗口移至边角置顶观影[win_movie_zz](mode=1,x=0,y=0,title=0)
 	;参数说明：
 	;mode：1-左上,2-右上,3-左下,4-右下
 	;x：正数向左偏移像素，负数向右偏移像素
@@ -74,39 +82,25 @@
 3. 复制以下执行项写入`RunAny.ini`文件保存，然后重启RunAny后打开菜单即可使用  
 
 <details>
-<summary>【点击展开】复制需要的功能写入RunAny.ini文件</summary>
+<summary>【系统函数】</summary>
 
 ```autohotkey
-
-;【1.0.4更新内容】  
-;[创建目标快捷方式]  
-;参数说明：getZz：选中的文件路径  
-;target：需要发送的目标路径,默认当前目录  
-;lnk：快捷方式名,默认是选中文件名  
-创建快捷方式到桌面|huiZz_System[system_create_shortcut](%getZz%,%A_Desktop%)
 
 -系统函数
 	;[获取本地IP][system_ip_zz](output=0)
 	;参数说明：output：1-输出IP；0-显示IP并复制到剪贴板
 	ip地址|huiZz_System[system_ip_zz]()
+
 	;[定位注册表路径][system_regedit_zz](getZz:="")
 	;参数说明：getZz：选中的文本内容
 	注册表定位|huiZz_System[system_regedit_zz](%getZz%)
+
 	;[ping选中地址][system_ping_zz](getZz:="")
 	;参数说明：getZz：选中的文本内容
 	ping|huiZz_System[system_ping_zz](%getZz%)
+
 	;[重启桌面]
 	重启桌面|huiZz_System[system_explorer_zz]()
-	--
-	;[复制选中文件路径]
-	;复制文件说明：path路径, name名称, dir目录, ext后缀, nameNoExt无后缀名称, drive盘符
-	;复制快捷方式说明：lnkTarget指向路径, lnkDir指向目录, lnkArgs参数, lnkDesc注释, lnkIcon图标文件名, lnkIconNum图标编号, lnkRunState初始运行方式
-	复制名称|huiZz_System[system_file_path_zz](%getZz%,name)
-	复制路径|huiZz_System[system_file_path_zz](%getZz%,path)
-	复制所在目录|huiZz_System[system_file_path_zz](%getZz%,dir)
-	复制无后缀名称|huiZz_System[system_file_path_zz](%getZz%,nameNoExt)
-	复制lnk指向路径|huiZz_System[system_file_path_zz](%getZz%,lnkTarget)
-	复制lnk指向目录|huiZz_System[system_file_path_zz](%getZz%,lnkDir)
 	--
 	;[显示系统隐藏文件][system_hidefile_zz](hide=0,sys=0,ext=0,refresh=1)
 	;参数说明：
@@ -118,7 +112,31 @@
 	显示所有文件|huiZz_System[system_hidefile_zz](1,1,0)
 	隐藏所有文件|huiZz_System[system_hidefile_zz](0,0,0)
 	隐藏文件后缀|huiZz_System[system_hidefile_zz](0,0,1)
+```
 
+</details>
+
+<br>
+
+<details>
+<summary>【复制路径】</summary>
+
+```autohotkey
+--复制路径
+	;复制文件说明：path路径, name名称, dir目录, ext后缀, nameNoExt无后缀名称, drive盘符
+	;复制快捷方式说明：lnkTarget指向路径, lnkDir指向目录, lnkArgs参数, lnkDesc注释, lnkIcon图标文件名, lnkIconNum图标编号, lnkRunState初始运行方式
+	复制名称|huiZz_System[system_file_path_zz](%getZz%,name)
+	复制路径|huiZz_System[system_file_path_zz](%getZz%,path)
+	复制所在目录|huiZz_System[system_file_path_zz](%getZz%,dir)
+	复制无后缀名称|huiZz_System[system_file_path_zz](%getZz%,nameNoExt)
+	复制lnk指向路径|huiZz_System[system_file_path_zz](%getZz%,lnkTarget)
+	复制lnk指向目录|huiZz_System[system_file_path_zz](%getZz%,lnkDir)
+
+	;[创建目标快捷方式]  
+	;参数说明：getZz：选中的文件路径  
+	;target：需要发送的目标路径,默认当前目录  
+	;lnk：快捷方式名,默认是选中文件名  
+	创建快捷方式到桌面|huiZz_System[system_create_shortcut](%getZz%,%A_Desktop%)
 ```
 
 </details>
@@ -129,7 +147,7 @@
 3. 复制以下执行项写入`RunAny.ini`文件保存，然后重启RunAny后打开菜单即可使用  
 
 <details>
-<summary>【点击展开】复制需要的功能写入RunAny.ini文件</summary>
+<summary>【文本编辑】</summary>
 
 ```autohotkey
 -文本函数
@@ -141,21 +159,7 @@
 	转小写|huiZz_Text[text_format_zz](%getZz%,{:L})
 	首字母大写|huiZz_Text[text_format_zz](%getZz%,{:T})
 	两位小数|huiZz_Text[text_format_zz](%getZz%,{:0.2f})
-	--
-	;[变量命名][text_var_name_zz](getZz:="",varStr:="",formatStr:="",splitStr:=" ,._-|")
-	;参数说明：getZz：选中的文本内容
-	;varStr：变量命名格式符号
-	;formatStr：格式化选项，详情查看(https://wyagd001.github.io/zh-cn/docs/commands/Format.htm)
-	;splitStr：分割用的字符，一般不用传使用默认值 ,._-|
-	1骆驼命名(camelCase)|huiZz_Text[text_var_name_zz](%getZz%,,{1:L}{:T})
-	2帕斯卡命名(PascalCase)|huiZz_Text[text_var_name_zz](%getZz%,,{:T})
-	3下划线命名(snake_case)|huiZz_Text[text_var_name_zz](%getZz%,_,{:L})
-	4横杠命名(kebab-case)|huiZz_Text[text_var_name_zz](%getZz%,-,{:L})
-	5常量命名(SCREAMING_SNAKE_CASE)|huiZz_Text[text_var_name_zz](%getZz%,_,{:U})
-	6包名命名(dot.case)|huiZz_Text[text_var_name_zz](%getZz%,.,{:L})
-	7空格命名(camel case)|huiZz_Text[text_var_name_zz](%getZz%, ,{:L})
-	8网络路径命名(dot/case)|huiZz_Text[text_var_name_zz](%getZz%,`/,{:L})
-	9文件路径命名(dot\case)|huiZz_Text[text_var_name_zz](%getZz%,`\,{:L})
+	转整数|huiZz_Text[text_format_zz](%getZz%,{:i})
 	--
 	;[文本替换][text_replace_zz](getZz:="",searchStr:="",replaceStr:="")
 	;参数说明：
@@ -165,7 +169,11 @@
 	替换逗号为空格|huiZz_Text[text_replace_zz](%getZz%,`,,%A_Space%)
 	替换逗号为换行|huiZz_Text[text_replace_zz](%getZz%,`,,`n)
 	替换空格为换行|huiZz_Text[text_replace_zz](%getZz%, ,`n)
+	替换分号为换行|huiZz_Text[text_replace_zz](%getZz%,`;,`n)
 	去除空格|huiZz_Text[text_replace_zz](%getZz%,%A_Space%)
+	;[文本删除重复行保留顺序]
+	;参数说明：getZz：选中的文本内容
+	删除重复行保留顺序|huiZz_Text[text_remove_repeat](%getZz%)
 	--
 	;[文本多行合并][text_merge_zz](getZz:="",splitStr:=" ")
 	;参数说明：
@@ -174,18 +182,20 @@
 	多行合并空格分隔|huiZz_Text[text_merge_zz](%getZz%)
 	多行合并逗号分隔|huiZz_Text[text_merge_zz](%getZz%,`,)
 	--
-	;[便捷运行磁力链接]text_magnet_zz(getZz:="",downApp:="")
+	;[选中文字编辑]text_edit_zz(getZz:="",editApp:="")
 	;参数说明：getZz：选中的文本内容
-	;downApp：磁链下载软件
-	磁力链接|huiZz_Text[text_magnet_zz](%getZz%)
+	;editApp：编辑器软件
+	选中文字编辑(&E)|huiZz_Text[text_edit_zz](%getZz%,%"notepad.exe"%)
+	选中Sublime编辑(&S)|huiZz_Text[text_edit_zz](%getZz%,%"sublime_text.exe"%)
 	;[选中文本比较剪贴板][text_compare_zz](getZz:="",compareApp:="")
 	;参数说明：getZz：选中的文本内容
 	;compareApp：文本对比软件
 	选中文本比较剪贴板|huiZz_Text[text_compare_zz](%getZz%,%"BCompare.exe"%)
-	;[选中文字编辑]text_edit_zz(getZz:="",editApp:="")
+	;[便捷运行磁力链接]text_magnet_zz(getZz:="",downApp:="")
 	;参数说明：getZz：选中的文本内容
-	;editApp：编辑器软件
-	选中文字编辑|huiZz_Text[text_edit_zz](%getZz%,%"notepad.exe"%)
+	;downApp：磁链下载软件
+	磁力链接|huiZz_Text[text_magnet_zz](%getZz%)
+	选中内容与剪贴板互换|huiZz_Text[text_paste_zz](%getZz%)
 ```
 
 </details>
@@ -193,7 +203,7 @@
 <br>
 
 <details>
-<summary>【排序函数】复制需要的功能写入RunAny.ini文件</summary>
+<summary>【排序函数】</summary>
 
 ```autohotkey
 -排序函数
@@ -220,7 +230,32 @@
 <br>
 
 <details>
-<summary>【Markdown】复制需要的功能写入RunAny.ini文件</summary>
+<summary>【变量命名】</summary>
+
+```autohotkey
+-变量命名
+	;[变量命名][text_var_name_zz](getZz:="",varStr:="",formatStr:="",splitStr:=" ,._-|")
+	;参数说明：getZz：选中的文本内容
+	;varStr：变量命名格式符号
+	;formatStr：格式化选项，详情查看(https://wyagd001.github.io/zh-cn/docs/commands/Format.htm)
+	;splitStr：分割用的字符，一般不用传使用默认值 ,._-|
+	1骆驼命名(camelCase)|huiZz_Text[text_var_name_zz](%getZz%,,{1:L}{:T})
+	2帕斯卡命名(PascalCase)|huiZz_Text[text_var_name_zz](%getZz%,,{:T})
+	3下划线命名(snake_case)|huiZz_Text[text_var_name_zz](%getZz%,_,{:L})
+	4横杠命名(kebab-case)|huiZz_Text[text_var_name_zz](%getZz%,-,{:L})
+	5常量命名(SCREAMING_SNAKE_CASE)|huiZz_Text[text_var_name_zz](%getZz%,_,{:U})
+	6包名命名(dot.case)|huiZz_Text[text_var_name_zz](%getZz%,.,{:L})
+	7空格命名(camel case)|huiZz_Text[text_var_name_zz](%getZz%, ,{:L})
+	8网络路径命名(dot/case)|huiZz_Text[text_var_name_zz](%getZz%,`/,{:L})
+	9文件路径命名(dot\case)|huiZz_Text[text_var_name_zz](%getZz%,`\,{:L})
+```
+
+</details>
+
+<br>
+
+<details>
+<summary>【Markdown】</summary>
 
 ```autohotkey
 -Markdown	!m
