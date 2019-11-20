@@ -10,13 +10,13 @@
 -常用(&App)
 	chrome跨域|chrome.exe -disable-web-security --user-data-dir
 	chrome隐身模式|chrome.exe --incognito
-    IE|%ProgramFiles%\Internet Explorer\iexplore.exe
-    IE(32位)|C:\Program Files (x86)\Internet Explorer\iexplore.exe
-    --
+	IE|%ProgramFiles%\Internet Explorer\iexplore.exe
+	IE(32位)|C:\Program Files (x86)\Internet Explorer\iexplore.exe
+	--
 	BCompare文件比较工具|BCompare.exe
-    StrokesPlus鼠标手势|StrokesPlus.exe
+	StrokesPlus鼠标手势|StrokesPlus.exe
 	Ditto剪贴板|Ditto.exe
-    天若OCR文字识别.exe
+	天若OCR文字识别.exe
 	规则控制启动工具|RunAnyCtrl.ahk
 ```
 
@@ -34,18 +34,18 @@
 		;WPS(&W)|WPS.exe
 		;ET(&E)|et.exe
 		;WPP(&P)|wpp.exe
-        &WPS文字|WPS文字.lnk
-        WP&S表格|WPS表格.lnk
-        W&PS演示|WPS演示.lnk
-    --
+		&WPS文字|WPS文字.lnk
+		WP&S表格|WPS表格.lnk
+		W&PS演示|WPS演示.lnk
+	--
 	AxureRP8.exe
 	FeiQ.exe
-    --
-    ;远程桌面
-    远程桌面连接|mstsc.exe
-    TeamViewer.exe
-    SunloginClient.exe
-    AnyDesk.exe
+	--
+	;远程桌面
+	远程桌面连接|mstsc.exe
+	TeamViewer.exe
+	SunloginClient.exe
+	AnyDesk.exe
 ```
 
 </details>
@@ -55,7 +55,7 @@
 
 ```autohotkey
 -图片(im&G)|bmp gif jpeg jpg png
-    ;图片查看
+	;图片查看
 	画图(&T)|mspaint.exe
 	ACDSee.exe
 	XnView|XnViewPortable.exe
@@ -64,21 +64,21 @@
 	MangaMeeya.exe
 	MassiGraPortable.exe
 	--
-    ;屏幕截图
-    Snipaste.exe
-    HprSnap8.exe
-    FSCapture.exe
-    截图工具|SnippingTool.exe
-    --
-    ;图片比较
-    DiffImg|DiffImgPortable.exe
-    VSDImageFinder|VSDuplicateImageFinder.exe
-    --
-    ;动画录制
-    GifCam.exe
-    ga_main.exe
+	;屏幕截图
+	Snipaste.exe
+	HprSnap8.exe
+	FSCapture.exe
+	截图工具|SnippingTool.exe
 	--
-    ;图片编辑
+	;图片比较
+	DiffImg|DiffImgPortable.exe
+	VSDImageFinder|VSDuplicateImageFinder.exe
+	--
+	;动画录制
+	GifCam.exe
+	ga_main.exe
+	--
+	;图片编辑
 	IconWorkshop.exe
 	PhotoZoom|PhotoZoomPortable.exe
 	PhotoScape|PhotoScapePortable.exe
@@ -98,7 +98,7 @@
 	QQPlayer.exe
 	XMP.exe
 	PotPlayer.exe
-    Windows Media Player|wmplayer.exe
+	Windows Media Player|wmplayer.exe
 	--
 	FormatFactory.exe
 ```
@@ -111,14 +111,14 @@
 ```autohotkey
 ;编辑器打开透明度88%，在文本文件上RunAny直接显示Edit菜单
 -Edit|txt ini cmd bat md ahk html js sql
-    记事本(&N)_:88|notepad.exe
-    写字板|write.exe
+	记事本(&N)_:88|notepad.exe
+	写字板|write.exe
 	Notepad&2_:88|Notepad2.exe /C
 	&Sublime_:88|sublime_text.exe
 	gVim|gVimPortable.exe
 	EditPlus_:88|EditPlusPortable.exe
 	SciTE_:88|SciTE.exe
-    --
+	--
 	Typora.exe
 	XMind.exe
 
@@ -126,17 +126,17 @@
 -Code|java
 	idea_:95|idea64.exe
 	eclipse.exe
-    vscode|C:\Users\%A_UserName%\scoop\apps\vscode\current\Code.exe
+	vscode|C:\Users\%A_UserName%\scoop\apps\vscode\current\Code.exe
 	GitHubDesktop.exe
 	--
-    Xshell|XshellPortable.exe
+	Xshell|XshellPortable.exe
 	X&ftp|XftpPortable.exe
-    --
+	--
 	nginx|nginx.exe -c conf/nginx.conf
 	nginxReload|nginx.exe -s reload
 	KillNginx|cmd.exe /c "taskkill /f /im nginx.exe"
 	KillJava|cmd.exe /c "taskkill /f /t /im java.exe & ping -n 2 127.1>nul"
-    RabbitMQ|cmd.exe /c "net stop RabbitMQ && net start RabbitMQ & ping -n 2 127.1>nul"
+	RabbitMQ|cmd.exe /c "net stop RabbitMQ && net start RabbitMQ & ping -n 2 127.1>nul"
 ```
 
 </details>
@@ -146,26 +146,27 @@
 
 ```autohotkey
 -文件(&File)
+    ;文件搜索
 	Everything文件秒搜|Everything.exe
 	Listary.exe
 	FileLocatorPro.exe
-    --
+	--
 	TC文件管理|Totalcmd.exe
 	TC_:88|Totalcmd64.exe
 	vimd.exe
-    Plugman.exe
-    --
-    ;文件压缩
+	Plugman.exe
+	--
+	;文件压缩
 	WinRAR.exe
 	7-&Zip|7-ZipPortable.exe
 	MiniWinMount.exe
 	isocmdGUI.exe
-    UltraISO|UltraISOPortable.exe
+	UltraISO|UltraISOPortable.exe
 	--
 	FastCopy.exe
 	Unlocker.exe
 	Viewer.exe
-    --文件删除恢复
+	--文件删除恢复
 		EasyRecovery.exe
 		Piriform Recuva.exe
 		Recuva|RecuvaPortable.exe
@@ -185,20 +186,20 @@
 ;--
 ;快捷用记事本修改host文件
 -Sys
-    我的电脑(&Z)|explorer.exe
+	我的电脑(&Z)|explorer.exe
 	回收站|explorer.exe ::{645FF040-5081-101B-9F08-00AA002F954E}
 	网上邻居|explorer.exe ::{208D2C60-3AEA-1069-A2D7-08002B30309D}
-    --
+	--
 	命令行提示符|cmd.exe
 	PowerShell|%A_WinDir%\system32\WindowsPowerShell\v1.0\powershell.exe
 	计算器|calc.exe
-    --
+	--
 	Win10UWP应用|explorer.exe shell:::{4234d49b-0245-4df3-b780-3893943456e1}
 	ping百度|cmd.exe /c "ping baidu.com -t"
 	重启资源管理器|cmd.exe /c "taskkill /f /im explorer.exe" && start explorer.exe
 	hosts文件|notepad.exe C:\Windows\System32\drivers\etc\hosts
-    执行选中命令行|cmd.exe /c "%getZz%"
-    --
+	执行选中命令行|cmd.exe /c "%getZz%"
+	--
 	activehotkeys.exe
 	AntiFreeze.exe
 	SpaceSniffer.exe
@@ -212,14 +213,14 @@
 
 -系统工具
 	注册表|regedit.exe
-    服务|services.msc
+	服务|services.msc
 	磁盘清理|cleanmgr.exe
 	屏幕讲述人|narrator.exe
 	任务管理器|taskmgr.exe
 	设备管理器|devmgmt.msc
 	组策略|gpedit.msc
 	本机用户和组|lusrmgr.msc
-    步骤记录器|psr.exe
+	步骤记录器|psr.exe
 
 -控制面板
 	控制面板(&C)|control.exe
@@ -261,8 +262,8 @@
 	时间:*X:time;|%A_YYYY%%A_MM%%A_DD%%A_Hour%%A_Min%%A_Sec%;
 	时间_:*X:time-;|%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%;
 	时间中文_:*X:time=;|%A_YYYY%年%A_MM%月%A_DD%日 %A_Hour%时%A_Min%分%A_Sec%秒;
-    --
-    :*X:magn|magnet:?xt=urn:btih:;
+	--
+	:*X:magn|magnet:?xt=urn:btih:;
 
 -命令
 	scoop clean|scoop cache rm *`nscoop cleanup *`n;;
