@@ -1,8 +1,180 @@
 
-## 【实用启动菜单项】
+## 【菜单功能库】
 
 **复制以下需要的功能写入`RunAny.ini`文件保存，然后重启RunAny打开菜单即可使用**
 
+<details>
+<summary>【常用工具】</summary>
+
+```autohotkey
+-常用(&App)
+	chrome跨域|chrome.exe -disable-web-security --user-data-dir
+	chrome隐身模式|chrome.exe --incognito
+    IE|%ProgramFiles%\Internet Explorer\iexplore.exe
+    IE(32位)|C:\Program Files (x86)\Internet Explorer\iexplore.exe
+    --
+	BCompare文件比较工具|BCompare.exe
+    StrokesPlus鼠标手势|StrokesPlus.exe
+	Ditto剪贴板|Ditto.exe
+    天若OCR文字识别.exe
+	规则控制启动工具|RunAnyCtrl.ahk
+```
+
+</details>
+<br>
+<details>
+<summary>【办公软件】</summary>
+
+```autohotkey
+-办公(wo&Rk)|doc docx xls xlsx ppt pptx wps et dps
+	word(&W)|winword.exe
+	Excel(&E)|excel.exe
+	PPT(&T)|powerpnt.exe
+	--WPS(&S)
+		;WPS(&W)|WPS.exe
+		;ET(&E)|et.exe
+		;WPP(&P)|wpp.exe
+        &WPS文字|WPS文字.lnk
+        WP&S表格|WPS表格.lnk
+        W&PS演示|WPS演示.lnk
+    --
+	AxureRP8.exe
+	FeiQ.exe
+    --
+    ;远程桌面
+    远程桌面连接|mstsc.exe
+    TeamViewer.exe
+    SunloginClient.exe
+    AnyDesk.exe
+```
+
+</details>
+<br>
+<details>
+<summary>【图片处理】</summary>
+
+```autohotkey
+-图片(im&G)|bmp gif jpeg jpg png
+    ;图片查看
+	画图(&T)|mspaint.exe
+	ACDSee.exe
+	XnView|XnViewPortable.exe
+	IrfanView|IrfanViewPortable.exe
+	ComicsViewer.exe
+	MangaMeeya.exe
+	MassiGraPortable.exe
+	--
+    ;屏幕截图
+    Snipaste.exe
+    HprSnap8.exe
+    FSCapture.exe
+    截图工具|SnippingTool.exe
+    --
+    ;图片比较
+    DiffImg|DiffImgPortable.exe
+    VSDImageFinder|VSDuplicateImageFinder.exe
+    --
+    ;动画录制
+    GifCam.exe
+    ga_main.exe
+	--
+    ;图片编辑
+	IconWorkshop.exe
+	PhotoZoom|PhotoZoomPortable.exe
+	PhotoScape|PhotoScapePortable.exe
+	Photoshop|PhotoshopCCPortable.exe
+```
+
+</details>
+<br>
+<details>
+<summary>【影像音乐】</summary>
+
+```autohotkey
+-影音(&Video)|avi mkv mp4 rm rmvb flv wmv swf mp3
+	云音乐(&C)|cloudmusic.exe
+	QQ音乐|QQMusic.exe
+	--
+	QQPlayer.exe
+	XMP.exe
+	PotPlayer.exe
+    Windows Media Player|wmplayer.exe
+	--
+	FormatFactory.exe
+```
+
+</details>
+<br>
+<details>
+<summary>【编辑编程】</summary>
+
+```autohotkey
+;编辑器打开透明度88%，在文本文件上RunAny直接显示Edit菜单
+-Edit|txt ini cmd bat md ahk html js sql
+    记事本(&N)_:88|notepad.exe
+    写字板|write.exe
+	Notepad&2_:88|Notepad2.exe /C
+	&Sublime_:88|sublime_text.exe
+	gVim|gVimPortable.exe
+	EditPlus_:88|EditPlusPortable.exe
+	SciTE_:88|SciTE.exe
+    --
+	Typora.exe
+	XMind.exe
+
+;编程
+-Code|java
+	idea_:95|idea64.exe
+	eclipse.exe
+    vscode|C:\Users\%A_UserName%\scoop\apps\vscode\current\Code.exe
+	GitHubDesktop.exe
+	--
+    Xshell|XshellPortable.exe
+	X&ftp|XftpPortable.exe
+    --
+	nginx|nginx.exe -c conf/nginx.conf
+	nginxReload|nginx.exe -s reload
+	KillNginx|cmd.exe /c "taskkill /f /im nginx.exe"
+	KillJava|cmd.exe /c "taskkill /f /t /im java.exe & ping -n 2 127.1>nul"
+    RabbitMQ|cmd.exe /c "net stop RabbitMQ && net start RabbitMQ & ping -n 2 127.1>nul"
+```
+
+</details>
+<br>
+<details>
+<summary>【文件管理】</summary>
+
+```autohotkey
+-文件(&File)
+	Everything文件秒搜|Everything.exe
+	Listary.exe
+	FileLocatorPro.exe
+    --
+	TC文件管理|Totalcmd.exe
+	TC_:88|Totalcmd64.exe
+	vimd.exe
+    Plugman.exe
+    --
+    ;文件压缩
+	WinRAR.exe
+	7-&Zip|7-ZipPortable.exe
+	MiniWinMount.exe
+	isocmdGUI.exe
+    UltraISO|UltraISOPortable.exe
+	--
+	FastCopy.exe
+	Unlocker.exe
+	Viewer.exe
+    --文件删除恢复
+		EasyRecovery.exe
+		Piriform Recuva.exe
+		Recuva|RecuvaPortable.exe
+		FinalData3.0.exe
+		SuperRecovery2.7.exe
+```
+
+</details>
+<br>
 <details>
 <summary>【系统工具】</summary>
 
@@ -13,24 +185,41 @@
 ;--
 ;快捷用记事本修改host文件
 -Sys
+    我的电脑(&Z)|explorer.exe
+	回收站|explorer.exe ::{645FF040-5081-101B-9F08-00AA002F954E}
+	网上邻居|explorer.exe ::{208D2C60-3AEA-1069-A2D7-08002B30309D}
+    --
+	命令行提示符|cmd.exe
+	PowerShell|%A_WinDir%\system32\WindowsPowerShell\v1.0\powershell.exe
+	计算器|calc.exe
+    --
 	Win10UWP应用|explorer.exe shell:::{4234d49b-0245-4df3-b780-3893943456e1}
 	ping百度|cmd.exe /c "ping baidu.com -t"
 	重启资源管理器|cmd.exe /c "taskkill /f /im explorer.exe" && start explorer.exe
-	--
-	我的电脑(&Z)|explorer.exe
-	回收站|explorer.exe ::{645FF040-5081-101B-9F08-00AA002F954E}
-	网上邻居|explorer.exe ::{208D2C60-3AEA-1069-A2D7-08002B30309D}
 	hosts文件|notepad.exe C:\Windows\System32\drivers\etc\hosts
+    执行选中命令行|cmd.exe /c "%getZz%"
+    --
+	activehotkeys.exe
+	AntiFreeze.exe
+	SpaceSniffer.exe
+	ProcessExplorer|ProcessExplorerPortable.exe
+	ProcessMonitor|ProcessMonitorPortable.exe
+	WinspectorU.exe
+	--
+	Sandboxie|SandboxiePortable.exe
+	VMware(&V)|VMware.exe
+	VirtualBox|VirtualBoxPortable.exe
 
 -系统工具
 	注册表|regedit.exe
+    服务|services.msc
 	磁盘清理|cleanmgr.exe
-	写字板|write.exe
 	屏幕讲述人|narrator.exe
 	任务管理器|taskmgr.exe
 	设备管理器|devmgmt.msc
 	组策略|gpedit.msc
 	本机用户和组|lusrmgr.msc
+    步骤记录器|psr.exe
 
 -控制面板
 	控制面板(&C)|control.exe
@@ -61,55 +250,43 @@
 </details>
 <br>
 <details>
-<summary>【快捷工具】</summary>
+<summary>【短语输入】</summary>
 
 ```autohotkey
-;浏览器参数
--App
-	chrome跨域|chrome.exe -disable-web-security --user-data-dir
-	chrome隐身模式|chrome.exe --incognito
+-输入(inpu&T)
+	;当前时间（变量语法参考AHK文档https://wyagd001.github.io/zh-cn/docs/Variables.htm）
+	日期:*X:date;|%A_YYYY%%A_MM%%A_DD%;
+	日期-:*X:date-;|%A_YYYY%-%A_MM%-%A_DD%;
+	日期中文_:*X:date=;|%A_YYYY%年%A_MM%月%A_DD%日;
+	时间:*X:time;|%A_YYYY%%A_MM%%A_DD%%A_Hour%%A_Min%%A_Sec%;
+	时间_:*X:time-;|%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%;
+	时间中文_:*X:time=;|%A_YYYY%年%A_MM%月%A_DD%日 %A_Hour%时%A_Min%分%A_Sec%秒;
+    --
+    :*X:magn|magnet:?xt=urn:btih:;
 
-;快捷工具
--Zz
-	RunAnyCtrl.ahk
-	Ditto.exe
-	Everything.exe
-	FileLocatorPro.exe
-	Listary.exe
-	BCompare.exe
-	vimd.exe
-	StrokesPlus.exe
-	TC_:88|Totalcmd64.exe
+-命令
+	scoop clean|scoop cache rm *`nscoop cleanup *`n;;
+	端口:*X:netstat|netstat -ano | findstr ;
+	adb连接:*X:adbc|adb connect ;;
+	adb设备:*X:adbd|adb devices`n;;
+	adb DPI|adb shell wm density ;
+	:*X:scrcpy;|scrcpy -S`n;;
+	:*X:jekyll;|bundle exec jekyll serve`n;;
+	:*X:docs;|docsify serve;
+	:*X:aria2;|aria2c --enable-rpc --rpc-allow-origin-all`n;;
 
-```
-
-</details>
-<br>
-<details>
-<summary>【编辑编程】</summary>
-
-```autohotkey
-;编辑器打开透明度88%，在文本文件上RunAny直接显示Edit菜单
--Edit|txt ini cmd bat md ahk html js sql
-	Notepad&2_:88|Notepad2.exe /C
-	&Sublime_:88|sublime_text.exe
-	Notepad++_:88|Notepad++Portable.exe
-	gVim|gVimPortable.exe
-	EditPlus_:88|EditPlusPortable.exe
-	SciTE_:88|SciTE.exe
-
-;编程
--Code|java
-	idea|idea64.exe
-	eclipse.exe
-	STS.exe
-	GitHubDesktop.exe
-	--
-	nginx|nginx.exe -c conf/nginx.conf
-	nginxReload|nginx.exe -s reload
-	KillNginx|cmd.exe /c "taskkill /f /im nginx.exe"
-	KillJava|cmd.exe /c "taskkill /f /im java.exe"
-
+-Linux
+	创建文件touch|touch;
+	端口:*X:netgrep|netstat -apn|grep ;
+	java:*X:psjava|ps -ef | grep java`n;;
+	nginx:*X:psnginx|ps -ef | grep nginx`n;;
+	前20占用进程:*X:ps20|ps aux | head -1;ps aux |grep -v PID |sort -rn -k +4 | head -20`n;;
+	:*X:cdtom|cd /usr/local/apache-tomcat-7.0.77/`n;;
+	:*X:tomsd|/usr/local/apache-tomcat-7.0.77/bin/shutdown.sh`n;;
+	:*X:tomst|/usr/local/apache-tomcat-7.0.77/bin/startup.sh`n;;
+	:*X:nginx reload|/usr/local/nginx-1.15.10/sbin/nginx -s reload`n;;
+	重启防火墙:*X:iptables|service iptables restart`n;;
+	:*X:logstash -f|./logstash -f ../config/first-pipeline.conf --config.reload.automatic`n;;
 ```
 
 </details>
