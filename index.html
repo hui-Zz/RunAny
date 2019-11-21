@@ -10,6 +10,7 @@
   <title>RunAny文档</title>
   <link rel="icon" href="assets/favicon.ico">
   <link rel="stylesheet" href="//unpkg.com/docsify/lib/themes/vue.css">
+  <link rel="stylesheet" href="//unpkg.com/docsify-gifcontrol/dist/docsify-gifcontrol.css">
   <link rel="stylesheet" href="//unpkg.com/gitalk/dist/gitalk.css">
   <!-- <link rel="stylesheet" href="//unpkg.com/docsify/lib/themes/dolphin.css"> -->
   <style>
@@ -46,6 +47,9 @@
         previousText: 'PREVIOUS',
         nextText: 'NEXT',
         crossChapter: true
+      },
+      gifcontrol: {
+        mode: 'click'
       }
     };
   </script>
@@ -53,7 +57,9 @@
   <script src="//unpkg.com/docsify/lib/plugins/search.js"></script>
   <script src="//unpkg.com/docsify-copy-code"></script>
   <script src="//unpkg.com/docsify-pagination/dist/docsify-pagination.min.js"></script>
+  <!-- 图片插件 -->
   <script src="//unpkg.com/docsify/lib/plugins/zoom-image.js"></script>
+  <script src="//unpkg.com/docsify-gifcontrol/dist/docsify-gifcontrol.js"></script>
   <!--代码高亮主题 https://github.com/PrismJS/prism/tree/gh-pages/components -->
   <script src="//unpkg.com/prismjs/components/prism-bash.min.js"></script>
   <script src="//unpkg.com/prismjs/components/prism-html.min.js"></script>
