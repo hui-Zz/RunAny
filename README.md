@@ -1,3 +1,9 @@
+<p align="center">
+<a href="https://github.com/hui-Zz/RunAny" target="_blank">
+	<img src="https://hui-zz.github.io/RunAny/assets/images/RunAny.svg" alt="RunAny" width="120" height="120">
+</a>
+</p>
+
 # 【RunAny】一劳永逸的快速启动工具 ![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat-square&logo=github)  [![HitCount](http://hits.dwyl.io/hui-Zz/RunAny.svg)](http://hits.dwyl.io/hui-Zz/RunAny)
 
 **RunAny区别一般的启动工具，适合家里、公司多台电脑的用户，不管软件装在C盘还是D盘Anywhere，根据名字直接找到并运行**
@@ -21,7 +27,7 @@ __多台电脑你只需配置一套软件列表(RunAny.ini)，就能到处运行
 
 【异次元软件RunAny介绍文章：】https://www.iplaysoft.com/runany.html
 
-[【RunAny版本更新历史】](https://github.com/hui-Zz/RunAny/wiki/RunAny版本更新历史)
+[【RunAny版本更新历史】](https://hui-zz.github.io/RunAny/#/change-log)
 
 > RunAny使用Everything神器来知道所有软件的位置，Everything可以秒搜Windows下任何文件 <br>
 > RunAny可以左键右鼠操作，也可以全键盘、全鼠标操作（配合鼠标手势软件更佳）
