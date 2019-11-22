@@ -83,6 +83,11 @@
 	PhotoZoom|PhotoZoomPortable.exe
 	PhotoScape|PhotoScapePortable.exe
 	Photoshop|PhotoshopCCPortable.exe
+	--
+	;保存当前桌面壁纸到"我的图片"目录
+	保存壁纸Win10|cmd.exe /c "copy /y %A_AppData%\Microsoft\Windows\Themes\TranscodedWallpaper %A_MyDocuments%\..\Pictures\Wallpaper_%A_YYYY%%A_MM%%A_DD%%A_Hour%%A_Min%%A_Sec%.jpg"
+	保存壁纸Win7|cmd.exe /c "copy /y %A_AppData%\Microsoft\Windows\Themes\TranscodedWallpaper.jpg %A_MyDocuments%\..\Pictures\Wallpaper_%A_YYYY%%A_MM%%A_DD%%A_Hour%%A_Min%%A_Sec%.jpg"
+	
 ```
 
 </details>
