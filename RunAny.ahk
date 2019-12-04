@@ -3438,7 +3438,7 @@ Menu_Set:
 	Gui,66:Add,Text,x+150 w180,RunAny.ini修改后自动重启(毫秒)0为不自动重启
 	Gui,66:Add,Edit,x+5 yp+5 w50 h20 vvAutoReloadMTime,%AutoReloadMTime%
 	Gui,66:Add,Checkbox,Checked%AdminRun% xm yp+15 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
-	Gui,66:Add,Checkbox,Checked%IniConfig% xm yp+20 vvIniConfig,RunAnyConfig.ini移动盘绿色配置
+	Gui,66:Add,Checkbox,Checked%EvEveVerNew% xm yp+20 vvEvEveVerNew,优先最新版本的同名exe全路径
 	
 	Gui,66:Add,GroupBox,xm-10 y+15 w%groupWidch66% h85,RunAny应用菜单
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
@@ -3706,7 +3706,7 @@ SetOK:
 			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		}
 	}
-	SetValueList:=["AdminRun","IniConfig","AutoReloadMTime","DisableApp","EvPath","EvCommand","EvAutoClose"]
+	SetValueList:=["AdminRun","AutoReloadMTime","DisableApp","EvEveVerNew","EvPath","EvCommand","EvAutoClose"]
 	SetValueList.Push("HideFail","HideUnSelect","HideRecent","HideWeb","HideSend","HideAddItem","HideMenuTray","HideGetZz")
 	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu")
 	SetValueList.Push("BrowserPath","IconFolderPath","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon","AnyIcon","MenuIcon")
@@ -3932,6 +3932,7 @@ Var_Set:
 	global OneKeyMenu:=Var_Read("OneKeyMenu",0)
 	global EvCommand:=Var_Read("EvCommand","!C:\*Windows* !?:\$RECYCLE.BIN* !C:\Users\" A_UserName "\scoop\shims\* file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
 	global EvAutoClose:=Var_Read("EvAutoClose",0)
+	global EvEveVerNew:=Var_Read("EvEveVerNew",1)
 	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
 	OneKeyUrl:=StrReplace(OneKeyUrl, "|", "`n")
 	global ShowGetZzLen:=Var_Read("ShowGetZzLen",30)			;菜单显示选中文字最大截取字数
@@ -4717,7 +4718,7 @@ everythingQuery(){
 		Z_Index:=A_Index-1
 		objFileName:=ev.GetResultFileName(Z_Index)
 		objFullPathName:=ev.GetResultFullPathName(Z_Index)
-		if(MenuObj[(RegExReplace(objFileName,"iS)\.exe$",""))]){
+		if(EvEveVerNew && MenuObj[(RegExReplace(objFileName,"iS)\.exe$",""))]){
 			;优先选择最新版本的同名exe全路径
 			FileGetVersion,objFullPathNameVersionOld,% MenuObj[(RegExReplace(objFileName,"iS)\.exe$",""))]
 			FileGetVersion,objFullPathNameVersionNew,% objFullPathName
