@@ -4153,8 +4153,8 @@ Run_Exist:
 	global iniFile:=iniPath
 	global iniVar1:=""
 	global both:=1
-	IfNotExist,%iniFile%
-	{
+	FileGetSize,iniFileSize,%iniFile%
+	If(!FileExist(iniFile) || iniFileSize=0){
 		TrayTip,,RunAny初始化中...,2,1
 		gosub,First_Run
 	}
