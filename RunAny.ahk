@@ -4715,7 +4715,18 @@ everythingQuery(){
 	Loop,% ev.GetTotResults()
 	{
 		Z_Index:=A_Index-1
-		MenuObj[(RegExReplace(ev.GetResultFileName(Z_Index),"iS)\.exe$",""))]:=ev.GetResultFullPathName(Z_Index)
+		objFileName:=ev.GetResultFileName(Z_Index)
+		objFullPathName:=ev.GetResultFullPathName(Z_Index)
+		if(MenuObj[(RegExReplace(objFileName,"iS)\.exe$",""))]){
+			;优先选择最新版本的同名exe全路径
+			FileGetVersion,objFullPathNameVersionOld,% MenuObj[(RegExReplace(objFileName,"iS)\.exe$",""))]
+			FileGetVersion,objFullPathNameVersionNew,% objFullPathName
+			if(objFullPathNameVersionOld<objFullPathNameVersionNew){
+				MenuObj[(RegExReplace(objFileName,"iS)\.exe$",""))]:=objFullPathName
+			}
+		}else{
+			MenuObj[(RegExReplace(objFileName,"iS)\.exe$",""))]:=objFullPathName
+		}
 	}
 }
 ;~;[使用everything搜索单个exe程序]
