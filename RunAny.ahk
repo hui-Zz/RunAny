@@ -3640,7 +3640,7 @@ vHtml =
 	oWB.Refresh()
 	Gui,99:Font,s11 Bold,Microsoft YaHei
 	Gui,99:Add,Link,xm+18 y+10,国内Gitee文档：<a href="https://hui-zz.gitee.io/RunAny">https://hui-zz.gitee.io/RunAny</a>
-	Gui,99:Add,Link,xm+18 y+10,Github文档：<a href="https://hui-zz.gitee.io/RunAny">https://hui-zz.gitee.io/RunAny</a>
+	Gui,99:Add,Link,xm+18 y+10,Github文档：<a href="https://hui-zz.github.io/RunAny">https://hui-zz.github.io/RunAny</a>
 	Gui,99:Add,Link,xm+18 y+10,Github地址：<a href="https://github.com/hui-Zz/RunAny">https://github.com/hui-Zz/RunAny</a>
 	Gui,99:Add,Text,y+10, 讨论QQ群：
 	Gui,99:Add,Link,x+8 yp,<a href="https://jq.qq.com/?_wv=1027&k=445Ug7u">246308937【RunAny快速启动一劳永逸】</a>`n`n
@@ -4706,7 +4706,7 @@ everythingQuery(){
 	while,% !ev.GetTotResults()
 	{
 		if(A_Index>300){
-			MsgBox,16,Everything启动异常,Everything不能读取磁盘文件，`n请打开Everything设置以下其中一项：`n* 以管理员身份运行(A)`n* 安装Everything服务(S)
+			MsgBox,16,Everything启动缓慢或异常,Everything无法搜索到磁盘文件，`n如果手动打开Everything可以搜索到文件了请再重启RunAny，`n如果依然无法使用，请打开Everything菜单-工具-选项设置以下其中一项：`n* 以管理员身份运行(A)`n* 安装Everything服务(S)
 			break
 		}
 		Sleep, 100
