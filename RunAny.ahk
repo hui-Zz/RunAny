@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.8 @2019.11.15
+║【RunAny】一劳永逸的快速启动工具 v5.6.8 @2019.12.05
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.6.8"
-global RunAny_update_time:="2019.11.15"
+global RunAny_update_time:="2019.12.05"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -1360,7 +1360,18 @@ Run_Tr(program,trNum,newOpen=false){
 	DetectHiddenWindows, Off
 	If(newOpen || !WinExist("ahk_exe" . exePath)){
 		Run_Any(program)
-		WinWait,ahk_exe %exePath%
+		SplitPath, exePath, fName,, fExt  ; 获取扩展名
+		if(fExt="lnk"){
+			FileGetShortcut,%exePath%,lnkexePath
+			SplitPath, lnkexePath, fName,, fExt  ; 获取扩展名
+			if(fExt="exe")
+				exePath:=lnkexePath
+			WinWait,ahk_exe %exePath%,,2
+		}else{
+			WinWait,ahk_exe %exePath%,,10
+		}
+		if ErrorLevel
+			return
 		;~ WinSet,Style,-0xC00000,
 		try WinSet,Style,-0x40000,ahk_exe %exePath%
 		WinSet,Transparent,% trNum/100*255,ahk_exe %exePath%
@@ -2203,7 +2214,7 @@ EditItemPathChange:
 		}
 		fileValue:=RegExReplace(filePath,"iS)(.*?\..*?)($| .*)","$1")	;去掉参数
 		SplitPath, fileValue, fName,, fExt  ; 获取扩展名
-		if(fExt="exe"){
+		if(fExt="exe" || fExt="lnk"){
 			GuiControl, SaveItem:Show, vTextTransparent
 			GuiControl, SaveItem:Show, vitemTrNum
 		}else{
