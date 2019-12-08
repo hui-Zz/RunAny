@@ -3773,7 +3773,13 @@ return
 SetAdminRun:
 	Gui,66:Submit, NoHide
 	if(vAdminRun){
-		MsgBox, 48, %RunAnyZz%管理员权限运行所有软件和插件, 注意！`n如果系统UAC未关闭，需要同时设置Everything管理员权限`n（Everything菜单-工具-选项-勾选"以管理员身份运行"），`n`n否则%RunAnyZz%启动后可能会长时间停留在红色图标状态
+		MsgBox, 51, %RunAnyZz%管理员权限运行所有软件和插件, 【注意！】`n如果系统UAC未关闭，需要同时设置Everything管理员权限`n（Everything菜单-工具-选项-勾选"以管理员身份运行"），`n否则%RunAnyZz%启动后可能会长时间停留在红色图标状态`n`n【是否已经设置好Everything管理员身份运行权限？】
+		IfMsgBox Yes
+		{
+			GuiControl,, vAdminRun, 1
+		}else{
+			GuiControl,, vAdminRun, 0
+		}
 	}
 return
 SetMenu2:
@@ -4719,7 +4725,7 @@ everythingQuery(){
 	while,% !ev.GetTotResults()
 	{
 		if(A_Index>300){
-			MsgBox,16,Everything启动缓慢或异常,Everything无法搜索到磁盘文件，`n如果手动打开Everything可以搜索到文件了请再重启RunAny，`n如果依然无法使用，请打开Everything菜单-工具-选项设置以下其中一项：`n* 以管理员身份运行(A)`n* 安装Everything服务(S)
+			MsgBox,16,RunAny无法与Everything通信,Everything启动缓慢或异常导致无法搜索到磁盘文件，`n`n【原因1：Everything正在创建索引】`n请手动打开Everything等待可以搜索到文件了请再重启RunAny`n`n【原因2：Everything搜索异常】`n请打开Everything菜单-工具-选项设置 安装Everything服务(S)，再重启Everything待可以搜索文件再重启RunAny
 			break
 		}
 		Sleep, 100
