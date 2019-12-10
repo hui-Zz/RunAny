@@ -14,7 +14,6 @@ __多台电脑你只需配置一套软件列表(RunAny.ini)，就能到处运行
 - ☑ [短语输出](/word-output)，[透明化启动](/quick-config?id=半透明启动程序)，[快捷打开文件方式](/quick-open)
 - ☑ [外接脚本，个性函数](/plugins-list)，[自由定制](/plugins-help?id=新建自定义objreg插件)
 
-【异次元软件RunAny介绍文章：】https://www.iplaysoft.com/runany.html
 
 > RunAny使用Everything神器来知道所有软件的位置，Everything可以秒搜Windows下任何文件 <br>
 > RunAny可以左键右鼠操作，也可以全键盘、全鼠标操作（配合鼠标手势软件更佳）

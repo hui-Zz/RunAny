@@ -16,7 +16,12 @@
 
 ### [区分重名程序]
 
-**如果电脑上有多个重名程序，加上全路径指定运行其中一个，如：`IE(32位)|C:\Program Files (x86)\Internet Explorer\iexplore.exe`（或创建该程序的快捷方式，在RunAny中添加使用快捷方式解决重名问题）**
+1. 升级RunAny版本到5.6.9版本以上，自动优先最新版本exe程序功能
+2. 修改RunAny设置中的Everything搜索参数，屏蔽不正确路径程序
+3. 创建该程序的快捷方式，在RunAny中添加使用快捷方式解决重名问题
+4. 全路径指定运行，只推荐固定路径安装程序，不推荐绿色软件使用此方式
+
+详细方法文章：[无路径如何区别运行重名的exe程序](run-repeat-exe.md)
 
 > 默认支持exe、lnk、ahk、bat、cmd文件的无路径识别，其他后缀可以在RunAny设置中的Everything搜索参数，如支持doc文档免设路径识别
 >
