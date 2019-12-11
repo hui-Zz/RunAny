@@ -13,16 +13,18 @@
 
 ## huiZz_Window窗口操作脚本[窗口函数.ini]
 
-| 脚本内函数名           | RunAny菜单实现功能                     |
+| 脚本内函数名            | RunAny菜单实现功能                      |
 | ---------------------- | -------------------------------------- |
 | win_center_zz          | 窗口居中                               |
-| win_size_zz            | 窗口按指定分辨率或屏幕百分比例改变大小 |
-| win_move_size_zz       | 窗口改变大小并移动                     |
-| win_top_zz             | 窗口置顶、取消置顶                     |
-| win_movie_zz           | 窗口移至边角置顶观影                   |
-| win_transparent_top_zz | 窗口置顶时透明，第二次还原             |
-| win_transparency_zz    | 按量透明、不透明                       |
-| win_max_zz             | 窗口最大化并隐藏标题栏，第二次还原     |
+| win_size_zz            | 窗口按指定分辨率或屏幕百分比例改变大小    |
+| win_move_size_zz       | 窗口改变大小并移动                      |
+| win_top_zz             | 窗口置顶、取消置顶                      |
+| win_movie_zz           | 窗口移至边角置顶观影                    |
+| win_transparent_top_zz | 窗口置顶时透明，第二次还原               |
+| win_transparency_zz    | 按量透明、不透明                        |
+| win_max_zz             | 窗口最大化并隐藏标题栏，第二次还原       |
+| win_close_zz           | 当前窗口关闭                           |
+| win_kill_zz            | 当前窗口进程结束                        |
 
 ## huiZz_System系统操作脚本[系统函数.ini]
 

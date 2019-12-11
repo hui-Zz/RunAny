@@ -72,6 +72,9 @@
 	屏幕右上角|huiZz_Window[win_movie_zz](2,10)
 	屏幕左下角|huiZz_Window[win_movie_zz](3,-10,10)
 	屏幕右下角|huiZz_Window[win_movie_zz](4,10,10)
+	--
+	当前窗口关闭|huiZz_Window[win_close_zz]()
+	当前窗口进程结束|huiZz_Window[win_kill_zz]()
 ```
 
 </details>
@@ -83,6 +86,12 @@
 
 <details>
 <summary>【系统函数】</summary>
+
+<PRE>
+;使用左Alt键搭配鼠标滚轮的使用调节音量
+系统音量增加&#9LAlt & WheelUp|huiZz_System[system_sound_volume](1,10)
+系统音量减少&#9LAlt & WheelDown|huiZz_System[system_sound_volume](0,10)
+</PRE>
 
 ```autohotkey
 

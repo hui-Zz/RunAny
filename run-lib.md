@@ -185,12 +185,19 @@
 <summary>【系统工具】</summary>
 
 ```autohotkey
-;显示Win10中所有UWP应用
-;ping百度测试网速
-;重启我的电脑，释放内存
-;--
-;快捷用记事本修改host文件
 -Sys
+	activehotkeys.exe
+	AntiFreeze.exe
+	SpaceSniffer.exe
+	ProcessExplorer.exe
+	ProcessMonitor.exe
+	WinspectorU.exe
+	--
+	Sandboxie.exe
+	VMware(&V)|VMware.exe
+	VirtualBox.exe
+
+-系统命令
 	我的电脑(&Z)|explorer.exe
 	回收站|explorer.exe ::{645FF040-5081-101B-9F08-00AA002F954E}
 	网上邻居|explorer.exe ::{208D2C60-3AEA-1069-A2D7-08002B30309D}
@@ -201,20 +208,17 @@
 	--
 	Win10UWP应用|explorer.exe shell:::{4234d49b-0245-4df3-b780-3893943456e1}
 	ping百度|cmd.exe /c "ping baidu.com -t"
-	重启资源管理器|cmd.exe /c "taskkill /f /im explorer.exe" && start explorer.exe
 	hosts文件|notepad.exe C:\Windows\System32\drivers\etc\hosts
 	执行选中命令行|cmd.exe /c "%getZz%"
 	--
-	activehotkeys.exe
-	AntiFreeze.exe
-	SpaceSniffer.exe
-	ProcessExplorer|ProcessExplorerPortable.exe
-	ProcessMonitor|ProcessMonitorPortable.exe
-	WinspectorU.exe
-	--
-	Sandboxie|SandboxiePortable.exe
-	VMware(&V)|VMware.exe
-	VirtualBox|VirtualBoxPortable.exe
+	重启资源管理器|taskkill /f /im explorer.exe && start explorer.exe
+	关闭显示器|%A_WinDir%\system32\scrnsave.scr /s
+	系统锁屏|rundll32.exe user32.dll LockWorkStation
+	系统睡眠|rundll32.exe powrprof.dll,SetSuspendState 0,1,0
+	系统休眠|rundll32.exe powrprof.dll,SetSuspendState
+	系统注销|shutdown.exe -l
+	系统立即关机|shutdown.exe -s -t 0
+	系统立即重启|shutdown.exe -r -t 0
 
 -系统工具
 	注册表|regedit.exe
