@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.8 @2019.12.05
+║【RunAny】一劳永逸的快速启动工具 v5.6.8 @2019.12.11
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.6.8"
-global RunAny_update_time:="2019.12.05"
+global RunAny_update_time:="2019.12.11"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -435,7 +435,11 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 				if(InStr(menuDiy[1],"`t") && menuKeys[2]){
 					MenuObjKey[menuKeys[2]]:=itemParam
 					MenuObjName[menuKeys[2]]:=menuKeys[1]
-					Hotkey,% menuKeys[2],Menu_Key_Run,On
+					if(!InStr(menuDiy[2],"%getZz%") && RegExMatch(menuDiy[2],"iS).+?\[.+?\]%?\(.*?\)")){
+						Hotkey,% menuKeys[2],Menu_Key_NoGet_Run,On
+					}else{
+						Hotkey,% menuKeys[2],Menu_Key_Run,On
+					}
 				}
 				;~;[设置热字符串启动方式]
 				if(RegExMatch(menuKeys[1],"S):[*?a-zA-Z0-9]+?:[^:]*")){
@@ -448,7 +452,11 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 						MenuObjKey[hotstr]:=itemParam
 						MenuObjName[hotstr]:=menuKeys[1]
 						if(RegExMatch(hotstr,":[^:]*?X[^:]*?:[^:]*")){
-							Hotstring(hotstr,"Menu_Key_Run","On")
+							if(!InStr(menuDiy[2],"%getZz%") && RegExMatch(menuDiy[2],"iS).+?\[.+?\]%?\(.*?\)")){
+								Hotstring(hotstr,"Menu_Key_NoGet_Run","On")
+							}else{
+								Hotstring(hotstr,"Menu_Key_Run","On")
+							}
 							if(!HideHotStr)
 								Menu_HotStr_Hint_Read(hotstr,hotStrName,itemParam)
 						}else{
@@ -1119,6 +1127,13 @@ return
 ;══════════════════════════════════════════════════════════════════
 Menu_Key_Run:
 	getZz:=Get_Zz()
+	gosub,Menu_Key_Run_Run
+return
+Menu_Key_NoGet_Run:
+	getZz:=""
+	gosub,Menu_Key_Run_Run
+return
+Menu_Key_Run_Run:
 	any:=menuObjkey[(A_ThisHotkey)]
 	thisMenuName:=MenuObjName[(A_ThisHotkey)]
 	SplitPath, any, , dir
