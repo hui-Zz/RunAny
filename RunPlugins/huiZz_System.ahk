@@ -2,7 +2,7 @@
 ;* 【ObjReg系统操作脚本[系统函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.4"
+global RunAny_Plugins_Version:="1.0.5"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
 #WinActivateForce       ;~强制激活窗口
@@ -118,6 +118,14 @@ class RunAnyObj {
 		if(lnk="")
 			lnk:=nameNoExt ".lnk"
 		FileCreateShortcut, %getZz%, %target%\%lnk%
+	}
+	;[控制系统音量增减] v1.0.5
+	system_sound_volume(flag = 1,amount = 10){
+		if(flag){
+			SoundSetWaveVolume, +%amount%
+		}else{
+			SoundSetWaveVolume, -%amount%
+		}
 	}
 }
 
