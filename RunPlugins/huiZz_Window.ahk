@@ -2,7 +2,7 @@
 ;* 【ObjReg窗口操作脚本[窗口函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.3"
+global RunAny_Plugins_Version:="1.0.4"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
@@ -139,6 +139,15 @@ class RunAnyObj {
 			WinSet,Style,-0xC00000,ahk_id %wh%
 		}
 		return
+	}
+	;[当前窗口关闭] v1.0.4
+	win_close_zz(){
+		WinClose,A
+	}
+	;[当前窗口进程结束] v1.0.4
+	win_kill_zz(){
+		WinGet,name,ProcessName,A
+		Process,Close,%name%
 	}
 }
 
