@@ -12,4 +12,5 @@
 - [其他功能](other-features.md)
 - [常见问题](FAQ.md)
 - [版本历史](change-log.md)
+- [功能库](run-lib.md)
 - [关于](README.md)
