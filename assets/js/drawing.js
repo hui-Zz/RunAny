@@ -349,7 +349,7 @@ $(function () {
                 }
             }
 
-            return { dots: dots, w: w + fx, h: h + fy + 345 }
+            return { dots: dots, w: w + fx, h: h + fy + 320 }
         }
 
         function setFontSize(s) {
