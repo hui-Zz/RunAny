@@ -1,5 +1,4 @@
-
-## 【功能库】
+# 【功能库】
 
 **复制以下需要的功能写入`RunAny.ini`文件保存，然后重启RunAny打开菜单即可使用**
 
@@ -209,6 +208,7 @@
 	Win10UWP应用|explorer.exe shell:::{4234d49b-0245-4df3-b780-3893943456e1}
 	ping百度|cmd.exe /c "ping baidu.com -t"
 	hosts文件|notepad.exe C:\Windows\System32\drivers\etc\hosts
+	清空回收站|cmd.exe /c "rd /s C:\$Recycle.Bin D:\$Recycle.Bin"
 	执行选中命令行|cmd.exe /c "%getZz%"
 	--
 	重启资源管理器|taskkill /f /im explorer.exe && start explorer.exe
