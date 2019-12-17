@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.8 @2019.12.11
+║【RunAny】一劳永逸的快速启动工具 v5.6.8 @2019.12.17
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.6.8"
-global RunAny_update_time:="2019.12.11"
+global RunAny_update_time:="2019.12.17"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -385,7 +385,7 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 			if(InStr(Z_LoopField,"|")){
 				;~;[生成有前缀备注的应用]
 				menuDiy:=StrSplit(Z_LoopField,"|",,2)
-				appName:=RegExReplace(menuDiy[2],"iS)\.exe($| .*)")	;去掉后缀或参数，取应用名
+				appName:=RegExReplace(menuDiy[2],"iS)\.(exe|bat|cmd|vbs|ps1|ahk)($| .*)")	;去掉后缀或参数，取应用名
 				item:=MenuObj[appName]
 				if(item){
 					SplitPath, item,,, FileExt  ; 获取文件扩展名.
@@ -396,11 +396,11 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 				}else{
 					item:=menuDiy[2]
 					itemParam:=menuDiy[2]
-					if(transformValFlag && RegExMatch(item,"iS).*?\.exe .*"))
-						item:=RegExReplace(item,"iS)(.*?\.exe) .*","$1")	;只去参数
+					if(transformValFlag && RegExMatch(item,"iS).*?\.(exe|bat|cmd|vbs|ps1|ahk) .*"))
+						item:=RegExReplace(item,"iS)(.*?\.(exe|bat|cmd|vbs|ps1|ahk)) .*","$1")	;只去参数
 					SplitPath, item,,, FileExt  ; 获取文件扩展名.
 					;~;如果是有效全路径或系统程序则保留显示
-					if(RegExMatch(item,"iS)^(\\\\|.:\\).*?\.exe$") && FileExist(item))
+					if(RegExMatch(item,"iS)^(\\\\|.:\\).*?\.(exe|bat|cmd|vbs|ps1|ahk)$") && FileExist(item))
 						flagEXE:=true
 					else if(FileExist(A_WinDir "\" item) || FileExist(A_WinDir "\system32\" item))
 						flagEXE:=true
@@ -425,6 +425,9 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 						if(IconFail)
 							Menu_Item_Icon(menuRootFn[menuLevel],menuDiy[1],"SHELL32.dll","124")
 					}
+				}else if FileExt in bat,cmd,vbs,ps1,ahk
+				{
+					Menu_Add(menuRootFn[menuLevel],menuDiy[1],item,menuRootFn,menuWebRootFn,menuWebList,webRootShow)
 				}else{
 					Menu_Add(menuRootFn[menuLevel],menuDiy[1],itemParam,menuRootFn,menuWebRootFn,menuWebList,webRootShow)
 				}
