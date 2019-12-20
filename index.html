@@ -21,14 +21,22 @@
     .app-name {
       width: 150px;
     }
+
     section.cover h1 {
       margin: 2.625rem 0 1.5rem;
+    }
+
+    .app-sub-sidebar li:before {
+      content: "○";
     }
   </style>
 </head>
 
 <body class="body--ready">
-  <div id="app">加载中请稍等...</div>
+  <div id="app">加载中请稍等...
+    <br>
+    如果Github速度慢访问国内网址：<a href="https://hui-zz.gitee.io/runany">https://hui-zz.gitee.io/runany</a>
+  </div>
   <script>
     window.$docsify = {
       name: 'RunAny文档示例',    // 文档标题，会显示在侧边栏顶部
@@ -38,6 +46,7 @@
       coverpage: true,    // 开启渲染封面
       loadNavbar: true,   // 配置导航
       loadSidebar: true,  // 加载自定义侧边栏
+      noEmoji: true,
       maxLevel: 4,
       subMaxLevel: 3,
       formatUpdated: '{YYYY}-{MM}-{DD} {HH}:{mm}:{ss}', // 显示文档更新日期
