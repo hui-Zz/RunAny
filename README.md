@@ -8,9 +8,9 @@ __多台电脑你只需配置一套软件列表(RunAny.ini)，就能到处运行
 - ☑ 一键菜单分类界面，找应用零记忆负担
 - ☑ 分类定位，三键启动，简单迅速
 - ☑ 一次配置，到处运行，永久使用
-- ☑ [一键直达](/quick-start?id=一键直达)，[一键公式计算](/quick-start?id=一键公式计算)，[一键批量搜索](/quick-start?id=批量搜索)
-- ☑ [全局热键](/quick-start?id=全局热键)，[热键映射](/quick-start?id=热键映射)，[热字符串](/quick-start?id=热字符串)，多样快捷
-- ☑ [短语输出](/quick-start?id=短语输出)，[透明化启动](/quick-config?id=半透明启动程序)，[快捷打开文件方式](/quick-start?id=快捷打开文件方式)
+- ☑ [一键直达](/README?id=一键直达)，[一键公式计算](/README?id=一键公式计算)，[一键批量搜索](/README?id=批量搜索)
+- ☑ [全局热键](/README?id=全局热键)，[热键映射](/README?id=热键映射)，[热字符串](/README?id=热字符串)，多样快捷
+- ☑ [短语输出](/README?id=短语输出)，[透明化启动](/quick-config?id=半透明启动程序)，[快捷打开文件方式](/README?id=快捷打开文件方式)
 - ☑ [外接脚本，个性函数](/plugins-list)，[自由定制](/plugins-help?id=新建自定义objreg插件)
 
 
