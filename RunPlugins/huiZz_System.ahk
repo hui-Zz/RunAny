@@ -120,11 +120,15 @@ class RunAnyObj {
 		FileCreateShortcut, %getZz%, %target%\%lnk%
 	}
 	;[控制系统音量增减] v1.0.5
+	;参数说明：
+	;flag：0-减少音量；1-增加音量；2-固定音量
 	system_sound_volume(flag = 1,amount = 10){
-		if(flag){
-			SoundSetWaveVolume, +%amount%
-		}else{
-			SoundSetWaveVolume, -%amount%
+		if(flag=0){
+			SoundSet, -%amount%
+		}else if(flag=1){
+			SoundSet, +%amount%
+		}else if(flag=2){
+			SoundSet, %amount%
 		}
 	}
 }
