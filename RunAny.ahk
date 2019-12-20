@@ -1780,7 +1780,7 @@ Menu_Add_File_Item:
 	}
 	;初始化要添加的内容
 	itemGlobalWinKey:=0
-	itemGlobalHotKey:=itemGlobalKey:=X_ThisMenuItem:=""
+	hotStrOption:=hotStrShow:=itemGlobalHotKey:=itemGlobalKey:=X_ThisMenuItem:=""
 	itemPath:=Get_Item_Run_Path(getZz)
 	SplitPath, itemPath, fName,, fExt, itemName
 	Z_ThisMenu:=A_ThisMenu
@@ -1816,8 +1816,25 @@ SetSaveItem:
 			MsgBox, 48, ,应用设置热键后必须填写启动路径
 			return
 		}
-		itemGlobalKey:=vitemGlobalWinKey ? "#" . vitemGlobalKey : vitemGlobalKey
-		itemGlobalKeyStr:=A_Tab . itemGlobalKey
+		itemGlobalKeySave:=vitemGlobalWinKey ? "#" . vitemGlobalKey : vitemGlobalKey
+		itemGlobalKeyStr:=A_Tab . itemGlobalKeySave
+		if(vitemGlobalKey!=itemGlobalKey || vitemGlobalWinKey!=itemGlobalWinKey){
+			if(InStr(iniVar1,itemGlobalKeyStr "|") || InStr(iniVar2,itemGlobalKeyStr "|")){
+				MsgBox, 48, ,该全局热键已经被其他菜单应用使用
+				return
+			}
+		}
+	}
+	;保存热字符串
+	if(vhotStrShow){
+		if(vhotStrShow!=hotStrShow || vhotStrOption!=hotStrOption){
+			vhotStrSave:=vhotStrOption ? vhotStrOption . vhotStrShow : ":*X:" vhotStrShow
+			if(InStr(iniVar1,vhotStrSave "|") || InStr(iniVar2,vhotStrSave "|")){
+				MsgBox, 48, ,该热字符串已经被其他菜单应用使用
+				return
+			}
+		}
+		vitemName.=vhotStrSave
 	}
 	Gui,SaveItem:Destroy
 	;~;[读取菜单内容插入新菜单项到RunAny.ini]
@@ -2188,14 +2205,25 @@ SetSaveItemGui:
 			MsgBox, 48, ,应用设置热键后必须填写启动路径
 			return
 		}
-		itemGlobalKey:=vitemGlobalWinKey ? "#" . vitemGlobalKey : vitemGlobalKey
-		itemGlobalKeyStr:=A_Tab . itemGlobalKey
+		itemGlobalKeySave:=vitemGlobalWinKey ? "#" . vitemGlobalKey : vitemGlobalKey
+		itemGlobalKeyStr:=A_Tab . itemGlobalKeySave
+		if(vitemGlobalKey!=itemGlobalKey || vitemGlobalWinKey!=itemGlobalWinKey){
+			if(InStr(iniVar1,itemGlobalKeyStr "|") || InStr(iniVar2,itemGlobalKeyStr "|")){
+				MsgBox, 48, ,该全局热键已经被其他菜单应用使用
+				return
+			}
+		}
 	}
 	;保存热字符串
-	if(vhotStrOption && vhotStrShow){
-		vitemName.=vhotStrOption . vhotStrShow
-	}else if(vhotStrShow){
-		vitemName.=":*X:" vhotStrShow
+	if(vhotStrShow){
+		if(vhotStrShow!=hotStrShow || vhotStrOption!=hotStrOption){
+			vhotStrSave:=vhotStrOption ? vhotStrOption . vhotStrShow : ":*X:" vhotStrShow
+			if(InStr(iniVar1,vhotStrSave "|") || InStr(iniVar2,vhotStrSave "|")){
+				MsgBox, 48, ,该热字符串已经被其他菜单应用使用
+				return
+			}
+		}
+		vitemName.=vhotStrSave
 	}
 	if(vitemTrNum && vitemTrNum<100){
 		vitemName.="_:" vitemTrNum
