@@ -207,6 +207,7 @@
 	--
 	Win10UWP应用|explorer.exe shell:::{4234d49b-0245-4df3-b780-3893943456e1}
 	ping百度|cmd.exe /c "ping baidu.com -t"
+	打开多个网址|cmd.exe /c "start www.baidu.com & start www.github.com"
 	hosts文件|notepad.exe C:\Windows\System32\drivers\etc\hosts
 	清空回收站|cmd.exe /c "rd /s C:\$Recycle.Bin D:\$Recycle.Bin"
 	执行选中命令行|cmd.exe /c "%getZz%"
