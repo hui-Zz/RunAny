@@ -241,8 +241,6 @@ github|https://github.com/search?utf8=%E2%9C%93&q=%s&type=
 
 ## 热字符串
 
-### 热字符串启动
-
 `QQ:*X:#QQ|QQ.exe`
 在任何情况下（屏蔽RunAny程序列表除外）先按`#`再按`QQ`，就会直接运行QQ！
 
