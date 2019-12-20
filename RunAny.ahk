@@ -3996,7 +3996,7 @@ Var_Set:
 	global OneKeyMenu:=Var_Read("OneKeyMenu",0)
 	global EvCommand:=Var_Read("EvCommand","!C:\*Windows* !?:\$RECYCLE.BIN* !C:\Users\" A_UserName "\scoop\shims\* file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
 	global EvAutoClose:=Var_Read("EvAutoClose",0)
-	global EvEveVerNew:=Var_Read("EvEveVerNew",1)
+	global EvEveVerNew:=Var_Read("EvEveVerNew",0)
 	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
 	OneKeyUrl:=StrReplace(OneKeyUrl, "|", "`n")
 	global ShowGetZzLen:=Var_Read("ShowGetZzLen",30)			;菜单显示选中文字最大截取字数
