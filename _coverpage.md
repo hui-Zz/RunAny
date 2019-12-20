@@ -11,4 +11,4 @@
 
 [Gitee](https://gitee.com/hui-Zz/RunAny)
 [GitHub](https://github.com/hui-Zz/RunAny)
-[快速开始](/quick-start)
+[快速开始](/README)
