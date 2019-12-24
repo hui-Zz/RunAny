@@ -5,5 +5,4 @@
 * 友链
   * [Scoop软件列表](https://github.com/rasa/scoop-directory/blob/master/by-score.md)
   * [Chocolatey软件搜索](https://chocolatey.org/packages)
-  * [漫步白月光 - 精品软件分享下载](https://www.ccava.net)
   * [PortableApps软件目录](https://portableapps.com/apps)
