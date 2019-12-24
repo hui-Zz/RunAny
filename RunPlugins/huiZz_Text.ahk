@@ -2,7 +2,7 @@
 ;* 【ObjReg文本操作脚本[文本函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.8"
+global RunAny_Plugins_Version:="1.0.9"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
@@ -69,7 +69,7 @@ class RunAnyObj {
 			}
 			textResult.=Format(formatStr,getZzLoop) . "`n"
 		}
-		textResult:=RTrim(textResult,"`n")
+		textResult:=RegExReplace(textResult,"`n$")
 		this.Send_Str_Zz(textResult)
 	}
 	;[Markdown格式化]
@@ -98,7 +98,7 @@ class RunAnyObj {
 				continue
 			textResult.=Format(formatStr,getZzLoop) . "`n"
 		}
-		textResult:=RTrim(textResult,"`n")
+		textResult:=RegExReplace(textResult,"`n$")
 		this.Send_Str_Zz(textResult)
 	}
 	;[变量命名]
@@ -144,7 +144,7 @@ class RunAnyObj {
 			}
 			textResult.=Format(formatLoop,getZzList*) . "`n"
 		}
-		textResult:=RTrim(textResult,"`n")
+		textResult:=RegExReplace(textResult,"`n$")
 		this.Send_Str_Zz(textResult)
 	}
 	;[文本排序]
@@ -231,7 +231,7 @@ class RunAnyObj {
 			numIndex:=(arab=1) ? numIndex : this.n2c(numIndex)
 			textResult.=numIndex seqNumStr getZzLoop . "`n"
 		}
-		textResult:=RTrim(textResult,"`n")
+		textResult:=RegExReplace(textResult,"`n$")
 		this.Send_Str_Zz(textResult)
 	}
 	;数字转中文   by FeiYue
@@ -292,7 +292,7 @@ class RunAnyObj {
 				textResultObj.Delete(v)
 			}
 		}
-		textResult:=RTrim(textResult,"`n")
+		textResult:=RegExReplace(textResult,"`n$")
 		this.Send_Str_Zz(textResult)
 	}
 }
