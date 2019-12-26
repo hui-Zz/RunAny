@@ -2253,7 +2253,7 @@ EditItemPathChange:
 	filePath:=!vitemPath && vitemName ? vitemName : vitemPath
 	if(filePath){
 		getItemMode:=GetMenuItemMode(filePath)
-		if(getItemMode!=1 || Check_Obj_Ext(filePath)){
+		if(getItemMode!=1 || EvDemandSearch || Check_Obj_Ext(filePath)){
 			GuiControl, SaveItem:Hide, vExtPrompt
 		}else{
 			GuiControl, SaveItem:Show, vExtPrompt
@@ -3583,8 +3583,8 @@ Menu_Set:
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp w%groupChooseEditWidth66% r3 -WantReturn vvEvPath,%EvPath%
 	Gui,66:Add,GroupBox,xm-10 y+20 w%groupWidth66% h220,Everything搜索参数（搜索结果中程序可无路径用RunAny运行，搜索不到尝试强制重建索引）
-	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+30 vvEvExeVerNew,搜索结果优先最新版本同名exe全路径
-	Gui,66:Add,Checkbox,Checked%EvDemandSearch% x+10 vvEvDemandSearch,按需搜索模式（只搜索RunAny菜单的无路径文件）
+	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+30 vvEvExeVerNew gSetEvExeVerNew,搜索结果优先最新版本同名exe全路径
+	Gui,66:Add,Checkbox,Checked%EvDemandSearch% x+10 vvEvDemandSearch gSetEvDemandSearch,按需搜索模式（只搜索RunAny菜单的无路径文件）
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvCommand,修改
 	Gui,66:Add,Text,xm+60 yp,!C:\*Windows*为排除系统缓存和系统程序
 	Gui,66:Add,Text,xm+60 yp+15,file:*.exe|*.lnk|后面类推增加想要的后缀
@@ -3750,9 +3750,10 @@ SetFuncIcon:
 		GuiControl,, %setEdit%, %filePath%
 return
 SetEvCommand:
-	MsgBox,Everything搜索参数语法请打开Everything参照`nEverything-帮助(H)-搜索语法`n
+	MsgBox,64,Everything搜索参数语法,请打开Everything参照`nEverything-帮助(H)-搜索语法`n`n
 		(
-		`n编辑参数完后请务必复制参数到Everthing搜索`n检验是否有搜索到RunAny菜单中的程序，避免出现错误
+修改以下文本框参数后，请务必复制参数到Everthing搜索
+检验是否有搜索到RunAny菜单中的程序，避免出现错误
 		)
 	GuiControl,-ReadOnly,vEvCommand
 return
@@ -3822,13 +3823,40 @@ return
 SetAdminRun:
 	Gui,66:Submit, NoHide
 	if(vAdminRun){
-		MsgBox, 51, %RunAnyZz%管理员权限运行所有软件和插件, 【注意！】`n如果系统UAC未关闭，需要同时设置Everything管理员权限`n（Everything菜单-工具-选项-勾选"以管理员身份运行"），`n否则%RunAnyZz%启动后可能会长时间停留在红色图标状态`n`n【是否已经设置好Everything管理员身份运行权限？】
+		MsgBox, 51, %RunAnyZz%管理员权限运行所有软件和插件, 【注意！】`n
+		(
+如果系统UAC未关闭，需要同时设置Everything管理员权限
+（Everything菜单-工具-选项-勾选"以管理员身份运行"）
+否则%RunAnyZz%启动后可能会长时间停留在红色图标状态`n
+【是否已经设置好Everything管理员身份运行权限？】
+		)
 		IfMsgBox Yes
 		{
 			GuiControl,, vAdminRun, 1
 		}else{
 			GuiControl,, vAdminRun, 0
 		}
+	}
+return
+SetEvExeVerNew:
+	Gui,66:Submit, NoHide
+	if(vEvExeVerNew){
+		MsgBox,64,Everything搜索结果优先最新版本同名exe全路径, %RunAnyZz%会比较电脑上所有同名exe的版本号`n
+		(
+如果电脑同名程序过多会延长开机后%RunAnyZz%初始化速度`n
+建议同时开启右边“按需搜索模式”（只搜索%RunAnyZz%菜单的无路径文件）
+只比较%RunAnyZz%菜单中的同名程序版本号，大大加快速度
+		)
+	}
+return
+SetEvDemandSearch:
+	Gui,66:Submit, NoHide
+	if(vEvDemandSearch){
+		MsgBox,64,Everything按需搜索模式, 开启后不再需要搜索参数 “file:*.exe|*.lnk|*.ahk|*.bat|*.cmd”`n
+		(
+任意在%RunAnyZz%菜单中的后缀文件都可以无路径运行
+不再搜索电脑上所有exe、lnk等后缀，（只搜索%RunAnyZz%菜单的无路径文件）加快速度
+		)
 	}
 return
 SetMenu2:
@@ -4805,7 +4833,13 @@ everythingQuery(){
 	while,% !ev.GetTotResults()
 	{
 		if(A_Index>300){
-			MsgBox,16,RunAny无法与Everything通信,Everything启动缓慢或异常导致无法搜索到磁盘文件，`n`n【原因1：Everything正在创建索引】`n请手动打开Everything等待可以搜索到文件了请再重启RunAny`n`n【原因2：Everything搜索异常】`n请打开Everything菜单-工具-选项设置 安装Everything服务(S)，再重启Everything待可以搜索文件再重启RunAny
+			MsgBox,16,RunAny无法与Everything通信,Everything启动缓慢或异常导致无法搜索到磁盘文件`n`n
+			(
+【原因1：Everything正在创建索引】
+请手动打开Everything等待可以搜索到文件了请再重启RunAny`n
+【原因2：Everything搜索异常】
+请打开Everything菜单-工具-选项设置 安装Everything服务(S)，再重启Everything待可以搜索文件再重启RunAny
+			)
 			break
 		}
 		Sleep, 100
