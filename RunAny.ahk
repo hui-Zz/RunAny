@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.8 @2019.12.17
+║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2019.12.26
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -22,8 +22,8 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
-global RunAny_update_version:="5.6.8"
-global RunAny_update_time:="2019.12.17"
+global RunAny_update_version:="5.6.9"
+global RunAny_update_time:="2019.12.26"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -3491,14 +3491,13 @@ Menu_Set:
 	Gui,66:Default
 	Gui,66:Add,Tab,x10 y10 w550 h500,RunAny设置|配置热键|Everything设置|一键直达|自定义打开后缀|热字符串|图标设置
 	Gui,66:Tab,RunAny设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+5 w%groupWidch66% h85,RunAny设置
+	Gui,66:Add,GroupBox,xm-10 y+5 w%groupWidch66% h75,RunAny设置
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+25 vvAutoRun,开机自动启动
 	Gui,66:Add,Text,x+150 w180,RunAny.ini修改后自动重启(毫秒)0为不自动重启
 	Gui,66:Add,Edit,x+5 yp+5 w50 h20 vvAutoReloadMTime,%AutoReloadMTime%
 	Gui,66:Add,Checkbox,Checked%AdminRun% xm yp+15 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
-	Gui,66:Add,Checkbox,Checked%EvEveVerNew% xm yp+20 vvEvEveVerNew,优先最新版本的同名exe全路径
 	
-	Gui,66:Add,GroupBox,xm-10 y+15 w%groupWidch66% h85,RunAny应用菜单
+	Gui,66:Add,GroupBox,xm-10 y+20 w%groupWidch66% h85,RunAny应用菜单
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
 	Gui,66:Add,Checkbox,Checked%HideRecent% x+140 vvHideRecent,隐藏最近运行
 	Gui,66:Add,Checkbox,Checked%HideWeb% xm yp+20 vvHideWeb,隐藏带`%s网址（选中文字显示）
@@ -3539,7 +3538,7 @@ Menu_Set:
 	Gui,66:Add,GroupBox,xm-10 y+20 w225 h55,RunAny托盘菜单：%RunATrayHotKey%
 	Gui,66:Add,Hotkey,xm yp+20 w150 vvRunATrayKey,%RunATrayKey%
 	Gui,66:Add,Checkbox,Checked%RunATrayWinKey% xm+155 yp+3 vvRunATrayWinKey,Win
-	Gui,66:Add,GroupBox,x+35 yp-23 w225 h55,插件管理：：%PluginsManageHotKey%
+	Gui,66:Add,GroupBox,x+35 yp-23 w225 h55,插件管理：%PluginsManageHotKey%
 	Gui,66:Add,Hotkey,xp+10 yp+20 w150 vvPluginsManageKey,%PluginsManageKey%
 	Gui,66:Add,Checkbox,Checked%PluginsManageWinKey% xp+155 yp+3 vvPluginsManageWinKey,Win
 	
@@ -3574,18 +3573,20 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%RunAExitWinKey% xp+155 yp+3 vvRunAExitWinKey,Win
 	
 	Gui,66:Tab,Everything设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+20 w%groupWidch66% h55,一键Everything [搜索选中文字、激活、隐藏]
+	Gui,66:Add,GroupBox,xm-10 y+10 w%groupWidch66% h55,一键Everything [搜索选中文字、激活、隐藏]
 	Gui,66:Add,Hotkey,xm+10 yp+20 w150 vvEvKey,%EvKey%
 	Gui,66:Add,Checkbox,Checked%EvWinKey% xm+170 yp+3 vvEvWinKey,Win
 	Gui,66:Add,Checkbox,Checked%EvAutoClose% x+38 vvEvAutoClose,Everything自动关闭(不常驻)
 	Gui,66:Add,GroupBox,xm-10 y+30 w%groupWidch66% h100,Everything安装路径（支持内置变量和相对路径..\为RunAny相对上级目录）
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp w420 r3 -WantReturn vvEvPath,%EvPath%
-	Gui,66:Add,GroupBox,xm-10 y+30 w%groupWidch66% h150,Everything搜索参数（搜索结果中程序可无路径用RunAny运行，搜索不到尝试强制重建索引）
-	Gui,66:Add,Button,xm yp+20 w50 GSetEvCommand,修改
+	Gui,66:Add,GroupBox,xm-10 y+20 w%groupWidch66% h220,Everything搜索参数（搜索结果中程序可无路径用RunAny运行，搜索不到尝试强制重建索引）
+	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+30 vvEvExeVerNew,搜索结果优先最新版本同名exe全路径
+	Gui,66:Add,Checkbox,Checked%EvDemandSearch% x+5 vvEvDemandSearch,按需搜索模式(只搜索RunAny菜单的无路径文件)
+	Gui,66:Add,Button,xm yp+30 w50 GSetEvCommand,修改
 	Gui,66:Add,Text,xm+60 yp,!C:\*Windows*为排除系统缓存和系统程序
 	Gui,66:Add,Text,xm+60 yp+15,file:*.exe|*.lnk|后面类推增加想要的后缀
-	Gui,66:Add,Edit,ReadOnly xm+10 yp+25 w470 r4 -WantReturn vvEvCommand,%EvCommand%
+	Gui,66:Add,Edit,ReadOnly xm yp+25 w500 r6 -WantReturn vvEvCommand,%EvCommand%
 	
 	Gui,66:Tab,一键直达,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+10 w%groupWidch66% h50,一键直达
@@ -3749,7 +3750,7 @@ return
 SetEvCommand:
 	MsgBox,Everything搜索参数语法请打开Everything参照`nEverything-帮助(H)-搜索语法`n
 		(
-		`n编辑参数完后请务必复制参数到Everthing搜索`n检验是否达到预定效果，以免出现错误
+		`n编辑参数完后请务必复制参数到Everthing搜索`n检验是否有搜索到RunAny菜单中的程序，避免出现错误
 		)
 	GuiControl,-ReadOnly,vEvCommand
 return
@@ -3764,7 +3765,7 @@ SetOK:
 			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		}
 	}
-	SetValueList:=["AdminRun","AutoReloadMTime","DisableApp","EvEveVerNew","EvPath","EvCommand","EvAutoClose"]
+	SetValueList:=["AdminRun","AutoReloadMTime","DisableApp","EvPath","EvCommand","EvAutoClose","EvExeVerNew","EvDemandSearch"]
 	SetValueList.Push("HideFail","HideUnSelect","HideRecent","HideWeb","HideSend","HideAddItem","HideMenuTray","HideGetZz")
 	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu")
 	SetValueList.Push("BrowserPath","IconFolderPath","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon","AnyIcon","MenuIcon")
@@ -3994,9 +3995,11 @@ Var_Set:
 	global OneKeyMagnet:=Var_Read("OneKeyMagnet",1)
 	global OneKeyFile:=Var_Read("OneKeyFile",1)
 	global OneKeyMenu:=Var_Read("OneKeyMenu",0)
-	global EvCommand:=Var_Read("EvCommand","!C:\*Windows* !?:\$RECYCLE.BIN* !C:\Users\" A_UserName "\scoop\shims\* file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
 	global EvAutoClose:=Var_Read("EvAutoClose",0)
-	global EvEveVerNew:=Var_Read("EvEveVerNew",0)
+	global EvExeVerNew:=Var_Read("EvExeVerNew",1)
+	global EvDemandSearch:=Var_Read("EvDemandSearch",1)
+	EvCommandDefault:="!C:\*Windows* !?:\$RECYCLE.BIN* !C:\Users\" A_UserName "\scoop\shims\*"
+	global EvCommand:=Var_Read("EvCommand",EvDemandSearch ? EvCommandDefault : EvCommandDefault " file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
 	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
 	OneKeyUrl:=StrReplace(OneKeyUrl, "|", "`n")
 	global ShowGetZzLen:=Var_Read("ShowGetZzLen",30)			;菜单显示选中文字最大截取字数
@@ -4764,8 +4767,37 @@ URLDownloadToFile(URL, FilePath, Options:="", RequestHeaders:="")
 ;══════════════════════════════════════════════════════════════════
 everythingQuery(){
 	ev := new everything
+	EvCommandStr:=""
+	if(EvDemandSearch){
+		Loop, parse, iniVar1, `n, `r, %A_Space%%A_Tab%
+		{
+			RegExMatch(A_LoopField,"[^|]+?\.[a-zA-Z]+",outVar)
+			if(Trim(outVar) && !RegExMatch(outVar,"\\|\/|\:|\*|\?|\""|\<|\>|\|") && !InStr(EvCommandStr,"|" outVar "|") && GetMenuItemMode(A_LoopField)=1){
+				if(InStr(outVar,A_Space)){
+					EvCommandStr.="""" outVar . """|"
+				}else{
+					EvCommandStr.=outVar . "|"
+				}
+			}
+		}
+		if(MENU2FLAG){
+			Loop, parse, iniVar2, `n, `r, %A_Space%%A_Tab%
+			{
+				RegExMatch(A_LoopField,"[^|]+?\.[a-zA-Z]+",outVar)
+				if(Trim(outVar) && !RegExMatch(outVar,"\\|\/|\:|\*|\?|\""|\<|\>|\|") && !InStr(EvCommandStr,"|" outVar "|") && GetMenuItemMode(A_LoopField)=1){
+					if(InStr(outVar,A_Space)){
+						EvCommandStr.="""" outVar . """|"
+					}else{
+						EvCommandStr.=outVar . "|"
+					}
+				}
+			}
+		}
+		EvCommandStr:=RegExReplace(EvCommandStr,"\|$")
+		ev.SetMatchWholeWord(true)
+	}
 	;查询字串设为everything
-	ev.SetSearch(EvCommand)
+	ev.SetSearch(EvCommandStr ? EvCommand " " EvCommandStr : EvCommand)
 	;执行搜索
 	ev.Query()
 	while,% !ev.GetTotResults()
@@ -4782,7 +4814,7 @@ everythingQuery(){
 		Z_Index:=A_Index-1
 		objFileName:=ev.GetResultFileName(Z_Index)
 		objFullPathName:=ev.GetResultFullPathName(Z_Index)
-		if(EvEveVerNew && MenuObj[(RegExReplace(objFileName,"iS)\.exe$",""))]){
+		if(EvExeVerNew && MenuObj[(RegExReplace(objFileName,"iS)\.exe$",""))]){
 			;优先选择最新版本的同名exe全路径
 			FileGetVersion,objFullPathNameVersionOld,% MenuObj[(RegExReplace(objFileName,"iS)\.exe$",""))]
 			FileGetVersion,objFullPathNameVersionNew,% objFullPathName
