@@ -213,6 +213,9 @@ if(ReloadGosub){
 	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, ReloadGosub, 0
 	gosub,%ReloadGosub%
 }
+if(RunABackupRule){
+	RunAConfigBackup()
+}
 return
 
 ;══════════════════════════════════════════════════════════════════
@@ -282,6 +285,43 @@ AutoReloadMTime:
 		}
 	}
 return
+;~;[RunAny自动备份配置文件]
+RunAConfigBackup(){
+	ConfigBackupFlag:=true
+	Loop,%RunABackupDirPath%\%RunAnyZz%.ini.*.bak
+	{
+		FileRead, iniVarBak, %A_LoopFileFullPath%
+		if(iniVar1=iniVarBak){
+			ConfigBackupFlag:=false
+		}
+	}
+	if(ConfigBackupFlag){
+		FileCopy, %iniPath%, %RunABackupDirPath%\%RunAnyZz%.ini.%A_Now%.bak, 1
+	}
+	ConfigBackupFlag:=true
+	Loop,%RunABackupDirPath%\%RunAnyZz%2.ini.*.bak
+	{
+		FileRead, iniVarBak, %A_LoopFileFullPath%
+		if(iniVar2=iniVarBak){
+			ConfigBackupFlag:=false
+		}
+	}
+	if(ConfigBackupFlag){
+		FileCopy, %iniPath2%, %RunABackupDirPath%\%RunAnyZz%2.ini.%A_Now%.bak, 1
+	}
+	ConfigBackupFlag:=true
+	FileRead, iniVar, %RunAnyConfig%
+	Loop,%RunABackupDirPath%\%RunAnyConfig%\*.bak
+	{
+		FileRead, iniVarBak, %A_LoopFileFullPath%
+		if(iniVar=iniVarBak){
+			ConfigBackupFlag:=false
+		}
+	}
+	if(ConfigBackupFlag){
+		FileCopy, %RunAnyConfig%, %RunABackupDirPath%\%RunAnyConfig%\%RunAnyConfig%.%A_Now%.bak, 1
+	}
+}
 ;══════════════════════════════════════════════════════════════════
 ;~;[获取菜单项启动模式]1-启动路径|2-短语模式|3-模拟打字短语|4-热键映射|5-AHK热键映射|6-网址|7-文件夹|8-插件脚本函数|10-菜单节点|11-分割符|12-注释说明
 GetMenuItemMode(item,fullItemFlag:=false){
@@ -3493,13 +3533,10 @@ Menu_Set:
 	Gui,66:Default
 	Gui,66:Add,Tab,x10 y10 w580 h500,RunAny设置|配置热键|Everything设置|一键直达|自定义打开后缀|热字符串|图标设置
 	Gui,66:Tab,RunAny设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+5 w%groupWidth66% h75,RunAny设置
-	Gui,66:Add,Checkbox,Checked%AutoRun% xm yp+25 vvAutoRun,开机自动启动
-	Gui,66:Add,Text,x+150 w180,RunAny.ini修改后自动重启(毫秒)0为不自动重启
-	Gui,66:Add,Edit,x+5 yp+5 w50 h20 vvAutoReloadMTime,%AutoReloadMTime%
-	Gui,66:Add,Checkbox,Checked%AdminRun% xm yp+15 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
+	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+10 vvAutoRun,开机自动启动
+	Gui,66:Add,Checkbox,Checked%AdminRun% x+148 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
 	
-	Gui,66:Add,GroupBox,xm-10 y+20 w%groupWidth66% h85,RunAny应用菜单
+	Gui,66:Add,GroupBox,xm-10 y+10 w%groupWidth66% h85,RunAny应用菜单
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
 	Gui,66:Add,Checkbox,Checked%HideRecent% x+160 vvHideRecent,隐藏最近运行
 	Gui,66:Add,Checkbox,Checked%HideWeb% xm yp+20 vvHideWeb,隐藏带`%s网址（选中文字显示）
@@ -3510,19 +3547,26 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%HideUnSelect% xm yp+20 vvHideUnSelect gUnCheckWebSend,选中文字依然显示应用菜单
 	Gui,66:Add,Checkbox,Checked%HideGetZz% x+76 vvHideGetZz,隐藏选中提示信息
 
-	Gui,66:Add,GroupBox,xm-10 y+20 w225 h55,RunAny菜单热键 %MenuHotKey%
+	Gui,66:Add,GroupBox,xm-10 y+15 w225 h55,RunAny菜单热键 %MenuHotKey%
 	Gui,66:Add,Hotkey,xm yp+20 w150 vvMenuKey,%MenuKey%
 	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+155 yp+3 w40 vvMenuWinKey,Win
 
 	If(MENU2FLAG){
-		Gui,66:Add,GroupBox,x+35 yp-23 w225 h55,菜单2热键 %MenuHotKey2%
+		Gui,66:Add,GroupBox,x+40 yp-23 w225 h55,菜单2热键 %MenuHotKey2%
 		Gui,66:Add,Hotkey,xp+10 yp+20 w150 vvMenuKey2,%MenuKey2%
 		Gui,66:Add,Checkbox,Checked%MenuWinKey2% xp+155 yp+3 w40 vvMenuWinKey2,Win
 	}else{
-		Gui,66:Add,Button,x+35 yp-5 w150 GSetMenu2,开启第2个菜单
+		Gui,66:Add,Button,x+40 yp-5 w150 GSetMenu2,开启第2个菜单
 	}
 
-	Gui,66:Add,GroupBox,xm-10 y+25 w%groupWidth66% h105,屏蔽RunAny程序列表（逗号分隔）
+	Gui,66:Add,GroupBox,xm-10 y+15 w%groupWidth66% h75,RunAny.ini设置
+	Gui,66:Add,Edit,xm yp+20 w50 h20 vvAutoReloadMTime,%AutoReloadMTime%
+	Gui,66:Add,Text,x+5 yp+2,(毫秒)  RunAny.ini修改后自动重启，0为不自动重启
+	Gui,66:Add,Checkbox,xm yp+25 Checked%RunABackupRule% vvRunABackupRule,自动备份
+	Gui,66:Add,Button,x+1 yp-5 GSetRunABackupDir,RunAny.ini自动备份目录
+	Gui,66:Add,Edit,x+1 yp+2 w310 r1 vvRunABackupDir,%RunABackupDir%
+	
+	Gui,66:Add,GroupBox,xm-10 y+15 w%groupWidth66% h105,屏蔽RunAny程序列表（逗号分隔）
 	Gui,66:Add,Edit,xm yp+25 w%groupEditWidth66% r4 -WantReturn vvDisableApp,%DisableApp%
 	
 	Gui,66:Tab,配置热键,,Exact
@@ -3726,6 +3770,13 @@ SetIconFolderPath:
 		}
 	}
 return
+SetRunABackupDir:
+	Gui,66:Submit, NoHide
+	FileSelectFolder, RunABackupDir, , 0
+	if(RunABackupDir){
+		GuiControl,, vRunABackupDir, %RunABackupDir%
+	}
+return
 SetBrowserPath:
 	FileSelectFile, browserFilePath, 3, , 程序路径, (*.exe)
 	if(browserFilePath)
@@ -3768,7 +3819,8 @@ SetOK:
 			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		}
 	}
-	SetValueList:=["AdminRun","AutoReloadMTime","DisableApp","EvPath","EvCommand","EvAutoClose","EvExeVerNew","EvDemandSearch"]
+	SetValueList:=["AdminRun","AutoReloadMTime","RunABackupDir","RunABackupRule","DisableApp"]
+	SetValueList.Push("EvPath","EvCommand","EvAutoClose","EvExeVerNew","EvDemandSearch")
 	SetValueList.Push("HideFail","HideUnSelect","HideRecent","HideWeb","HideSend","HideAddItem","HideMenuTray","HideGetZz")
 	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu")
 	SetValueList.Push("BrowserPath","IconFolderPath","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon","AnyIcon","MenuIcon")
@@ -4003,6 +4055,8 @@ Var_Set:
 	}
 	global AdminMode:=A_IsAdmin ? "【管理员】" : ""
 	global AutoReloadMTime:=Var_Read("AutoReloadMTime",2000)
+	global RunABackupDir:=Var_Read("RunABackupDir","`%A_ScriptDir`%\RunBackup")
+	global RunABackupRule:=Var_Read("RunABackupRule",1)
 	global MenuDoubleCtrlKey:=Var_Read("MenuDoubleCtrlKey",0)
 	global MenuDoubleAltKey:=Var_Read("MenuDoubleAltKey",0)
 	global MenuDoubleLWinKey:=Var_Read("MenuDoubleLWinKey",0)
@@ -4291,6 +4345,11 @@ Run_Exist:
 	}
 	IfNotExist,%A_ScriptDir%\%PluginsDir%
 		FileCreateDir, %A_ScriptDir%\%PluginsDir%
+	global RunABackupDirPath:=Get_Transform_Val(RunABackupDir)
+	IfNotExist %RunABackupDirPath%
+		FileCreateDir,%RunABackupDirPath%
+	IfNotExist %RunABackupDirPath%\%RunAnyConfig%
+		FileCreateDir,%RunABackupDirPath%\%RunAnyConfig%
 	;~[记录配置修改时间]
 	FileGetTime,MTimeIniPath, %iniPath%, M  ; 获取修改时间.
 	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, %iniPath%, %MTimeIniPath%
