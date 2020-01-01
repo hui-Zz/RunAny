@@ -3524,26 +3524,27 @@ Check_IsRun(runNamePath){
 ;══════════════════════════════════════════════════════════════════
 ;~;[设置选项]
 Menu_Set:
-	groupWidth66=550
-	groupEditWidth66=530
-	groupChooseEditWidth66=470
+	GROUP_WIDTH_66=550
+	GROUP_EDIT_WIDTH_66=530
+	GROUP_CHOOSE_EDIT_WIDTH_66=470
+	MARGIN_TOP_66=15
 	Gui,66:Destroy
 	Gui,66:Font,,Microsoft YaHei
 	Gui,66:Margin,30,20
 	Gui,66:Default
-	Gui,66:Add,Tab,x10 y10 w580 h500,RunAny设置|配置热键|Everything设置|一键直达|自定义打开后缀|热字符串|图标设置
+	Gui,66:Add,Tab,x10 y10 w580 h540,RunAny设置|配置热键|Everything设置|一键直达|自定义打开后缀|热字符串|图标设置
 	Gui,66:Tab,RunAny设置,,Exact
-	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+10 vvAutoRun,开机自动启动
+	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+%MARGIN_TOP_66% vvAutoRun,开机自动启动
 	Gui,66:Add,Checkbox,Checked%AdminRun% x+148 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
 	
-	Gui,66:Add,GroupBox,xm-10 y+10 w%groupWidth66% h85,RunAny应用菜单
+	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h85,RunAny应用菜单
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
 	Gui,66:Add,Checkbox,Checked%HideRecent% x+160 vvHideRecent,隐藏最近运行
 	Gui,66:Add,Checkbox,Checked%HideWeb% xm yp+20 vvHideWeb,隐藏带`%s网址（选中文字显示）
 	Gui,66:Add,Checkbox,Checked%HideSend% x+47 vvHideSend,隐藏短语（选中文字显示）
 	Gui,66:Add,Checkbox,Checked%HideAddItem% xm yp+20 vvHideAddItem,隐藏【添加到此菜单】
 	Gui,66:Add,Checkbox,Checked%HideMenuTray% x+100 vvHideMenuTray,隐藏底部“RunAny设置”
-	Gui,66:Add,GroupBox,xm-10 y+15 w%groupWidth66% h45,RunAny选中文字菜单
+	Gui,66:Add,GroupBox,xm-10 y+15 w%GROUP_WIDTH_66% h45,RunAny选中文字菜单
 	Gui,66:Add,Checkbox,Checked%HideUnSelect% xm yp+20 vvHideUnSelect gUnCheckWebSend,选中文字依然显示应用菜单
 	Gui,66:Add,Checkbox,Checked%HideGetZz% x+76 vvHideGetZz,隐藏选中提示信息
 
@@ -3559,18 +3560,20 @@ Menu_Set:
 		Gui,66:Add,Button,x+40 yp-5 w150 GSetMenu2,开启第2个菜单
 	}
 
-	Gui,66:Add,GroupBox,xm-10 y+15 w%groupWidth66% h75,RunAny.ini设置
+	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h100,RunAny.ini设置
 	Gui,66:Add,Edit,xm yp+20 w50 h20 vvAutoReloadMTime,%AutoReloadMTime%
 	Gui,66:Add,Text,x+5 yp+2,(毫秒)  RunAny.ini修改后自动重启，0为不自动重启
 	Gui,66:Add,Checkbox,xm yp+25 Checked%RunABackupRule% vvRunABackupRule,自动备份
-	Gui,66:Add,Button,x+1 yp-5 GSetRunABackupDir,RunAny.ini自动备份目录
-	Gui,66:Add,Edit,x+1 yp+2 w310 r1 vvRunABackupDir,%RunABackupDir%
+	Gui,66:Add,Edit,x+1 yp-2 w70 h20 vvRunABackupMax,%RunABackupMax%
+	Gui,66:Add,Text,x+5 yp+2,最多备份数量
+	Gui,66:Add,Button,xm yp+20 GSetRunABackupDir,RunAny.ini自动备份目录
+	Gui,66:Add,Edit,x+1 yp+2 w250 r1 vvRunABackupDir,%RunABackupDir%
 	
-	Gui,66:Add,GroupBox,xm-10 y+15 w%groupWidth66% h105,屏蔽RunAny程序列表（逗号分隔）
-	Gui,66:Add,Edit,xm yp+25 w%groupEditWidth66% r4 -WantReturn vvDisableApp,%DisableApp%
+	Gui,66:Add,GroupBox,xm-10 y+15 w%GROUP_WIDTH_66% h105,屏蔽RunAny程序列表（逗号分隔）
+	Gui,66:Add,Edit,xm yp+25 w%GROUP_EDIT_WIDTH_66% r4 -WantReturn vvDisableApp,%DisableApp%
 	
 	Gui,66:Tab,配置热键,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+5 w%groupWidth66% h125,RunAny多种方式启动菜单（与第三方软件热键冲突则取消勾选）
+	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h125,RunAny多种方式启动菜单（与第三方软件热键冲突则取消勾选）
 	Gui,66:Add,Checkbox,Checked%MenuDoubleCtrlKey% xm yp+20 vvMenuDoubleCtrlKey,双击Ctrl键
 	Gui,66:Add,Checkbox,Checked%MenuDoubleAltKey% x+154 vvMenuDoubleAltKey,双击Alt键
 	Gui,66:Add,Checkbox,Checked%MenuDoubleLWinKey% xm yp+20 vvMenuDoubleLWinKey,双击左Win键
@@ -3619,46 +3622,46 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%RunAExitWinKey% xp+155 yp+3 vvRunAExitWinKey,Win
 	
 	Gui,66:Tab,Everything设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+10 w%groupWidth66% h55,一键Everything [搜索选中文字、激活、隐藏]
+	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h55,一键Everything [搜索选中文字、激活、隐藏]
 	Gui,66:Add,Hotkey,xm+10 yp+20 w150 vvEvKey,%EvKey%
 	Gui,66:Add,Checkbox,Checked%EvWinKey% xm+170 yp+3 vvEvWinKey,Win
 	Gui,66:Add,Checkbox,Checked%EvAutoClose% x+38 vvEvAutoClose,Everything自动关闭(不常驻)
-	Gui,66:Add,GroupBox,xm-10 y+30 w%groupWidth66% h100,Everything安装路径（支持内置变量和相对路径..\为RunAny相对上级目录）
+	Gui,66:Add,GroupBox,xm-10 y+30 w%GROUP_WIDTH_66% h100,Everything安装路径（支持内置变量和相对路径..\为RunAny相对上级目录）
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
-	Gui,66:Add,Edit,xm+60 yp w%groupChooseEditWidth66% r3 -WantReturn vvEvPath,%EvPath%
-	Gui,66:Add,GroupBox,xm-10 y+20 w%groupWidth66% h220,Everything通信搜索参数（搜索结果中程序可无路径用RunAny运行，搜索不到尝试强制重建索引）
+	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r3 -WantReturn vvEvPath,%EvPath%
+	Gui,66:Add,GroupBox,xm-10 y+25 w%GROUP_WIDTH_66% h250,Everything通信搜索参数（搜索结果中程序可无路径用RunAny运行，搜索不到尝试强制重建索引）
 	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+30 vvEvExeVerNew gSetEvExeVerNew,搜索结果优先最新版本同名exe全路径
 	Gui,66:Add,Checkbox,Checked%EvDemandSearch% x+10 vvEvDemandSearch gSetEvDemandSearch,按需搜索模式（只搜索RunAny菜单的无路径文件）
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvCommand,修改
 	Gui,66:Add,Text,xm+60 yp,!C:\*Windows*为排除系统缓存和系统程序
 	Gui,66:Add,Text,xm+60 yp+15,file:*.exe|*.lnk|后面类推增加想要的后缀
-	Gui,66:Add,Edit,ReadOnly xm yp+25 w%groupEditWidth66% r6 -WantReturn vvEvCommand,%EvCommand%
+	Gui,66:Add,Edit,ReadOnly xm yp+25 w%GROUP_EDIT_WIDTH_66% r8 -WantReturn vvEvCommand,%EvCommand%
 	
 	Gui,66:Tab,一键直达,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+10 w%groupWidth66% h50,一键直达
+	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h50,一键直达
 	Gui,66:Add,Text,xm yp+25 w120,选中后直接一键打开：
 	Gui,66:Add,Checkbox,Checked%OneKeyWeb% x+20 yp vvOneKeyWeb,网址
 	Gui,66:Add,Checkbox,Checked%OneKeyFile% x+10 yp vvOneKeyFile,文件路径
 	Gui,66:Add,Checkbox,Checked%OneKeyFolder% x+10 yp vvOneKeyFolder,文件夹路径
 	Gui,66:Add,Checkbox,Checked%OneKeyMagnet% x+10 yp vvOneKeyMagnet,磁力链接
 	
-	Gui,66:Add,GroupBox,xm-10 y+20 w%groupWidth66% h220,一键搜索选中文字
+	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h220,一键搜索选中文字
 	Gui,66:Add,Hotkey,xm yp+30 w150 vvOneKey,%OneKey%
 	Gui,66:Add,Checkbox,Checked%OneWinKey% xm+155 yp+3 vvOneWinKey,Win
 	Gui,66:Add,Checkbox,Checked%OneKeyMenu% x+38 vvOneKeyMenu,绑定菜单1热键为一键搜索
 	Gui,66:Add,Text,xm yp+40 w325,一键搜索网址(`%s为选中文字的替代参数，多行搜索多个网址)
-	Gui,66:Add,Edit,xm yp+20 w%groupEditWidth66% r6 vvOneKeyUrl,%OneKeyUrl%
+	Gui,66:Add,Edit,xm yp+20 w%GROUP_EDIT_WIDTH_66% r6 vvOneKeyUrl,%OneKeyUrl%
 	Gui,66:Add,Text,xm y+30 w325,非默认浏览器打开网址(适用一键搜索和一键网址直达)
 	Gui,66:Add,Button,xm yp+20 w50 GSetBrowserPath,选择
-	Gui,66:Add,Edit,xm+60 yp w%groupChooseEditWidth66% r3 -WantReturn vvBrowserPath,%BrowserPath%
+	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r3 -WantReturn vvBrowserPath,%BrowserPath%
 	
 	Gui,66:Tab,自定义打开后缀,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+10 w%groupWidth66% h420,使用自定义软件打开【%RunAnyZz%菜单内】不同后缀的文件(合并原来TC打开目录功能)
+	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h435,使用自定义软件打开【%RunAnyZz%菜单内】不同后缀的文件(合并原来TC打开目录功能)
 	Gui,66:Add,Button, xm yp+30 w50 GLVOpenExtAdd, + 增加
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtEdit, * 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtRemove, - 减少
 	Gui,66:Add,Text, x+10 yp+5 w320,（特殊类型：文件夹folder 网址http https www ftp等）
-	Gui,66:Add,Listview,xm yp+30 w%groupEditWidth66% r15 grid AltSubmit -Multi vRunAnyOpenExtLV glistviewOpenExt, 文件后缀(用空格分隔)|打开方式(支持无路径)
+	Gui,66:Add,Listview,xm yp+30 w%GROUP_EDIT_WIDTH_66% r16 grid AltSubmit -Multi vRunAnyOpenExtLV glistviewOpenExt, 文件后缀(用空格分隔)|打开方式(支持无路径)
 	GuiControl, 66:-Redraw, RunAnyOpenExtLV
 	For k, v in openExtIniList
 	{
@@ -3668,7 +3671,7 @@ Menu_Set:
 	GuiControl, 66:+Redraw, RunAnyOpenExtLV
 	
 	Gui,66:Tab,热字符串,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+10 w%groupWidth66% h250,热字符串设置
+	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h250,热字符串设置
 	Gui,66:Add,Checkbox,Checked%HideHotStr% xm yp+30 vvHideHotStr,隐藏热字符串提示
 	Gui,66:Add,Text,xm yp+40 w250,提示启动路径最长字数(0为隐藏)
 	Gui,66:Add,Edit,xm+200 yp-3 w200 r1 vvHotStrShowLen,%HotStrShowLen%
@@ -3678,7 +3681,7 @@ Menu_Set:
 	Gui,66:Add,Slider,xm+200 yp ToolTip w200 r1 vvHotStrShowTransparent,%HotStrShowTransparent%
 	
 	Gui,66:Tab,图标设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+5 w%groupWidth66% h235,图标自定义设置（图片或图标文件路径 , 序号不填默认1）
+	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h245,图标自定义设置（图片或图标文件路径 , 序号不填默认1）
 	Gui,66:Add,Button,xm yp+20 w80 GSetAnyIcon,RunAny图标
 	Gui,66:Add,Edit,xm+85 yp+1 w440 r1 vvAnyIcon,%AnyIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetMenuIcon,准备图标
@@ -3693,15 +3696,15 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+85 yp+1 w440 r1 vvEXEIcon,%EXEIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetFuncIcon,脚本插件函数
 	Gui,66:Add,Edit,xm+85 yp+1 w440 r1 vvFuncIcon,%FuncIcon%
-	Gui,66:Add,GroupBox,xm-10 y+15 w%groupWidth66% h170,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含热字符串和全局热键）
+	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h180,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含热字符串和全局热键）
 	Gui,66:Add,Text, xm yp+20 w380,如图标文件名可以为：-常用(&&App).ico、cmd.png、百度(&&B).ico
 	if(ResourcesExtractExist)
 		Gui,66:Add,Button,x+5 yp w110 GMenu_Exe_Icon_Create,生成所有EXE图标
 	Gui,66:Add,Button,xm yp+30 w50 GSetIconFolderPath,选择
-	Gui,66:Add,Edit,xm+60 yp w%groupChooseEditWidth66% r6 vvIconFolderPath,%IconFolderPath%
+	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r6 vvIconFolderPath,%IconFolderPath%
 
 	Gui,66:Tab
-	Gui,66:Add,Button,Default xm+100 y+25 w75 GSetOK,确定(&Y)
+	Gui,66:Add,Button,Default xm+100 y+40 w75 GSetOK,确定(&Y)
 	Gui,66:Add,Button,x+15 w75 GSetCancel,取消(&C)
 	Gui,66:Add,Button,x+15 w75 GSetReSet,重置
 	Gui,66:Add,Text,x+40 yp+5 w75 GMenu_Config,RunAnyConfig.ini
