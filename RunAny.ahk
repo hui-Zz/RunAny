@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2019.12.30
+║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2020.01.02
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.6.9"
-global RunAny_update_time:="2019.12.30"
+global RunAny_update_time:="2020.01.02"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -310,19 +310,16 @@ RunABackup(RunABackupDir,RunABackupFile,RunABackupFileContent,RunABackupFileCopy
 }
 RunABackupClear(RunABackupDir,RunABackupFile){
 	if(RunABackupMax>0){
-		tMax := 1
+		oldFile:=A_Now
 		Loop,%RunABackupDir%%RunABackupFile%
 		{
-			t1 := A_Now
-			t2 := A_LoopFileTimeCreated
-			t1 -= %t2%, Days
-			if(t1>tMax){
-				tMax := t1
-				tPath := A_LoopFileLongPath
+			if(oldFile>A_LoopFileTimeCreated){
+				oldFile:=A_LoopFileTimeCreated
+				oldPath:=A_LoopFileLongPath
 			}
 		}
-		if(RegExMatch(tPath, "i).*?\.bak$")){
-			FileDelete, %tPath%
+		if(RegExMatch(oldPath, "i).*?\.bak$")){
+			FileDelete, %oldPath%
 		}
 	}
 }
@@ -2184,7 +2181,7 @@ Menu_Item_Edit:
 	Gui,SaveItem:+Owner
 	Gui,SaveItem:Margin,20,20
 	Gui,SaveItem:Font,,Microsoft YaHei
-	Gui,SaveItem:Add, GroupBox,xm y+10 w600 h330,新增修改菜单项
+	Gui,SaveItem:Add, GroupBox,xm y+10 w600 h340,新增修改菜单项
 	Gui,SaveItem:Add, Text, xm+10 y+30 y35 w60, 菜单项名：
 	Gui,SaveItem:Add, Edit, x+5 yp-3 w350 vvitemName GEditItemPathChange, %itemName%
 	Gui,SaveItem:Add, Picture, x+50 yp+3 w64 h-1 gSetItemIconPath, %itemIconFile%
@@ -2220,7 +2217,7 @@ Menu_Item_Edit:
 		Gui,SaveItem:Add, Button, xm+6 yp+27 w60 vvSetShortcut GSetShortcut,快捷目标
 	}
 	Gui,SaveItem:Font,,Microsoft YaHei
-	Gui,SaveItem:Add,Button,Default xm+220 y+10 w75 G%SaveLabel%,保存(&Y)
+	Gui,SaveItem:Add,Button,Default xm+220 y+15 w75 G%SaveLabel%,保存(&Y)
 	Gui,SaveItem:Add,Button,x+20 w75 GSetCancel,取消(&C)
 	Gui,SaveItem:Add, Text, xm y+25 w590 cBlue vvStatusBar, %thisMenuStr% %thisMenuItemStr%
 	Gui,SaveItem:Show,,新增修改菜单项 - %RunAnyZz% - 支持拖放应用
@@ -3649,12 +3646,12 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%OneKeyFolder% x+10 yp vvOneKeyFolder,文件夹路径
 	Gui,66:Add,Checkbox,Checked%OneKeyMagnet% x+10 yp vvOneKeyMagnet,磁力链接
 	
-	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h220,一键搜索选中文字
+	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h245,一键搜索选中文字
 	Gui,66:Add,Hotkey,xm yp+30 w150 vvOneKey,%OneKey%
 	Gui,66:Add,Checkbox,Checked%OneWinKey% xm+155 yp+3 vvOneWinKey,Win
 	Gui,66:Add,Checkbox,Checked%OneKeyMenu% x+38 vvOneKeyMenu,绑定菜单1热键为一键搜索
 	Gui,66:Add,Text,xm yp+40 w325,一键搜索网址(`%s为选中文字的替代参数，多行搜索多个网址)
-	Gui,66:Add,Edit,xm yp+20 w%GROUP_EDIT_WIDTH_66% r6 vvOneKeyUrl,%OneKeyUrl%
+	Gui,66:Add,Edit,xm yp+20 w%GROUP_EDIT_WIDTH_66% r8 vvOneKeyUrl,%OneKeyUrl%
 	Gui,66:Add,Text,xm y+30 w325,非默认浏览器打开网址(适用一键搜索和一键网址直达)
 	Gui,66:Add,Button,xm yp+20 w50 GSetBrowserPath,选择
 	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r3 -WantReturn vvBrowserPath,%BrowserPath%
