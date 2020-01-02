@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2019.12.26
+║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2019.12.30
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.6.9"
-global RunAny_update_time:="2019.12.26"
+global RunAny_update_time:="2019.12.30"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -213,8 +213,12 @@ if(ReloadGosub){
 	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, ReloadGosub, 0
 	gosub,%ReloadGosub%
 }
+;自动备份配置文件
 if(RunABackupRule){
-	RunAConfigBackup()
+	RunABackup(RunABackupDirPath "\", RunAnyZz ".ini.*.bak", iniVar1, iniPath, RunAnyZz ".ini." A_Now ".bak")
+	RunABackup(RunABackupDirPath "\" RunAnyZz "2\", "*.bak", iniVar2, iniPath2, RunAnyZz "2.ini." A_Now ".bak")
+	FileRead, iniVarBak, %RunAnyConfig%
+	RunABackup(RunABackupDirPath "\" RunAnyConfig "\", "*.bak", iniVarBak, RunAnyConfig, RunAnyConfig "." A_Now ".bak")
 }
 return
 
@@ -286,40 +290,40 @@ AutoReloadMTime:
 	}
 return
 ;~;[RunAny自动备份配置文件]
-RunAConfigBackup(){
+RunABackup(RunABackupDir,RunABackupFile,RunABackupFileContent,RunABackupFileCopy,RunABackupFileTarget){
+	ConfigBackupNum:=0
 	ConfigBackupFlag:=true
-	Loop,%RunABackupDirPath%\%RunAnyZz%.ini.*.bak
+	Loop,%RunABackupDir%%RunABackupFile%
 	{
 		FileRead, iniVarBak, %A_LoopFileFullPath%
-		if(iniVar1=iniVarBak){
+		if(RunABackupFileContent=iniVarBak){
 			ConfigBackupFlag:=false
 		}
+		ConfigBackupNum++
 	}
 	if(ConfigBackupFlag){
-		FileCopy, %iniPath%, %RunABackupDirPath%\%RunAnyZz%.ini.%A_Now%.bak, 1
+		FileCopy, %RunABackupFileCopy%, %RunABackupDir%%RunABackupFileTarget%, 1
 	}
-	ConfigBackupFlag:=true
-	Loop,%RunABackupDirPath%\%RunAnyZz%2.ini.*.bak
-	{
-		FileRead, iniVarBak, %A_LoopFileFullPath%
-		if(iniVar2=iniVarBak){
-			ConfigBackupFlag:=false
+	if(ConfigBackupNum>RunABackupMax){
+		RunABackupClear(RunABackupDir,RunABackupFile)
+	}
+}
+RunABackupClear(RunABackupDir,RunABackupFile){
+	if(RunABackupMax>0){
+		tMax := 1
+		Loop,%RunABackupDir%%RunABackupFile%
+		{
+			t1 := A_Now
+			t2 := A_LoopFileTimeCreated
+			t1 -= %t2%, Days
+			if(t1>tMax){
+				tMax := t1
+				tPath := A_LoopFileLongPath
+			}
 		}
-	}
-	if(ConfigBackupFlag){
-		FileCopy, %iniPath2%, %RunABackupDirPath%\%RunAnyZz%2.ini.%A_Now%.bak, 1
-	}
-	ConfigBackupFlag:=true
-	FileRead, iniVar, %RunAnyConfig%
-	Loop,%RunABackupDirPath%\%RunAnyConfig%\*.bak
-	{
-		FileRead, iniVarBak, %A_LoopFileFullPath%
-		if(iniVar=iniVarBak){
-			ConfigBackupFlag:=false
+		if(RegExMatch(tPath, "i).*?\.bak$")){
+			FileDelete, %tPath%
 		}
-	}
-	if(ConfigBackupFlag){
-		FileCopy, %RunAnyConfig%, %RunABackupDirPath%\%RunAnyConfig%\%RunAnyConfig%.%A_Now%.bak, 1
 	}
 }
 ;══════════════════════════════════════════════════════════════════
@@ -3822,7 +3826,7 @@ SetOK:
 			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		}
 	}
-	SetValueList:=["AdminRun","AutoReloadMTime","RunABackupDir","RunABackupRule","DisableApp"]
+	SetValueList:=["AdminRun","AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupDir","DisableApp"]
 	SetValueList.Push("EvPath","EvCommand","EvAutoClose","EvExeVerNew","EvDemandSearch")
 	SetValueList.Push("HideFail","HideUnSelect","HideRecent","HideWeb","HideSend","HideAddItem","HideMenuTray","HideGetZz")
 	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu")
@@ -4060,6 +4064,7 @@ Var_Set:
 	global AutoReloadMTime:=Var_Read("AutoReloadMTime",2000)
 	global RunABackupDir:=Var_Read("RunABackupDir","`%A_ScriptDir`%\RunBackup")
 	global RunABackupRule:=Var_Read("RunABackupRule",1)
+	global RunABackupMax:=Var_Read("RunABackupMax",5)
 	global MenuDoubleCtrlKey:=Var_Read("MenuDoubleCtrlKey",0)
 	global MenuDoubleAltKey:=Var_Read("MenuDoubleAltKey",0)
 	global MenuDoubleLWinKey:=Var_Read("MenuDoubleLWinKey",0)
@@ -4309,6 +4314,13 @@ Run_Exist:
 	global iniFile:=iniPath
 	global iniVar1:=""
 	global both:=1
+	global RunABackupDirPath:=Get_Transform_Val(RunABackupDir)
+	IfNotExist %RunABackupDirPath%
+		FileCreateDir,%RunABackupDirPath%
+	IfNotExist %RunABackupDirPath%\%RunAnyConfig%
+		FileCreateDir,%RunABackupDirPath%\%RunAnyConfig%
+	IfNotExist,%A_ScriptDir%\%PluginsDir%
+		FileCreateDir, %A_ScriptDir%\%PluginsDir%
 	FileGetSize,iniFileSize,%iniFile%
 	If(!FileExist(iniFile) || iniFileSize=0){
 		TrayTip,,RunAny初始化中...,2,1
@@ -4324,6 +4336,8 @@ Run_Exist:
 		FileRead, iniVar2, %iniPath2%
 		FileGetTime,MTimeIniPath2, %iniPath2%, M  ; 获取修改时间.
 		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, %iniPath2%, %MTimeIniPath2%
+		IfNotExist %RunABackupDirPath%\%RunAnyZz%2
+			FileCreateDir,%RunABackupDirPath%\%RunAnyZz%2
 	}
 	;#判断配置文件
 	if(!FileExist(RunAnyConfig)){
@@ -4346,13 +4360,6 @@ Run_Exist:
 			Reload
 		}
 	}
-	IfNotExist,%A_ScriptDir%\%PluginsDir%
-		FileCreateDir, %A_ScriptDir%\%PluginsDir%
-	global RunABackupDirPath:=Get_Transform_Val(RunABackupDir)
-	IfNotExist %RunABackupDirPath%
-		FileCreateDir,%RunABackupDirPath%
-	IfNotExist %RunABackupDirPath%\%RunAnyConfig%
-		FileCreateDir,%RunABackupDirPath%\%RunAnyConfig%
 	;~[记录配置修改时间]
 	FileGetTime,MTimeIniPath, %iniPath%, M  ; 获取修改时间.
 	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, %iniPath%, %MTimeIniPath%
