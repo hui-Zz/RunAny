@@ -216,7 +216,7 @@ if(ReloadGosub){
 ;自动备份配置文件
 if(RunABackupRule){
 	RunABackup(RunABackupDirPath "\", RunAnyZz ".ini.*.bak", iniVar1, iniPath, RunAnyZz ".ini." A_Now ".bak")
-	RunABackup(RunABackupDirPath "\" RunAnyZz "2\", "*.bak", iniVar2, iniPath2, RunAnyZz "2.ini." A_Now ".bak")
+	RunABackup(RunABackupDirPath "\" RunAnyZz "2.ini\", "*.bak", iniVar2, iniPath2, RunAnyZz "2.ini." A_Now ".bak")
 	FileRead, iniVarBak, %RunAnyConfig%
 	RunABackup(RunABackupDirPath "\" RunAnyConfig "\", "*.bak", iniVarBak, RunAnyConfig, RunAnyConfig "." A_Now ".bak")
 }
@@ -4333,8 +4333,8 @@ Run_Exist:
 		FileRead, iniVar2, %iniPath2%
 		FileGetTime,MTimeIniPath2, %iniPath2%, M  ; 获取修改时间.
 		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, %iniPath2%, %MTimeIniPath2%
-		IfNotExist %RunABackupDirPath%\%RunAnyZz%2
-			FileCreateDir,%RunABackupDirPath%\%RunAnyZz%2
+		IfNotExist %RunABackupDirPath%\%RunAnyZz%2.ini
+			FileCreateDir,%RunABackupDirPath%\%RunAnyZz%2.ini
 	}
 	;#判断配置文件
 	if(!FileExist(RunAnyConfig)){
