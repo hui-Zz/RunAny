@@ -3551,12 +3551,12 @@ Menu_Set:
 
 	Gui,66:Add,GroupBox,xm-10 y+15 w225 h55,RunAny菜单热键 %MenuHotKey%
 	Gui,66:Add,Hotkey,xm yp+20 w150 vvMenuKey,%MenuKey%
-	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+155 yp+3 w40 vvMenuWinKey,Win
+	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+155 yp+3 w55 vvMenuWinKey,Win
 
 	If(MENU2FLAG){
 		Gui,66:Add,GroupBox,x+40 yp-23 w225 h55,菜单2热键 %MenuHotKey2%
 		Gui,66:Add,Hotkey,xp+10 yp+20 w150 vvMenuKey2,%MenuKey2%
-		Gui,66:Add,Checkbox,Checked%MenuWinKey2% xp+155 yp+3 w40 vvMenuWinKey2,Win
+		Gui,66:Add,Checkbox,Checked%MenuWinKey2% xp+155 yp+3 w55 vvMenuWinKey2,Win
 	}else{
 		Gui,66:Add,Button,x+40 yp-5 w150 GSetMenu2,开启第2个菜单
 	}
@@ -4086,7 +4086,7 @@ Var_Set:
 	global OneKeyFile:=Var_Read("OneKeyFile",1)
 	global OneKeyMenu:=Var_Read("OneKeyMenu",0)
 	global EvAutoClose:=Var_Read("EvAutoClose",0)
-	global EvExeVerNew:=Var_Read("EvExeVerNew",1)
+	global EvExeVerNew:=Var_Read("EvExeVerNew",0)
 	global EvDemandSearch:=Var_Read("EvDemandSearch",1)
 	EvCommandDefault:="!C:\*Windows* !?:\$RECYCLE.BIN* !C:\Users\" A_UserName "\scoop\shims\*"
 	global EvCommand:=Var_Read("EvCommand",EvDemandSearch ? EvCommandDefault : EvCommandDefault " file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
