@@ -26,7 +26,7 @@ RunAny启动软件就跟五笔打字一样高效方便，3键直达（如<kbd>Es
 - <kbd>\`</kbd><kbd>w</kbd><kbd>w</kbd>就是启动『work工作』分类下的Word
 - <kbd>\`</kbd><kbd>f</kbd><kbd>w</kbd>就是启动『file文件』分类下的WinRAR
 
-![RunAny演示](/assets/images/RunAny演示.gif)
+![RunAny演示](/assets/images/RunAny演示.webp)
 
 ---
 
