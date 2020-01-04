@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2020.01.02
+║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2020.01.03
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.6.9"
-global RunAny_update_time:="2020.01.02"
+global RunAny_update_time:="2020.01.03"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -3081,7 +3081,7 @@ if(!Check_Network(RunAnyGiteePages)){
 	pagesPluginsUrl:=RunAnyGiteePages . "/RunAny/#/plugins-help"
 }
 pagesHash:=pagesPluginsUrl . "?id="
-global PluginsHelpList:={"huiZz_QRCode.ahk":pagesHash "huiZz_QRCode二维码脚本使用方法", "huiZz_Window.ahk":pagesHash "huiZz_Window窗口操作插件使用方法","huiZz_System.ahk":pagesHash "huiZz_System系统操作插件使用方法","huiZz_Text.ahk":pagesHash "huiZz_Text文本操作插件使用方法"}
+global PluginsHelpList:={"huiZz_QRCode.ahk":pagesHash "huizz_qrcode二维码脚本使用方法", "huiZz_Window.ahk":pagesHash "huizz_window窗口操作插件使用方法","huiZz_System.ahk":pagesHash "huizz_system系统操作插件使用方法","huiZz_Text.ahk":pagesHash "huizz_text文本操作插件使用方法"}
 global ColumnName:=1
 global ColumnStatus:=2
 global ColumnAutoRun:=3
