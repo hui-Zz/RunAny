@@ -1958,9 +1958,9 @@ Menu_Edit:
 			treeLevel:=StrLen(RegExReplace(A_LoopField,"S)(^-+).+","$1"))
 			if(RegExMatch(A_LoopField,"S)^-+[^-]+.*")){
 				if(treeLevel=1){
-					treeRoot.InsertAt(treeLevel,TV_Add(A_LoopField,,"Bold Icon6"))
+					treeRoot.InsertAt(treeLevel,TV_Add(A_LoopField,,Set_Icon(A_LoopField,false)))
 				}else{
-					treeRoot.InsertAt(treeLevel,TV_Add(A_LoopField,treeRoot[treeLevel-1],"Bold Icon6"))
+					treeRoot.InsertAt(treeLevel,TV_Add(A_LoopField,treeRoot[treeLevel-1],Set_Icon(A_LoopField,false)))
 				}
 				TV_MoveMenu(A_LoopField)
 			}else if(A_LoopField="-"){
@@ -2902,12 +2902,23 @@ return
 Set_Icon(itemVar,editVar=true){
 	;变量转换实际值
 	itemVar:=Get_Transform_Val(itemVar)
+	itemStyle:=RegExMatch(itemVar,"S)^-+[^-]+.*") ? "Bold " : ""
+	;[优先加载自定义图标]
+	diyText:=StrSplit(itemVar,"|",,2)
+	itemIconFile:=IconFolderList[menuItemIconFileName(diyText[1])]
+	if(itemIconFile && FileExist(itemIconFile)){
+		try{
+			Menu,exeTestMenu,Icon,SetCancel,%itemIconFile%,0
+			addNum:=IL_Add(ImageListID, itemIconFile, 0)
+			return itemStyle . "Icon" . addNum
+		}catch{}
+	}
 	SplitPath, itemVar,,, FileExt  ; 获取文件扩展名.
 	itemLen:=StrLen(itemVar)
 	if(InStr(itemVar,";",,0,1)=itemLen)
 		return "Icon2"
 	if(RegExMatch(itemVar,"S)^-+[^-]+.*"))
-		return "Icon6"
+		return itemStyle . "Icon6"
 	if(RegExMatch(itemVar,"S)^-+"))
 		return "Icon8"
 	if(InStr(FileExist(itemVar), "D"))
@@ -2922,16 +2933,12 @@ Set_Icon(itemVar,editVar=true){
 		return "Icon3"
 	if(FileName="cmd.exe")
 		FileName=%A_WinDir%\system32\cmd.exe
-	diyText:=StrSplit(itemVar,"|",,2)
+
 	;~;[获取网址图标]
 	if(RegExMatch(FileName,"iS)([\w-]+://?|www[.]).*")){
 		try{
 			website:=RegExReplace(FileName,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
 			webIcon:=A_ScriptDir "\RunIcon\" website ".ico"
-			itemIconFile:=IconFolderList[menuItemIconFileName(diyText[1])]
-			if(itemIconFile && FileExist(itemIconFile)){
-				webIcon:=itemIconFile
-			}
 			if(FileExist(webIcon)){
 				Menu,exeTestMenu,Icon,SetCancel,%webIcon%,0
 				addNum:=IL_Add(ImageListID, webIcon, 0)
