@@ -326,7 +326,6 @@ RunABackupClear(RunABackupDir,RunABackupFile){
 ;══════════════════════════════════════════════════════════════════
 ;~;[获取菜单项启动模式]1-启动路径|2-短语模式|3-模拟打字短语|4-热键映射|5-AHK热键映射|6-网址|7-文件夹|8-插件脚本函数|10-菜单节点|11-分割符|12-注释说明
 GetMenuItemMode(item,fullItemFlag:=false){
-	len:=StrLen(item)
 	if(fullItemFlag){
 		if(InStr(item,";")=1 || len=0)
 			return 12
@@ -337,6 +336,7 @@ GetMenuItemMode(item,fullItemFlag:=false){
 		menuItems:=StrSplit(item,"|",,2)
 		item:=menuItems[2]
 	}
+	len:=StrLen(item)
 	if(len=0)
 		return 1
 	if(InStr(item,";",,0,1)=len)
@@ -1616,7 +1616,13 @@ Get_Obj_Path(z_item){
 	if(RegExMatch(obj_path,"iS).*?\.exe .*")){
 		obj_path:=RegExReplace(obj_path,"iS)(\.exe)($| .*)","$1")
 	}
-	if(!InStr(obj_path,"..\")){
+	if(obj_path!="" && !InStr(obj_path,"\")){
+		if(FileExist(A_WinDir "\" obj_path))
+			obj_path=%A_WinDir%\%obj_path%
+		if(FileExist(A_WinDir "\system32\" obj_path))
+			obj_path=%A_WinDir%\system32\%obj_path%
+		return obj_path
+	}else if(!InStr(obj_path,"..\")){
 		return obj_path
 	}else{
 		val:=RegExReplace(obj_path,"\.\.\\.*?$")
@@ -1935,6 +1941,7 @@ return
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 Menu_Edit:
 	global TVFlag:=false
+	global FailFlag:=false
 	;~;[功能菜单初始化]
 	treeRoot:=Object()
 	global moveRoot:=Object()
@@ -1976,9 +1983,10 @@ Menu_Edit:
 			hwnd:=TV_Add(A_LoopField,treeRoot[treeLevel],"Icon8")
 			Tv.modify({hwnd:hwnd,fore:0x00A000})
 		}else{
+			FailFlag:=false
 			itemIcon:=Set_Icon(A_LoopField,false)
 			hwnd:=TV_Add(A_LoopField,treeRoot[treeLevel],itemIcon)
-			if(itemIcon="Icon3"){
+			if(itemIcon="Icon3" || FailFlag){
 				Tv.modify({hwnd:hwnd,fore:0x999999})
 			}
 		}
@@ -2912,10 +2920,22 @@ return
 Set_Icon(itemVar,editVar=true){
 	;变量转换实际值
 	itemVar:=Get_Transform_Val(itemVar)
-	itemStyle:=RegExMatch(itemVar,"S)^-+[^-]+.*") ? "Bold " : ""
+	;菜单项启动模式
+	setItemMode:=GetMenuItemMode(itemVar,true)
+	itemStyle:=setItemMode=10 ? "Bold " : ""
+	SplitPath,itemVar,,,FileExt,name_no_ext  ; 获取文件扩展名.
+	;~;[获取全路径]
+	FileName:=Get_Obj_Path(itemVar)
+	if(setItemMode=1 && !FileExist(FileName))
+		FailFlag:=true
 	;[优先加载自定义图标]
-	diyText:=StrSplit(itemVar,"|",,2)
-	itemIconFile:=IconFolderList[menuItemIconFileName(diyText[1])]
+	if(InStr(itemVar,"|")){
+		diyText:=StrSplit(itemVar,"|",,2)
+		itemIcon:=diyText[1]
+	}else{
+		itemIcon:=name_no_ext
+	}
+	itemIconFile:=IconFolderList[menuItemIconFileName(itemIcon)]
 	if(itemIconFile && FileExist(itemIconFile)){
 		try{
 			Menu,exeTestMenu,Icon,SetCancel,%itemIconFile%,0
@@ -2923,32 +2943,25 @@ Set_Icon(itemVar,editVar=true){
 			return itemStyle . "Icon" . addNum
 		}catch{}
 	}
-	SplitPath, itemVar,,, FileExt  ; 获取文件扩展名.
 	itemLen:=StrLen(itemVar)
-	if(InStr(itemVar,";",,0,1)=itemLen)
+	if(setItemMode=2 || setItemMode=3)
 		return "Icon2"
-	if(RegExMatch(itemVar,"S)^-+[^-]+.*"))
+	if(setItemMode=10)
 		return itemStyle . "Icon6"
-	if(RegExMatch(itemVar,"S)^-+"))
+	if(setItemMode=11)
 		return "Icon8"
-	if(InStr(FileExist(itemVar), "D"))
+	if(setItemMode=7)
 		return "Icon4"
-	if(InStr(itemVar,"::",,0,1)=itemLen-1)	; {发送热键}
-		return InStr(itemVar,":::",,0,1)=itemLen-2 ? "Icon10" : "Icon9"
-	if(RegExMatch(itemVar,"S).+?\[.+?\]%?\(.*?\)"))  ; {脚本插件函数}
+	if(setItemMode=4)	; {发送热键}
+		return "Icon9"
+	if(setItemMode=5)
+		return "Icon10"
+	if(setItemMode=8)  ; {脚本插件函数}
 		return "Icon11"
-	;~;[获取全路径]
-	FileName:=Get_Obj_Path(itemVar)
 	if(!editVar && FileName="" && FileExt = "exe")
 		return "Icon3"
-	if(!FileExist(FileName)){
-		if(FileExist(A_WinDir "\" FileName))
-			FileName=%A_WinDir%\%FileName%
-		if(FileExist(A_WinDir "\system32\" FileName))
-			FileName=%A_WinDir%\system32\%FileName%
-	}
 	;~;[获取网址图标]
-	if(RegExMatch(FileName,"iS)([\w-]+://?|www[.]).*")){
+	if(setItemMode=6){
 		try{
 			website:=RegExReplace(FileName,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
 			webIcon:=A_ScriptDir "\RunIcon\" website ".ico"
