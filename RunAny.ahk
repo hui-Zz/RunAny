@@ -2937,9 +2937,12 @@ Set_Icon(itemVar,editVar=true){
 	FileName:=Get_Obj_Path(itemVar)
 	if(!editVar && FileName="" && FileExt = "exe")
 		return "Icon3"
-	if(FileName="cmd.exe")
-		FileName=%A_WinDir%\system32\cmd.exe
-
+	if(!FileExist(FileName)){
+		if(FileExist(A_WinDir "\" FileName))
+			FileName=%A_WinDir%\%FileName%
+		if(FileExist(A_WinDir "\system32\" FileName))
+			FileName=%A_WinDir%\system32\%FileName%
+	}
 	;~;[获取网址图标]
 	if(RegExMatch(FileName,"iS)([\w-]+://?|www[.]).*")){
 		try{
