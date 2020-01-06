@@ -334,6 +334,8 @@ GetMenuItemMode(item,fullItemFlag:=false){
 			return 10
 		if(RegExMatch(item,"S)^-+"))
 			return 11
+		menuItems:=StrSplit(item,"|",,2)
+		item:=menuItems[2]
 	}
 	if(len=0)
 		return 1
@@ -1986,7 +1988,7 @@ Menu_Edit:
 	TVMenu("TVMenu")
 	TVMenu("GuiMenu")
 	Gui, Menu, GuiMenu
-	Gui, Show, , %RunAnyZz%菜单树管理【%both%】(双击修改，右键操作) %RunAny_update_version% %RunAny_update_time%%AdminMode%
+	Gui, Show, , %RunAnyZz%菜单树管理【%both%】%RunAny_update_version% %RunAny_update_time%%AdminMode%(双击修改，右键操作)
 	if(TVEditItem!=""){
 		ItemEdit:=Get_Obj_Name(TVEditItem)
 		ItemID = 0
@@ -2175,7 +2177,7 @@ return
 Menu_Item_Edit:
 	SaveLabel:=menuGuiFlag ? "SetSaveItemGui" : "SetSaveItem"
 	PromptStr:=menuGuiFlag ? "需要" : "点击此处"
-	setItemMode:=GetMenuItemMode(itemPath)
+	setItemMode:=GetMenuItemMode(ItemText,true)
 	If(setItemMode=2 || setItemMode=3){
 		itemPath:=StrReplace(itemPath,"``t","`t")
 		itemPath:=StrReplace(itemPath,"``n","`n")
