@@ -2523,8 +2523,10 @@ TVComments:
 		TV_GetText(ItemText, CheckID)
 		if(InStr(ItemText,";")=1){
 			StringTrimLeft, ItemText, ItemText, 1
+			Tv.modify({hwnd:CheckID,fore:0x000000})
 		}else{
 			ItemText:=";" ItemText
+			Tv.modify({hwnd:CheckID,fore:0x00A000})
 		}
 		TV_Modify(CheckID, ,ItemText)
 	}
