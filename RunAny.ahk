@@ -428,7 +428,8 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,webRootShow,
 			if(InStr(Z_LoopField,"|")){
 				;~;[生成有前缀备注的应用]
 				menuDiy:=StrSplit(Z_LoopField,"|",,2)
-				appName:=RegExReplace(menuDiy[2],"iS)\.(exe|bat|cmd|vbs|ps1|ahk)($| .*)")	;去掉后缀或参数，取应用名
+				appName:=RegExReplace(menuDiy[2],"iS)(.*?\.[a-zA-Z]+)($| .*)","$1")	;去掉参数，取应用名
+				appName:=RegExReplace(appName,"iS)\.exe$")	;去掉exe后缀，取应用名
 				item:=MenuObj[appName]
 				if(item){
 					SplitPath, item,,, FileExt  ; 获取文件扩展名.
@@ -1605,7 +1606,7 @@ Get_Obj_Path(z_item){
 		menuDiy:=StrSplit(z_item,"|")
 		obj_path:=MenuObj[menuDiy[1]]
 	}else{
-		z_item:=RegExReplace(z_item,"iS)(\.exe)($| .*)","$1")	;去掉参数，取路径
+		z_item:=RegExReplace(z_item,"iS)(.*?\.[a-zA-Z]+)($| .*)","$1")	;去掉参数，取路径
 		if(RegExMatch(z_item,"iS)^(\\\\|.:\\).*?\.exe$")){
 			obj_path:=z_item
 		}else{
@@ -1613,8 +1614,8 @@ Get_Obj_Path(z_item){
 			obj_path:=MenuObj[appName]
 		}
 	}
-	if(RegExMatch(obj_path,"iS).*?\.exe .*")){
-		obj_path:=RegExReplace(obj_path,"iS)(\.exe)($| .*)","$1")
+	if(RegExMatch(obj_path,"iS).*?\.[a-zA-Z]+($| .*)")){
+		obj_path:=RegExReplace(obj_path,"iS)(\.[a-zA-Z]+)($| .*)","$1")
 	}
 	if(obj_path!="" && !InStr(obj_path,"\")){
 		if(FileExist(A_WinDir "\" obj_path))
@@ -2916,7 +2917,7 @@ Move_Menu:
 		TV_MoveMenuClean()
 	}
 return
-;~;[后缀判断图标Gui]
+;~;[菜单树项目根据后缀或模式设置图标和样式]
 Set_Icon(itemVar,editVar=true){
 	;变量转换实际值
 	itemVar:=Get_Transform_Val(itemVar)
