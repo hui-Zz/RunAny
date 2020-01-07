@@ -1,20 +1,33 @@
 # RunAny已更新最新版本！感谢你的使用和支持！[![HitCount](http://hits.dwyl.io/hui-Zz/RunAny.svg)](http://hits.dwyl.io/hui-Zz/RunAny)
 
-### 📢 RunAny完整文档完成了！持续完善中，新增搜索、评论功能~
-### 国内Gitee文档：[https://hui-zz.gitee.io/runany](https://hui-zz.gitee.io/runany)
-### Github文档：[https://hui-zz.github.io/RunAny](https://hui-zz.github.io/RunAny)
-
+### 📢 RunAny完整文档完成了！
+* 国内Gitee文档：[https://hui-zz.gitee.io/runany](https://hui-zz.gitee.io/runany)
+* Github文档：[https://hui-zz.github.io/RunAny](https://hui-zz.github.io/RunAny)
+### 新增右上角两篇文章：
+* [无路径如何区别运行重名的exe程序](run-repeat-exe.md)
+* [RunAny菜单主题展示](run-menu-theme.md)
 
 ---
-## 【RunAny】v5.6.9
-新增功能：
+## 【RunAny】v5.6.9 2020-01-06
+**【新增功能】：**
 + RunAny自动备份配置文件，可限制最多数量
 + RunAny处理搜索结果优先最新版本同名exe全路径
   + 打开此选项后就完美支持了Scoop这类软件库中的软件，无路径也能自动定位到最新版本的EXE程序
+  + 如果电脑上同名软件过多可能会减慢RunAny初始加载速度，根据自己需求开关
 + 按需搜索模式（只搜索RunAny菜单的无路径文件）
   + 不再生效搜索参数  `file:*.exe|*.lnk|*.ahk|*.bat|*.cmd`
   + 任意在RunAny菜单中的后缀文件都可以无路径运行
+  + 注意：开启后会影响RunAny所有设置和插件脚本的无路径识别，不在RunAny.ini菜单内的程序无法自动识别全路径
 
+**【新增插件】：**
++ huiZz_BatchRun - ObjReg批量自定义运行
+  + 批量自定义运行
+  + 多软件打开选中文件
++ huiZz_Work - ObjReg工作相关脚本
+  + 快捷一键发送邮件：发送剪贴板内容给选中邮箱地址的邮件
+  + 老板键Win+D最小化其他窗口，同时打开指定程序
+
++ **全面优化调整菜单树管理界面，支持自定义图标显示，颜色标识**
 + 支持后缀文件exe,bat,cmd,vbs,ps1,ahk带有参数运行
 + 修改全局热键和热字符串时进行验证是否已经被使用
 * RunAny设置界面和说明优化
