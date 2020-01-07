@@ -9,7 +9,7 @@ global RunAny_Plugins_Version:="1.0.0"
 #Include %A_ScriptDir%\RunAny_ObjReg.ahk
 
 class RunAnyObj {
-	;[发送邮件]
+	;[快捷一键发送邮件]
 	;保存到RunAny.ini为：发送邮件|huiZz_Work[mailto](addressee,subject,body,cc,bcc)
 	;选中文本发送邮件|huiZz_Work[mailto](收件人地址,邮件主题,%getZz%)
 	;选中地址发送剪贴板内容邮件|huiZz_Work[mailto](%getZz%,邮件主题,%Clipboard%)
