@@ -11,8 +11,8 @@ global RunAny_Plugins_Version:="1.0.0"
 class RunAnyObj {
 	;[快捷一键发送邮件]
 	;保存到RunAny.ini为：发送邮件|huiZz_Work[mailto](addressee,subject,body,cc,bcc)
-	;选中文本发送邮件|huiZz_Work[mailto](收件人地址,邮件主题,%getZz%)
-	;选中地址发送剪贴板内容邮件|huiZz_Work[mailto](%getZz%,邮件主题,%Clipboard%)
+	;发送选中文本邮件|huiZz_Work[mailto](收件人地址,邮件主题,%getZz%)
+	;发送剪贴板内容给选中邮箱|huiZz_Work[mailto](%getZz%,邮件主题,%Clipboard%)
 	;参数说明:
 	; mailto：收件人地址，可多个用;分隔
 	;     cc：抄送人地址，可多个用;分隔
