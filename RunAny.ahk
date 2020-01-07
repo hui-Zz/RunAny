@@ -3993,7 +3993,9 @@ SetEvDemandSearch:
 		(
 （只搜索%RunAnyZz%菜单的无路径文件）加快加载速度`n
 不再生效搜索参数  file:*.exe|*.lnk|*.ahk|*.bat|*.cmd
-任意在%RunAnyZz%菜单中的后缀文件都可以无路径运行
+任意在%RunAnyZz%菜单中的后缀文件都可以无路径运行`n
+【注意】开启后会影响RunAny所有设置和插件脚本的无路径识别，
+不在RunAny.ini菜单内的程序无法自动识别全路径
 		)
 	}
 return
@@ -4156,7 +4158,7 @@ Var_Set:
 	global HideFail:=Var_Read("HideFail",1)
 	global HideUnSelect:=Var_Read("HideUnSelect",0)
 	global HideRecent:=Var_Read("HideRecent",0)
-	global HideWeb:=Var_Read("HideWeb",1)
+	global HideWeb:=Var_Read("HideWeb",0)
 	global HideSend:=Var_Read("HideSend",0)
 	global HideAddItem:=Var_Read("HideAddItem",0)
 	global HideMenuTray:=Var_Read("HideMenuTray",0)
