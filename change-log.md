@@ -3,9 +3,10 @@
 ### 📢 RunAny完整文档完成了！
 * 国内Gitee文档：[https://hui-zz.gitee.io/runany](https://hui-zz.gitee.io/runany)
 * Github文档：[https://hui-zz.github.io/RunAny](https://hui-zz.github.io/RunAny)
-### 新增右上角两篇文章：
-* [无路径如何区别运行重名的exe程序](run-repeat-exe.md)
-* [RunAny菜单主题展示](run-menu-theme.md)
+### 新增右上角三篇文章：
+* [无路径如何区别运行重名的exe程序](/article/run-repeat-exe.md)
+* [RunAny菜单主题展示](/article/run-menu-theme.md)
+* [修改Windows和RunAny菜单背景方法](/article/change-system-menu-theme.md)
 
 ---
 ## 【RunAny】v5.6.9 2020-01-06

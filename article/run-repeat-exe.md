@@ -30,7 +30,7 @@ code.exe的路径有
 
 > 通配符: `*` 匹配 0 个或多个字符  `?` 匹配 1 个字符.
 
-![RunAny的Everything设置](/assets/images/RunAny的Everything设置.jpg)
+![RunAny的Everything设置](../assets/images/RunAny的Everything设置.jpg)
 
 ### 三、创建该程序的快捷方式，在RunAny中添加使用快捷方式解决重名问题
 
