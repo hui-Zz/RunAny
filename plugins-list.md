@@ -11,6 +11,18 @@
 # ObjReg插件脚本嵌入RunAny菜单
 以下ObjReg插件需要先下载RunAny_ObjReg.ahk，注册到RunAny之后实现功能
 
+| 插件文件           | 插件功能                     |
+| ------------------ | ---------------------------- |
+| [huiZz_Window.ahk](/plugins-list?id=huizz_window窗口操作脚本窗口函数ini)   | ObjReg窗口操作脚本           |
+| [huizz_System.ahk](/plugins-list?id=huizz_system系统操作脚本系统函数ini)   | ObjReg系统操作脚本           |
+| [huizz_Text.ahk](/plugins-list?id=huizz_text文本操作脚本文本函数ini)     | ObjReg文本操作脚本           |
+| [huiZz_QRCode.ahk](/plugins-list?id=huizz_qrcode二维码脚本)   | ObjReg二维码脚本{}           |
+| huiZz_BatchRun.ahk | ObjReg批量自定义运行         |
+| huiZz_Work.ahk     | ObjReg工作相关脚本           |
+| huiZz_Web.ahk      | ObjReg网页相关脚本（待开发） |
+
+
+
 ## huiZz_Window窗口操作脚本[窗口函数.ini]
 
 | 脚本内函数名            | RunAny菜单实现功能                      |
