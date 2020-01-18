@@ -18,7 +18,7 @@ __多台电脑你只需配置一套软件列表(RunAny.ini)，就能到处运行
 - ☑ [短语输出](#wordOutput)，[透明化启动](#advancedConfig)，[快捷打开文件方式](#quickOpenFile)
 - ☑ [外接脚本，个性函数，自由定制](#runPlugins)
 
-【Github下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.6.8.zip
+【Github下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.6.9.zip
 - 蓝奏云下载：https://www.lanzous.com/b902490/
 - 百度云下载：https://pan.baidu.com/s/1qxbYAx0UA-u1dkoY-RXZJg
 
