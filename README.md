@@ -246,7 +246,7 @@ github|https://github.com/search?utf8=%E2%9C%93&q=%s&type=
 `:*X:hg@|hui0.0713@gmail.com;`
 在任何地方按`hg@`即可快捷输出短语邮箱地址！
 
-**推荐使用RunAny“新增修改菜单项”界面编辑热字符串**，手动修改`RunAny.ini`请阅读下面[热字符串说明](/热字符串?id=热字符串说明)
+**推荐使用RunAny“新增修改菜单项”界面编辑热字符串**，手动修改`RunAny.ini`请阅读下面[热字符串说明](/README?id=热字符串说明)
 
 ![RunAny新增修改菜单项](/assets/images/RunAny新增修改菜单项.jpg)
 
