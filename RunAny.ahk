@@ -1043,7 +1043,7 @@ RunAny_Menu:
 return
 Menu_Show_Show(menuName,itemName){
 	selectCheck:=Trim(itemName," `t`n`r")
-	if(!HideGetZz && selectCheck!=""){
+	if(!HideSelectZz && selectCheck!=""){
 		if(StrLen(itemName)>ShowGetZzLen)
 			itemName:=SubStr(itemName, 1, ShowGetZzLen) . "..."
 		Menu,%menuName%,Insert, 1&,%itemName%,Menu_Show_Select_Clipboard
@@ -3619,16 +3619,16 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+%MARGIN_TOP_66% vvAutoRun,开机自动启动
 	Gui,66:Add,Checkbox,Checked%AdminRun% x+148 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
 	
-	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h85,RunAny应用菜单
+	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h125,RunAny菜单设置
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
 	Gui,66:Add,Checkbox,Checked%HideRecent% x+160 vvHideRecent,隐藏最近运行
-	Gui,66:Add,Checkbox,Checked%HideWeb% xm yp+20 vvHideWeb,隐藏带`%s网址（选中文字显示）
-	Gui,66:Add,Checkbox,Checked%HideSend% x+47 vvHideSend,隐藏短语（选中文字显示）
 	Gui,66:Add,Checkbox,Checked%HideAddItem% xm yp+20 vvHideAddItem,隐藏【添加到此菜单】
 	Gui,66:Add,Checkbox,Checked%HideMenuTray% x+100 vvHideMenuTray,隐藏底部“RunAny设置”
-	Gui,66:Add,GroupBox,xm-10 y+15 w%GROUP_WIDTH_66% h45,RunAny选中文字菜单
-	Gui,66:Add,Checkbox,Checked%HideUnSelect% xm yp+20 vvHideUnSelect gUnCheckWebSend,选中文字依然显示应用菜单
-	Gui,66:Add,Checkbox,Checked%HideGetZz% x+76 vvHideGetZz,隐藏选中提示信息
+	Gui,66:Add,Checkbox,Checked%HideWeb% xm yp+20 vvHideWeb,隐藏带`%s网址（选中文字时显示）
+	Gui,66:Add,Checkbox,Checked%HideSend% x+36 vvHideSend,隐藏短语（选中文字时显示）
+	Gui,66:Add,Checkbox,Checked%HideGetZz% xm yp+20 vvHideGetZz,隐藏带`%getZz`%项（选中文字时显示）
+	Gui,66:Add,Checkbox,Checked%HideSelectZz% x+10 vvHideSelectZz,隐藏第一行选中文字提示
+	Gui,66:Add,Checkbox,Checked%HideUnSelect% xm yp+20 vvHideUnSelect gUnCheckWebSend,RunAny选中文字依然显示所有应用菜单
 
 	Gui,66:Add,GroupBox,xm-10 y+15 w225 h55,RunAny菜单热键 %MenuHotKey%
 	Gui,66:Add,Hotkey,xm yp+20 w150 vvMenuKey,%MenuKey%
@@ -3906,7 +3906,7 @@ SetOK:
 	}
 	SetValueList:=["AdminRun","AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupDir","DisableApp"]
 	SetValueList.Push("EvPath","EvCommand","EvAutoClose","EvExeVerNew","EvDemandSearch")
-	SetValueList.Push("HideFail","HideUnSelect","HideRecent","HideWeb","HideSend","HideAddItem","HideMenuTray","HideGetZz")
+	SetValueList.Push("HideFail","HideRecent","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideUnSelect","HideSelectZz")
 	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu")
 	SetValueList.Push("BrowserPath","IconFolderPath","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon","AnyIcon","MenuIcon")
 	SetValueList.Push("HideHotStr","HotStrShowLen","HotStrShowTime","HotStrShowTransparent")
@@ -4156,13 +4156,14 @@ Var_Set:
 	global MenuXButton2Key:=Var_Read("MenuXButton2Key",0)
 	global MenuMButtonKey:=Var_Read("MenuMButtonKey",0)
 	global HideFail:=Var_Read("HideFail",1)
-	global HideUnSelect:=Var_Read("HideUnSelect",0)
 	global HideRecent:=Var_Read("HideRecent",0)
 	global HideWeb:=Var_Read("HideWeb",0)
+	global HideGetZz:=Var_Read("HideGetZz",0)
 	global HideSend:=Var_Read("HideSend",0)
 	global HideAddItem:=Var_Read("HideAddItem",0)
 	global HideMenuTray:=Var_Read("HideMenuTray",0)
-	global HideGetZz:=Var_Read("HideGetZz",0)
+	global HideUnSelect:=Var_Read("HideUnSelect",0)
+	global HideSelectZz:=Var_Read("HideSelectZz",0)
 	global OneKeyWeb:=Var_Read("OneKeyWeb",1)
 	global OneKeyFolder:=Var_Read("OneKeyFolder",1)
 	global OneKeyMagnet:=Var_Read("OneKeyMagnet",1)
