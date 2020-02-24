@@ -689,13 +689,9 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 	try {
 		itemLen:=StrLen(item)
 		SplitPath, item,,, FileExt  ; 获取文件扩展名.
+		Menu,%menuName%,add,%menuItem%,Menu_Run
 		if(InStr(item,";",,0,1)=itemLen){  ; {短语}
-			Menu,%menuName%,add,%menuItem%,Menu_Run
-			Menu,%menuName%:,add,%menuItem%,Menu_Run
-			Menu_Item_Icon(menuName,menuItem,"SHELL32.dll","2")
-			Menu_Item_Icon(menuName ":",menuItem,"SHELL32.dll","2")
 			webRootShow:=Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuItem,"SHELL32.dll","2",TreeIconS[1],TreeIconS[2])
-
 			if(HideSend){
 				Menu,%menuName%,Delete,%menuItem%
 				if(MenuEmptyList[menuName]!=1)
@@ -706,7 +702,6 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 			return
 		}
 		if(InStr(item,"::",,0,1)=itemLen-1){	; {发送热键}
-			Menu,%menuName%,add,%menuItem%,Menu_Run
 			Menu_Item_Icon(menuName,menuItem,"SHELL32.dll",InStr(item,":::",,0,1)=itemLen-2 ? "101" : "100")
 			return
 		}
@@ -720,15 +715,6 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 			if(!FileExist(webIcon)){
 				webIcon:=UrlIconS[1]
 				webIconNum:=UrlIconS[2]
-			}
-			Menu,%menuName%,add,%menuItem%,Menu_Run
-			Menu,%menuName%:,add,%menuItem%,Menu_Run
-			try{
-				Menu_Item_Icon(menuName,menuItem,webIcon,webIconNum)
-				Menu_Item_Icon(menuName ":",menuItem,webIcon,webIconNum)
-			} catch e {
-				Menu_Item_Icon(menuName,menuItem,UrlIconS[1],UrlIconS[2])
-				Menu_Item_Icon(menuName ":",menuItem,UrlIconS[1],UrlIconS[2])
 			}
 			;~ [添加到网址菜单]
 			webRootShow:=Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuItem,webIcon,webIconNum,TreeIconS[1],TreeIconS[2])
@@ -760,16 +746,10 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 			return
 		}
 		if(RegExMatch(item,"S).+?\[.+?\]%?\(.*?\)")){  ; {脚本插件函数}
-			Menu,%menuName%,add,%menuItem%,Menu_Run
-			Menu,%menuName%:,add,%menuItem%,Menu_Run
-			Menu_Item_Icon(menuName,menuItem,FuncIconS[1],FuncIconS[2])
-			Menu_Item_Icon(menuName ":",menuItem,FuncIconS[1],FuncIconS[2])
-			
 			webRootShow:=Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuItem,FuncIconS[1],FuncIconS[2],TreeIconS[1],TreeIconS[2])
-
 			return
 		}
-		Menu,%menuName%,add,%menuItem%,Menu_Run
+		
 		if(InStr(FileExist(item), "D")){  ; {目录}
 			Menu,%menuName%,Icon,%menuItem%,% FolderIconS[1],% FolderIconS[2]
 		}else if(Ext_Check(item,itemLen,".lnk")){  ; {快捷方式}
@@ -781,8 +761,6 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 				}
 				Menu_Item_Icon(menuName,menuItem,OutIcon,OutIconNum)
 				if(InStr(itemParam,"%getZz%")){
-					Menu,%menuName%:,add,%menuItem%,Menu_Run
-					Menu_Item_Icon(menuName ":",menuItem,OutIcon,OutIconNum)
 					webRootShow:=Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuItem,OutIcon,OutIconNum,TreeIconS[1],TreeIconS[2])
 				}
 			} catch e {
@@ -800,8 +778,6 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 					regFileIconS:=StrSplit(regFileIcon,",")
 					Menu_Item_Icon(menuName,menuItem,regFileIconS[1],regFileIconS[2])
 					if(InStr(itemParam,"%getZz%")){
-						Menu,%menuName%:,add,%menuItem%,Menu_Run
-						Menu_Item_Icon(menuName ":",menuItem,regFileIconS[1],regFileIconS[2])
 						webRootShow:=Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuItem,regFileIconS[1],regFileIconS[2],TreeIconS[1],TreeIconS[2])
 					}
 				}catch{}
@@ -818,6 +794,9 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 ;~;[统一设置选中文字菜单分类和图标]
 Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuItem,icon10,icon11,icon20,icon22){
 	webRootShow:=false
+	Menu,%menuName%:,add,%menuItem%,Menu_Run
+	Menu_Item_Icon(menuName,menuItem,icon10,icon11)
+	Menu_Item_Icon(menuName ":",menuItem,icon10,icon11)
 	if(menuName = menuRootFn[1]){
 		Menu,% menuWebRootFn[1],Add,%menuItem%,Menu_Run
 		Menu_Item_Icon(menuWebRootFn[1],menuItem,icon10,icon11)
