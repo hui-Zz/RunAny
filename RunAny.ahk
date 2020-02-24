@@ -614,15 +614,7 @@ MenuExeListPush(menuName,menuItem,itemFile,itemAny,menuRootFn,menuWebRootFn){
 	MenuExeList.Push(MenuObjEXE)
 	;带有%getZz%和%s的菜单项都显示在选中内容菜单中
 	if(InStr(itemAny,"%getZz%") || InStr(itemAny,"%s")){
-		Menu,%menuName%:,add,%menuItem%,Menu_Run
-		Menu_Item_Icon(menuName ":",menuItem,itemFile)
-		if(menuName = menuRootFn[1]){
-			Menu,% menuWebRootFn[1],Add,%menuItem%,Menu_Run
-			Menu_Item_Icon(menuWebRootFn[1],menuItem,itemFile)
-		}else{
-			Menu,% menuWebRootFn[1],Add,%menuName%:, :%menuName%:
-			Menu_Item_Icon(menuWebRootFn[1],menuName ":",TreeIconS[1],TreeIconS[2],MenuObjTreeLevel[menuName] . menuName)
-		}
+		Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuItem,itemFile,"0",TreeIconS[1],TreeIconS[2])
 	}
 }
 ;~;[读取热字串用作提示文字]
