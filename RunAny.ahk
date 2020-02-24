@@ -1011,6 +1011,7 @@ Menu_Show_Show(menuName,itemName){
 		if(StrLen(itemName)>ShowGetZzLen)
 			itemName:=SubStr(itemName, 1, ShowGetZzLen) . "..."
 		Menu,%menuName%,Insert, 1&,%itemName%,Menu_Show_Select_Clipboard
+		Menu,%menuName%,ToggleCheck, 1&
 		Menu,%menuName%,Insert, 2&
 		Menu,%menuName%,Show
 		Menu,%menuName%,Delete, 2&
