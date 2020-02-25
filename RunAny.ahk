@@ -18,6 +18,7 @@ SendMode,Input          ;~使用更速度和可靠方式发送键鼠点击
 CoordMode,Menu          ;~相对于整个屏幕
 SetBatchLines,-1        ;~脚本全速执行
 SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
+StartTick:=A_TickCount  ;评估RunAny初始化时间
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
@@ -82,6 +83,8 @@ if(errorKeyStr){
 	MsgBox,16,RunAny热键配置不正确,% "热键错误：`n" errorKeyStr "`n请设置正确热键后重启RunAny"
 	return
 }
+t1:=A_TickCount-StartTick
+Menu,Tray,Tip,% "初始化参数时间：" t1 "ms`n开始调用Everything搜索菜单内应用全路径..."
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化everything安装路径]
 evExist:=true
@@ -114,7 +117,6 @@ while !WinExist("ahk_exe Everything.exe")
 		}
 	}
 }
-
 ;~;[使用everything读取整个系统所有exe]
 If(evExist){
 	everythingQuery()
@@ -133,6 +135,8 @@ DetectHiddenWindows,Off
 if(A_AhkVersion < 1.1.28){
 	MsgBox, 16, AutoHotKey版本过低！, 由于你的AHK版本没有高于1.1.28，会影响RunAny功能的使用`n1. 不支持StrSplit()函数的MaxParts`n2. 不支持动态Hotstring创建
 }
+t2:=A_TickCount-StartTick
+Menu,Tray,Tip,% "调用Everything搜索菜单内应用全路径用时：" t2-t1 "ms`n开始创建菜单1内容..."
 ;══════════════════════════════════════════════════════════════════
 ;~;[自定义后缀打开方式]
 Gosub,Open_Ext_Set
@@ -156,7 +160,8 @@ MenuObjTree1[M1]:=Object()
 global menu2:=MENU2FLAG
 ;~;[读取带图标的自定义应用菜单]
 Menu_Read(iniVar1,menuRoot1,1,menuWebRoot1,menuWebList1,menuFileRoot1,1)
-
+t3:=A_TickCount-StartTick
+Menu,Tray,Tip,% "创建菜单1内容用时：" t3-t2 "ms`n开始创建菜单2内容..."
 ;~;[如果有第2菜单则开始加载]
 if(menu2){
 	menuRoot2:=Object(),menuWebRoot2:=Object(),menuWebList2:=Object(),menuFileRoot2:=Object()
@@ -191,7 +196,8 @@ if(!iniFlag){
 	;~;[插件对象注册]
 	Gosub,Plugins_Object_Register
 }
-
+t4:=A_TickCount-StartTick
+Menu,Tray,Tip,% "创建菜单2内容用时：" t4-t3 "ms`n开始为菜单中exe应用加载图标..."
 ;~;[循环为菜单中EXE程序添加图标，过程较慢]
 For k, v in MenuExeList
 {
@@ -202,6 +208,13 @@ For k, v in MenuExeList
 }
 ;#菜单已经加载完毕，托盘图标变化
 try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
+t5:=A_TickCount-StartTick
+tipText.="初始化参数时间：" t1 "ms`n"
+tipText.="调用Everything搜索菜单内应用全路径用时：" t2-t1 "ms`n"
+tipText.="创建菜单1内容用时：" t3-t2 "ms`n"
+tipText.="创建菜单2内容用时：" t4-t3 "ms`n"
+tipText.="为菜单中exe应用加载图标用时：" t5-t4 "ms`n"
+Menu,Tray,Tip,% tipText "总加载时间：" t5 "ms"
 
 ;#如果是第一次运行#
 if(iniFlag){
