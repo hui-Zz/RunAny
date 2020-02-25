@@ -3627,10 +3627,10 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%HideRecent% x+160 vvHideRecent,隐藏最近运行
 	Gui,66:Add,Checkbox,Checked%HideAddItem% xm yp+20 vvHideAddItem,隐藏【添加到此菜单】
 	Gui,66:Add,Checkbox,Checked%HideMenuTray% x+100 vvHideMenuTray,隐藏底部“RunAny设置”
-	Gui,66:Add,Checkbox,Checked%HideWeb% xm yp+20 vvHideWeb,隐藏带`%s网址（选中文字时显示）
-	Gui,66:Add,Checkbox,Checked%HideSend% x+36 vvHideSend,隐藏短语（选中文字时显示）
-	Gui,66:Add,Checkbox,Checked%HideGetZz% xm yp+20 vvHideGetZz,隐藏带`%getZz`%项（选中文字时显示）
-	Gui,66:Add,Checkbox,Checked%HideSelectZz% x+10 vvHideSelectZz,隐藏第一行选中文字提示
+	Gui,66:Add,Checkbox,Checked%HideSelectZz% xm yp+20 vvHideSelectZz,隐藏第一行选中文字提示
+	Gui,66:Add,Checkbox,Checked%HideWeb% x+88 vvHideWeb,隐藏带`%s网址（选中文字时显示）
+	Gui,66:Add,Checkbox,Checked%HideSend% xm yp+20 vvHideSend,隐藏短语（选中文字时显示）
+	Gui,66:Add,Checkbox,Checked%HideGetZz% x+64 vvHideGetZz,隐藏带`%getZz`%项（仅插件脚本，选中文字时显示）
 	Gui,66:Add,Checkbox,Checked%HideUnSelect% xm yp+20 vvHideUnSelect gUnCheckWebSend,RunAny选中文字依然显示所有应用菜单
 
 	Gui,66:Add,GroupBox,xm-10 y+15 w225 h55,RunAny菜单热键 %MenuHotKey%
