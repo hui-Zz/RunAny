@@ -136,7 +136,7 @@ if(A_AhkVersion < 1.1.28){
 	MsgBox, 16, AutoHotKey版本过低！, 由于你的AHK版本没有高于1.1.28，会影响RunAny功能的使用`n1. 不支持StrSplit()函数的MaxParts`n2. 不支持动态Hotstring创建
 }
 t2:=A_TickCount-StartTick
-Menu,Tray,Tip,% "调用Everything搜索菜单内应用全路径用时：" t2-t1 "ms`n开始创建菜单1内容..."
+Menu,Tray,Tip,% "调用Everything搜索菜单内应用全路径：" t2-t1 "ms`n开始创建菜单1内容..."
 ;══════════════════════════════════════════════════════════════════
 ;~;[自定义后缀打开方式]
 Gosub,Open_Ext_Set
@@ -161,7 +161,7 @@ global menu2:=MENU2FLAG
 ;~;[读取带图标的自定义应用菜单]
 Menu_Read(iniVar1,menuRoot1,1,menuWebRoot1,menuWebList1,menuFileRoot1,1)
 t3:=A_TickCount-StartTick
-Menu,Tray,Tip,% "创建菜单1内容用时：" t3-t2 "ms`n开始创建菜单2内容..."
+Menu,Tray,Tip,% "创建菜单1内容：" t3-t2 "ms`n开始创建菜单2内容..."
 ;~;[如果有第2菜单则开始加载]
 if(menu2){
 	menuRoot2:=Object(),menuWebRoot2:=Object(),menuWebList2:=Object(),menuFileRoot2:=Object()
@@ -197,7 +197,7 @@ if(!iniFlag){
 	Gosub,Plugins_Object_Register
 }
 t4:=A_TickCount-StartTick
-Menu,Tray,Tip,% "创建菜单2内容用时：" t4-t3 "ms`n开始为菜单中exe应用加载图标..."
+Menu,Tray,Tip,% "创建菜单2内容：" t4-t3 "ms`n开始为菜单中exe应用加载图标..."
 ;~;[循环为菜单中EXE程序添加图标，过程较慢]
 For k, v in MenuExeList
 {
@@ -210,10 +210,10 @@ For k, v in MenuExeList
 try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 t5:=A_TickCount-StartTick
 tipText.="初始化参数时间：" t1 "ms`n"
-tipText.="调用Everything搜索菜单内应用全路径用时：" t2-t1 "ms`n"
-tipText.="创建菜单1内容用时：" t3-t2 "ms`n"
-tipText.="创建菜单2内容用时：" t4-t3 "ms`n"
-tipText.="为菜单中exe应用加载图标用时：" t5-t4 "ms`n"
+tipText.="调用Everything搜索菜单内应用全路径：" t2-t1 "ms`n"
+tipText.="创建菜单1内容：" t3-t2 "ms`n"
+tipText.="创建菜单2内容：" t4-t3 "ms`n"
+tipText.="为菜单中exe应用加载图标：" t5-t4 "ms`n"
 Menu,Tray,Tip,% tipText "总加载时间：" t5 "ms"
 
 ;#如果是第一次运行#
@@ -1033,7 +1033,7 @@ Menu_Show:
 		if(!HideUnSelect){
 			Menu_Show_Show(menuWebRoot%MENU_NO%[1],getZz)
 		}else{
-			Menu_Show_Show(menuRoot%MENU_NO%[1],getZz)
+			Menu_Show_Show(menuFileRoot%MENU_NO%[1],getZz)
 		}
 	}catch{}
 return
@@ -1407,13 +1407,7 @@ Web_Search:
 	}
 return
 Run_Any(any){
-	;~ if(!A_IsAdmin){
-		Run,%any%
-	;~ }else{
-		;~ RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, RunAnyRunPath, %any%
-		;~ SendLevel,1
-		;~ SendInput,{XButton2}
-	;~ }
+	Run,%any%
 }
 Run_Zz(program){
 	fullPath:=Get_Obj_Path(program)
@@ -3644,16 +3638,16 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%HideWeb% x+88 vvHideWeb,隐藏带`%s网址（选中文字时显示）
 	Gui,66:Add,Checkbox,Checked%HideSend% xm yp+20 vvHideSend,隐藏短语（选中文字时显示）
 	Gui,66:Add,Checkbox,Checked%HideGetZz% x+64 vvHideGetZz,隐藏带`%getZz`%项（仅插件脚本，选中文字时显示）
-	Gui,66:Add,Checkbox,Checked%HideUnSelect% xm yp+20 vvHideUnSelect gUnCheckWebSend,RunAny选中文字依然显示所有应用菜单
+	Gui,66:Add,Checkbox,Checked%HideUnSelect% xm yp+20 vvHideUnSelect,RunAny选中文字依然显示所有应用菜单
 
 	Gui,66:Add,GroupBox,xm-10 y+15 w225 h55,RunAny菜单热键 %MenuHotKey%
 	Gui,66:Add,Hotkey,xm yp+20 w150 vvMenuKey,%MenuKey%
-	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+155 yp+3 w55 vvMenuWinKey,Win
+	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+155 yp+3 w55 vvMenuWinKey gSendMenuWinKey,Win
 
 	If(MENU2FLAG){
 		Gui,66:Add,GroupBox,x+40 yp-23 w225 h55,菜单2热键 %MenuHotKey2%
 		Gui,66:Add,Hotkey,xp+10 yp+20 w150 vvMenuKey2,%MenuKey2%
-		Gui,66:Add,Checkbox,Checked%MenuWinKey2% xp+155 yp+3 w55 vvMenuWinKey2,Win
+		Gui,66:Add,Checkbox,Checked%MenuWinKey2% xp+155 yp+3 w55 vvMenuWinKey2 gSendMenuWinKey2,Win
 	}else{
 		Gui,66:Add,Button,x+40 yp-5 w150 GSetMenu2,开启第2个菜单
 	}
@@ -4024,12 +4018,15 @@ SetMenu2:
 		gosub,Menu_Edit2
 	}
 return
-UnCheckWebSend:
-	GuiControlGet, outPutVar, , vHideUnSelect
-	If(outPutVar){
-		GuiControl,, vHideWeb, 0
-		GuiControl,, vHideSend, 0
-	}
+SendMenuWinKey:
+	GuiControlGet, outPutVar, , vMenuWinKey
+	If(outPutVar)
+		MsgBox, 48, 提示：, 使用Win+字母热键可能无法取得QQ聊天窗口中文字，`n因为QQ聊天窗口是绘制的特殊窗体
+return
+SendMenuWinKey2:
+	GuiControlGet, outPutVar, , vMenuWinKey2
+	If(outPutVar)
+		MsgBox, 48, 提示：, 使用Win+字母热键可能无法取得QQ聊天窗口中文字，`n因为QQ聊天窗口是绘制的特殊窗体
 return
 Reg_Set(vGui, var, sz){
 	StringCaseSense, On
