@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2020.02.24
+║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2020.02.26
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -24,7 +24,7 @@ global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.6.9"
-global RunAny_update_time:="2020.02.24"
+global RunAny_update_time:="2020.02.26"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -84,7 +84,17 @@ if(errorKeyStr){
 	return
 }
 t1:=A_TickCount-StartTick
-Menu,Tray,Tip,% "初始化参数时间：" t1 "ms`n开始调用Everything搜索菜单内应用全路径..."
+tText1:="初始化参数时间：" Round(t1/1000,3) "s`n"
+Menu,Tray,Tip,% tText1 "开始运行插件脚本..."
+if(!iniFlag){
+	;~;[运行插件脚本]
+	Gosub,AutoRun_Effect
+	;~;[插件对象注册]
+	Gosub,Plugins_Object_Register
+}
+t2:=A_TickCount-StartTick
+tText2:="运行插件脚本：" Round((t2-t1)/1000,3) "s`n"
+Menu,Tray,Tip,% tText1 tText2 "开始调用Everything搜索菜单内应用全路径..."
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化everything安装路径]
 evExist:=true
@@ -131,12 +141,12 @@ if(EvAutoClose && EvPath){
 	Run,%EvPathRun% -exit
 }
 DetectHiddenWindows,Off
-
 if(A_AhkVersion < 1.1.28){
 	MsgBox, 16, AutoHotKey版本过低！, 由于你的AHK版本没有高于1.1.28，会影响RunAny功能的使用`n1. 不支持StrSplit()函数的MaxParts`n2. 不支持动态Hotstring创建
 }
-t2:=A_TickCount-StartTick
-Menu,Tray,Tip,% "调用Everything搜索菜单内应用全路径：" t2-t1 "ms`n开始创建菜单1内容..."
+t3:=A_TickCount-StartTick
+tText3:="调用Everything搜索菜单内应用全路径：" Round((t3-t2)/1000,3) "s`n"
+Menu,Tray,Tip,% tText1 tText2 tText3 "开始创建菜单1内容..."
 ;══════════════════════════════════════════════════════════════════
 ;~;[自定义后缀打开方式]
 Gosub,Open_Ext_Set
@@ -160,10 +170,13 @@ MenuObjTree1[M1]:=Object()
 global menu2:=MENU2FLAG
 ;~;[读取带图标的自定义应用菜单]
 Menu_Read(iniVar1,menuRoot1,1,menuWebRoot1,menuWebList1,menuFileRoot1,1)
-t3:=A_TickCount-StartTick
-Menu,Tray,Tip,% "创建菜单1内容：" t3-t2 "ms`n开始创建菜单2内容..."
+t4:=A_TickCount-StartTick
+t5:=t4
+tText4:="创建菜单1内容：" Round((t4-t3)/1000,3) "s`n"
+tText5:=tText4
 ;~;[如果有第2菜单则开始加载]
 if(menu2){
+	Menu,Tray,Tip,% tText1 tText2 tText3 tText4 "开始创建菜单2内容..."
 	menuRoot2:=Object(),menuWebRoot2:=Object(),menuWebList2:=Object(),menuFileRoot2:=Object()
 	menuRoot2.Push(M2)
 	menuWebRoot2.Push(RunAnyZz . "Web2")
@@ -171,6 +184,9 @@ if(menu2){
 	menuFileRoot2.Push(RunAnyZz . "File2")
 	MenuObjTree2[M2]:=Object()
 	Menu_Read(iniVar2,menuRoot2,1,menuWebRoot2,menuWebList2,menuFileRoot2,2)
+	t5:=A_TickCount-StartTick
+	tText5:="创建菜单2内容：" Round((t5-t4)/1000,3) "s`n"
+	Menu,Tray,Tip,% tText1 tText2 tText3 tText4 tText5
 }
 ;获得所有后缀公共菜单
 MenuObjExt["public"]:=MenuObjPublic
@@ -190,14 +206,7 @@ if(!HideRecent){
 		Menu,% menuRoot1[1],Add,%mcv%,Menu_Run
 	}
 }
-if(!iniFlag){
-	;~;[在图标加载前先运行插件]
-	Gosub,AutoRun_Effect
-	;~;[插件对象注册]
-	Gosub,Plugins_Object_Register
-}
-t4:=A_TickCount-StartTick
-Menu,Tray,Tip,% "创建菜单2内容：" t4-t3 "ms`n开始为菜单中exe应用加载图标..."
+Menu,Tray,Tip,% tText1 tText2 tText3 tText4 tText5 "开始为菜单中exe应用加载图标..."
 ;~;[循环为菜单中EXE程序添加图标，过程较慢]
 For k, v in MenuExeList
 {
@@ -208,13 +217,9 @@ For k, v in MenuExeList
 }
 ;#菜单已经加载完毕，托盘图标变化
 try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
-t5:=A_TickCount-StartTick
-tipText.="初始化参数时间：" t1 "ms`n"
-tipText.="调用Everything搜索菜单内应用全路径：" t2-t1 "ms`n"
-tipText.="创建菜单1内容：" t3-t2 "ms`n"
-tipText.="创建菜单2内容：" t4-t3 "ms`n"
-tipText.="为菜单中exe应用加载图标：" t5-t4 "ms`n"
-Menu,Tray,Tip,% tipText "总加载时间：" t5 "ms"
+t6:=A_TickCount-StartTick
+tText6:="为菜单中exe应用加载图标：" Round((t6-t5)/1000,3) "s`n"
+Menu,Tray,Tip,% tText1 tText2 tText3 tText4 tText5 tText6 "总加载时间：" Round(t6/1000,3) "s"
 
 ;#如果是第一次运行#
 if(iniFlag){
