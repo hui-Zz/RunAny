@@ -3898,8 +3898,7 @@ SetOK:
 	if(vAutoRun!=AutoRun){
 		AutoRun:=vAutoRun
 		if(AutoRun){
-			scriptName:=FileExist(RunAnyZz ".exe") ? RunAnyZz ".exe" : A_ScriptName
-			RegWrite, REG_SZ, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny, %A_ScriptDir%\%scriptName%
+			RegWrite, REG_SZ, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny, %A_ScriptDir%\%Z_ScriptName%
 		}else{
 			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		}
@@ -4123,8 +4122,9 @@ return
 ;══════════════════════════════════════════════════════════════════
 Var_Set:
 	;~;[RunAny设置参数]
+	global Z_ScriptName:=FileExist(RunAnyZz ".exe") ? RunAnyZz ".exe" : A_ScriptName
 	RegRead, AutoRun, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
-	AutoRun:=AutoRun ? 1 : 0
+	AutoRun:=AutoRun=A_ScriptDir "\" Z_ScriptName ? 1 : 0
 	;优先读取配置文件，后读注册表
 	global IniConfig:=1
 	if(FileExist(RunAnyConfig)){
