@@ -371,7 +371,6 @@ GetMenuItemMode(item,fullItemFlag:=false){
 ;~;[读取配置并开始创建菜单]
 ;══════════════════════════════════════════════════════════════════
 Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,menuFileRootFn,TREE_NO){
-	webRootShow:=false
 	Loop, parse, iniReadVar, `n, `r
 	{
 		try{
@@ -497,9 +496,9 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,menuFileRoot
 					}
 				}else if FileExt in lnk,bat,cmd,vbs,ps1,ahk
 				{
-					Menu_Add(menuRootFn[menuLevel],menuDiy[1],item,menuRootFn,menuWebRootFn,menuWebList,webRootShow,menuFileRootFn,menuFileRootFn[menuLevel],itemParam)
+					Menu_Add(menuRootFn[menuLevel],menuDiy[1],item,menuRootFn,menuWebRootFn,menuWebList,menuFileRootFn,menuFileRootFn[menuLevel],itemParam)
 				}else{
-					Menu_Add(menuRootFn[menuLevel],menuDiy[1],itemParam,menuRootFn,menuWebRootFn,menuWebList,webRootShow,menuFileRootFn,menuFileRootFn[menuLevel])
+					Menu_Add(menuRootFn[menuLevel],menuDiy[1],itemParam,menuRootFn,menuWebRootFn,menuWebList,menuFileRootFn,menuFileRootFn[menuLevel])
 				}
 				;~;[分割Tab获取应用自定义热键]
 				menuKeyStr:=RegExReplace(menuDiy[1], "S)\t+", A_Tab)
@@ -599,7 +598,7 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,menuFileRoot
 			}else{
 				if(!MenuObj[Z_LoopField])
 					MenuObj[Z_LoopField]:=Z_LoopField
-				Menu_Add(menuRootFn[menuLevel],Z_LoopField,MenuObj[Z_LoopField],menuRootFn,menuWebRootFn,menuWebList,webRootShow,menuFileRootFn,menuFileRootFn[menuLevel])
+				Menu_Add(menuRootFn[menuLevel],Z_LoopField,MenuObj[Z_LoopField],menuRootFn,menuWebRootFn,menuWebList,menuFileRootFn,menuFileRootFn[menuLevel])
 			}
 		} catch e {
 			MsgBox,16,构建菜单出错,% "菜单名：" menuRootFn[menuLevel] "`n菜单项：" A_LoopField "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
@@ -614,15 +613,7 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,menuFileRoot
 	{
 		if(A_Index!=1){	;忽略比较menuWebRootFn第1层web菜单
 			webRoot:=menuWebRootFn[A_Index]
-			if(webRoot = menuRootFn[1]){
-				if(webRootShow){
-					Menu,% menuWebRootFn[1],add
-					Menu,% menuWebRootFn[1],add,&1批量搜索,Web_Run
-					Menu,% menuWebRootFn[1],Icon,&1批量搜索,% UrlIconS[1],% UrlIconS[2]
-				}else if(menu2){
-					Menu,% menuWebRootFn[1],add	;避免菜单2无网址而报错
-				}
-			}else{
+			if(webRoot != menuRootFn[1]){
 				if(menu2){
 					Menu,%webRoot%,add	;避免菜单2无网址而报错
 				}
@@ -633,8 +624,10 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,menuFileRoot
 	}
 	if(!HideMenuTray){
 		Menu,% menuRootFn[1],add,RunAny设置,:Tray
+		Menu,% menuWebRootFn[1],add,RunAny设置,:Tray
 		Menu,% menuFileRootFn[1],add,RunAny设置,:Tray
 		Menu,% menuRootFn[1],Icon,RunAny设置,% AnyIconS[1],% AnyIconS[2]
+		Menu,% menuWebRootFn[1],Icon,RunAny设置,% AnyIconS[1],% AnyIconS[2]
 		Menu,% menuFileRootFn[1],Icon,RunAny设置,% AnyIconS[1],% AnyIconS[2]
 	}
 }
@@ -710,7 +703,7 @@ return
 ;══════════════════════════════════════════════════════════════════
 ;~;[生成菜单(判断后缀创建图标)]
 ;══════════════════════════════════════════════════════════════════
-Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow,menuFileRootFn,fileMenuName,itemParam=""){
+Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,menuFileRootFn,fileMenuName,itemParam=""){
 	if(!menuName || !item)
 		return
 	try {
@@ -721,7 +714,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 		if(InStr(item,";",,0,1)=itemLen){  ; {短语}
 			Menu_Item_Icon(menuName,menuItem,"SHELL32.dll","2")
 			Menu_Item_Icon(fileMenuName,menuItem,"SHELL32.dll","2")
-			webRootShow:=Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,"SHELL32.dll","2",TreeIconS[1],TreeIconS[2])
+			Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,"SHELL32.dll","2",TreeIconS[1],TreeIconS[2])
 			Menu_Web_Root_Empty(menuName,menuItem,HideSend)
 			return
 		}
@@ -744,7 +737,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 			Menu_Item_Icon(menuName,menuItem,webIcon,webIconNum)
 			Menu_Item_Icon(fileMenuName,menuItem,webIcon,webIconNum)
 			;~ [添加到网址菜单]
-			webRootShow:=Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,webIcon,webIconNum,TreeIconS[1],TreeIconS[2])
+			Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,webIcon,webIconNum,TreeIconS[1],TreeIconS[2])
 			menuWebList[(menuName ":")].=menuItem "`n"	; 添加到批量搜索
 			if(!HideWeb)
 				menuWebList[(menuName)].=menuItem "`n"	; 添加到批量搜索
@@ -769,7 +762,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 			Menu_Item_Icon(menuName,menuItem,FuncIconS[1],FuncIconS[2])
 			Menu_Item_Icon(fileMenuName,menuItem,FuncIconS[1],FuncIconS[2])
 			if(InStr(item,"%getZz%")){
-				webRootShow:=Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,FuncIconS[1],FuncIconS[2],TreeIconS[1],TreeIconS[2])
+				Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,FuncIconS[1],FuncIconS[2],TreeIconS[1],TreeIconS[2])
 			}
 			Menu_Web_Root_Empty(menuName,menuItem,HideGetZz && InStr(item,"%getZz%"))
 			return
@@ -787,7 +780,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 				Menu_Item_Icon(menuName,menuItem,OutIcon,OutIconNum)
 				Menu_Item_Icon(fileMenuName,menuItem,OutIcon,OutIconNum)
 				if(InStr(itemParam,"%getZz%")){
-					webRootShow:=Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,OutIcon,OutIconNum,TreeIconS[1],TreeIconS[2])
+					Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,OutIcon,OutIconNum,TreeIconS[1],TreeIconS[2])
 				}
 			} catch e {
 				if(!HideFail){
@@ -806,7 +799,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 					Menu_Item_Icon(menuName,menuItem,regFileIconS[1],regFileIconS[2])
 					Menu_Item_Icon(fileMenuName,menuItem,regFileIconS[1],regFileIconS[2])
 					if(InStr(itemParam,"%getZz%")){
-						webRootShow:=Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,regFileIconS[1],regFileIconS[2],TreeIconS[1],TreeIconS[2])
+						Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,regFileIconS[1],regFileIconS[2],TreeIconS[1],TreeIconS[2])
 					}
 				}catch{}
 			}else if(!HideFail){
@@ -822,7 +815,6 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,webRootShow
 }
 ;~;[统一设置选中文字菜单分类和图标]
 Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,icon10,icon11,icon20,icon22){
-	webRootShow:=false
 	Menu,%menuName%:,add,%menuItem%,Menu_Run
 	Menu,%menuName%%A_Space%,add,%menuItem%,Menu_Run
 	Menu_Item_Icon(menuName ":",menuItem,icon10,icon11)
@@ -832,7 +824,6 @@ Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,ico
 		Menu,% menuFileRootFn[1],Add,%menuItem%,Menu_Run
 		Menu_Item_Icon(menuWebRootFn[1],menuItem,icon10,icon11)
 		Menu_Item_Icon(menuFileRootFn[1],menuItem,icon10,icon11)
-		webRootShow:=true
 	}else if(!MenuWebRootSplit[menuName]){
 		Menu,% menuWebRootFn[1],Add,%menuName%:, :%menuName%:
 		Menu,% menuFileRootFn[1],Add,%menuName%%A_Space%, :%menuName%%A_Space%
@@ -840,7 +831,6 @@ Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,ico
 		Menu_Item_Icon(menuFileRootFn[1],menuName " ",icon20,icon22,MenuObjTreeLevel[menuName] . menuName)
 	}
 	MenuWebRootSplit[menuName]:=true
-	return webRootShow
 }
 ;~;[统一隐藏选中文字菜单空分类]
 Menu_Web_Root_Empty(menuName,menuItem,EmptyFlag){
@@ -4013,7 +4003,7 @@ SetMenu2:
 	MsgBox,33,开启第2个菜单,确定开启第2个菜单吗？`n会在目录生成RunAny2.ini`n（还原1个菜单可以删除或重命名RunAny2.ini）
 	IfMsgBox Ok
 	{
-		text2=;这里添加第2菜单内容
+		text2=;这里添加第2菜单内容`n-菜单2分类
 		FileAppend,%text2%,%iniPath2%
 		gosub,Menu_Edit2
 	}
