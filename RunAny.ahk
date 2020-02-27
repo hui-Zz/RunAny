@@ -3628,32 +3628,52 @@ Check_IsRun(runNamePath){
 	}
 	return false
 }
+;变量布尔值反转
+Variable_Boolean_Reverse(vars*){
+	global
+	for i,v in vars
+	{
+		%v%:=!%v%
+	}
+}
 ;══════════════════════════════════════════════════════════════════
 ;~;[设置选项]
 Menu_Set:
-	GROUP_WIDTH_66=550
-	GROUP_EDIT_WIDTH_66=530
-	GROUP_CHOOSE_EDIT_WIDTH_66=470
+	GROUP_WIDTH_66=560
+	GROUP_EDIT_WIDTH_66=540
+	GROUP_CHOOSE_EDIT_WIDTH_66=480
 	MARGIN_TOP_66=15
 	Gui,66:Destroy
 	Gui,66:Font,,Microsoft YaHei
 	Gui,66:Margin,30,20
 	Gui,66:Default
-	Gui,66:Add,Tab,x10 y10 w580 h540,RunAny设置|配置热键|Everything设置|一键直达|自定义打开后缀|热字符串|图标设置
+	Gui,66:Add,Tab,x10 y10 w590 h540,RunAny设置|配置热键|Everything设置|一键直达|自定义打开后缀|热字符串|图标设置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+%MARGIN_TOP_66% vvAutoRun,开机自动启动
-	Gui,66:Add,Checkbox,Checked%AdminRun% x+148 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
-	
-	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h125,RunAny菜单设置
+	Gui,66:Add,Checkbox,Checked%AdminRun% x+64 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
-	Gui,66:Add,Checkbox,Checked%HideRecent% x+160 vvHideRecent,隐藏最近运行
-	Gui,66:Add,Checkbox,Checked%HideAddItem% xm yp+20 vvHideAddItem,隐藏【添加到此菜单】
-	Gui,66:Add,Checkbox,Checked%HideMenuTray% x+100 vvHideMenuTray,隐藏底部“RunAny设置”
-	Gui,66:Add,Checkbox,Checked%HideSelectZz% xm yp+20 vvHideSelectZz,隐藏第一行选中文字提示
-	Gui,66:Add,Checkbox,Checked%HideWeb% x+88 vvHideWeb,隐藏带`%s网址（选中文字时显示）
-	Gui,66:Add,Checkbox,Checked%HideSend% xm yp+20 vvHideSend,隐藏短语（选中文字时显示）
-	Gui,66:Add,Checkbox,Checked%HideGetZz% x+64 vvHideGetZz,隐藏带`%getZz`%项（仅插件脚本，选中文字时显示）
-	Gui,66:Add,Checkbox,Checked%HideUnSelect% xm yp+20 vvHideUnSelect,RunAny选中文字依然显示所有应用菜单
+	Gui,66:Add,Checkbox,Checked%HideRecent% x+76 vvHideRecent,隐藏最近运行
+	Gui,66:Add,Checkbox,Checked%HideMenuTray% x+67 vvHideMenuTray,隐藏底部“RunAny设置”
+	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h85,RunAny菜单设置
+	Variable_Boolean_Reverse("HideSend","HideWeb","HideGetZz","HideSelectZz","HideAddItem","HideRecent")
+	Checkbox_WIDTH_66=8
+	Gui,66:Add,Text,xm yp+20, 默认不选中：
+	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,应用程序
+	Gui,66:Add,Checkbox,Checked%HideSend% x+%Checkbox_WIDTH_66% vvHideSend,短语输出
+	Gui,66:Add,Checkbox,Checked%HideWeb% x+%Checkbox_WIDTH_66% vvHideWeb,网址带`%s
+	Gui,66:Add,Checkbox,Checked%HideGetZz% x+%Checkbox_WIDTH_66% vvHideGetZz,插件脚本(仅带`%getZz`%)
+	Gui,66:Add,Text,xm yp+20,选中文字时：
+	Gui,66:Add,Checkbox,Checked%HideSelectZz% x+%Checkbox_WIDTH_66% vvHideSelectZz,选中提示
+	Gui,66:Add,Checkbox,Checked%HideUnSelect% x+%Checkbox_WIDTH_66% vvHideUnSelect,应用程序
+	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,网址带`%s
+	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,插件脚本
+	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,短语输出
+	Gui,66:Add,Text,xm yp+20,选中文件时：
+	Gui,66:Add,Checkbox,Checked%HideSelectZz% x+%Checkbox_WIDTH_66%,选中提示
+	Gui,66:Add,Checkbox,Checked%HideUnSelect% x+%Checkbox_WIDTH_66%,应用程序
+	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,网址带`%s
+	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,插件脚本
+	Gui,66:Add,Checkbox,Checked%HideAddItem% x+%Checkbox_WIDTH_66% vvHideAddItem,【添加到此菜单】
 
 	Gui,66:Add,GroupBox,xm-10 y+15 w225 h55,RunAny菜单热键 %MenuHotKey%
 	Gui,66:Add,Hotkey,xm yp+20 w150 vvMenuKey,%MenuKey%
@@ -3928,6 +3948,8 @@ SetOK:
 			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		}
 	}
+	Variable_Boolean_Reverse("HideSend","HideWeb","HideGetZz","HideSelectZz","HideAddItem","HideRecent")
+	Variable_Boolean_Reverse("vHideSend","vHideWeb","vHideGetZz","vHideSelectZz","vHideAddItem","vHideRecent")
 	SetValueList:=["AdminRun","AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupDir","DisableApp"]
 	SetValueList.Push("EvPath","EvCommand","EvAutoClose","EvExeVerNew","EvDemandSearch")
 	SetValueList.Push("HideFail","HideRecent","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideUnSelect","HideSelectZz")
