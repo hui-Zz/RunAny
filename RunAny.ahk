@@ -167,6 +167,7 @@ menuWebRoot1.Push(RunAnyZz . "Web1")
 menuWebRoot1.Push(M1)
 menuFileRoot1.Push(RunAnyZz . "File1")
 MenuObjTree1[M1]:=Object()
+MenuObjTree1[RunAnyZz . "File1"]:=Object()
 global menu2:=MENU2FLAG
 ;~;[读取带图标的自定义应用菜单]
 Menu_Read(iniVar1,menuRoot1,1,menuWebRoot1,menuWebList1,menuFileRoot1,1)
@@ -183,6 +184,7 @@ if(menu2){
 	menuWebRoot2.Push(M2)
 	menuFileRoot2.Push(RunAnyZz . "File2")
 	MenuObjTree2[M2]:=Object()
+	MenuObjTree2[RunAnyZz . "File2"]:=Object()
 	Menu_Read(iniVar2,menuRoot2,1,menuWebRoot2,menuWebList2,menuFileRoot2,2)
 	t5:=A_TickCount-StartTick
 	tText5:="创建菜单2内容：" Round((t5-t4)/1000,3) "s`n"
@@ -416,6 +418,8 @@ Menu_Read(iniReadVar,menuRootFn,menuLevel,menuWebRootFn,menuWebList,menuFileRoot
 					;记录全局菜单数据
 					if(!IsObject(MenuObjTree%TREE_NO%[menuItem]))
 						MenuObjTree%TREE_NO%[menuItem]:=Object()
+					if(!IsObject(MenuObjTree%TREE_NO%[menuItem " "]))
+						MenuObjTree%TREE_NO%[menuItem " "]:=Object()
 					MenuObjTreeLevel[menuItem]:=treeLevel
 					;~;[分割Tab获取菜单自定义热键]
 					if(InStr(menuItem,"`t")){
@@ -648,7 +652,7 @@ MenuExeListPush(menuName,menuItem,itemFile,itemAny,menuRootFn,menuWebRootFn,menu
 	MenuExeList.Push(MenuObjEXE)
 	;带有%getZz%和%s的菜单项都显示在选中内容菜单中
 	if(InStr(itemAny,"%getZz%") || InStr(itemAny,"%s")){
-		Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,itemFile,"0",TreeIconS[1],TreeIconS[2])
+		Menu_Web_File_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,itemFile,"0",TreeIconS[1],TreeIconS[2])
 	}
 }
 ;~;[读取热字串用作提示文字]
@@ -719,9 +723,9 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,menuFileRoo
 		Menu,%fileMenuName%,add,%menuItem%,Menu_Run
 		if(InStr(item,";",,0,1)=itemLen){  ; {短语}
 			Menu_Item_Icon(menuName,menuItem,"SHELL32.dll","2")
-			Menu_Item_Icon(fileMenuName,menuItem,"SHELL32.dll","2")
 			Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,"SHELL32.dll","2",TreeIconS[1],TreeIconS[2])
 			Menu_Web_Root_Empty(menuName,menuItem,HideSend)
+			Menu_Web_Root_Empty(fileMenuName,menuItem,true)
 			return
 		}
 		if(InStr(item,"::",,0,1)=itemLen-1){	; {发送热键}
@@ -743,7 +747,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,menuFileRoo
 			Menu_Item_Icon(menuName,menuItem,webIcon,webIconNum)
 			Menu_Item_Icon(fileMenuName,menuItem,webIcon,webIconNum)
 			;~ [添加到网址菜单]
-			Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,webIcon,webIconNum,TreeIconS[1],TreeIconS[2])
+			Menu_Web_File_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,webIcon,webIconNum,TreeIconS[1],TreeIconS[2])
 			menuWebList[(menuName ":")].=menuItem "`n"	; 添加到批量搜索
 			if(!HideWeb)
 				menuWebList[(menuName)].=menuItem "`n"	; 添加到批量搜索
@@ -768,7 +772,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,menuFileRoo
 			Menu_Item_Icon(menuName,menuItem,FuncIconS[1],FuncIconS[2])
 			Menu_Item_Icon(fileMenuName,menuItem,FuncIconS[1],FuncIconS[2])
 			if(InStr(item,"%getZz%")){
-				Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,FuncIconS[1],FuncIconS[2],TreeIconS[1],TreeIconS[2])
+				Menu_Web_File_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,FuncIconS[1],FuncIconS[2],TreeIconS[1],TreeIconS[2])
 			}
 			Menu_Web_Root_Empty(menuName,menuItem,HideGetZz && InStr(item,"%getZz%"))
 			return
@@ -786,7 +790,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,menuFileRoo
 				Menu_Item_Icon(menuName,menuItem,OutIcon,OutIconNum)
 				Menu_Item_Icon(fileMenuName,menuItem,OutIcon,OutIconNum)
 				if(InStr(itemParam,"%getZz%")){
-					Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,OutIcon,OutIconNum,TreeIconS[1],TreeIconS[2])
+					Menu_Web_File_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,OutIcon,OutIconNum,TreeIconS[1],TreeIconS[2])
 				}
 			} catch e {
 				if(!HideFail){
@@ -794,6 +798,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,menuFileRoo
 					Menu_Item_Icon(fileMenuName,menuItem,LNKIconS[1],LNKIconS[2])
 				}else{
 					Menu,%menuName%,Delete,%menuItem%
+					Menu,%fileMenuName%,Delete,%menuItem%
 				}
 			}
 		}else{  ; {处理未知的项目图标}
@@ -805,7 +810,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,menuFileRoo
 					Menu_Item_Icon(menuName,menuItem,regFileIconS[1],regFileIconS[2])
 					Menu_Item_Icon(fileMenuName,menuItem,regFileIconS[1],regFileIconS[2])
 					if(InStr(itemParam,"%getZz%")){
-						Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,regFileIconS[1],regFileIconS[2],TreeIconS[1],TreeIconS[2])
+						Menu_Web_File_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,regFileIconS[1],regFileIconS[2],TreeIconS[1],TreeIconS[2])
 					}
 				}catch{}
 			}else if(!HideFail){
@@ -813,6 +818,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,menuFileRoo
 				Menu_Item_Icon(fileMenuName,menuItem,"SHELL32.dll","124")
 			}else{
 				Menu,%menuName%,Delete,%menuItem%
+				Menu,%fileMenuName%,Delete,%menuItem%
 			}
 		}
 	} catch e {
@@ -821,6 +827,19 @@ Menu_Add(menuName,menuItem,item,menuRootFn,menuWebRootFn,menuWebList,menuFileRoo
 }
 ;~;[统一设置选中文字菜单分类和图标]
 Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,icon10,icon11,icon20,icon22){
+	Menu,%menuName%:,add,%menuItem%,Menu_Run
+	Menu_Item_Icon(menuName ":",menuItem,icon10,icon11)
+	if(menuName = menuRootFn[1]){
+		Menu,% menuWebRootFn[1],Add,%menuItem%,Menu_Run
+		Menu_Item_Icon(menuWebRootFn[1],menuItem,icon10,icon11)
+	}else if(!MenuWebRootSplit[menuName]){
+		Menu,% menuWebRootFn[1],Add,%menuName%:, :%menuName%:
+		Menu_Item_Icon(menuWebRootFn[1],menuName ":",icon20,icon22,MenuObjTreeLevel[menuName] . menuName)
+	}
+	MenuWebRootSplit[menuName]:=true
+}
+;~;[统一设置选中文字和文件菜单分类和图标]
+Menu_Web_File_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuFileRootFn,menuItem,icon10,icon11,icon20,icon22){
 	Menu,%menuName%:,add,%menuItem%,Menu_Run
 	Menu,%menuName%%A_Space%,add,%menuItem%,Menu_Run
 	Menu_Item_Icon(menuName ":",menuItem,icon10,icon11)
@@ -1839,7 +1858,7 @@ Menu_Add_File_Item:
 	hotStrOption:=hotStrShow:=itemGlobalHotKey:=itemGlobalKey:=X_ThisMenuItem:=""
 	itemPath:=Get_Item_Run_Path(getZz)
 	SplitPath, itemPath, fName,, fExt, itemName
-	Z_ThisMenu:=A_ThisMenu
+	Z_ThisMenu:=RTrim(A_ThisMenu)
 	Z_ThisMenuItem:=A_ThisMenuItem
 	if(Z_ThisMenuItem="0【添加到此菜单】"){
 		X_ThisMenuItem:=Z_ThisMenuItem
@@ -1850,7 +1869,7 @@ Menu_Add_File_Item:
 		return
 	menuGuiFlag:=false
 	thisMenuItemStr:=X_ThisMenuItem="0【添加到此菜单】" ? "" : "菜单项（" Z_ThisMenuItem "）的上面"
-	thisMenuStr:=Z_ThisMenu=RunAnyZz . TREE_NO ? "新增项会在『根目录』分类下（如果没有用“-”回归1级会添加在最末的菜单内）" : "新增项会在『" Z_ThisMenu "』分类下"
+	thisMenuStr:=Z_ThisMenu=RunAnyZz . "File" . TREE_NO ? "新增项会在『根目录』分类下（如果没有用“-”回归1级会添加在最末的菜单内）" : "新增项会在『" Z_ThisMenu "』分类下"
 	gosub,Menu_Item_Edit
 return
 ;~;[保存新添加的菜单项]
