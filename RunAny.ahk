@@ -187,6 +187,7 @@ if(menu2){
 	t5:=A_TickCount-StartTick
 	tText5:="创建菜单2内容：" Round((t5-t4)/1000,3) "s`n"
 	Menu,Tray,Tip,% tText1 tText2 tText3 tText4 tText5
+	tText5.=tText4
 }
 ;获得所有后缀公共菜单
 MenuObjExt["public"]:=MenuObjPublic
@@ -206,7 +207,7 @@ if(!HideRecent){
 		Menu,% menuRoot1[1],Add,%mcv%,Menu_Run
 	}
 }
-Menu,Tray,Tip,% tText1 tText2 tText3 tText4 tText5 "开始为菜单中exe应用加载图标..."
+Menu,Tray,Tip,% tText1 tText2 tText3 tText5 "开始为菜单中exe应用加载图标..."
 ;~;[循环为菜单中EXE程序添加图标，过程较慢]
 For k, v in MenuExeList
 {
@@ -219,7 +220,7 @@ For k, v in MenuExeList
 try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 t6:=A_TickCount-StartTick
 tText6:="为菜单中exe应用加载图标：" Round((t6-t5)/1000,3) "s`n"
-Menu,Tray,Tip,% tText1 tText2 tText3 tText4 tText5 tText6 "总加载时间：" Round(t6/1000,3) "s"
+Menu,Tray,Tip,% tText1 tText2 tText3 tText5 tText6 "总加载时间：" Round(t6/1000,3) "s"
 
 ;#如果是第一次运行#
 if(iniFlag){
