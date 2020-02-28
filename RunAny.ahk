@@ -3702,13 +3702,13 @@ Menu_Set:
 	Gui,66:Tab,配置热键,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h125,RunAny多种方式启动菜单（与第三方软件热键冲突则取消勾选）
 	Gui,66:Add,Checkbox,Checked%MenuDoubleCtrlKey% xm yp+20 vvMenuDoubleCtrlKey,双击Ctrl键
-	Gui,66:Add,Checkbox,Checked%MenuDoubleAltKey% x+154 vvMenuDoubleAltKey,双击Alt键
+	Gui,66:Add,Checkbox,Checked%MenuDoubleAltKey% x+166 vvMenuDoubleAltKey,双击Alt键
 	Gui,66:Add,Checkbox,Checked%MenuDoubleLWinKey% xm yp+20 vvMenuDoubleLWinKey,双击左Win键
-	Gui,66:Add,Checkbox,Checked%MenuDoubleRWinKey% x+140 vvMenuDoubleRWinKey,双击右Win键
+	Gui,66:Add,Checkbox,Checked%MenuDoubleRWinKey% x+152 vvMenuDoubleRWinKey,双击右Win键
 	Gui,66:Add,Checkbox,Checked%MenuCtrlRightKey% xm yp+20 w160 vvMenuCtrlRightKey,按住Ctrl再按鼠标右键
-	Gui,66:Add,Checkbox,Checked%MenuShiftRightKey% x+74 vvMenuShiftRightKey,按住Shift再按鼠标右键
+	Gui,66:Add,Checkbox,Checked%MenuShiftRightKey% x+86 vvMenuShiftRightKey,按住Shift再按鼠标右键
 	Gui,66:Add,Checkbox,Checked%MenuXButton1Key% xm yp+20 vvMenuXButton1Key,鼠标X1键
-	Gui,66:Add,Checkbox,Checked%MenuXButton2Key% x+159 vvMenuXButton2Key,鼠标X2键
+	Gui,66:Add,Checkbox,Checked%MenuXButton2Key% x+171 vvMenuXButton2Key,鼠标X2键
 	Gui,66:Add,Checkbox,Checked%MenuMButtonKey% xm yp+20 vvMenuMButtonKey,鼠标中键（需要关闭插件huiZz_MButton.ahk）
 	
 	Gui,66:Add,GroupBox,xm-10 y+20 w225 h55,RunAny托盘菜单：%RunATrayHotKey%
