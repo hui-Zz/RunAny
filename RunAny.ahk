@@ -36,8 +36,6 @@ global MenuObjExt:=Object()     ;~后缀对应菜单
 global MenuExeList:=Object()    ;~程序数据数组
 global MenuHotStrList:=Object() ;~热字符串数据数组
 global MenuTreeKey:=Object()    ;~分类热键
-global MenuObjTree1:=Object()   ;~分类目录程序全数据1
-global MenuObjTree2:=Object()   ;~分类目录程序全数据2
 MenuObj.SetCapacity(10240)
 MenuExeList.SetCapacity(1024)
 ;══════════════════════════════════════════════════════════════════
@@ -83,6 +81,7 @@ if(errorKeyStr){
 	MsgBox,16,RunAny热键配置不正确,% "热键错误：`n" errorKeyStr "`n请设置正确热键后重启RunAny"
 	return
 }
+;══════════════════════════════════════════════════════════════════
 t1:=A_TickCount-StartTick
 tText1:="初始化参数时间：" Round(t1/1000,3) "s`n"
 Menu,Tray,Tip,% tText1 "开始运行插件脚本..."
@@ -92,10 +91,10 @@ if(!iniFlag){
 	;~;[插件对象注册]
 	Gosub,Plugins_Object_Register
 }
+;══════════════════════════════════════════════════════════════════
 t2:=A_TickCount-StartTick
 tText2:="运行插件脚本：" Round((t2-t1)/1000,3) "s`n"
 Menu,Tray,Tip,% tText1 tText2 "开始调用Everything搜索菜单内应用全路径..."
-;══════════════════════════════════════════════════════════════════
 ;~;[初始化everything安装路径]
 evExist:=true
 EvPath:=Var_Read("EvPath")
@@ -144,36 +143,35 @@ DetectHiddenWindows,Off
 if(A_AhkVersion < 1.1.28){
 	MsgBox, 16, AutoHotKey版本过低！, 由于你的AHK版本没有高于1.1.28，会影响RunAny功能的使用`n1. 不支持StrSplit()函数的MaxParts`n2. 不支持动态Hotstring创建
 }
+;══════════════════════════════════════════════════════════════════
 t3:=A_TickCount-StartTick
 tText3:="调用Everything搜索菜单内应用全路径：" Round((t3-t2)/1000,3) "s`n"
 Menu,Tray,Tip,% tText1 tText2 tText3 "开始创建菜单1内容..."
-;══════════════════════════════════════════════════════════════════
 ;~;[自定义后缀打开方式]
 Gosub,Open_Ext_Set
 ;~;[后缀图标初始化]
 Gosub,Icon_FileExt_Set
-
-global M1:=RunAnyZz . "1"
-global M2:=RunAnyZz . "2"
+;~;
 global MenuWebRootSplit:=Object()	;网址短语函数菜单的分隔符追加
-global MenuEmptyList:=Object()		;需要置空内容菜单列表
+global MenuEmptyList:=Object()	;需要置空内容菜单列表
+global MenuObjPublic:=Object()	;后缀公共菜单
 global MenuObjTreeLevel:=Object()	;菜单对应级别
-global MenuObjPublic:=Object()		;后缀公共菜单
-
-global MenuSendStrList1:=Object()	;菜单中短语项列表
-global MenuSendStrList2:=Object()	;菜单中短语项列表
-global MenuWebList1:=Object()		;菜单中网址搜索项列表
-global MenuWebList2:=Object()		;菜单中网址搜索项列表
-global MenuGetZzList1:=Object()	;菜单中GetZz搜索项列表
-global MenuGetZzList2:=Object()	;菜单中GetZz搜索项列表
-
-MenuObjTree1[M1]:=Object()
+global MenuCount:=MENU2FLAG ? 2 : 1
+;~;
+Loop,%MenuCount%
+{
+	M%A_Index%:=RunAnyZz . A_Index
+	MenuSendStrList%A_Index%:=Object()	;菜单中短语项列表
+	MenuWebList%A_Index%:=Object()		;菜单中网址%s搜索项列表
+	MenuGetZzList%A_Index%:=Object()		;菜单中GetZz搜索项列表
+	MenuObjList%A_Index%:=Object()   		;菜单分类运行项列表
+	MenuObjTree%A_Index%:=Object()   		;分类目录程序全数据
+	MenuObjTree%A_Index%[M%A_Index%]:=Object()
+	;菜单级别：初始为根菜单RunAny
+	menuRoot%A_Index%:=[M%A_Index%]
+}
 
 ;#应用菜单数组、选中文字后显示的菜单内容、网址批量搜索队列#
-menuRoot1:=[M1]
-;菜单级别：初始为根菜单RunAny
-
-global menu2:=MENU2FLAG
 ;~;[读取带图标的自定义应用菜单]
 Menu_Read(iniVar1,menuRoot1,"",1)
 
@@ -182,15 +180,10 @@ t5:=t4
 tText4:="创建菜单1内容：" Round((t4-t3)/1000,3) "s`n"
 tText5:=tText4
 ;~;[如果有第2菜单则开始加载]
-if(menu2){
+if(MENU2FLAG){
 	Menu,Tray,Tip,% tText1 tText2 tText3 tText4 "开始创建菜单2内容..."
-	
-	menuRoot2:=[M2]
-	;~ menuWebRoot2:=[RunAnyZz . "Web2",M2]
-	MenuObjTree2[M2]:=Object()
-	
 	Menu_Read(iniVar2,menuRoot2,"",2)
-	
+
 	t5:=A_TickCount-StartTick
 	tText5:="创建菜单2内容：" Round((t5-t4)/1000,3) "s`n"
 	Menu,Tray,Tip,% tText1 tText2 tText3 tText4 tText5
@@ -209,14 +202,80 @@ Menu_Read(iniVar1,menuFileRoot1,"11f",1)
 menuFileRoot2:=[M2 "2f"]
 Menu_Read(iniVar2,menuFileRoot2,"22f",2)
 
+
+;~ MenuItemTypeListShow(){
+	Loop,%MenuCount%
+	{
+		;~[短语类型]在选中文字文件或不选中时是否显示
+		For mn,items in MenuSendStrList%A_Index%
+		{
+			if((HideSend && mn=menuRoot%A_Index%[1]) || mn="RunAny11f"){
+				Loop, Parse, items, `n
+				{
+					if(A_LoopField="")
+						continue
+					Menu,%mn%,Delete,%A_LoopField%
+				}
+				continue
+			}
+			;~ if(InStr(mn,"RunAny"))
+				;~ continue
+			len:=StrLen(mn)
+			if(InStr(mn,"w",,0,1)!=len){
+				if(InStr(mn,"f",,0,1)=len && MenuSendStrList%A_Index%[mn]=MenuObjList%A_Index%[mn]){
+					Menu,%mn%,Delete
+					continue
+				}
+				if(HideSend && MenuSendStrList%A_Index%[mn]=MenuObjList%A_Index%[mn]){
+					Menu,%mn%,Delete
+				}
+			} 
+		}
+		;~[短语类型]在选中文字文件或不选中时是否显示
+		For mn,items in MenuWebList%A_Index%
+		{
+			if(HideWeb && mn="RunAny11w"){
+				Loop, Parse, items, `n
+				{
+					if(A_LoopField="")
+						continue
+					Menu,%mn%,Delete,%A_LoopField%
+				}
+				continue
+			}
+			if(InStr(mn,"RunAny"))
+				continue
+			len:=StrLen(mn)
+			if(!RegExMatch(mn,"S)(w|f)$")){
+				if(HideWeb && MenuWebList%A_Index%[mn]=MenuObjList%A_Index%[mn]){
+					Menu,%mn%,Delete
+				}
+			}
+		}
+		;~[短语类型]在选中文字文件或不选中时是否显示
+		For mn,items in MenuGetZzList%A_Index%
+		{
+			if(HideGetZz && (!RegExMatch(mn,"S)(w|f)$") || mn="RunAny" . A_Index)){
+				Loop, Parse, items, `n
+				{
+					if(A_LoopField="")
+						continue
+					Menu,%mn%,Delete,%A_LoopField%
+				}
+				if(InStr(mn,"RunAny"))
+					continue
+				if(MenuGetZzList%A_Index%[mn]=MenuObjList%A_Index%[mn]){
+					Menu,%mn%,Delete
+				}
+				continue
+			}
+		}
+	}
+;~ }
+
 ;获得所有后缀公共菜单
 MenuObjExt["public"]:=MenuObjPublic
-;清除空内容的菜单
-For mn, mv in MenuEmptyList
-{
-	if(mn!=M1 && mn!=M2 && mv=0)
-		Menu,%mn%,Delete
-}
+
 ;~;[最近运行项]
 if(!HideRecent){
 	Menu,% menuRoot1[1],Add
@@ -235,6 +294,7 @@ For k, v in MenuExeList
 		Menu_Item_Icon(v["menuName"],v["menuItem"],v["itemFile"])
 	}
 }
+;══════════════════════════════════════════════════════════════════
 ;#菜单已经加载完毕，托盘图标变化
 try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 t6:=A_TickCount-StartTick
@@ -368,7 +428,7 @@ RunABackupClear(RunABackupDir,RunABackupFile){
 ;~;[获取菜单项启动模式]1-启动路径|2-短语模式|3-模拟打字短语|4-热键映射|5-AHK热键映射|6-网址|7-文件夹|8-插件脚本函数|10-菜单节点|11-分割符|12-注释说明
 GetMenuItemMode(item,fullItemFlag:=false){
 	if(fullItemFlag){
-		if(InStr(item,";")=1 || len=0)
+		if(InStr(item,";")=1)
 			return 12
 		if(RegExMatch(item,"S)^-+[^-]+.*"))
 			return 10
@@ -451,8 +511,6 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					MenuObjTree%TREE_NO%[menuRootFnLevel].Push(Z_LoopField)
 					if(MenuWebRootSplit[menuRootFnLevel])
 						Menu,%menuRootFnLevel%:,Add
-					;~ if(menuLevel=1 && menuRootFnLevel=RunAnyZz . TREE_NO)
-						;~ Menu,% menuWebRoot%TREE_NO%[1],Add
 				}
 				continue
 			}
@@ -632,7 +690,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 		;~ if(A_Index!=1){	;忽略比较menuWebRootFn第1层web菜单
 			;~ webRoot:=menuWebRootFn[A_Index]
 			;~ if(webRoot != menuRootFn[1]){
-				;~ if(menu2){
+				;~ if(MENU2FLAG){
 					;~ Menu,%webRoot%,add	;避免菜单2无网址而报错
 				;~ }
 				;~ Menu,%webRoot%,add,&1批量搜索%webRoot%,Web_Run
@@ -723,9 +781,10 @@ Menu_Add(menuName,menuItem,item,menuRootFn,TREE_NO){
 		itemLen:=StrLen(item)
 		SplitPath, item,,, FileExt  ; 获取文件扩展名.
 		Menu,%menuName%,add,%menuItem%,Menu_Run
+		MenuObjList%TREE_NO%[menuName].=menuItem "`n"
 		if(InStr(item,";",,0,1)=itemLen){  ; {短语}
 			Menu_Item_Icon(menuName,menuItem,"SHELL32.dll","2")
-			MenuSendStrList%TREE_NO%[(menuName)].=menuItem "`n"	; 添加到批量搜索
+			MenuSendStrList%TREE_NO%[menuName].=menuItem "`n"
 			;~ Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuItem,"SHELL32.dll","2",TreeIconS[1],TreeIconS[2])
 			;~ Menu_Web_Root_Empty(menuName,menuItem,HideSend)
 			return
@@ -735,12 +794,11 @@ Menu_Add(menuName,menuItem,item,menuRootFn,TREE_NO){
 			return
 		}
 		if(RegExMatch(item,"iS)([\w-]+://?|www[.]).*")){  ; {网址}
-			webSearchFlag:=false
+			;~ webSearchFlag:=false
 			website:=RegExReplace(item,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
 			webIcon:=RunIconDir "\" website ".ico"
 			webIconNum:=0
-			if(InStr(item,"%s"))
-				webSearchFlag:=true
+
 			if(!FileExist(webIcon)){
 				webIcon:=UrlIconS[1]
 				webIconNum:=UrlIconS[2]
@@ -750,7 +808,12 @@ Menu_Add(menuName,menuItem,item,menuRootFn,TREE_NO){
 			;~ Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuItem,webIcon,webIconNum,TreeIconS[1],TreeIconS[2])
 			;~ menuWebList[(menuName ":")].=menuItem "`n"	; 添加到批量搜索
 			;~ if(!HideWeb)
-			MenuWebList%TREE_NO%[(menuName)].=menuItem "`n"	; 添加到批量搜索
+			
+			if(InStr(item,"%s"))
+				MenuWebList%TREE_NO%[menuName].=menuItem "`n"
+				;~ webSearchFlag:=true
+			
+			
 			;~ [创建网址所在的不重复菜单节点]
 			;~ menuWebSame:=false
 			;~ Loop,% menuWebRootFn.MaxIndex()
@@ -771,9 +834,9 @@ Menu_Add(menuName,menuItem,item,menuRootFn,TREE_NO){
 		if(RegExMatch(item,"S).+?\[.+?\]%?\(.*?\)")){  ; {脚本插件函数}
 			Menu_Item_Icon(menuName,menuItem,FuncIconS[1],FuncIconS[2])
 			if(InStr(item,"%getZz%")){
-				MenuGetZzList%TREE_NO%[(menuName)].=menuItem "`n"	; 添加到GetZz搜索
+				MenuGetZzList%TREE_NO%[menuName].=menuItem "`n"	; 添加到GetZz搜索
 			}
-			Menu_Web_Root_Empty(menuName,menuItem,HideGetZz && InStr(item,"%getZz%"))
+			;~ Menu_Web_Root_Empty(menuName,menuItem,HideGetZz && InStr(item,"%getZz%"))
 			return
 		}
 		if(InStr(FileExist(item), "D")){  ; {目录}
@@ -809,29 +872,6 @@ Menu_Add(menuName,menuItem,item,menuRootFn,TREE_NO){
 		}
 	} catch e {
 		MsgBox,16,判断后缀创建菜单项出错,% "菜单名：" menuName "`n菜单项：" menuItem "`n路径：" item "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
-	}
-}
-;~;[统一设置选中文字菜单分类和图标]
-;~ Menu_Web_Root_Icon(menuName,menuRootFn,menuWebRootFn,menuItem,icon10,icon11,icon20,icon22){
-	;~ Menu,%menuName%:,add,%menuItem%,Menu_Run
-	;~ Menu_Item_Icon(menuName ":",menuItem,icon10,icon11)
-	;~ if(menuName = menuRootFn[1]){
-		;~ Menu,% menuWebRootFn[1],Add,%menuItem%,Menu_Run
-		;~ Menu_Item_Icon(menuWebRootFn[1],menuItem,icon10,icon11)
-	;~ }else if(!MenuWebRootSplit[menuName]){
-		;~ Menu,% menuWebRootFn[1],Add,%menuName%:, :%menuName%:
-		;~ Menu_Item_Icon(menuWebRootFn[1],menuName ":",icon20,icon22,MenuObjTreeLevel[menuName] . menuName)
-	;~ }
-	;~ MenuWebRootSplit[menuName]:=true
-;~ }
-;~;[统一隐藏选中文字菜单空分类]
-Menu_Web_Root_Empty(menuName,menuItem,EmptyFlag){
-	if(EmptyFlag){
-		Menu,%menuName%,Delete,%menuItem%
-		if(MenuEmptyList[menuName]!=1)
-			MenuEmptyList[menuName]:=0
-	}else{
-		MenuEmptyList[menuName]:=1
 	}
 }
 ;~;[统一设置菜单项图标]
@@ -4017,7 +4057,7 @@ SetEvDemandSearch:
 	}
 return
 SetMenu2:
-	MsgBox,33,开启第2个菜单,确定开启第2个菜单吗？`n会在目录生成RunAny2.ini`n（还原1个菜单可以删除或重命名RunAny2.ini）
+	MsgBox,33,开启第2个菜单,确定开启第2个菜单吗？`n会在目录生成RunAny2.ini`n【注意！】`n还原可以删除或重命名RunAny2.ini
 	IfMsgBox Ok
 	{
 		text2=;这里添加第2菜单内容`n-菜单2分类
@@ -4567,7 +4607,7 @@ GuiIcon_Set:
 	{
 		Set_Icon(A_LoopField,false)
 	}
-	if(menu2){
+	if(MENU2FLAG){
 		Loop, parse, iniVar2, `n, `r, %A_Space%%A_Tab%
 		{
 			Set_Icon(A_LoopField,false)
