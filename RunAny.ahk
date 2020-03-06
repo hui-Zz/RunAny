@@ -153,9 +153,10 @@ Gosub,Open_Ext_Set
 Gosub,Icon_FileExt_Set
 ;~;
 global MenuWebRootSplit:=Object()	;网址短语函数菜单的分隔符追加
-global MenuEmptyList:=Object()	;需要置空内容菜单列表
+;~ global MenuEmptyList:=Object()	;需要置空内容菜单列表
 global MenuObjPublic:=Object()	;后缀公共菜单
 global MenuObjTreeLevel:=Object()	;菜单对应级别
+global MenuIconFalg:=false			;菜单图标是否加载完成
 global MenuCount:=MENU2FLAG ? 2 : 1
 ;~;
 Loop,%MenuCount%
@@ -190,88 +191,22 @@ if(MENU2FLAG){
 	tText5.=tText4
 }
 
-menuWebRoot1:=[M1 "1w"]
-Menu_Read(iniVar1,menuWebRoot1,"11w",1)
+Loop,%MenuCount%
+{
+	menuDefaultRoot%A_Index%:=[M%A_Index% " "]
+	Menu_Read(iniVar%A_Index%,menuDefaultRoot%A_Index%," ",A_Index)
 
-menuWebRoot2:=[M2 "2w"]
-Menu_Read(iniVar2,menuWebRoot2,"22w",2)
+	menuWebRoot%A_Index%:=[M%A_Index% "  "]
+	Menu_Read(iniVar%A_Index%,menuWebRoot%A_Index%,"  ",A_Index)
 
-menuFileRoot1:=[M1 "1f"]
-Menu_Read(iniVar1,menuFileRoot1,"11f",1)
+	menuFileRoot%A_Index%:=[M%A_Index% "   "]
+	Menu_Read(iniVar%A_Index%,menuFileRoot%A_Index%,"   ",A_Index)
 
-menuFileRoot2:=[M2 "2f"]
-Menu_Read(iniVar2,menuFileRoot2,"22f",2)
-
-
-;~ MenuItemTypeListShow(){
-	Loop,%MenuCount%
-	{
-		;~[短语类型]在选中文字文件或不选中时是否显示
-		For mn,items in MenuSendStrList%A_Index%
-		{
-			if((HideSend && mn=menuRoot%A_Index%[1]) || mn="RunAny11f"){
-				Loop, Parse, items, `n
-				{
-					if(A_LoopField="")
-						continue
-					Menu,%mn%,Delete,%A_LoopField%
-				}
-				continue
-			}
-			;~ if(InStr(mn,"RunAny"))
-				;~ continue
-			len:=StrLen(mn)
-			if(InStr(mn,"w",,0,1)!=len){
-				if(InStr(mn,"f",,0,1)=len && MenuSendStrList%A_Index%[mn]=MenuObjList%A_Index%[mn]){
-					Menu,%mn%,Delete
-					continue
-				}
-				if(HideSend && MenuSendStrList%A_Index%[mn]=MenuObjList%A_Index%[mn]){
-					Menu,%mn%,Delete
-				}
-			} 
-		}
-		;~[短语类型]在选中文字文件或不选中时是否显示
-		For mn,items in MenuWebList%A_Index%
-		{
-			if(HideWeb && mn="RunAny11w"){
-				Loop, Parse, items, `n
-				{
-					if(A_LoopField="")
-						continue
-					Menu,%mn%,Delete,%A_LoopField%
-				}
-				continue
-			}
-			if(InStr(mn,"RunAny"))
-				continue
-			len:=StrLen(mn)
-			if(!RegExMatch(mn,"S)(w|f)$")){
-				if(HideWeb && MenuWebList%A_Index%[mn]=MenuObjList%A_Index%[mn]){
-					Menu,%mn%,Delete
-				}
-			}
-		}
-		;~[短语类型]在选中文字文件或不选中时是否显示
-		For mn,items in MenuGetZzList%A_Index%
-		{
-			if(HideGetZz && (!RegExMatch(mn,"S)(w|f)$") || mn="RunAny" . A_Index)){
-				Loop, Parse, items, `n
-				{
-					if(A_LoopField="")
-						continue
-					Menu,%mn%,Delete,%A_LoopField%
-				}
-				if(InStr(mn,"RunAny"))
-					continue
-				if(MenuGetZzList%A_Index%[mn]=MenuObjList%A_Index%[mn]){
-					Menu,%mn%,Delete
-				}
-				continue
-			}
-		}
-	}
-;~ }
+	MenuItemDefaultListShow(A_Index,"MenuSendStrList",true,3)
+	MenuItemDefaultListShow(A_Index,"MenuSendStrList",HideSend)
+	MenuItemDefaultListShow(A_Index,"MenuWebList",HideWeb)
+	MenuItemDefaultListShow(A_Index,"MenuGetZzList",HideGetZz)
+}
 
 ;获得所有后缀公共菜单
 MenuObjExt["public"]:=MenuObjPublic
@@ -300,6 +235,7 @@ try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 t6:=A_TickCount-StartTick
 tText6:="为菜单中exe应用加载图标：" Round((t6-t5)/1000,3) "s`n"
 Menu,Tray,Tip,% tText1 tText2 tText3 tText5 tText6 "总加载时间：" Round(t6/1000,3) "s"
+MenuIconFalg:=true
 
 ;#如果是第一次运行#
 if(iniFlag){
@@ -322,6 +258,35 @@ if(RunABackupRule){
 	RunABackup(RunABackupDirPath "\" RunAnyConfig "\", "*.bak", iniVarBak, RunAnyConfig, RunAnyConfig "." A_Now ".bak")
 }
 return
+
+
+;~[在选中文字文件或不选中时，默认菜单显示的内容类型]
+MenuItemDefaultListShow(M_Index,MenuTypeList,HideFlag,MenuType:=1){
+	if(MenuType=1){
+		rootName:=menuDefaultRoot%M_Index%[1]
+		rootReg:="[^\s]+\s$"
+	}else if(MenuType=3){
+		rootName:=menuFileRoot%M_Index%[1]
+		rootReg:="S)\s{3}$"
+	}
+	For mn,items in %MenuTypeList%%M_Index%
+	{
+		if(HideFlag && (mn=rootName || RegExMatch(mn,rootReg))){
+			Loop, Parse, items, `n
+			{
+				if(A_LoopField="")
+					continue
+				Menu,%mn%,Delete,%A_LoopField%
+			}
+			if(InStr(mn,RunAnyZz))
+				continue
+			if(%MenuTypeList%%M_Index%[mn]=MenuObjList%M_Index%[mn]){
+				Menu,%mn%,Delete
+			}
+		}
+	}
+}
+
 
 ;══════════════════════════════════════════════════════════════════
 ;~;[多种启动菜单热键]
@@ -906,8 +871,11 @@ Menu_Show:
 		gosub,RunAny_Menu
 		selectCheck:=Trim(getZz," `t`n`r")
 		if(selectCheck=""){
-			;#无选中内容弹出应用菜单#
-			Menu,% menuRoot%MENU_NO%[1],Show
+			;#无选中内容#初始先显示无图标菜单
+			if(MenuIconFalg)
+				Menu,% menuDefaultRoot%MENU_NO%[1],Show
+			else
+				Menu,% menuRoot%MENU_NO%[1],Show
 			return
 		}
 		if(Candy_isFile){
@@ -1055,7 +1023,7 @@ Menu_Show:
 		if(!HideUnSelect){
 			Menu_Show_Show(menuWebRoot%MENU_NO%[1],getZz)
 		}else{
-			Menu_Show_Show(menuFileRoot%MENU_NO%[1],getZz)
+			Menu_Show_Show(menuRoot%MENU_NO%[1],getZz)
 		}
 	}catch{}
 return
@@ -1065,9 +1033,9 @@ Menu_Key_Show:
 	try {
 		gosub,RunAny_Menu
 		menuName:=menuTreekey[(A_ThisHotkey)]
-		if(MenuEmptyList[menuName]=0){
-			menuName.=" "
-		}
+		;~ if(MenuEmptyList[menuName]=0){
+			;~ menuName.=" "
+		;~ }
 		Menu_Show_Show(menuName,getZz)
 	}catch{}
 return
@@ -3681,7 +3649,7 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,短语输出
 	Gui,66:Add,Text,xm yp+20,选中文件时：
 	Gui,66:Add,Checkbox,Checked%HideSelectZz% x+%Checkbox_WIDTH_66%,选中提示
-	Gui,66:Add,Checkbox,Checked%HideUnSelect% x+%Checkbox_WIDTH_66%,应用程序
+	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,应用程序
 	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,网址带`%s
 	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,插件脚本
 	Gui,66:Add,Checkbox,Checked%HideAddItem% x+%Checkbox_WIDTH_66% vvHideAddItem,【添加到此菜单】
@@ -3847,6 +3815,7 @@ Menu_Set:
 	Gui,66:Add,Button,x+15 w75 GSetReSet,重置
 	Gui,66:Add,Text,x+40 yp+5 w75 GMenu_Config,RunAnyConfig.ini
 	Gui,66:Show,,%RunAnyZz%设置 %RunAny_update_version% %RunAny_update_time%%AdminMode%
+	Variable_Boolean_Reverse("HideSend","HideWeb","HideGetZz","HideSelectZz","HideAddItem","HideRecent")
 	return
 ;~;[关于]
 Menu_About:
@@ -3959,7 +3928,6 @@ SetOK:
 			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		}
 	}
-	Variable_Boolean_Reverse("HideSend","HideWeb","HideGetZz","HideSelectZz","HideAddItem","HideRecent")
 	Variable_Boolean_Reverse("vHideSend","vHideWeb","vHideGetZz","vHideSelectZz","vHideAddItem","vHideRecent")
 	SetValueList:=["AdminRun","AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupDir","DisableApp"]
 	SetValueList.Push("EvPath","EvCommand","EvAutoClose","EvExeVerNew","EvDemandSearch")
