@@ -213,12 +213,12 @@ MenuObjExt["public"]:=MenuObjPublic
 
 ;~;[最近运行项]
 if(!HideRecent){
-	Menu,% menuRoot1[1],Add
+	Menu,% menuDefaultRoot1[1],Add
 	For mck, mcv in MenuCommonList
 	{
 		obj:=RegExReplace(mcv,"&" mck A_Space)
 		MenuObj[mcv]:=MenuObj[obj]
-		Menu,% menuRoot1[1],Add,%mcv%,Menu_Run
+		Menu,% menuDefaultRoot1[1],Add,%mcv%,Menu_Run
 	}
 }
 Menu,Tray,Tip,% tText1 tText2 tText3 tText5 "开始为菜单中exe应用加载图标..."
@@ -1349,12 +1349,12 @@ Menu_Recent:
 	if(!MenuCommonList[1]){
 		MenuCommonList[1]:="&1 " A_ThisMenuItem
 		MenuObj[MenuCommonList[1]]:=any
-		Menu,% menuRoot1[1],Add,% MenuCommonList[1],Menu_Run
+		Menu,% menuDefaultRoot1[1],Add,% MenuCommonList[1],Menu_Run
 	}else if(MenuCommonList[1]!="&1" A_Space A_ThisMenuItem){
 		if(!MenuCommonList[2]){
 			MenuCommonList[2]:="&2" A_Space A_ThisMenuItem
 			MenuObj[MenuCommonList[2]]:=any
-			Menu,% menuRoot1[1],Add,% MenuCommonList[2],Menu_Run
+			Menu,% menuDefaultRoot1[1],Add,% MenuCommonList[2],Menu_Run
 		}else if(MenuCommonList[1] && MenuCommonList[2]){
 			MenuCommon1:=MenuCommonList[1]
 			MenuCommon2:=MenuCommonList[2]
@@ -1362,8 +1362,8 @@ Menu_Recent:
 			MenuCommonList[2]:=RegExReplace(MenuCommon1,"&1","&2")
 			MenuObj[MenuCommonList[1]]:=any
 			MenuObj[MenuCommonList[2]]:=MenuObj[(MenuCommon1)]
-			Menu,% menuRoot1[1],Rename,% MenuCommon1,% MenuCommonList[1]
-			Menu,% menuRoot1[1],Rename,% MenuCommon2,% MenuCommonList[2]
+			Menu,% menuDefaultRoot1[1],Rename,% MenuCommon1,% MenuCommonList[1]
+			Menu,% menuDefaultRoot1[1],Rename,% MenuCommon2,% MenuCommonList[2]
 		}
 	}
 	commonStr:=""
@@ -3634,7 +3634,7 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%HideRecent% x+76 vvHideRecent,隐藏最近运行
 	Gui,66:Add,Checkbox,Checked%HideMenuTray% x+67 vvHideMenuTray,隐藏底部“RunAny设置”
 	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h85,RunAny菜单设置
-	Variable_Boolean_Reverse("HideSend","HideWeb","HideGetZz","HideSelectZz","HideAddItem","HideRecent")
+	Variable_Boolean_Reverse("HideSend","HideWeb","HideGetZz","HideSelectZz","HideAddItem")
 	Checkbox_WIDTH_66=8
 	Gui,66:Add,Text,xm yp+20, 默认不选中：
 	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,应用程序
@@ -3815,7 +3815,7 @@ Menu_Set:
 	Gui,66:Add,Button,x+15 w75 GSetReSet,重置
 	Gui,66:Add,Text,x+40 yp+5 w75 GMenu_Config,RunAnyConfig.ini
 	Gui,66:Show,,%RunAnyZz%设置 %RunAny_update_version% %RunAny_update_time%%AdminMode%
-	Variable_Boolean_Reverse("HideSend","HideWeb","HideGetZz","HideSelectZz","HideAddItem","HideRecent")
+	Variable_Boolean_Reverse("HideSend","HideWeb","HideGetZz","HideSelectZz","HideAddItem")
 	return
 ;~;[关于]
 Menu_About:
@@ -3928,7 +3928,7 @@ SetOK:
 			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		}
 	}
-	Variable_Boolean_Reverse("vHideSend","vHideWeb","vHideGetZz","vHideSelectZz","vHideAddItem","vHideRecent")
+	Variable_Boolean_Reverse("vHideSend","vHideWeb","vHideGetZz","vHideSelectZz","vHideAddItem")
 	SetValueList:=["AdminRun","AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupDir","DisableApp"]
 	SetValueList.Push("EvPath","EvCommand","EvAutoClose","EvExeVerNew","EvDemandSearch")
 	SetValueList.Push("HideFail","HideRecent","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideUnSelect","HideSelectZz")
