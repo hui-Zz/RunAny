@@ -857,6 +857,7 @@ Menu_Add(menuName,menuItem,item,menuRootFn,TREE_NO){
 Menu_Item_Icon(menuName,menuItem,iconPath,iconNo=0,treeLevel=""){
 	try{
 		menuItemSet:=treeLevel ? treeLevel : menuItem
+		menuItemSet:=RTrim(menuItemSet)
 		menuItemSet:=menuItemIconFileName(menuItemSet)
 		if(IconFolderList[menuItemSet]){
 			Menu,%menuName%,Icon,%menuItem%,% IconFolderList[menuItemSet],0
