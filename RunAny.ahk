@@ -85,8 +85,8 @@ if(errorKeyStr){
 }
 ;══════════════════════════════════════════════════════════════════
 t1:=A_TickCount-StartTick
-tText1:="初始化参数时间：" Round(t1/1000,3) "s`n"
-Menu,Tray,Tip,% tText1 "开始运行插件脚本..."
+Menu_Tray_Tip(RunAnyZz . AdminMode "`n")
+Menu_Tray_Tip("初始化时间：" Round(t1/1000,3) "s`n","开始运行插件脚本...")
 if(!iniFlag){
 	;~;[运行插件脚本]
 	Gosub,AutoRun_Effect
@@ -95,8 +95,7 @@ if(!iniFlag){
 }
 ;══════════════════════════════════════════════════════════════════
 t2:=A_TickCount-StartTick
-tText2:="运行插件脚本：" Round((t2-t1)/1000,3) "s`n"
-Menu,Tray,Tip,% tText1 tText2 "开始调用Everything搜索菜单内应用全路径..."
+Menu_Tray_Tip("运行插件脚本：" Round((t2-t1)/1000,3) "s`n","开始调用Everything搜索菜单内应用全路径...")
 ;~;[初始化everything安装路径]
 evExist:=true
 EvPath:=Var_Read("EvPath")
@@ -151,8 +150,7 @@ if(A_AhkVersion < 1.1.28){
 }
 ;══════════════════════════════════════════════════════════════════
 t3:=A_TickCount-StartTick
-tText3:="调用Everything搜索菜单内应用全路径：" Round((t3-t2)/1000,3) "s`n"
-Menu,Tray,Tip,% tText1 tText2 tText3 "开始创建菜单1内容..."
+Menu_Tray_Tip("调用Everything搜索应用全路径：" Round((t3-t2)/1000,3) "s`n","开始创建菜单1内容...")
 ;~;[自定义后缀打开方式]
 Gosub,Open_Ext_Set
 ;~;[后缀图标初始化]
@@ -182,19 +180,15 @@ Loop,%MenuCount%
 ;~;[读取带图标的自定义应用菜单]
 Menu_Read(iniVar1,menuRoot1,"",1)
 
-t4:=A_TickCount-StartTick
-t5:=t4
-tText4:="创建菜单1内容：" Round((t4-t3)/1000,3) "s`n"
-tText5:=tText4
+t4:=t5:=A_TickCount-StartTick
+Menu_Tray_Tip("创建菜单1：" Round((t4-t3)/1000,3) "s`n")
 ;~;[如果有第2菜单则开始加载]
 if(MENU2FLAG){
-	Menu,Tray,Tip,% tText1 tText2 tText3 tText4 "开始创建菜单2内容..."
+	Menu_Tray_Tip("","开始创建菜单2内容...")
 	Menu_Read(iniVar2,menuRoot2,"",2)
 
 	t5:=A_TickCount-StartTick
-	tText5:="创建菜单2内容：" Round((t5-t4)/1000,3) "s`n"
-	Menu,Tray,Tip,% tText1 tText2 tText3 tText4 tText5
-	tText5.=tText4
+	Menu_Tray_Tip("创建菜单2：" Round((t5-t4)/1000,3) "s`n")
 }
 
 Loop,%MenuCount%
@@ -208,10 +202,10 @@ Loop,%MenuCount%
 	menuFileRoot%A_Index%:=[M%A_Index% "   "]
 	Menu_Read(iniVar%A_Index%,menuFileRoot%A_Index%,"   ",A_Index)
 
-	MenuItemDefaultListShow(A_Index,"MenuSendStrList",true,3)
-	MenuItemDefaultListShow(A_Index,"MenuSendStrList",HideSend)
-	MenuItemDefaultListShow(A_Index,"MenuWebList",HideWeb)
-	MenuItemDefaultListShow(A_Index,"MenuGetZzList",HideGetZz)
+	Menu_Item_List_Filter(A_Index,"MenuSendStrList",true,3)
+	Menu_Item_List_Filter(A_Index,"MenuSendStrList",HideSend)
+	Menu_Item_List_Filter(A_Index,"MenuWebList",HideWeb)
+	Menu_Item_List_Filter(A_Index,"MenuGetZzList",HideGetZz)
 }
 
 ;获得所有后缀公共菜单
@@ -227,7 +221,7 @@ if(!HideRecent){
 		Menu,% menuDefaultRoot1[1],Add,%mcv%,Menu_Run
 	}
 }
-Menu,Tray,Tip,% tText1 tText2 tText3 tText5 "开始为菜单中exe应用加载图标..."
+Menu_Tray_Tip("","开始为菜单中exe程序加载图标...")
 ;~;[循环为菜单中EXE程序添加图标，过程较慢]
 For k, v in MenuExeList
 {
@@ -239,8 +233,7 @@ For k, v in MenuExeList
 ;#菜单已经加载完毕，托盘图标变化
 try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 t6:=A_TickCount-StartTick
-tText6:="为菜单中exe应用加载图标：" Round((t6-t5)/1000,3) "s`n"
-Menu,Tray,Tip,% tText1 tText2 tText3 tText5 tText6 "总加载时间：" Round(t6/1000,3) "s"
+Menu_Tray_Tip("为菜单中exe程序加载图标：" Round((t6-t5)/1000,3) "s`n","总加载时间：" Round(t6/1000,3) "s")
 MenuIconFalg:=true
 
 ;#如果是第一次运行#
@@ -267,7 +260,7 @@ return
 
 
 ;~[在选中文字文件或不选中时，默认菜单显示的内容类型]
-MenuItemDefaultListShow(M_Index,MenuTypeList,HideFlag,MenuType:=1){
+Menu_Item_List_Filter(M_Index,MenuTypeList,HideFlag,MenuType:=1){
 	if(MenuType=1){
 		rootName:=menuDefaultRoot%M_Index%[1]
 		rootReg:="[^\s]+\s$"
@@ -292,7 +285,12 @@ MenuItemDefaultListShow(M_Index,MenuTypeList,HideFlag,MenuType:=1){
 		}
 	}
 }
-
+;~[鼠标悬停在托盘图标上时显示信息]
+Menu_Tray_Tip(tText,tmpText:=""){
+	static tipText:=""
+	tipText.=tText
+	Menu,Tray,Tip,% tipText tmpText
+}
 
 ;══════════════════════════════════════════════════════════════════
 ;~;[多种启动菜单热键]
