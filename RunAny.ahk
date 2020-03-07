@@ -40,9 +40,11 @@ MenuObj.SetCapacity(10240)
 MenuExeList.SetCapacity(1024)
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化菜单显示热键]
+HotKeyList:=["MenuHotKey","MenuHotKey2","EvHotKey","OneHotKey","TreeHotKey1","TreeHotKey2","TreeIniHotKey1","TreeIniHotKey2"]
+HotKeyList.Push("RunATrayHotKey","RunASetHotKey","RunAReloadHotKey","RunASuspendHotKey","RunAExitHotKey","PluginsManageHotKey")
+RunList:=["Menu_Show1","Menu_Show2","Ev_Show","One_Show","Menu_Edit1","Menu_Edit2","Menu_Ini","Menu_Ini2"]
+RunList.Push("Menu_Tray","Menu_Set","Menu_Reload","Menu_Suspend","Menu_Exit","Plugins_Manage")
 Hotkey, IfWinNotActive, ahk_group DisableGUI
-HotKeyList:=["MenuHotKey","MenuHotKey2","EvHotKey","OneHotKey","TreeHotKey1","TreeHotKey2","TreeIniHotKey1","TreeIniHotKey2","RunATrayHotKey","RunASetHotKey","RunAReloadHotKey","RunASuspendHotKey","RunAExitHotKey","PluginsManageHotKey"]
-RunList:=["Menu_Show1","Menu_Show2","Ev_Show","One_Show","Menu_Edit1","Menu_Edit2","Menu_Ini","Menu_Ini2","Menu_Tray","Menu_Set","Menu_Reload","Menu_Suspend","Menu_Exit","Plugins_Manage"]
 For ki, kv in HotKeyList
 {
 	StringReplace,keyV,kv,Hot
@@ -117,7 +119,8 @@ while !WinExist("ahk_exe Everything.exe")
 			gosub,Menu_Set
 			MsgBox,17,,RunAny需要Everything极速识别程序的路径`n请使用以下任意一种方式：`n
 				(
-* 运行Everything后重启RunAny`n* 设置RunAny中Everything正确安装路径`n* 下载Everything并安装后再运行RunAny：http://www.voidtools.com/
+* 运行Everything后重启RunAny`n* 设置RunAny中Everything正确安装路径
+* 下载Everything并安装后再运行RunAny：http://www.voidtools.com/
 				)
 			IfMsgBox Ok
 				Run,http://www.voidtools.com/
@@ -141,7 +144,10 @@ if(EvAutoClose && EvPath){
 }
 DetectHiddenWindows,Off
 if(A_AhkVersion < 1.1.28){
-	MsgBox, 16, AutoHotKey版本过低！, 由于你的AHK版本没有高于1.1.28，会影响RunAny功能的使用`n1. 不支持StrSplit()函数的MaxParts`n2. 不支持动态Hotstring创建
+	MsgBox, 16, AutoHotKey版本过低！, 由于你的AHK版本没有高于1.1.28，会影响RunAny功能的使用!`n
+	(
+1. 不支持StrSplit()函数的MaxParts`n2. 不支持动态Hotstring创建
+	)
 }
 ;══════════════════════════════════════════════════════════════════
 t3:=A_TickCount-StartTick
@@ -485,7 +491,8 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 			;短语、网址、脚本插件函数除外的菜单项直接转换%%为系统变量值
 			itemLen:=StrLen(Z_LoopField)
 			transformValFlag:=false
-			if(InStr(Z_LoopField,";",,0,1)!=itemLen && !RegExMatch(Z_LoopField,"iS)([\w-]+://?|www[.]).*") && !RegExMatch(Z_LoopField,"iS).+?\[.+?\]%?\(.*?\)")){
+			if(InStr(Z_LoopField,";",,0,1)!=itemLen && !RegExMatch(Z_LoopField,"iS)([\w-]+://?|www[.]).*") 
+					&& !RegExMatch(Z_LoopField,"iS).+?\[.+?\]%?\(.*?\)")){
 				Z_LoopField:=StrReplace(Z_LoopField,"%getZz%",Chr(3))
 				Z_LoopField:=Get_Transform_Val(Z_LoopField)
 				Z_LoopField:=StrReplace(Z_LoopField,Chr(3),"%getZz%")
@@ -642,7 +649,10 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 			}
 
 		} catch e {
-			MsgBox,16,构建菜单出错,% "菜单名：" menuRootFn[menuLevel] "`n菜单项：" A_LoopField "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+			MsgBox,16,构建菜单出错,% "菜单名：" menuRootFn[menuLevel] "`n菜单项：" A_LoopField "`n
+			(
+出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+			)
 		}
 	}
 	For key, value in MenuObjParam
@@ -836,7 +846,10 @@ Menu_Add(menuName,menuItem,item,menuRootFn,TREE_NO){
 			}
 		}
 	} catch e {
-		MsgBox,16,判断后缀创建菜单项出错,% "菜单名：" menuName "`n菜单项：" menuItem "`n路径：" item "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+		MsgBox,16,判断后缀创建菜单项出错,% "菜单名：" menuName "`n菜单项：" menuItem "`n
+		(
+路径：" item "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+		)
 	}
 }
 ;~;[统一设置菜单项图标]
@@ -1032,11 +1045,7 @@ Menu_Key_Show:
 	global getZz:=Get_Zz()
 	try {
 		gosub,RunAny_Menu
-		menuName:=menuTreekey[(A_ThisHotkey)]
-		;~ if(MenuEmptyList[menuName]=0){
-			;~ menuName.=" "
-		;~ }
-		Menu_Show_Show(menuName,getZz)
+		Menu_Show_Show(menuTreekey[(A_ThisHotkey)],getZz)
 	}catch{}
 return
 Menu_All_Show:
@@ -3744,7 +3753,7 @@ Menu_Set:
 	Gui,66:Add,Edit,ReadOnly xm yp+25 w%GROUP_EDIT_WIDTH_66% r8 -WantReturn vvEvCommand,%EvCommand%
 	
 	Gui,66:Tab,一键直达,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h50,一键直达
+	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h50,一键直达（仅菜单1热键触发，不想触发的菜单项放入菜单2中）
 	Gui,66:Add,Text,xm yp+25 w120,选中后直接一键打开：
 	Gui,66:Add,Checkbox,Checked%OneKeyWeb% x+20 yp vvOneKeyWeb,网址
 	Gui,66:Add,Checkbox,Checked%OneKeyFile% x+10 yp vvOneKeyFile,文件路径
