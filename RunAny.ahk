@@ -158,7 +158,7 @@ Gosub,Icon_FileExt_Set
 ;~;
 global MenuWebRootSplit:=Object()	;网址短语函数菜单的分隔符追加
 ;~ global MenuEmptyList:=Object()	;需要置空内容菜单列表
-global MenuObjPublic:=Object()	;后缀公共菜单
+global MenuObjPublic:=""		;后缀公共菜单
 global MenuObjTreeLevel:=Object()	;菜单对应级别
 global MenuIconFalg:=false			;菜单图标是否加载完成
 global MenuCount:=MENU2FLAG ? 2 : 1
@@ -168,9 +168,9 @@ Loop,%MenuCount%
 	M%A_Index%:=RunAnyZz . A_Index
 	MenuSendStrList%A_Index%:=Object()	;菜单中短语项列表
 	MenuWebList%A_Index%:=Object()		;菜单中网址%s搜索项列表
-	MenuGetZzList%A_Index%:=Object()		;菜单中GetZz搜索项列表
-	MenuObjList%A_Index%:=Object()   		;菜单分类运行项列表
-	MenuObjTree%A_Index%:=Object()   		;分类目录程序全数据
+	MenuGetZzList%A_Index%:=Object()	;菜单中GetZz搜索项列表
+	MenuObjList%A_Index%:=Object()   	;菜单分类运行项列表
+	MenuObjTree%A_Index%:=Object()   	;分类目录程序全数据
 	MenuObjTree%A_Index%[M%A_Index%]:=Object()
 	;菜单级别：初始为根菜单RunAny
 	menuRoot%A_Index%:=[M%A_Index%]
@@ -209,7 +209,9 @@ Loop,%MenuCount%
 }
 
 ;获得所有后缀公共菜单
-MenuObjExt["public"]:=MenuObjPublic
+MenuObjPublic:=RTrim(MenuObjPublic,"`n")
+Sort,MenuObjPublic,U
+MenuObjExt["public"]:=StrSplit(MenuObjPublic,"`n")
 
 ;~;[最近运行项]
 if(!HideRecent){
@@ -444,8 +446,9 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					;~;[读取菜单关联后缀]
 					Loop, parse,% menuItems[2],%A_Space%
 					{
+						;选中文件后显示的公共后缀菜单
 						if(A_LoopField="public")
-							MenuObjPublic.Push(treeLevel . menuItem) ;公共后缀菜单
+							MenuObjPublic.=treeLevel . menuItem . "   `n"
 						else
 							MenuObjExt[(A_LoopField)]:=menuItem
 					}
