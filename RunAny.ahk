@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2020.02.26
+║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2020.03.08
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -24,7 +24,7 @@ global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.6.9"
-global RunAny_update_time:="2020.02.26"
+global RunAny_update_time:="2020.03.08"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -33,11 +33,9 @@ global MenuObjKey:=Object()     ;~程序热键
 global MenuObjName:=Object()    ;~程序别名
 global MenuObjParam:=Object()   ;~程序参数
 global MenuObjExt:=Object()     ;~后缀对应菜单
-global MenuExeList:=Object()    ;~程序数据数组
 global MenuHotStrList:=Object() ;~热字符串数据数组
 global MenuTreeKey:=Object()    ;~分类热键
 MenuObj.SetCapacity(10240)
-MenuExeList.SetCapacity(1024)
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化菜单显示热键]
 HotKeyList:=["MenuHotKey","MenuHotKey2","EvHotKey","OneHotKey","TreeHotKey1","TreeHotKey2","TreeIniHotKey1","TreeIniHotKey2"]
@@ -156,10 +154,15 @@ Gosub,Open_Ext_Set
 ;~;[后缀图标初始化]
 Gosub,Icon_FileExt_Set
 ;~;
-global MenuObjTreeLevel:=Object()	;菜单对应级别
-global MenuObjPublics:=""			;后缀公共菜单列表
-global MenuIconFalg:=false			;菜单图标是否加载完成
+global MenuExeList:=Object()		;~程序数据数组
+global MenuExeIconList:=Object()	;~程序优先加载图标数组
+global MenuObjTreeLevel:=Object()	;~菜单对应级别
+global MenuObjPublics:=""			;~后缀公共菜单列表
+global MenuShowFlag:=false			;~菜单功能是否可以显示
+global MenuIconFlag:=false			;~菜单图标是否加载完成
 global MenuCount:=MENU2FLAG ? 2 : 1
+MenuExeList.SetCapacity(1024)
+MenuExeIconList.SetCapacity(3072)
 ;~;
 Loop,%MenuCount%
 {
@@ -186,6 +189,8 @@ if(MENU2FLAG){
 	t5:=A_TickCount-StartTick
 	Menu_Tray_Tip("创建菜单2：" Round((t5-t4)/1000,3) "s`n")
 }
+MenuShowFlag:=true
+Menu_Tray_Tip("","菜单已经可以正常使用（图标会稍后加载）")
 ;~[对菜单内容项进行过滤调整]
 Loop,%MenuCount%
 {
@@ -229,8 +234,14 @@ if(!HideRecent){
 		Menu,% menuDefaultRoot1[1],Add,%mcv%,Menu_Run
 	}
 }
-Menu_Tray_Tip("","开始为菜单中exe程序加载图标...")
+Menu_Tray_Tip("","菜单已经可以正常使用`n开始为菜单中exe程序加载图标...")
 ;~;[循环为菜单中EXE程序添加图标，过程较慢]
+For k, v in MenuExeIconList
+{
+	if(!HideMenuAppIconList[(v["menuName"])]){
+		Menu_Item_Icon(v["menuName"],v["menuItem"],v["itemFile"])
+	}
+}
 For k, v in MenuExeList
 {
 	if(!HideMenuAppIconList[(v["menuName"])]){
@@ -242,7 +253,7 @@ For k, v in MenuExeList
 try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 t6:=A_TickCount-StartTick
 Menu_Tray_Tip("为菜单中exe程序加载图标：" Round((t6-t5)/1000,3) "s`n","总加载时间：" Round(t6/1000,3) "s")
-MenuIconFalg:=true
+MenuIconFlag:=true
 
 ;#如果是第一次运行#
 if(iniFlag){
@@ -494,7 +505,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 			if(menuRootFn[menuLevel]="")
 				continue
 			
-			itemMode:=GetMenuItemMode(Z_LoopField)
+			itemMode:=GetMenuItemMode(Z_LoopField,true)
 			
 			;短语、网址、脚本插件函数除外的菜单项直接转换%%为系统变量值
 			transformValFlag:=false
@@ -676,8 +687,12 @@ MenuExeListPush(menuName,menuItem,itemFile,itemAny){
 	MenuObjEXE["menuName"]:=menuName
 	MenuObjEXE["menuItem"]:=menuItem
 	MenuObjEXE["itemFile"]:=itemFile
-	MenuObjEXE["itemAny"]:=itemAny
-	MenuExeList.Push(MenuObjEXE)
+	;~ MenuObjEXE["itemAny"]:=itemAny
+	if(RegExMatch(menuName,"[^\s]+$")){
+		MenuExeList.Push(MenuObjEXE)
+	}else{
+		MenuExeIconList.Push(MenuObjEXE)
+	}
 }
 ;~;[读取热字串用作提示文字]
 Menu_HotStr_Hint_Read(hotstr,hotStrName,itemParam){
@@ -741,7 +756,6 @@ Menu_Add(menuName,menuItem,item,itemMode,TREE_NO){
 	if(!menuName || !item)
 		return
 	try {
-		itemLen:=StrLen(item)
 		SplitPath, item,,, FileExt  ; 获取文件扩展名.
 		Menu,%menuName%,add,%menuItem%,Menu_Run
 		MenuObjList%TREE_NO%[menuName].=menuItem "`n"
@@ -835,18 +849,27 @@ Menu_Show2:
 	iniFileShow:=iniPath2
 	gosub,Menu_Show
 return
+MenuShowTime:
+	MenuShowTimeFlag:=true
+	if(MenuShowFlag){
+		SetTimer,MenuShowTime,Off
+		gosub,Menu_Show
+	}
+return
 ;══════════════════════════════════════════════════════════════════
 ;~;[显示菜单]
 ;══════════════════════════════════════════════════════════════════
 Menu_Show:
 	try{
+		if(!MenuShowFlag && !MenuShowTimeFlag)
+			SetTimer,MenuShowTime,100
 		if(!extMenuHideFlag)
 			global getZz:=Get_Zz()
 		gosub,RunAny_Menu
 		selectCheck:=Trim(getZz," `t`n`r")
 		if(selectCheck=""){
 			;#无选中内容#初始先显示无图标菜单
-			if(MenuIconFalg)
+			if(MenuIconFlag)
 				Menu,% menuDefaultRoot%MENU_NO%[1],Show
 			else
 				Menu,% menuRoot%MENU_NO%[1],Show
@@ -1332,8 +1355,8 @@ Menu_Recent:
 			MenuCommonList[2]:=RegExReplace(MenuCommon1,"&1","&2")
 			MenuObj[MenuCommonList[1]]:=any
 			MenuObj[MenuCommonList[2]]:=MenuObj[(MenuCommon1)]
-			Menu,% menuDefaultRoot1[1],Rename,% MenuCommon1,% MenuCommonList[1]
-			Menu,% menuDefaultRoot1[1],Rename,% MenuCommon2,% MenuCommonList[2]
+			try Menu,% menuDefaultRoot1[1],Rename,% MenuCommon1,% MenuCommonList[1]
+			try Menu,% menuDefaultRoot1[1],Rename,% MenuCommon2,% MenuCommonList[2]
 		}
 	}
 	commonStr:=""
@@ -1825,7 +1848,7 @@ return
 SetSaveItem:
 	Gui,SaveItem:Submit,NoHide
 	saveText:=tabText:=itemGlobalKeyStr:=""
-	menuFlag:=false	;判断是否定位到要插入的菜单位置
+	menuFlag:=false		;判断是否定位到要插入的菜单位置
 	endFlag:=false		;判断是否插入到末尾
 	rootFlag:=true		;判断是否为根目录
 	inputFlag:=false	;判断是否插入
@@ -2918,7 +2941,6 @@ Set_Icon(itemVar,editVar=true){
 			return itemStyle . "Icon" . addNum
 		}catch{}
 	}
-	itemLen:=StrLen(itemVar)
 	if(setItemMode=2 || setItemMode=3)
 		return "Icon2"
 	if(setItemMode=10)
@@ -4956,7 +4978,8 @@ everythingQuery(){
 		Loop, parse, iniVar1, `n, `r, %A_Space%%A_Tab%
 		{
 			RegExMatch(A_LoopField,"[^|]+?\.[a-zA-Z]+",outVar)
-			if(Trim(outVar) && !RegExMatch(outVar,"\\|\/|\:|\*|\?|\""|\<|\>|\|") && !InStr(EvCommandStr,"|" outVar "|") && GetMenuItemMode(A_LoopField)=1){
+			if(Trim(outVar) && !RegExMatch(outVar,"\\|\/|\:|\*|\?|\""|\<|\>|\|") 
+					&& !InStr(EvCommandStr,"|" outVar "|") && GetMenuItemMode(A_LoopField)=1){
 				if(InStr(outVar,A_Space)){
 					EvCommandStr.="""" outVar . """|"
 				}else{
@@ -4968,7 +4991,8 @@ everythingQuery(){
 			Loop, parse, iniVar2, `n, `r, %A_Space%%A_Tab%
 			{
 				RegExMatch(A_LoopField,"[^|]+?\.[a-zA-Z]+",outVar)
-				if(Trim(outVar) && !RegExMatch(outVar,"\\|\/|\:|\*|\?|\""|\<|\>|\|") && !InStr(EvCommandStr,"|" outVar "|") && GetMenuItemMode(A_LoopField)=1){
+				if(Trim(outVar) && !RegExMatch(outVar,"\\|\/|\:|\*|\?|\""|\<|\>|\|") 
+						&& !InStr(EvCommandStr,"|" outVar "|") && GetMenuItemMode(A_LoopField)=1){
 					if(InStr(outVar,A_Space)){
 						EvCommandStr.="""" outVar . """|"
 					}else{
