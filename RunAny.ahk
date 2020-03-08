@@ -3653,13 +3653,13 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%HideWeb% x+%Checkbox_WIDTH_66% vvHideWeb,网址带`%s
 	Gui,66:Add,Checkbox,Checked%HideGetZz% x+%Checkbox_WIDTH_66% vvHideGetZz,插件脚本(仅带`%getZz`%)
 	Gui,66:Add,Text,xm yp+20,选中文字时：
-	Gui,66:Add,Checkbox,Checked%HideSelectZz% x+%Checkbox_WIDTH_66% vvHideSelectZz,选中提示
+	Gui,66:Add,Checkbox,Checked%HideSelectZz% x+%Checkbox_WIDTH_66% vvHideSelectZz gSetHideSelectZz,选中提示
 	Gui,66:Add,Checkbox,Checked%HideUnSelect% x+%Checkbox_WIDTH_66% vvHideUnSelect,应用程序
 	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,网址带`%s
 	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,插件脚本
 	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,短语输出
 	Gui,66:Add,Text,xm yp+20,选中文件时：
-	Gui,66:Add,Checkbox,Checked%HideSelectZz% x+%Checkbox_WIDTH_66%,选中提示
+	Gui,66:Add,Checkbox,Disabled Checked%HideSelectZz% x+%Checkbox_WIDTH_66% vvHideSelectZz2,选中提示
 	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,应用程序
 	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,网址带`%s
 	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,插件脚本
@@ -3982,6 +3982,10 @@ SetOK:
 return
 SetCancel:
 	Gui,Destroy
+return
+SetHideSelectZz:
+	GuiControlGet, outPutVar, , vHideSelectZz
+	GuiControl,, vHideSelectZz2, %outPutVar%
 return
 SetReSet:
 	MsgBox,49,重置RunAny配置,此操作会删除RunAny所有注册表配置，以及删除本地配置文件%RunAnyConfig%，确认删除重置吗？
