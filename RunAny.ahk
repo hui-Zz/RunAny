@@ -425,10 +425,10 @@ GetMenuItemMode(item,fullItemFlag:=false){
 		return InStr(item,":::",,0,1)=len-2 ? 5 : 4
 	if(RegExMatch(item,"iS)([\w-]+://?|www[.]).*"))
 		return 6
-	if(InStr(FileExist(item), "D"))
-		return 7
 	if(RegExMatch(item,"S).+?\[.+?\]%?\(.*?\)"))
 		return 8
+	if(InStr(FileExist(item), "D"))
+		return 7
 	return 1
 }
 ;══════════════════════════════════════════════════════════════════
@@ -494,11 +494,11 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 			if(menuRootFn[menuLevel]="")
 				continue
 			
+			itemMode:=GetMenuItemMode(Z_LoopField)
+			
 			;短语、网址、脚本插件函数除外的菜单项直接转换%%为系统变量值
-			itemLen:=StrLen(Z_LoopField)
 			transformValFlag:=false
-			if(InStr(Z_LoopField,";",,0,1)!=itemLen && !RegExMatch(Z_LoopField,"iS)([\w-]+://?|www[.]).*") 
-					&& !RegExMatch(Z_LoopField,"iS).+?\[.+?\]%?\(.*?\)")){
+			if(itemMode!=2 && itemMode!=3 && itemMode!=6 && itemMode!=8){
 				Z_LoopField:=StrReplace(Z_LoopField,"%getZz%",Chr(3))
 				Z_LoopField:=Get_Transform_Val(Z_LoopField)
 				Z_LoopField:=StrReplace(Z_LoopField,Chr(3),"%getZz%")
@@ -554,9 +554,9 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					}
 				}else if FileExt in lnk,bat,cmd,vbs,ps1,ahk
 				{
-					Menu_Add(menuRootFn[menuLevel],menuDiy[1],item,TREE_NO)
+					Menu_Add(menuRootFn[menuLevel],menuDiy[1],item,itemMode,TREE_NO)
 				}else{
-					Menu_Add(menuRootFn[menuLevel],menuDiy[1],itemParam,TREE_NO)
+					Menu_Add(menuRootFn[menuLevel],menuDiy[1],itemParam,itemMode,TREE_NO)
 				}
 				;~;[分割Tab获取应用自定义热键]
 				menuKeyStr:=RegExReplace(menuDiy[1], "S)\t+", A_Tab)
@@ -651,7 +651,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 			}else{
 				if(!MenuObj[Z_LoopField])
 					MenuObj[Z_LoopField]:=Z_LoopField
-				Menu_Add(menuRootFn[menuLevel],Z_LoopField,MenuObj[Z_LoopField],TREE_NO)
+				Menu_Add(menuRootFn[menuLevel],Z_LoopField,MenuObj[Z_LoopField],itemMode,TREE_NO)
 			}
 
 		} catch e {
@@ -737,7 +737,7 @@ return
 ;══════════════════════════════════════════════════════════════════
 ;~;[生成菜单(判断后缀创建图标)]
 ;══════════════════════════════════════════════════════════════════
-Menu_Add(menuName,menuItem,item,TREE_NO){
+Menu_Add(menuName,menuItem,item,itemMode,TREE_NO){
 	if(!menuName || !item)
 		return
 	try {
@@ -745,16 +745,16 @@ Menu_Add(menuName,menuItem,item,TREE_NO){
 		SplitPath, item,,, FileExt  ; 获取文件扩展名.
 		Menu,%menuName%,add,%menuItem%,Menu_Run
 		MenuObjList%TREE_NO%[menuName].=menuItem "`n"
-		if(InStr(item,";",,0,1)=itemLen){  ; {短语}
-			Menu_Item_Icon(menuName,menuItem,"SHELL32.dll","2")
+		if(itemMode=2 || itemMode=3){  ; {短语}
+			Menu_Item_Icon(menuName,menuItem,"SHELL32.dll",itemMode=3 ? "2" : "71")
 			MenuSendStrList%TREE_NO%[menuName].=menuItem "`n"
 			return
 		}
-		if(InStr(item,"::",,0,1)=itemLen-1){	; {发送热键}
-			Menu_Item_Icon(menuName,menuItem,"SHELL32.dll",InStr(item,":::",,0,1)=itemLen-2 ? "101" : "100")
+		if(itemMode=4 || itemMode=5){	; {发送热键}
+			Menu_Item_Icon(menuName,menuItem,"SHELL32.dll",itemMode=5 ? "101" : "100")
 			return
 		}
-		if(RegExMatch(item,"iS)([\w-]+://?|www[.]).*")){  ; {网址}
+		if(itemMode=6){  ; {网址}
 			website:=RegExReplace(item,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
 			webIcon:=RunIconDir "\" website ".ico"
 			webIconNum:=0
@@ -767,16 +767,16 @@ Menu_Add(menuName,menuItem,item,TREE_NO){
 				MenuWebList%TREE_NO%[menuName].=menuItem "`n"
 			return
 		}
-		if(RegExMatch(item,"S).+?\[.+?\]%?\(.*?\)")){  ; {脚本插件函数}
+		if(itemMode=8){  ; {脚本插件函数}
 			Menu_Item_Icon(menuName,menuItem,FuncIconS[1],FuncIconS[2])
 			if(InStr(item,"%getZz%")){
 				MenuGetZzList%TREE_NO%[menuName].=menuItem "`n"	; 添加到GetZz搜索
 			}
 			return
 		}
-		if(InStr(FileExist(item), "D")){  ; {目录}
+		if(itemMode=7){  ; {目录}
 			Menu,%menuName%,Icon,%menuItem%,% FolderIconS[1],% FolderIconS[2]
-		}else if(Ext_Check(item,itemLen,".lnk")){  ; {快捷方式}
+		}else if(FileExt="lnk"){  ; {快捷方式}
 			try{
 				FileGetShortcut, %item%, OutItem, , , , OutIcon, OutIconNum
 				if(!OutIcon){
