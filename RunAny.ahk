@@ -1104,7 +1104,7 @@ Menu_Run:
 		}
 		itemMode:=GetMenuItemMode(any)
 		
-		if(!HideRecent && !RegExMatch(A_ThisMenuItem,"S)^&1|2"))
+		if(!HideRecent && !RegExMatch(A_ThisMenuItem,"S)^&\d+"))
 			gosub,Menu_Recent
 
 		;[根据菜单项模式运行]
@@ -1348,40 +1348,38 @@ Menu_Run_Plugins_ObjReg:
 return
 ;~;[菜单最近运行]
 Menu_Recent:
-	if(!MenuCommonList[1]){
-		MenuCommonList[1]:="&1 " A_ThisMenuItem
-		MenuObj[MenuCommonList[1]]:=any
-		Menu,% menuDefaultRoot1[1],Add,% MenuCommonList[1],Menu_Run
-		menuItem:=MenuCommonList[1]
-	}else if(MenuCommonList[1]!="&1" A_Space A_ThisMenuItem){
-		if(!MenuCommonList[2]){
-			MenuCommonList[2]:="&2" A_Space A_ThisMenuItem
-			MenuObj[MenuCommonList[2]]:=any
-			try Menu,% menuDefaultRoot1[1],Add,% MenuCommonList[2],Menu_Run
-			menuItem:=MenuCommonList[2]
-		}else if(MenuCommonList[1] && MenuCommonList[2]){
-			MenuCommon1:=MenuCommonList[1]
-			MenuCommon2:=MenuCommonList[2]
-			MenuCommonList[1]:="&1" A_Space A_ThisMenuItem
-			MenuCommonList[2]:=RegExReplace(MenuCommon1,"&1","&2")
-			MenuObj[MenuCommonList[1]]:=any
-			MenuObj[MenuCommonList[2]]:=MenuObj[(MenuCommon1)]
-			try Menu,% menuDefaultRoot1[1],Rename,% MenuCommon1,% MenuCommonList[1]
-			try Menu,% menuDefaultRoot1[1],Rename,% MenuCommon2,% MenuCommonList[2]
-			menuItem:=MenuCommonList[1]
-			SplitPath,% MenuObj[MenuCommonList[2]], , , ext2
-			if(ext2="exe"){
-				Menu_Item_Icon(menuDefaultRoot1[1],MenuCommonList[2],MenuObj[MenuCommonList[2]])
-			}else{
-				Menu_Add(menuDefaultRoot1[1],MenuCommonList[2],MenuObj[MenuCommonList[2]],itemMode,"")
-			}
+	recentAny:=any
+	Loop,% MenuCommonList.MaxIndex()
+	{
+		if(RegExMatch(MenuCommonList[A_Index],"S)&\d+\s" A_ThisMenuItem)){
+			return
 		}
 	}
-	if(ext="exe"){
-		Menu_Item_Icon(menuDefaultRoot1[1],menuItem,any)
-	}else{
-		Menu_Add(menuDefaultRoot1[1],menuItem,any,itemMode,"")
+	MenuCommonList.InsertAt(1,"&1" A_Space A_ThisMenuItem)  ;插入到最近运行第一条
+	Loop,% MenuCommonList.MaxIndex()
+	{
+		if(A_Index>=5){  ;如果超出最大运行项数
+			try Menu,% menuDefaultRoot1[1],Delete,% MenuCommonList[A_Index]
+			MenuCommonList.Pop()
+			break
+		}
+		if(A_Index=1){
+			MenuObj[MenuCommonList[1]]:=recentAny
+		}else{
+			try Menu,% menuDefaultRoot1[1],Delete,% MenuCommonList[A_Index]
+			recentAny:=MenuObj[MenuCommonList[A_Index]]  ;获取原顺序下运行路径
+			MenuCommonList[A_Index]:=RegExReplace(MenuCommonList[A_Index],"&\d+","&" A_Index)  ;修改序号
+		}
+		menuItem:=MenuCommonList[A_Index]
+		Menu,% menuDefaultRoot1[1],Add,%menuItem%,Menu_Run
+		;更改图标
+		if(ext="exe"){
+			Menu_Item_Icon(menuDefaultRoot1[1],menuItem,recentAny)
+		}else{
+			Menu_Add(menuDefaultRoot1[1],menuItem,recentAny,itemMode,"")
+		}
 	}
+	;保存菜单最近运行项至注册表，重启后加载
 	commonStr:=""
 	For k, v in MenuCommonList
 	{
