@@ -283,7 +283,7 @@ if(RunABackupRule){
 }
 return
 
-;##############################################
+;###########################################################################################
 
 ;~[在选中文字文件或不选中时，过滤不同内容类型]
 Menu_Item_List_Filter(M_Index,MenuTypeList,HideFlag,MenuType:=1){
@@ -421,7 +421,9 @@ RunABackupClear(RunABackupDir,RunABackupFile){
 }
 ;══════════════════════════════════════════════════════════════════
 ;~;[获取菜单项启动模式]
-;~;1-启动路径|2-短语模式|3-模拟打字短语|4-热键映射|5-AHK热键映射|6-网址|7-文件夹|8-插件脚本函数|10-菜单节点|11-分割符|12-注释说明
+;~;1-启动路径|2-短语模式|3-模拟打字短语|4-热键映射|5-AHK热键映射|6-网址|60-传参数中带网址
+;~;7-文件夹|8-插件脚本函数
+;~;10-菜单节点|11-分割符|12-注释说明
 GetMenuItemMode(item,fullItemFlag:=false){
 	if(fullItemFlag){
 		if(InStr(item,";")=1)
@@ -440,6 +442,8 @@ GetMenuItemMode(item,fullItemFlag:=false){
 		return InStr(item,";;",,0,1)=len-1 ? 3 : 2
 	if(InStr(item,"::",,0,1)=len-1)
 		return InStr(item,":::",,0,1)=len-2 ? 5 : 4
+	if(RegExMatch(item,"iS)^.*?\.(exe|lnk|bat|cmd|vbs|ps1|ahk) .*?([\w-]+://?|www[.]).*"))
+		return 60
 	if(RegExMatch(item,"iS)([\w-]+://?|www[.]).*"))
 		return 6
 	if(RegExMatch(item,"S).+?\[.+?\]%?\(.*?\)"))
@@ -1261,7 +1265,7 @@ Menu_Run_Mode_Label:
 	}else if(itemMode=8){
 		gosub,Menu_Run_Plugins_ObjReg  ;{脚本插件函数}
 		returnFlag:=true
-	}else if(RegExMatch(any,"iS)^.*?\.exe ([\w-]+://?|www[.]).*")){
+	}else if(itemMode=60){
 		gosub,Menu_Run_Exe_Url  ;指定浏览器打开网页
 		returnFlag:=true
 	}else if(itemMode=6){
@@ -1628,7 +1632,7 @@ Get_Obj_Path(z_item){
 			obj_path:=z_item
 		}else{
 			appName:=RegExReplace(z_item,"iS)\.exe$")
-			obj_path:=MenuObj[appName]
+			obj_path:=MenuObj[appName]="" ? z_item : MenuObj[appName]
 		}
 	}
 	if(RegExMatch(obj_path,"iS).*?\.[a-zA-Z]+($| .*)")){
@@ -1651,6 +1655,8 @@ Get_Obj_Path(z_item){
 }
 ;~;[获取变量转换后的应用路径]
 Get_Obj_Path_Transform(z_item){
+	if(z_item="")
+		return z_item
 	itemPath:=Get_Transform_Val(z_item) ; 变量转换
 	objPathItem:=Get_Obj_Path(itemPath) ; 自动添加完整路径
 	if(objPathItem){
@@ -2943,13 +2949,16 @@ Set_Icon(itemVar,editVar=true){
 	itemStyle:=setItemMode=10 ? "Bold " : ""
 	SplitPath,itemVar,,,FileExt,name_no_ext  ; 获取文件扩展名.
 	;~;[获取全路径]
-	FileName:=Get_Obj_Path(itemVar)
-	if(setItemMode=1 && !FileExist(FileName))
-		FailFlag:=true
+	if(setItemMode=1 || setItemMode=60){
+		FileName:=Get_Obj_Path(itemVar)
+		if(!FileExist(FileName))
+			FailFlag:=true
+	}
 	;[优先加载自定义图标]
 	if(InStr(itemVar,"|")){
 		diyText:=StrSplit(itemVar,"|",,2)
 		itemIcon:=diyText[1]
+		objText:=(diyText[2]) ? diyText[2] : diyText[1]
 	}else{
 		itemIcon:=name_no_ext
 	}
@@ -2975,12 +2984,12 @@ Set_Icon(itemVar,editVar=true){
 		return "Icon10"
 	if(setItemMode=8)  ; {脚本插件函数}
 		return "Icon11"
-	if(!editVar && FileName="" && FileExt = "exe")
+	if(!editVar && FileName="" && FileExt="exe")
 		return "Icon3"
 	;~;[获取网址图标]
 	if(setItemMode=6){
 		try{
-			website:=RegExReplace(FileName,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
+			website:=RegExReplace(objText,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
 			webIcon:=A_ScriptDir "\RunIcon\" website ".ico"
 			if(FileExist(webIcon)){
 				Menu,exeTestMenu,Icon,SetCancel,%webIcon%,0
@@ -2996,7 +3005,6 @@ Set_Icon(itemVar,editVar=true){
 	;~;[编辑后图标重新加载]
 	if(editVar && FileName=""){
 		;~;[编辑后通过everything重新添加应用图标]
-		objText:=(diyText[2]) ? diyText[2] : diyText[1]
 		if(FileExt="exe"){
 			exeQueryPath:=exeQuery(objText)
 			if(exeQueryPath){
