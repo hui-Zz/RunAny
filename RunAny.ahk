@@ -225,7 +225,7 @@ Sort,MenuObjPublics,U
 MenuObjExt["public"]:=StrSplit(MenuObjPublics,"`n")
 
 ;~;[最近运行项]
-if(!HideRecent){
+if(RecentMax>0){
 	Menu,% menuDefaultRoot1[1],Add
 	For mck, mcv in MenuCommonList
 	{
@@ -1104,7 +1104,7 @@ Menu_Run:
 		}
 		itemMode:=GetMenuItemMode(any)
 		
-		if(!HideRecent && !RegExMatch(A_ThisMenuItem,"S)^&\d+"))
+		if(RecentMax>0 && !RegExMatch(A_ThisMenuItem,"S)^&\d+"))
 			gosub,Menu_Recent
 
 		;[根据菜单项模式运行]
@@ -1358,19 +1358,18 @@ Menu_Recent:
 	MenuCommonList.InsertAt(1,"&1" A_Space A_ThisMenuItem)  ;插入到最近运行第一条
 	Loop,% MenuCommonList.MaxIndex()
 	{
-		if(A_Index>=5){  ;如果超出最大运行项数
+		if(A_Index>=(RecentMax+1)){  ;如果超出最大运行项数
 			try Menu,% menuDefaultRoot1[1],Delete,% MenuCommonList[A_Index]
 			MenuCommonList.Pop()
 			break
 		}
-		if(A_Index=1){
-			MenuObj[MenuCommonList[1]]:=recentAny
-		}else{
+		if(A_Index>1){
 			try Menu,% menuDefaultRoot1[1],Delete,% MenuCommonList[A_Index]
 			recentAny:=MenuObj[MenuCommonList[A_Index]]  ;获取原顺序下运行路径
 			MenuCommonList[A_Index]:=RegExReplace(MenuCommonList[A_Index],"&\d+","&" A_Index)  ;修改序号
 		}
 		menuItem:=MenuCommonList[A_Index]
+		MenuObj[menuItem]:=recentAny
 		Menu,% menuDefaultRoot1[1],Add,%menuItem%,Menu_Run
 		;更改图标
 		if(ext="exe"){
@@ -3644,8 +3643,9 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+%MARGIN_TOP_66% vvAutoRun,开机自动启动
 	Gui,66:Add,Checkbox,Checked%AdminRun% x+64 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
-	Gui,66:Add,Checkbox,Checked%HideRecent% x+76 vvHideRecent,隐藏最近运行
-	Gui,66:Add,Checkbox,Checked%HideMenuTray% x+67 vvHideMenuTray,隐藏底部“RunAny设置”
+	Gui,66:Add,Checkbox,Checked%HideMenuTray% x+76 vvHideMenuTray,隐藏底部“RunAny设置”
+	Gui,66:Add,Edit,x+50 w30 h20 vvRecentMax,%RecentMax%
+	Gui,66:Add,Text,x+5 yp+2,最近运行项数量，0为隐藏
 	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h85,RunAny菜单设置
 	Variable_Boolean_Reverse("HideSend","HideWeb","HideGetZz","HideSelectZz","HideAddItem")
 	Checkbox_WIDTH_66=8
@@ -3944,7 +3944,7 @@ SetOK:
 	Variable_Boolean_Reverse("vHideSend","vHideWeb","vHideGetZz","vHideSelectZz","vHideAddItem")
 	SetValueList:=["AdminRun","AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupDir","DisableApp"]
 	SetValueList.Push("EvPath","EvCommand","EvAutoClose","EvExeVerNew","EvDemandSearch")
-	SetValueList.Push("HideFail","HideRecent","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideUnSelect","HideSelectZz")
+	SetValueList.Push("HideFail","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideUnSelect","HideSelectZz","RecentMax")
 	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu")
 	SetValueList.Push("BrowserPath","IconFolderPath","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon","AnyIcon","MenuIcon")
 	SetValueList.Push("HideHotStr","HotStrShowLen","HotStrShowTime","HotStrShowTransparent")
@@ -4202,7 +4202,6 @@ Var_Set:
 	global MenuXButton2Key:=Var_Read("MenuXButton2Key",0)
 	global MenuMButtonKey:=Var_Read("MenuMButtonKey",0)
 	global HideFail:=Var_Read("HideFail",1)
-	global HideRecent:=Var_Read("HideRecent",0)
 	global HideWeb:=Var_Read("HideWeb",0)
 	global HideGetZz:=Var_Read("HideGetZz",0)
 	global HideSend:=Var_Read("HideSend",0)
@@ -4210,6 +4209,7 @@ Var_Set:
 	global HideMenuTray:=Var_Read("HideMenuTray",0)
 	global HideUnSelect:=Var_Read("HideUnSelect",0)
 	global HideSelectZz:=Var_Read("HideSelectZz",0)
+	global RecentMax:=Var_Read("RecentMax",3)
 	global OneKeyWeb:=Var_Read("OneKeyWeb",1)
 	global OneKeyFolder:=Var_Read("OneKeyFolder",1)
 	global OneKeyMagnet:=Var_Read("OneKeyMagnet",1)
@@ -4252,7 +4252,7 @@ Var_Set:
 	EnvGet, LocalAppData, LocalAppData
 	gosub,Icon_Set
 	;~[最近运行项]
-	if(!HideRecent){
+	if(RecentMax>0){
 		global MenuCommonList:={}
 		RegRead, MenuCommonListReg, HKEY_CURRENT_USER, Software\RunAny, MenuCommonList
 		if(MenuCommonListReg){
