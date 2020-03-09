@@ -862,7 +862,7 @@ return
 Menu_Show:
 	try{
 		if(!MenuShowFlag && !MenuShowTimeFlag)
-			SetTimer,MenuShowTime,100
+			SetTimer,MenuShowTime,10
 		if(!extMenuHideFlag)
 			global getZz:=Get_Zz()
 		gosub,RunAny_Menu
@@ -1087,8 +1087,6 @@ Menu_Run:
 	SplitPath, any, , dir, ext
 	if(dir && FileExist(dir))
 		SetWorkingDir,%dir%
-	if(!HideRecent && !RegExMatch(A_ThisMenuItem,"S)^&1|2"))
-		gosub,Menu_Recent
 	try {
 		global TVEditItem
 		;[按住Shift编辑菜单项]
@@ -1098,6 +1096,12 @@ Menu_Run:
 			TVEditItem:=""
 			return
 		}
+		itemMode:=GetMenuItemMode(any)
+		
+		if(!HideRecent && !RegExMatch(A_ThisMenuItem,"S)^&1|2"))
+			gosub,Menu_Recent
+
+		;[根据菜单项模式运行]
 		returnFlag:=false
 		gosub,Menu_Run_Mode_Label
 		if(returnFlag)
@@ -1190,6 +1194,8 @@ Menu_Key_Run_Run:
 	if(dir && FileExist(dir))
 		SetWorkingDir,%dir%
 	try {
+		itemMode:=GetMenuItemMode(any)
+		;[根据菜单项模式运行]
 		returnFlag:=false
 		gosub,Menu_Run_Mode_Label
 		if(returnFlag)
@@ -1232,41 +1238,38 @@ Menu_Key_Run_Run:
 return
 Menu_Run_Mode_Label:
 	anyLen:=StrLen(any)
-	if(InStr(any,";",,0,1)=anyLen){
-		if(InStr(any,";;",,0,1)=anyLen-1){
-			StringLeft, any, any, anyLen-2
-			Send_Str_Input_Zz(any,true)  ;[键盘输出短语]
-			returnFlag:=true
-		}
+	if(itemMode=2){
 		StringLeft, any, any, anyLen-1
 		Send_Str_Zz(any,true)  ;[粘贴输出短语]
 		returnFlag:=true
-	}
-	if(InStr(any,"::",,0,1)=anyLen-1){
+	}else if(itemMode=3){
+		StringLeft, any, any, anyLen-2
+		Send_Str_Input_Zz(any,true)  ;[键盘输出短语]
+		returnFlag:=true
+	}else if(itemMode=4){
 		gosub,Menu_Run_Send_Zz  ;[输出热键]
 		returnFlag:=true
-	}
-	if(RegExMatch(any,"iS).+?\[.+?\]%?\(.*?\)")){
+	}else if(itemMode=5){
+		gosub,Menu_Run_Send_Ahk_Zz  ;[输出AHK热键]
+		returnFlag:=true
+	}else if(itemMode=8){
 		gosub,Menu_Run_Plugins_ObjReg  ;{脚本插件函数}
 		returnFlag:=true
-	}
-	if(RegExMatch(any,"iS)^.*?\.exe ([\w-]+://?|www[.]).*")){
+	}else if(RegExMatch(any,"iS)^.*?\.exe ([\w-]+://?|www[.]).*")){
 		gosub,Menu_Run_Exe_Url  ;指定浏览器打开网页
 		returnFlag:=true
-	}
-	if(RegExMatch(any,"iS)^([\w-]+://?|www[.]).*")){
+	}else if(itemMode=6){
 		Run_Search(any,getZz)  ;网页
 		returnFlag:=true
 	}
 return
 Menu_Run_Send_Zz:
-	If(InStr(any,":::",,0,1)=anyLen-2){
-		StringLeft, any, any, anyLen-3
-		Send_Key_Zz(any,1)
-	}else{
-		StringLeft, any, any, anyLen-2
-		Send_Key_Zz(any)
-	}
+	StringLeft, any, any, anyLen-2
+	Send_Key_Zz(any)
+return
+Menu_Run_Send_Ahk_Zz:
+	StringLeft, any, any, anyLen-3
+	Send_Key_Zz(any,1)
 return
 Menu_Run_Exe_Url:
 	BrowserPath:=RegExReplace(any,"iS)(.*?\.exe) .*","$1")	;只去参数
