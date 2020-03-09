@@ -227,16 +227,17 @@ MenuObjExt["public"]:=StrSplit(MenuObjPublics,"`n")
 ;~;[最近运行项]
 if(RecentMax>0){
 	Menu,% menuDefaultRoot1[1],Add
-	For mck, mcv in MenuCommonList
+	For mci, mcItem in MenuCommonList
 	{
-		obj:=RegExReplace(mcv,"&" mck A_Space)
-		MenuObj[mcv]:=MenuObj[obj]
-		Menu,% menuDefaultRoot1[1],Add,%mcv%,Menu_Run
-		SplitPath,% MenuObj[mcv], , , ext
+		obj:=RegExReplace(mcItem,"&" mci A_Space)
+		MenuObj[mcItem]:=MenuObj[obj]
+		Menu,% menuDefaultRoot1[1],Add,%mcItem%,Menu_Run
+		fullpath:=Get_Obj_Path(MenuObj[mcItem])
+		SplitPath,fullpath, , , ext
 		if(ext="exe"){
-			Menu_Item_Icon(menuDefaultRoot1[1],mcv,MenuObj[mcv])
+			Menu_Item_Icon(menuDefaultRoot1[1],mcItem,fullpath)
 		}else{
-			Menu_Add(menuDefaultRoot1[1],mcv,MenuObj[mcv],GetMenuItemMode(MenuObj[mcv]),"")
+			Menu_Add(menuDefaultRoot1[1],mcItem,MenuObj[mcItem],GetMenuItemMode(MenuObj[mcItem]),"")
 		}
 	}
 }
@@ -1094,7 +1095,8 @@ Menu_Run:
 		any:=MenuObj[(MenuShowMenuRun)]
 		MenuShowMenuRun:=""
 	}
-	SplitPath, any, , dir, ext
+	fullPath:=Get_Obj_Path(any)
+	SplitPath, fullPath, , dir, ext
 	if(dir && FileExist(dir))
 		SetWorkingDir,%dir%
 	try {
@@ -1376,8 +1378,10 @@ Menu_Recent:
 		MenuObj[menuItem]:=recentAny
 		Menu,% menuDefaultRoot1[1],Add,%menuItem%,Menu_Run
 		;更改图标
+		fullPath:=Get_Obj_Path(recentAny)
+		SplitPath,fullpath, , , ext
 		if(ext="exe"){
-			Menu_Item_Icon(menuDefaultRoot1[1],menuItem,recentAny)
+			Menu_Item_Icon(menuDefaultRoot1[1],menuItem,fullpath)
 		}else{
 			Menu_Add(menuDefaultRoot1[1],menuItem,recentAny,itemMode,"")
 		}
