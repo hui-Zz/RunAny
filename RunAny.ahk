@@ -232,6 +232,12 @@ if(!HideRecent){
 		obj:=RegExReplace(mcv,"&" mck A_Space)
 		MenuObj[mcv]:=MenuObj[obj]
 		Menu,% menuDefaultRoot1[1],Add,%mcv%,Menu_Run
+		SplitPath,% MenuObj[mcv], , , ext
+		if(ext="exe"){
+			Menu_Item_Icon(menuDefaultRoot1[1],mcv,MenuObj[mcv])
+		}else{
+			Menu_Add(menuDefaultRoot1[1],mcv,MenuObj[mcv],GetMenuItemMode(MenuObj[mcv]),"")
+		}
 	}
 }
 Menu_Tray_Tip("","菜单已经可以正常使用`n开始为菜单中exe程序加载图标...")
@@ -1346,11 +1352,13 @@ Menu_Recent:
 		MenuCommonList[1]:="&1 " A_ThisMenuItem
 		MenuObj[MenuCommonList[1]]:=any
 		Menu,% menuDefaultRoot1[1],Add,% MenuCommonList[1],Menu_Run
+		menuItem:=MenuCommonList[1]
 	}else if(MenuCommonList[1]!="&1" A_Space A_ThisMenuItem){
 		if(!MenuCommonList[2]){
 			MenuCommonList[2]:="&2" A_Space A_ThisMenuItem
 			MenuObj[MenuCommonList[2]]:=any
-			Menu,% menuDefaultRoot1[1],Add,% MenuCommonList[2],Menu_Run
+			try Menu,% menuDefaultRoot1[1],Add,% MenuCommonList[2],Menu_Run
+			menuItem:=MenuCommonList[2]
 		}else if(MenuCommonList[1] && MenuCommonList[2]){
 			MenuCommon1:=MenuCommonList[1]
 			MenuCommon2:=MenuCommonList[2]
@@ -1360,7 +1368,19 @@ Menu_Recent:
 			MenuObj[MenuCommonList[2]]:=MenuObj[(MenuCommon1)]
 			try Menu,% menuDefaultRoot1[1],Rename,% MenuCommon1,% MenuCommonList[1]
 			try Menu,% menuDefaultRoot1[1],Rename,% MenuCommon2,% MenuCommonList[2]
+			menuItem:=MenuCommonList[1]
+			SplitPath,% MenuObj[MenuCommonList[2]], , , ext2
+			if(ext2="exe"){
+				Menu_Item_Icon(menuDefaultRoot1[1],MenuCommonList[2],MenuObj[MenuCommonList[2]])
+			}else{
+				Menu_Add(menuDefaultRoot1[1],MenuCommonList[2],MenuObj[MenuCommonList[2]],itemMode,"")
+			}
 		}
+	}
+	if(ext="exe"){
+		Menu_Item_Icon(menuDefaultRoot1[1],menuItem,any)
+	}else{
+		Menu_Add(menuDefaultRoot1[1],menuItem,any,itemMode,"")
 	}
 	commonStr:=""
 	For k, v in MenuCommonList
