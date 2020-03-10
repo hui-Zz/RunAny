@@ -2,7 +2,7 @@
 ;* 【ObjReg系统操作脚本[系统函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.5"
+global RunAny_Plugins_Version:="1.0.6"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
 #WinActivateForce       ;~强制激活窗口
@@ -130,6 +130,11 @@ class RunAnyObj {
 		}else if(flag=2){
 			SoundSet, %amount%
 		}
+	}
+	;[管理员权限运行选中目标]
+	;注：仅限于右键可以用管理员身份运行的后缀文件
+	system_runas_zz(getZz:=""){
+		Run *RunAs "%getZz%"
 	}
 }
 
