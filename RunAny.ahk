@@ -157,7 +157,7 @@ Gosub,Icon_FileExt_Set
 global MenuExeList:=Object()		;~程序数据数组
 global MenuExeIconList:=Object()	;~程序优先加载图标数组
 global MenuObjTreeLevel:=Object()	;~菜单对应级别
-global MenuObjPublics:=""			;~后缀公共菜单列表
+global MenuObjPublic:=Object()		;~后缀公共菜单
 global MenuShowFlag:=false			;~菜单功能是否可以显示
 global MenuIconFlag:=false			;~菜单图标是否加载完成
 global MenuCount:=MENU2FLAG ? 2 : 1
@@ -220,9 +220,7 @@ Loop,%MenuCount%
 }
 
 ;获得所有后缀公共菜单
-MenuObjPublics:=RTrim(MenuObjPublics,"`n")
-Sort,MenuObjPublics,U
-MenuObjExt["public"]:=StrSplit(MenuObjPublics,"`n")
+MenuObjExt["public"]:=MenuObjPublic
 
 ;~;[最近运行项]
 if(RecentMax>0){
@@ -473,14 +471,16 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				if(InStr(menuItem,"|")){
 					menuItems:=StrSplit(menuItem,"|",,2)
 					menuItem:=menuItems[1]
-					;~;[读取菜单关联后缀]
-					Loop, parse,% menuItems[2],%A_Space%
-					{
-						;选中文件后显示的公共后缀菜单
-						if(A_LoopField="public")
-							MenuObjPublics.=treeLevel . menuItem . "   `n"
-						else
-							MenuObjExt[(A_LoopField)]:=menuItem
+					;~;[读取菜单关联后缀][不重复]
+					if(TREE_TYPE=""){
+						Loop, parse,% menuItems[2],%A_Space%
+						{
+							;选中文件后显示的公共后缀菜单
+							if(A_LoopField="public")
+								MenuObjPublic.Push(treeLevel . menuItem)
+							else
+								MenuObjExt[(A_LoopField)]:=menuItem
+						}
 					}
 				}
 				if(menuItem!=""){
@@ -497,8 +497,8 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 						MenuObjTree%TREE_NO%[menuItemType]:=Object()
 					MenuObjTreeLevel[menuItemType]:=treeLevel
 					
-					;~;[分割Tab获取菜单自定义热键]
-					if(InStr(menuItem,"`t")){
+					;~;[分割Tab获取菜单自定义热键][不重复]
+					if(TREE_TYPE="" && InStr(menuItem,"`t")){
 						menuKeyStr:=RegExReplace(menuItem, "S)\t+", A_Tab)
 						menuKeys:=StrSplit(menuKeyStr,"`t")
 						if(menuKeys[2]){
@@ -583,8 +583,8 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				;~;[分割Tab获取应用自定义热键]
 				menuKeyStr:=RegExReplace(menuDiy[1], "S)\t+", A_Tab)
 				menuKeys:=StrSplit(menuKeyStr,"`t")
-				;~;[设置热键启动方式]
-				if(InStr(menuDiy[1],"`t") && menuKeys[2]){
+				;~;[设置热键启动方式][不重复]
+				if(TREE_TYPE="" && InStr(menuDiy[1],"`t") && menuKeys[2]){
 					MenuObjKey[menuKeys[2]]:=itemParam
 					MenuObjName[menuKeys[2]]:=menuKeys[1]
 					if(!InStr(menuDiy[2],"%getZz%") && RegExMatch(menuDiy[2],"iS).+?\[.+?\]%?\(.*?\)")){
@@ -593,8 +593,8 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 						Hotkey,% menuKeys[2],Menu_Key_Run,On
 					}
 				}
-				;~;[设置热字符串启动方式]
-				if(RegExMatch(menuKeys[1],"S):[*?a-zA-Z0-9]+?:[^:]*")){
+				;~;[设置热字符串启动方式][不重复]
+				if(TREE_TYPE="" && RegExMatch(menuKeys[1],"S):[*?a-zA-Z0-9]+?:[^:]*")){
 					hotStrName:=menuKeys[1]
 					if(RegExMatch(hotStrName,"S).*_:\d{1,2}$"))
 						hotStrName:=RegExReplace(hotStrName,"S)(.*)_:\d{1,2}$","$1")
@@ -907,13 +907,15 @@ Menu_Show:
 							Menu,%extMenuName%,Icon,0【添加到此菜单】,SHELL32.dll,166
 						}
 						;添加后缀公共菜单
-						if(MenuObjExt["public"].MaxIndex()>0){
-							for k,v in MenuObjExt["public"]
-							{
+						publicMenuMaxNum:=MenuObjExt["public"].MaxIndex()
+						if(publicMenuMaxNum>0){
+							Loop {
+								v:=MenuObjExt["public"][publicMenuMaxNum]
 								vn:=RegExReplace(v,"S)^-+")
 								Menu,%extMenuName%,Insert, 1&, %vn%, :%vn%
 								Menu_Item_Icon(extMenuName,vn,TreeIconS[1],TreeIconS[2],v)
-							}
+								publicMenuMaxNum--
+							} Until % publicMenuMaxNum<1
 							publicMaxNum:=MenuObjExt["public"].MaxIndex() + 1
 							Menu,%extMenuName%,Insert, %publicMaxNum%&
 						}
