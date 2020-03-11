@@ -533,7 +533,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 			if(InStr(Z_LoopField,"|")){
 				;~;[生成有前缀备注的应用]
 				menuDiy:=StrSplit(Z_LoopField,"|",,2)
-				appName:=RegExReplace(menuDiy[2],"iS)(.*?\.[a-zA-Z]+)($| .*)","$1")	;去掉参数，取应用名
+				appName:=RegExReplace(menuDiy[2],"iS)(.*?\.[a-zA-Z0-9]+)($| .*)","$1")	;去掉参数，取应用名
 				appName:=RegExReplace(appName,"iS)\.exe$")	;去掉exe后缀，取应用名
 				item:=MenuObj[appName]
 				if(item){
@@ -1245,8 +1245,10 @@ Menu_Key_Run_Run:
 			if(thisMenuName && RegExMatch(thisMenuName,"S).*?_:(\d{1,2})$")){
 				menuTrNum:=RegExReplace(thisMenuName,"S).*?_:(\d{1,2})$","$1")
 				Run_Tr(any,menuTrNum)
-			}else{
+			}else if(RegExMatch(any,"iS).*?\.[a-zA-Z0-9]+$")){
 				Run_Zz(any)
+			}else{
+				Run_Any(any)
 			}
 		}
 	} catch e {
@@ -1638,7 +1640,7 @@ Get_Obj_Path(z_item){
 		menuDiy:=StrSplit(z_item,"|")
 		obj_path:=MenuObj[menuDiy[1]]
 	}else{
-		z_item:=RegExReplace(z_item,"iS)(.*?\.[a-zA-Z]+)($| .*)","$1")	;去掉参数，取路径
+		z_item:=RegExReplace(z_item,"iS)(.*?\.[a-zA-Z0-9]+)($| .*)","$1")	;去掉参数，取路径
 		if(RegExMatch(z_item,"iS)^(\\\\|.:\\).*?\.exe$")){
 			obj_path:=z_item
 		}else{
@@ -1646,8 +1648,8 @@ Get_Obj_Path(z_item){
 			obj_path:=MenuObj[appName]="" ? z_item : MenuObj[appName]
 		}
 	}
-	if(RegExMatch(obj_path,"iS).*?\.[a-zA-Z]+($| .*)")){
-		obj_path:=RegExReplace(obj_path,"iS)(\.[a-zA-Z]+)($| .*)","$1")
+	if(RegExMatch(obj_path,"iS).*?\.[a-zA-Z0-9]+($| .*)")){
+		obj_path:=RegExReplace(obj_path,"iS)(\.[a-zA-Z0-9]+)($| .*)","$1")
 	}
 	if(obj_path!="" && !InStr(obj_path,"\")){
 		if(FileExist(A_WinDir "\" obj_path))
@@ -5017,7 +5019,7 @@ everythingQuery(){
 	if(EvDemandSearch){
 		Loop, parse, iniVar1, `n, `r, %A_Space%%A_Tab%
 		{
-			RegExMatch(A_LoopField,"[^|]+?\.[a-zA-Z]+",outVar)
+			RegExMatch(A_LoopField,"[^|]+?\.[a-zA-Z0-9]+",outVar)
 			if(Trim(outVar) && !RegExMatch(outVar,"\\|\/|\:|\*|\?|\""|\<|\>|\|") 
 					&& !InStr(EvCommandStr,"|" outVar "|") && GetMenuItemMode(A_LoopField)=1){
 				if(InStr(outVar,A_Space)){
@@ -5030,7 +5032,7 @@ everythingQuery(){
 		if(MENU2FLAG){
 			Loop, parse, iniVar2, `n, `r, %A_Space%%A_Tab%
 			{
-				RegExMatch(A_LoopField,"[^|]+?\.[a-zA-Z]+",outVar)
+				RegExMatch(A_LoopField,"[^|]+?\.[a-zA-Z0-9]+",outVar)
 				if(Trim(outVar) && !RegExMatch(outVar,"\\|\/|\:|\*|\?|\""|\<|\>|\|") 
 						&& !InStr(EvCommandStr,"|" outVar "|") && GetMenuItemMode(A_LoopField)=1){
 					if(InStr(outVar,A_Space)){
