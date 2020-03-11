@@ -962,6 +962,10 @@ Menu_Show:
 						selectResult.=A_LoopField "`n"
 					continue
 				}
+				if(selectResult){  ;选中内容多种类型时不输出公式结果
+					calcFlag:=false
+					openFlag:=false
+				}
 				;一键打开网址
 				if(OneKeyWeb && RegExMatch(S_LoopField,"iS)^([\w-]+://?|www[.]).*")){
 					Run_Search(S_LoopField,"",BrowserPathRun)
@@ -992,7 +996,7 @@ Menu_Show:
 						continue
 					}
 				}
-				;一键计算数字加减乘除
+				;一键计算公式数字加减乘除
 				if(RegExMatch(S_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+($|=$)")){
 					formula:=S_LoopField
 					if(RegExMatch(S_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+=$")){
@@ -1013,7 +1017,8 @@ Menu_Show:
 			}
 			if(calcResult){
 				StringTrimRight, calcResult, calcResult, 1
-				ToolTip,%calcResult%
+				MouseGetPos, MouseX, MouseY
+				ToolTip,%calcResult%,% MouseX-25,% MouseY+5
 				Clipboard:=calcResult
 				SetTimer,RemoveToolTip,% (calcResult="?") ? 1000 : 3000
 			}
@@ -2263,7 +2268,7 @@ Menu_Item_Edit:
 		Gui,SaveItem:Add, Button, xm+6 yp+27 w60 vvSetShortcut GSetShortcut,快捷目标
 	}
 	Gui,SaveItem:Font,,Microsoft YaHei
-	Gui,SaveItem:Add,Button,Default xm+220 y+15 w75 G%SaveLabel%,保存(&Y)
+	Gui,SaveItem:Add,Button,Default xm+220 y+15 w75 G%SaveLabel%,保存(&S)
 	Gui,SaveItem:Add,Button,x+20 w75 GSetCancel,取消(&C)
 	Gui,SaveItem:Add, Text, xm y+25 w590 cBlue vvStatusBar, %thisMenuStr% %thisMenuItemStr%
 	Gui,SaveItem:Show,,新增修改菜单项 - %RunAnyZz% - 支持拖放应用
@@ -3837,8 +3842,8 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r6 vvIconFolderPath,%IconFolderPath%
 
 	Gui,66:Tab
-	Gui,66:Add,Button,Default xm+100 y+40 w75 GSetOK,确定(&Y)
-	Gui,66:Add,Button,x+15 w75 GSetCancel,取消(&C)
+	Gui,66:Add,Button,Default xm+100 y+40 w75 GSetOK,确定
+	Gui,66:Add,Button,x+15 w75 GSetCancel,取消
 	Gui,66:Add,Button,x+15 w75 GSetReSet,重置
 	Gui,66:Add,Text,x+40 yp+5 w75 GMenu_Config,RunAnyConfig.ini
 	Gui,66:Show,,%RunAnyZz%设置 %RunAny_update_version% %RunAny_update_time%%AdminMode%
