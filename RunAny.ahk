@@ -154,15 +154,15 @@ Gosub,Open_Ext_Set
 ;~;[后缀图标初始化]
 Gosub,Icon_FileExt_Set
 ;~;
-global MenuExeList:=Object()		;~程序数据数组
-global MenuExeIconList:=Object()	;~程序优先加载图标数组
+global MenuExeArray:=Object()		;~程序数据数组
+global MenuExeIconArray:=Object()	;~程序优先加载图标数组
 global MenuObjTreeLevel:=Object()	;~菜单对应级别
 global MenuObjPublic:=Object()		;~后缀公共菜单
 global MenuShowFlag:=false			;~菜单功能是否可以显示
 global MenuIconFlag:=false			;~菜单图标是否加载完成
 global MenuCount:=MENU2FLAG ? 2 : 1
-MenuExeList.SetCapacity(1024)
-MenuExeIconList.SetCapacity(3072)
+MenuExeArray.SetCapacity(1024)
+MenuExeIconArray.SetCapacity(3072)
 ;~;
 Loop,%MenuCount%
 {
@@ -241,13 +241,13 @@ if(RecentMax>0){
 }
 Menu_Tray_Tip("","菜单已经可以正常使用`n开始为菜单中exe程序加载图标...")
 ;~;[循环为菜单中EXE程序添加图标，过程较慢]
-For k, v in MenuExeIconList
+For k, v in MenuExeIconArray
 {
 	if(!HideMenuAppIconList[(v["menuName"])]){
 		Menu_Item_Icon(v["menuName"],v["menuItem"],v["itemFile"])
 	}
 }
-For k, v in MenuExeList
+For k, v in MenuExeArray
 {
 	if(!HideMenuAppIconList[(v["menuName"])]){
 		Menu_Item_Icon(v["menuName"],v["menuItem"],v["itemFile"])
@@ -563,7 +563,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				}
 				if(FileExt="exe"){
 					if(flagEXE){
-						MenuExeListPush(menuRootFn[menuLevel],menuDiy[1],item,menuDiy[2])
+						MenuExeArrayPush(menuRootFn[menuLevel],menuDiy[1],item,menuDiy[2],TREE_NO)
 					}else{
 						IconFail:=true
 					}
@@ -626,7 +626,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				SplitPath,Z_LoopField,fileName,,,nameNotExt
 				MenuObjParam[nameNotExt]:=Z_LoopField . appParm
 				if(FileExist(Z_LoopField)){
-					MenuExeListPush(menuRootFn[menuLevel],nameNotExt,Z_LoopField,Z_LoopField . appParm)
+					MenuExeArrayPush(menuRootFn[menuLevel],nameNotExt,Z_LoopField,Z_LoopField . appParm,TREE_NO)
 					flagEXE:=true
 				}else{
 					IconFail:=true
@@ -659,7 +659,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					MenuObjParam[appName]:=Z_LoopField . appParm
 				}
 				if(flagEXE){
-					MenuExeListPush(menuRootFn[menuLevel],appName,MenuObj[appName],MenuObj[appName] . appParm)
+					MenuExeArrayPush(menuRootFn[menuLevel],appName,MenuObj[appName],MenuObj[appName] . appParm,TREE_NO)
 				}else{
 					IconFail:=true
 				}
@@ -694,16 +694,16 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 	}
 }
 ;~;[统一集合菜单中软件运行项]
-MenuExeListPush(menuName,menuItem,itemFile,itemAny){
+MenuExeArrayPush(menuName,menuItem,itemFile,itemAny,TREE_NO){
 	MenuObjEXE:=Object()	;~软件对象
 	MenuObjEXE["menuName"]:=menuName
 	MenuObjEXE["menuItem"]:=menuItem
 	MenuObjEXE["itemFile"]:=itemFile
 	;~ MenuObjEXE["itemAny"]:=itemAny
 	if(RegExMatch(menuName,"[^\s]+$")){
-		MenuExeList.Push(MenuObjEXE)
+		MenuExeArray.Push(MenuObjEXE)
 	}else{
-		MenuExeIconList.Push(MenuObjEXE)
+		MenuExeIconArray.Push(MenuObjEXE)
 	}
 }
 ;~;[读取热字串用作提示文字]
@@ -4672,7 +4672,7 @@ Menu_Exe_Icon_Extract:
 		IniWrite,2,%cfgFile%,General,MultiFilesMode
 	}
 	ToolTip,RunAny开始用ResourcesExtract生成EXE图标，请稍等……
-	For k, v in MenuExeList
+	For k, v in MenuExeArray
 	{
 		exePath:=v["itemFile"]
 		if(FileExist(exePath) && !HideMenuAppIconList[(v["menuName"])]){
@@ -4698,7 +4698,7 @@ Menu_Exe_Icon_Set(){
 	;~;[循环提取菜单中EXE程序的正确图标]
 	IfNotExist,%ExeIconDir%
 		FileCreateDir, %ExeIconDir%
-	For k, v in MenuExeList
+	For k, v in MenuExeArray
 	{
 		if(!HideMenuAppIconList[(v["menuName"])]){
 			exePath:=v["itemFile"]
