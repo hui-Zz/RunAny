@@ -3671,7 +3671,7 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
 	Gui,66:Add,Checkbox,Checked%HideMenuTray% x+76 vvHideMenuTray,隐藏底部“RunAny设置”
 	Gui,66:Add,Edit,x+50 w30 h20 vvRecentMax,%RecentMax%
-	Gui,66:Add,Text,x+5 yp+2,最近运行项数量，0为隐藏
+	Gui,66:Add,Text,x+5 yp+2,最近运行项数量 (0为隐藏)
 	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h85,RunAny菜单设置
 	Variable_Boolean_Reverse("HideSend","HideWeb","HideGetZz","HideSelectZz","HideAddItem")
 	Checkbox_WIDTH_66=8
@@ -3712,9 +3712,9 @@ Menu_Set:
 	Gui,66:Add,Text,x+5 yp,最多备份数量
 	Gui,66:Add,Edit,x+5 yp-2 w70 h20 vvRunABackupMax,%RunABackupMax%
 	Gui,66:Add,Text,x+5 yp+2,备份文件名格式
-	Gui,66:Add,Edit,x+5 yp-2 w150 h20 vvRunABackupFormat,%RunABackupFormat%
+	Gui,66:Add,Edit,x+5 yp-2 w216 h20 vvRunABackupFormat,%RunABackupFormat%
 	Gui,66:Add,Button,xm yp+25 GSetRunABackupDir,RunAny.ini自动备份目录
-	Gui,66:Add,Edit,x+11 yp+2 w350 r1 vvRunABackupDir,%RunABackupDir%
+	Gui,66:Add,Edit,x+11 yp+2 w380 r1 vvRunABackupDir,%RunABackupDir%
 	
 	Gui,66:Add,GroupBox,xm-10 y+15 w%GROUP_WIDTH_66% h105,屏蔽RunAny程序列表（逗号分隔）
 	Gui,66:Add,Edit,xm yp+25 w%GROUP_EDIT_WIDTH_66% r4 -WantReturn vvDisableApp,%DisableApp%
