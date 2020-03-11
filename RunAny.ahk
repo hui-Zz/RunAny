@@ -433,7 +433,7 @@ GetMenuItemMode(item,fullItemFlag:=false){
 		if(RegExMatch(item,"S)^-+"))
 			return 11
 		menuItems:=StrSplit(item,"|",,2)
-		item:=menuItems[2]
+		item:=(menuItems[2]) ? menuItems[2] : menuItems[1]
 	}
 	len:=StrLen(item)
 	if(len=0)
