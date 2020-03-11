@@ -274,11 +274,12 @@ if(ReloadGosub){
 	gosub,%ReloadGosub%
 }
 ;自动备份配置文件
-if(RunABackupRule){
-	RunABackup(RunABackupDirPath "\", RunAnyZz ".ini.*.bak", iniVar1, iniPath, RunAnyZz ".ini." A_Now ".bak")
-	RunABackup(RunABackupDirPath "\" RunAnyZz "2.ini\", "*.bak", iniVar2, iniPath2, RunAnyZz "2.ini." A_Now ".bak")
+if(RunABackupRule && RunABackupDirPath!=A_ScriptDir){
+	RunABackupFormatStr:=Get_Transform_Val(RunABackupFormat)
+	RunABackup(RunABackupDirPath "\", RunAnyZz ".ini*", iniVar1, iniPath, RunAnyZz ".ini" RunABackupFormatStr)
+	RunABackup(RunABackupDirPath "\" RunAnyZz "2.ini\", RunAnyZz "2.ini*", iniVar2, iniPath2, RunAnyZz "2.ini" RunABackupFormatStr)
 	FileRead, iniVarBak, %RunAnyConfig%
-	RunABackup(RunABackupDirPath "\" RunAnyConfig "\", "*.bak", iniVarBak, RunAnyConfig, RunAnyConfig "." A_Now ".bak")
+	RunABackup(RunABackupDirPath "\" RunAnyConfig "\", RunAnyConfig "*", iniVarBak, RunAnyConfig, RunAnyConfig RunABackupFormatStr)
 }
 return
 
@@ -3704,14 +3705,16 @@ Menu_Set:
 		Gui,66:Add,Button,x+40 yp-5 w150 GSetMenu2,开启第2个菜单
 	}
 
-	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h100,RunAny.ini设置
+	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h110,RunAny.ini设置
 	Gui,66:Add,Edit,xm yp+20 w50 h20 vvAutoReloadMTime,%AutoReloadMTime%
 	Gui,66:Add,Text,x+5 yp+2,(毫秒)  RunAny.ini修改后自动重启，0为不自动重启
 	Gui,66:Add,Checkbox,xm yp+25 Checked%RunABackupRule% vvRunABackupRule,自动备份
-	Gui,66:Add,Edit,x+1 yp-2 w70 h20 vvRunABackupMax,%RunABackupMax%
-	Gui,66:Add,Text,x+5 yp+2,最多备份数量
-	Gui,66:Add,Button,xm yp+20 GSetRunABackupDir,RunAny.ini自动备份目录
-	Gui,66:Add,Edit,x+1 yp+2 w250 r1 vvRunABackupDir,%RunABackupDir%
+	Gui,66:Add,Text,x+5 yp,最多备份数量
+	Gui,66:Add,Edit,x+5 yp-2 w70 h20 vvRunABackupMax,%RunABackupMax%
+	Gui,66:Add,Text,x+5 yp+2,备份文件名格式
+	Gui,66:Add,Edit,x+5 yp-2 w150 h20 vvRunABackupFormat,%RunABackupFormat%
+	Gui,66:Add,Button,xm yp+25 GSetRunABackupDir,RunAny.ini自动备份目录
+	Gui,66:Add,Edit,x+11 yp+2 w350 r1 vvRunABackupDir,%RunABackupDir%
 	
 	Gui,66:Add,GroupBox,xm-10 y+15 w%GROUP_WIDTH_66% h105,屏蔽RunAny程序列表（逗号分隔）
 	Gui,66:Add,Edit,xm yp+25 w%GROUP_EDIT_WIDTH_66% r4 -WantReturn vvDisableApp,%DisableApp%
@@ -3972,7 +3975,7 @@ SetOK:
 		}
 	}
 	Variable_Boolean_Reverse("vHideSend","vHideWeb","vHideGetZz","vHideSelectZz","vHideAddItem")
-	SetValueList:=["AdminRun","AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupDir","DisableApp"]
+	SetValueList:=["AdminRun","AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupFormat","RunABackupDir","DisableApp"]
 	SetValueList.Push("EvPath","EvCommand","EvAutoClose","EvExeVerNew","EvDemandSearch")
 	SetValueList.Push("HideFail","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideUnSelect","HideSelectZz","RecentMax")
 	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu")
@@ -4221,6 +4224,7 @@ Var_Set:
 	global RunABackupDir:=Var_Read("RunABackupDir","`%A_ScriptDir`%\RunBackup")
 	global RunABackupRule:=Var_Read("RunABackupRule",1)
 	global RunABackupMax:=Var_Read("RunABackupMax",5)
+	global RunABackupFormat:=Var_Read("RunABackupFormat",".`%A_Now`%.bak")
 	global MenuDoubleCtrlKey:=Var_Read("MenuDoubleCtrlKey",0)
 	global MenuDoubleAltKey:=Var_Read("MenuDoubleAltKey",0)
 	global MenuDoubleLWinKey:=Var_Read("MenuDoubleLWinKey",0)
