@@ -755,7 +755,11 @@ Menu_HotStr_Hint_Run:
 		}
 	}
 	HintTip:=RTrim(HintTip,"`n")
-	ToolTip,%HintTip%
+	MouseGetPos, MouseX, MouseY
+	if(HotStrShowX=0 && HotStrShowY=0)
+		ToolTip,%HintTip%
+	else
+		ToolTip,%HintTip%,% MouseX+HotStrShowX,% MouseY+HotStrShowY
 	Sleep,100
 	WinSet, Transparent, % HotStrShowTransparent/100*255, ahk_class tooltips_class32
 	SetTimer,RemoveToolTip,%HotStrShowTime%
@@ -3811,14 +3815,19 @@ Menu_Set:
 	GuiControl, 66:+Redraw, RunAnyOpenExtLV
 	
 	Gui,66:Tab,热字符串,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h250,热字符串设置
+	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h350,热字符串设置
 	Gui,66:Add,Checkbox,Checked%HideHotStr% xm yp+30 vvHideHotStr,隐藏热字符串提示
-	Gui,66:Add,Text,xm yp+40 w250,提示启动路径最长字数(0为隐藏)
+	Gui,66:Add,Text,xm yp+40 w250,提示启动路径最长字数 (0为隐藏)
 	Gui,66:Add,Edit,xm+200 yp-3 w200 r1 vvHotStrShowLen,%HotStrShowLen%
-	Gui,66:Add,Text,xm yp+40 w250,提示显示时长(毫秒)
+	Gui,66:Add,Text,xm yp+40 w250,提示显示时长 (毫秒)
 	Gui,66:Add,Edit,xm+200 yp-3 w200 r1 vvHotStrShowTime,%HotStrShowTime%
-	Gui,66:Add,Text,xm yp+40 w250,提示显示透明度百分比(`%)
+	Gui,66:Add,Text,xm yp+40 w250,提示显示透明度百分比 (`%)
 	Gui,66:Add,Slider,xm+200 yp ToolTip w200 r1 vvHotStrShowTransparent,%HotStrShowTransparent%
+	Gui,66:Add,Text,xm yp+40 w250,提示相对于鼠标坐标 X (可为负数)：
+	Gui,66:Add,Edit,xm+200 yp-3 w200 r1 vvHotStrShowX,%HotStrShowX%
+	Gui,66:Add,Text,xm yp+40 w250,提示相对于鼠标坐标 Y (可为负数)：
+	Gui,66:Add,Edit,xm+200 yp-3 w200 r1 vvHotStrShowY,%HotStrShowY%
+	Gui,66:Add,Text,xm yp+50 cBlue,提示文字自动消失后，而且后续输入字符不触发热字符串功能`n需要按Tab/回车/句点/空格等键之后才会再次进行提示
 	
 	Gui,66:Tab,图标设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h245,图标自定义设置（图片或图标文件路径 , 序号不填默认1）
@@ -3968,7 +3977,7 @@ SetOK:
 	SetValueList.Push("HideFail","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideUnSelect","HideSelectZz","RecentMax")
 	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu")
 	SetValueList.Push("BrowserPath","IconFolderPath","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon","AnyIcon","MenuIcon")
-	SetValueList.Push("HideHotStr","HotStrShowLen","HotStrShowTime","HotStrShowTransparent")
+	SetValueList.Push("HideHotStr","HotStrShowLen","HotStrShowTime","HotStrShowTransparent","HotStrShowX","HotStrShowY")
 	SetValueList.Push("TreeKey1", "TreeWinKey1", "TreeIniKey1", "TreeIniWinKey1")
 	SetValueList.Push("MenuDoubleCtrlKey", "MenuDoubleAltKey", "MenuDoubleLWinKey", "MenuDoubleRWinKey")
 	SetValueList.Push("MenuCtrlRightKey", "MenuShiftRightKey", "MenuXButton1Key", "MenuXButton2Key", "MenuMButtonKey")
@@ -4248,6 +4257,8 @@ Var_Set:
 	global HotStrShowLen:=Var_Read("HotStrShowLen",30)		;热字符串提示显示最长字数，默认30个
 	global HotStrShowTime:=Var_Read("HotStrShowTime",3000)	;热字符串提示显示时长，默认3000为3秒
 	global HotStrShowTransparent:=Var_Read("HotStrShowTransparent",80)	;热字符串提示显示透明度，默认80%的透明度
+	global HotStrShowX:=Var_Read("HotStrShowX",0)
+	global HotStrShowY:=Var_Read("HotStrShowY",0)
 	;[隐藏配置]开始
 	global JumpSearch:=Var_Read("JumpSearch",0)				;批量搜索忽略确认弹窗
 	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)    	;获取选中目标到剪贴板等待时间
