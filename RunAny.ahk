@@ -2325,8 +2325,8 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add, Edit, x+10 yp WantTab w510 r8 vvitemPath GEditItemPathChange, %itemPath%
 	Gui,SaveItem:Font,,Microsoft YaHei
 	Gui,SaveItem:Add, Button, xm+6 yp w60 vvSetMenuPublic GSetMenuPublic,公共菜单
-	Gui,SaveItem:Add, Button, xm+6 yp w60 vvSetMenuText GSetMenuText,选中文本
-	Gui,SaveItem:Add, Button, xm+6 yp w60 vvSetMenuFile GSetMenuFile,选中文件
+	Gui,SaveItem:Add, Button, xm+6 yp w60 vvSetMenuText GSetMenuText,文本菜单
+	Gui,SaveItem:Add, Button, xm+6 yp w60 vvSetMenuFile GSetMenuFile,文件菜单
 	Gui,SaveItem:Add, Button, xm+6 yp+27 w60 vvSetFileRelativePath GSetFileRelativePath,相对路径
 	Gui,SaveItem:Add, Button, xm+6 yp+27 w60 vvSetItemPathGetZz GSetItemPathGetZz,选中变量
 	Gui,SaveItem:Add, Button, xm+6 yp+27 w60 vvSetShortcut GSetShortcut,快捷目标
