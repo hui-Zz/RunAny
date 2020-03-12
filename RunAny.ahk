@@ -3763,11 +3763,11 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
 	Gui,66:Add,Checkbox,Checked%HideSend% x+160 vvHideSend,隐藏短语
 	Gui,66:Add,Checkbox,Checked%HideWeb% xm yp+20 vvHideWeb,隐藏带`%s网址
-	Gui,66:Add,Checkbox,Checked%HideGetZz% x+143 vvHideGetZz,隐藏带`%getZz`%插件脚本
+	Gui,66:Add,Checkbox,Checked%HideGetZz% x+144 vvHideGetZz,隐藏带`%getZz`%插件脚本
 	Gui,66:Add,Checkbox,Checked%HideSelectZz% xm yp+20 vvHideSelectZz gSetHideSelectZz,隐藏选中提示信息
 	Gui,66:Add,Checkbox,Checked%HideAddItem% x+124 vvHideAddItem,隐藏【添加到此菜单】
 	Gui,66:Add,Checkbox,Checked%HideMenuTray% xm yp+20 vvHideMenuTray,隐藏底部“RunAny设置”
-	Gui,66:Add,Edit,x+81 w30 h20 vvRecentMax,%RecentMax%
+	Gui,66:Add,Edit,x+78 w30 h20 vvRecentMax,%RecentMax%
 	Gui,66:Add,Text,x+5 yp+2,最近运行项数量 (0为隐藏)
 
 	Gui,66:Add,GroupBox,xm-10 y+15 w225 h55,RunAny菜单热键 %MenuHotKey%
