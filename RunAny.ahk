@@ -208,7 +208,6 @@ Loop,%MenuCount%
 	Menu_Item_List_Filter(A_Index,"MenuSendStrList",HideSend)
 	Menu_Item_List_Filter(A_Index,"MenuWebList",HideWeb)
 	Menu_Item_List_Filter(A_Index,"MenuGetZzList",HideGetZz)
-	;~ Menu_Item_List_Filter(A_Index,"MenuSendStrList",true,3)
 	
 	;~[带%s的网址菜单节点下增加批量搜索功能项]
 	For mn,items in MenuWebList%A_Index%
@@ -300,13 +299,13 @@ Menu_Item_List_Filter(M_Index,MenuTypeList,HideFlag,MenuType:=1){
 		return
 	if(MenuType=1){
 		rootName:=menuDefaultRoot%M_Index%[1]
-		rootReg:="[^\s]+\s$"
+		rootReg:="S)[^\s]+\s$"
 	}else if(MenuType=2){
 		rootName:=menuWebRoot%M_Index%[1]
-		rootReg:="S)\s{2}$"
+		rootReg:="S)[^\s]+\s{2}$"
 	}else if(MenuType=3){
 		rootName:=menuFileRoot%M_Index%[1]
-		rootReg:="S)\s{3}$"
+		rootReg:="S)[^\s]+\s{3}$"
 	}
 	For mn,items in %MenuTypeList%%M_Index%
 	{
@@ -989,11 +988,16 @@ Menu_Show:
 					}
 				}else{
 					if(!HideAddItem){
+						Menu,% menuFileRoot%MENU_NO%[1],Insert, ,0【添加到此菜单】,Menu_Add_File_Item
+						Menu,% menuFileRoot%MENU_NO%[1],Default,0【添加到此菜单】
+						Menu,% menuFileRoot%MENU_NO%[1],Icon,0【添加到此菜单】,SHELL32.dll,166
 						Menu_Add_Del_Temp(1,MENU_NO,"0【添加到此菜单】","Menu_Add_File_Item","SHELL32.dll","166")
 					}
 					Menu_Show_Show(menuFileRoot%MENU_NO%[1],FileName)
-					if(!HideAddItem)
+					if(!HideAddItem){
+						Menu,% menuFileRoot%MENU_NO%[1],Delete,0【添加到此菜单】
 						Menu_Add_Del_Temp(0,MENU_NO,"0【添加到此菜单】")
+					}
 				}
 			}catch{
 				Menu_Show_Show(menuFileRoot%MENU_NO%[1],FileName)
@@ -1132,13 +1136,15 @@ return
 Menu_Add_Del_Temp(addDel=1,TREE_NO=1,mName="",LabelName="",mIcon="",mIconNum=""){
 	if(!mName)
 		return
-	For kk, vv in MenuObjTree%TREE_NO%
+	For mn, vv in MenuObjTree%TREE_NO%
 	{
-		if(addDel){
-			Menu,%kk%,Insert, ,%mName%,%LabelName%
-			Menu,%kk%,Icon,%mName%,%mIcon%,%mIconNum%
-		}else{
-			Menu,%kk%,Delete,%mName%
+		if(RegExMatch(mn,"S)[^\s]+\s{3}$")){
+			if(addDel){
+				Menu,%mn%,Insert, ,%mName%,%LabelName%
+				Menu,%mn%,Icon,%mName%,%mIcon%,%mIconNum%
+			}else{
+				Menu,%mn%,Delete,%mName%
+			}
 		}
 	}
 }
