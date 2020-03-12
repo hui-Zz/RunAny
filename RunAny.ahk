@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2020.03.11
+║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2020.03.12
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -24,7 +24,7 @@ global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.6.9"
-global RunAny_update_time:="2020.03.11"
+global RunAny_update_time:="2020.03.12"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -1503,7 +1503,9 @@ Run_Search(any,getZz="",browser=""){
 			}
 		}
 	}
-	if(InStr(any,"%s",true)){
+	if(InStr(any,"%getZz%",true)){
+		Run,% browserRun """" StrReplace(any,"%getZz%",getZz) """"
+	}else if(InStr(any,"%s",true)){
 		Run,% browserRun """" StrReplace(any,"%s",getZz) """"
 	}else if(InStr(any,"%S",true)){
 		Run,% browserRun """" StrReplace(any,"%S",SkSub_UrlEncode(getZz)) """"
