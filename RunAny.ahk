@@ -171,6 +171,7 @@ Loop,%MenuCount%
 	MenuWebList%A_Index%:=Object()		;菜单中网址%s搜索项列表
 	MenuGetZzList%A_Index%:=Object()	;菜单中GetZz搜索项列表
 	MenuObjList%A_Index%:=Object()   	;菜单分类运行项列表
+	MenuExeList%A_Index%:=Object()		;菜单中的exe列表
 	MenuObjTree%A_Index%:=Object()   	;分类目录程序全数据
 	MenuObjTree%A_Index%[M%A_Index%]:=Object()
 	;菜单级别：初始为根菜单RunAny
@@ -203,10 +204,11 @@ Loop,%MenuCount%
 	menuFileRoot%A_Index%:=[M%A_Index% "   "]
 	Menu_Read(iniVar%A_Index%,menuFileRoot%A_Index%,"   ",A_Index)
 
-	Menu_Item_List_Filter(A_Index,"MenuSendStrList",true,3)
 	Menu_Item_List_Filter(A_Index,"MenuSendStrList",HideSend)
 	Menu_Item_List_Filter(A_Index,"MenuWebList",HideWeb)
 	Menu_Item_List_Filter(A_Index,"MenuGetZzList",HideGetZz)
+	Menu_Item_List_Filter(A_Index,"MenuExeList",HideUnSelect,2)
+	Menu_Item_List_Filter(A_Index,"MenuSendStrList",true,3)
 	
 	;~[带%s的网址菜单节点下增加批量搜索功能项]
 	For mn,items in MenuWebList%A_Index%
@@ -287,26 +289,31 @@ return
 
 ;~[在选中文字文件或不选中时，过滤不同内容类型]
 Menu_Item_List_Filter(M_Index,MenuTypeList,HideFlag,MenuType:=1){
+	if(!HideFlag)
+		return
 	if(MenuType=1){
 		rootName:=menuDefaultRoot%M_Index%[1]
 		rootReg:="[^\s]+\s$"
+	}else if(MenuType=2){
+		rootName:=menuWebRoot%M_Index%[1]
+		rootReg:="S)\s{2}$"
 	}else if(MenuType=3){
 		rootName:=menuFileRoot%M_Index%[1]
 		rootReg:="S)\s{3}$"
 	}
 	For mn,items in %MenuTypeList%%M_Index%
 	{
-		if(HideFlag && (mn=rootName || RegExMatch(mn,rootReg))){
+		if(mn=rootName || RegExMatch(mn,rootReg)){
 			Loop, Parse, items, `n
 			{
 				if(A_LoopField="")
 					continue
-				Menu,%mn%,Delete,%A_LoopField%
+				try Menu,%mn%,Delete,%A_LoopField%
 			}
 			if(InStr(mn,RunAnyZz))
 				continue
 			if(%MenuTypeList%%M_Index%[mn]=MenuObjList%M_Index%[mn]){
-				Menu,%mn%,Delete
+				try Menu,%mn%,Delete
 			}
 		}
 	}
@@ -704,6 +711,7 @@ MenuExeArrayPush(menuName,menuItem,itemFile,itemAny,TREE_NO){
 		MenuExeArray.Push(MenuObjEXE)
 	}else{
 		MenuExeIconArray.Push(MenuObjEXE)
+		MenuExeList%TREE_NO%[menuName].=menuItem "`n"
 	}
 }
 ;~;[读取热字串用作提示文字]
@@ -1040,7 +1048,7 @@ Menu_Show:
 			}
 		}
 		;#选中文本弹出网址菜单#
-		if(!HideUnSelect){
+		if(HideUnSelect){
 			Menu_Show_Show(menuWebRoot%MENU_NO%[1],getZz)
 		}else{
 			Menu_Show_Show(menuRoot%MENU_NO%[1],getZz)
@@ -3673,7 +3681,7 @@ Menu_Set:
 	Gui,66:Add,Edit,x+50 w30 h20 vvRecentMax,%RecentMax%
 	Gui,66:Add,Text,x+5 yp+2,最近运行项数量 (0为隐藏)
 	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h85,RunAny菜单设置
-	Variable_Boolean_Reverse("HideSend","HideWeb","HideGetZz","HideSelectZz","HideAddItem")
+	Variable_Boolean_Reverse("HideSend","HideWeb","HideGetZz","HideUnSelect","HideSelectZz","HideAddItem")
 	Checkbox_WIDTH_66=8
 	Gui,66:Add,Text,xm yp+20, 默认不选中：
 	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,应用程序
@@ -3861,7 +3869,7 @@ Menu_Set:
 	Gui,66:Add,Button,x+15 w75 GSetReSet,重置
 	Gui,66:Add,Text,x+40 yp+5 w75 GMenu_Config,RunAnyConfig.ini
 	Gui,66:Show,,%RunAnyZz%设置 %RunAny_update_version% %RunAny_update_time%%AdminMode%
-	Variable_Boolean_Reverse("HideSend","HideWeb","HideGetZz","HideSelectZz","HideAddItem")
+	Variable_Boolean_Reverse("HideSend","HideWeb","HideGetZz","HideUnSelect","HideSelectZz","HideAddItem")
 	return
 ;~;[关于]
 Menu_About:
@@ -3974,7 +3982,7 @@ SetOK:
 			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		}
 	}
-	Variable_Boolean_Reverse("vHideSend","vHideWeb","vHideGetZz","vHideSelectZz","vHideAddItem")
+	Variable_Boolean_Reverse("vHideSend","vHideWeb","vHideGetZz","vHideUnSelect","vHideSelectZz","vHideAddItem")
 	SetValueList:=["AdminRun","AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupFormat","RunABackupDir","DisableApp"]
 	SetValueList.Push("EvPath","EvCommand","EvAutoClose","EvExeVerNew","EvDemandSearch")
 	SetValueList.Push("HideFail","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideUnSelect","HideSelectZz","RecentMax")
