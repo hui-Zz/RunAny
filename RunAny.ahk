@@ -170,7 +170,6 @@ Loop,%MenuCount%
 	MenuWebList%A_Index%:=Object()		;菜单中网址%s搜索项列表
 	MenuGetZzList%A_Index%:=Object()		;菜单中GetZz搜索项列表
 	MenuObjList%A_Index%:=Object()   		;菜单分类运行项列表
-	;~ MenuExeList%A_Index%:=Object()		;菜单中的exe列表
 	MenuObjPublic%A_Index%:=Object()		;后缀公共菜单
 	MenuObjText%A_Index%:=Object()		;选中文字菜单
 	MenuObjFile%A_Index%:=Object()		;选中文件菜单
@@ -209,7 +208,6 @@ Loop,%MenuCount%
 	Menu_Item_List_Filter(A_Index,"MenuSendStrList",HideSend)
 	Menu_Item_List_Filter(A_Index,"MenuWebList",HideWeb)
 	Menu_Item_List_Filter(A_Index,"MenuGetZzList",HideGetZz)
-	;~ Menu_Item_List_Filter(A_Index,"MenuExeList",HideUnSelect,2)
 	;~ Menu_Item_List_Filter(A_Index,"MenuSendStrList",true,3)
 	
 	;~[带%s的网址菜单节点下增加批量搜索功能项]
@@ -1090,11 +1088,7 @@ Menu_Show:
 			}
 		}
 		;#选中文本弹出网址菜单#
-		if(HideUnSelect){
-			Menu_Show_Show(menuWebRoot%MENU_NO%[1],getZz)
-		}else{
-			Menu_Show_Show(menuRoot%MENU_NO%[1],getZz)
-		}
+		Menu_Show_Show(menuWebRoot%MENU_NO%[1],getZz)
 	}catch{}
 return
 ;~;[菜单热键显示]
@@ -3719,31 +3713,17 @@ Menu_Set:
 	Gui,66:Add,Tab,x10 y10 w590 h540,RunAny设置|配置热键|Everything设置|一键直达|自定义打开后缀|热字符串|图标设置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+%MARGIN_TOP_66% vvAutoRun,开机自动启动
-	Gui,66:Add,Checkbox,Checked%AdminRun% x+64 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
+	Gui,66:Add,Checkbox,Checked%AdminRun% x+148 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
+	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h105,RunAny应用菜单
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
-	Gui,66:Add,Checkbox,Checked%HideMenuTray% x+76 vvHideMenuTray,隐藏底部“RunAny设置”
-	Gui,66:Add,Edit,x+50 w30 h20 vvRecentMax,%RecentMax%
+	Gui,66:Add,Checkbox,Checked%HideSend% x+160 vvHideSend,隐藏短语
+	Gui,66:Add,Checkbox,Checked%HideWeb% xm yp+20 vvHideWeb,隐藏带`%s网址
+	Gui,66:Add,Checkbox,Checked%HideGetZz% x+143 vvHideGetZz,隐藏带`%getZz`%插件脚本
+	Gui,66:Add,Checkbox,Checked%HideSelectZz% xm yp+20 vvHideSelectZz gSetHideSelectZz,隐藏选中提示信息
+	Gui,66:Add,Checkbox,Checked%HideAddItem% x+124 vvHideAddItem,隐藏【添加到此菜单】
+	Gui,66:Add,Checkbox,Checked%HideMenuTray% xm yp+20 vvHideMenuTray,隐藏底部“RunAny设置”
+	Gui,66:Add,Edit,x+81 w30 h20 vvRecentMax,%RecentMax%
 	Gui,66:Add,Text,x+5 yp+2,最近运行项数量 (0为隐藏)
-	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h85,RunAny菜单设置
-	Variable_Boolean_Reverse("HideSend","HideWeb","HideGetZz","HideUnSelect","HideSelectZz","HideAddItem")
-	Checkbox_WIDTH_66=8
-	Gui,66:Add,Text,xm yp+20, 默认不选中：
-	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,应用程序
-	Gui,66:Add,Checkbox,Checked%HideSend% x+%Checkbox_WIDTH_66% vvHideSend,短语输出
-	Gui,66:Add,Checkbox,Checked%HideWeb% x+%Checkbox_WIDTH_66% vvHideWeb,网址带`%s
-	Gui,66:Add,Checkbox,Checked%HideGetZz% x+%Checkbox_WIDTH_66% vvHideGetZz,插件脚本(仅带`%getZz`%)
-	Gui,66:Add,Text,xm yp+20,选中文字时：
-	Gui,66:Add,Checkbox,Checked%HideSelectZz% x+%Checkbox_WIDTH_66% vvHideSelectZz gSetHideSelectZz,选中提示
-	Gui,66:Add,Checkbox,Checked%HideUnSelect% x+%Checkbox_WIDTH_66% vvHideUnSelect,应用程序
-	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,网址带`%s
-	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,插件脚本
-	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,短语输出
-	Gui,66:Add,Text,xm yp+20,选中文件时：
-	Gui,66:Add,Checkbox,Disabled Checked%HideSelectZz% x+%Checkbox_WIDTH_66% vvHideSelectZz2,选中提示
-	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,应用程序
-	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,网址带`%s
-	Gui,66:Add,Checkbox,Disabled Checked1 x+%Checkbox_WIDTH_66%,插件脚本
-	Gui,66:Add,Checkbox,Checked%HideAddItem% x+%Checkbox_WIDTH_66% vvHideAddItem,【添加到此菜单】
 
 	Gui,66:Add,GroupBox,xm-10 y+15 w225 h55,RunAny菜单热键 %MenuHotKey%
 	Gui,66:Add,Hotkey,xm yp+20 w150 vvMenuKey,%MenuKey%
@@ -3913,7 +3893,6 @@ Menu_Set:
 	Gui,66:Add,Button,x+15 w75 GSetReSet,重置
 	Gui,66:Add,Text,x+40 yp+5 w75 GMenu_Config,RunAnyConfig.ini
 	Gui,66:Show,,%RunAnyZz%设置 %RunAny_update_version% %RunAny_update_time%%AdminMode%
-	Variable_Boolean_Reverse("HideSend","HideWeb","HideGetZz","HideUnSelect","HideSelectZz","HideAddItem")
 	return
 ;~;[关于]
 Menu_About:
@@ -4026,10 +4005,9 @@ SetOK:
 			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		}
 	}
-	Variable_Boolean_Reverse("vHideSend","vHideWeb","vHideGetZz","vHideUnSelect","vHideSelectZz","vHideAddItem")
 	SetValueList:=["AdminRun","AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupFormat","RunABackupDir","DisableApp"]
 	SetValueList.Push("EvPath","EvCommand","EvAutoClose","EvExeVerNew","EvDemandSearch")
-	SetValueList.Push("HideFail","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideUnSelect","HideSelectZz","RecentMax")
+	SetValueList.Push("HideFail","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideSelectZz","RecentMax")
 	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu")
 	SetValueList.Push("BrowserPath","IconFolderPath","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon","AnyIcon","MenuIcon")
 	SetValueList.Push("HideHotStr","HotStrShowLen","HotStrShowTime","HotStrShowTransparent","HotStrShowX","HotStrShowY")
@@ -4293,7 +4271,6 @@ Var_Set:
 	global HideSend:=Var_Read("HideSend",0)
 	global HideAddItem:=Var_Read("HideAddItem",0)
 	global HideMenuTray:=Var_Read("HideMenuTray",0)
-	global HideUnSelect:=Var_Read("HideUnSelect",0)
 	global HideSelectZz:=Var_Read("HideSelectZz",0)
 	global RecentMax:=Var_Read("RecentMax",3)
 	global OneKeyWeb:=Var_Read("OneKeyWeb",1)
