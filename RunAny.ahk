@@ -525,7 +525,9 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				continue
 			
 			itemMode:=GetMenuItemMode(Z_LoopField,true)
-			
+			if(TREE_TYPE="" && itemMode=60 && RegExMatch(Z_LoopField,"iS).*?%s[^%]*$")){
+				MsgBox,48,请修改菜单项 `%s不能识别,% "菜单项：" Get_Obj_Name(Z_LoopField) "`n里面的`%s 仅支持在纯网址模式，`n在参数中请替换使用%getZz%表示选中文字"
+			}
 			;短语、网址、脚本插件函数除外的菜单项直接转换%%为系统变量值
 			transformValFlag:=false
 			if(itemMode!=2 && itemMode!=3 && itemMode!=6 && itemMode!=8){
@@ -1503,7 +1505,7 @@ Run_Search(any,getZz="",browser=""){
 			}
 		}
 	}
-	if(InStr(any,"%getZz%",true)){
+	if(InStr(any,"%getZz%")){
 		Run,% browserRun """" StrReplace(any,"%getZz%",getZz) """"
 	}else if(InStr(any,"%s",true)){
 		Run,% browserRun """" StrReplace(any,"%s",getZz) """"
