@@ -1,7 +1,7 @@
 ﻿;****************************
 ;* 【ObjReg批量自定义运行】 *
 ;****************************
-global RunAny_Plugins_Version:="1.1.0"
+global RunAny_Plugins_Version:="1.1.1"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
 #SingleInstance,Force   ;~运行替换旧实例
@@ -17,13 +17,20 @@ class RunAnyObj {
 		Run,https://www.google.com/search?q=%getZz%&gws_rd=ssl
 		Run,D:\Users\OneDrive\Apps\Zz\TotalCMD64\Tools\Everything.exe -search "%getZz%"
 	}
-	;[多软件打开选中文件]
+	;[多软件打开选中多文件]
 	;保存到RunAny.ini为：多软件打开|huiZz_BatchRun[multi_open](%getZz%,"notepad.exe","wordpad.exe")
 	;多软件无路径打开|huiZz_BatchRun[multi_open](%getZz%,%"notepad2.exe"%,%"sublime_text.exe"%)
 	multi_open(getZz,programs*){
-		for i,p in programs
+		Loop, parse, getZz, `n, `r
 		{
-			Run,%p% "%getZz%"
+			S_LoopField=%A_LoopField%
+			if(S_LoopField=""){
+				continue
+			}
+			for i,p in programs
+			{
+				Run,%p% "%S_LoopField%"
+			}
 		}
 	}
 }
