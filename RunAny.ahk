@@ -3855,7 +3855,7 @@ Menu_Set:
 	Gui,66:Add,GroupBox,xm-10 y+30 w%GROUP_WIDTH_66% h100,Everything安装路径（支持内置变量和相对路径..\为RunAny相对上级目录）
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r3 -WantReturn vvEvPath,%EvPath%
-	Gui,66:Add,GroupBox,xm-10 y+25 w%GROUP_WIDTH_66% h250,Everything通信搜索参数（搜索结果中程序可无路径用RunAny运行，搜索不到尝试强制重建索引）
+	Gui,66:Add,GroupBox,xm-10 y+25 w%GROUP_WIDTH_66% h250,Everything通信搜索参数（搜索结果可在RunAny无路径运行，搜索为空请尝试重建Everything索引）
 	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+30 vvEvExeVerNew gSetEvExeVerNew,搜索结果优先最新版本同名exe全路径
 	Gui,66:Add,Checkbox,Checked%EvDemandSearch% x+10 vvEvDemandSearch gSetEvDemandSearch,按需搜索模式（只搜索RunAny菜单的无路径文件）
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvCommand,修改
@@ -4194,6 +4194,29 @@ Var_Read(rValue,defVar=""){
 		return defVar
 	}
 }
+;-------------------------------------自定义打开后缀界面-------------------------------------
+Open_Ext_Edit:
+	if(openExtItem="编辑"){
+		RunRowNumber := LV_GetNext(0, "F")
+		if not RunRowNumber
+			return
+		LV_GetText(openExtName, RunRowNumber, 1)
+		LV_GetText(openExtRun, RunRowNumber, 2)
+	}
+	Gui,SaveExt:Destroy
+	Gui,SaveExt:Default
+	Gui,SaveExt:Margin,20,20
+	Gui,SaveExt:Font,,Microsoft YaHei
+	Gui,SaveExt:Add, GroupBox,xm y+10 w400 h145,%openExtItem%自定义后缀打开方式
+	Gui,SaveExt:Add, Text, xm+10 y+35 y35 w62, 文件后缀    (空格分隔)
+	Gui,SaveExt:Add, Edit, x+5 yp+5 w300 vvopenExtName, %openExtName%
+	Gui,SaveExt:Add, Button, xm+5 y+15 w60 GSetOpenExtRun,打开方式软件路径
+	Gui,SaveExt:Add, Edit, x+12 yp w300 r3 -WantReturn vvopenExtRun, %openExtRun%
+	Gui,SaveExt:Font
+	Gui,SaveExt:Add,Button,Default xm+100 y+25 w75 GSaveOpenExt,保存(&Y)
+	Gui,SaveExt:Add,Button,x+20 w75 GSetCancel,取消(&C)
+	Gui,SaveExt:Show,,%RunAnyZz% - %openExtItem%自定义后缀打开方式 %RunAny_update_version% %RunAny_update_time%
+return
 listviewOpenExt:
     if A_GuiEvent = DoubleClick
     {
@@ -4216,28 +4239,6 @@ LVOpenExtRemove:
 	if not RunRowNumber
 		return
 	LV_Delete(RunRowNumber)
-return
-Open_Ext_Edit:
-	if(openExtItem="编辑"){
-		RunRowNumber := LV_GetNext(0, "F")
-		if not RunRowNumber
-			return
-		LV_GetText(openExtName, RunRowNumber, 1)
-		LV_GetText(openExtRun, RunRowNumber, 2)
-	}
-	Gui,SaveExt:Destroy
-	Gui,SaveExt:Default
-	Gui,SaveExt:Margin,20,20
-	Gui,SaveExt:Font,,Microsoft YaHei
-	Gui,SaveExt:Add, GroupBox,xm y+10 w400 h145,%openExtItem%自定义后缀打开方式
-	Gui,SaveExt:Add, Text, xm+10 y+35 y35 w62, 文件后缀    (空格分隔)
-	Gui,SaveExt:Add, Edit, x+5 yp+5 w300 vvopenExtName, %openExtName%
-	Gui,SaveExt:Add, Button, xm+5 y+15 w60 GSetOpenExtRun,打开方式软件路径
-	Gui,SaveExt:Add, Edit, x+12 yp w300 r3 -WantReturn vvopenExtRun, %openExtRun%
-	Gui,SaveExt:Font
-	Gui,SaveExt:Add,Button,Default xm+100 y+25 w75 GSaveOpenExt,保存(&Y)
-	Gui,SaveExt:Add,Button,x+20 w75 GSetCancel,取消(&C)
-	Gui,SaveExt:Show,,%RunAnyZz% - %openExtItem%自定义后缀打开方式 %RunAny_update_version% %RunAny_update_time%
 return
 SaveOpenExt:
 	OpenExtFlag:=true
