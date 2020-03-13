@@ -3852,11 +3852,11 @@ Menu_Set:
 	Gui,66:Add,Button, xm yp+30 w50 GLVMenuEnvAdd, + 增加
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuEnvEdit, * 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuEnvRemove, - 减少
-	Gui,66:Add,Listview,xm yp+30 w%GROUP_EDIT_WIDTH_66% r16 grid AltSubmit -Multi vRunAnyMenuEnvLV glistviewMenuEnv, 菜单变量名|类型|菜单变量值
+	Gui,66:Add,Listview,xm yp+30 w%GROUP_EDIT_WIDTH_66% r16 grid AltSubmit -Multi vRunAnyMenuEnvLV glistviewMenuEnv, 菜单变量名|类型|菜单变量值（仅用户自定义变量是固定值）
 	GuiControl, 66:-Redraw, RunAnyMenuEnvLV
 	For k, v in MenuEnvIniList
 	{
-		typeName:=(MenuEnvTypeList[k]=1) ? "RunAny变量" : (MenuEnvTypeList[k]=2) ? "系统环境变量" : "用户自定义变量"
+		typeName:=(MenuEnvTypeList[k]=1) ? "RunAny变量(动态)" : (MenuEnvTypeList[k]=2) ? "系统环境变量(动态)" : "用户自定义变量"
 		LV_Add("", k, typeName, v)
 	}
 	LV_ModifyCol()
@@ -4349,19 +4349,20 @@ SetMenuEnvVal:
 	Gui,SaveEnv:Submit, NoHide
 	if(vmenuEnvName="")
 		return
-	if(RegExMatch(vmenuEnvName,"%|\s")){
-		MsgBox, 48, ,变量名不能包含空格或者 `%
+	if(!RegExMatch(vmenuEnvName,"^[\p{Han}A-Za-z0-9_]+$")){
+		ToolTip, 变量名只能为中文、数字、字母、下划线,195,35
+		SetTimer,RemoveToolTip,3000
 		return
 	}
-	EnvGet, %vmenuEnvName%, %vmenuEnvName%
-	if(%vmenuEnvName%){
-		menuEnvType:="系统环境变量"
+	try EnvGet, %sysMenuEnvName%, %vmenuEnvName%
+	if(%sysMenuEnvName%){
+		menuEnvType:="系统环境变量(动态)"
 		GuiControl,, vmenuEnvVal, % %vmenuEnvName%
 		GuiControl,, vmenuEnvType, %menuEnvType%
 		GuiControl,Disable, vmenuEnvVal
 	}else{
 		if(%vmenuEnvName%){
-			menuEnvType:="RunAny变量"
+			menuEnvType:="RunAny变量(动态)"
 			GuiControl,, vmenuEnvVal, % %vmenuEnvName%
 			GuiControl,, vmenuEnvType, %menuEnvType%
 			GuiControl,Disable, vmenuEnvVal
@@ -4375,8 +4376,13 @@ return
 SaveMenuEnv:
 	MenuEnvFlag:=true
 	Gui,SaveEnv:Submit, NoHide
-	if(!vmenuEnvName){
+	if(vmenuEnvName=""){
 		ToolTip, 请填入菜单变量名,195,35
+		SetTimer,RemoveToolTip,3000
+		return
+	}
+	if(!RegExMatch(vmenuEnvName,"^[\p{Han}A-Za-z0-9_]+$")){
+		ToolTip, 变量名只能为中文、数字、字母、下划线,195,35
 		SetTimer,RemoveToolTip,3000
 		return
 	}
@@ -4535,7 +4541,7 @@ Menu_Env_Set:
 			MenuEnvIniList[itemList[1]]:=%envName%
 			MenuEnvTypeList[envName]:=1
 		}else{
-			EnvGet, %envName%, %envName%
+			try EnvGet, %envName%, %envName%
 			if(%envName%){
 				MenuEnvIniList[itemList[1]]:=%envName%
 				MenuEnvTypeList[envName]:=2
