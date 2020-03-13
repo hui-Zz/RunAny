@@ -157,6 +157,7 @@ Gosub,Icon_FileExt_Set
 global MenuExeArray:=Object()		;~程序数据数组
 global MenuExeIconArray:=Object()	;~程序优先加载图标数组
 global MenuObjTreeLevel:=Object()	;~菜单对应级别
+global MenuObjPublic:=Object()	;~后缀公共菜单
 global MenuShowFlag:=false			;~菜单功能是否可以显示
 global MenuIconFlag:=false			;~菜单图标是否加载完成
 global MenuCount:=MENU2FLAG ? 2 : 1
@@ -170,7 +171,6 @@ Loop,%MenuCount%
 	MenuWebList%A_Index%:=Object()		;菜单中网址%s搜索项列表
 	MenuGetZzList%A_Index%:=Object()		;菜单中GetZz搜索项列表
 	MenuObjList%A_Index%:=Object()   		;菜单分类运行项列表
-	MenuObjPublic%A_Index%:=Object()		;后缀公共菜单
 	MenuObjText%A_Index%:=Object()		;选中文字菜单
 	MenuObjFile%A_Index%:=Object()		;选中文件菜单
 	MenuObjTree%A_Index%:=Object()   		;分类目录程序全数据
@@ -219,7 +219,7 @@ Loop,%MenuCount%
 		}
 	}
 	;设置后缀公共菜单
-	MenuObjExt["public" A_Index]:=MenuObjPublic%A_Index%
+	MenuObjExt["public"]:=MenuObjPublic
 	
 	if(MenuObjText%A_Index%.MaxIndex()>0){
 		Menu_Tree_List_Filter(A_Index,"MenuObjText",2)
@@ -519,7 +519,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 						{
 							;选中文件后显示的公共后缀菜单
 							if(A_LoopField="public"){
-								MenuObjPublic%TREE_NO%.Push(treeLevel . menuItem)
+								MenuObjPublic.Push(treeLevel . menuItem)
 							}else if(A_LoopField="text"){
 								MenuObjText%TREE_NO%.Push(menuItem)
 							}else if(A_LoopField="file"){
@@ -961,24 +961,24 @@ Menu_Show:
 							Menu,%extMenuName%,Icon,0【添加到此菜单】,SHELL32.dll,166
 						}
 						;添加后缀公共菜单
-						publicMenuMaxNum:=MenuObjExt["public" MENU_NO].MaxIndex()
+						publicMenuMaxNum:=MenuObjExt["public"].MaxIndex()
 						if(publicMenuMaxNum>0){
 							Loop {
-								v:=MenuObjExt["public" MENU_NO][publicMenuMaxNum]
+								v:=MenuObjExt["public"][publicMenuMaxNum]
 								vn:=RegExReplace(v,"S)^-+")
 								Menu,%extMenuName%,Insert, 1&, %vn%, :%vn%
 								Menu_Item_Icon(extMenuName,vn,TreeIconS[1],TreeIconS[2],v)
 								publicMenuMaxNum--
 							} Until % publicMenuMaxNum<1
-							publicMaxNum:=MenuObjExt["public" MENU_NO].MaxIndex() + 1
+							publicMaxNum:=MenuObjExt["public"].MaxIndex() + 1
 							Menu,%extMenuName%,Insert, %publicMaxNum%&
 						}
 						;[显示自定义后缀菜单]
 						Menu_Show_Show(extMenuName,FileName)
 						;删除临时添加的菜单
-						if(MenuObjExt["public" MENU_NO].MaxIndex()>0){
+						if(MenuObjExt["public"].MaxIndex()>0){
 							Menu,%extMenuName%,Delete, %publicMaxNum%&
-							for k,v in MenuObjExt["public" MENU_NO]
+							for k,v in MenuObjExt["public"]
 							{
 								vn:=RegExReplace(v,"S)^-+")
 								Menu,%extMenuName%,Delete,%vn%
