@@ -235,6 +235,8 @@ if(RecentMax>0){
 	Menu,% menuDefaultRoot1[1],Add
 	For mci, mcItem in MenuCommonList
 	{
+		if(A_Index>RecentMax)
+			break
 		obj:=RegExReplace(mcItem,"&" mci A_Space)
 		MenuObj[mcItem]:=MenuObj[obj]
 		Menu,% menuDefaultRoot1[1],Add,%mcItem%,Menu_Run
