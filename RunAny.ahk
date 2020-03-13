@@ -3757,7 +3757,7 @@ Menu_Set:
 	Gui,66:Font,,Microsoft YaHei
 	Gui,66:Margin,30,20
 	Gui,66:Default
-	Gui,66:Add,Tab,x10 y10 w590 h540,RunAny设置|配置热键|Everything设置|一键直达|自定义打开后缀|热字符串|图标设置
+	Gui,66:Add,Tab,x10 y10 w590 h540,RunAny设置|配置热键|菜单变量|Everything设置|一键直达|自定义打开后缀|热字符串|图标设置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+%MARGIN_TOP_66% vvAutoRun,开机自动启动
 	Gui,66:Add,Checkbox,Checked%AdminRun% x+148 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
@@ -3846,6 +3846,21 @@ Menu_Set:
 	Gui,66:Add,GroupBox,x+35 yp-23 w225 h55,退出RunAny：%RunAExitHotKey%
 	Gui,66:Add,Hotkey,xp+10 yp+20 w150 vvRunAExitKey,%RunAExitKey%
 	Gui,66:Add,Checkbox,Checked%RunAExitWinKey% xp+155 yp+3 vvRunAExitWinKey,Win
+	
+	Gui,66:Tab,菜单变量,,Exact
+	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h435,自定义配置RunAny菜单中可以使用的变量
+	Gui,66:Add,Button, xm yp+30 w50 GLVMenuEnvAdd, + 增加
+	Gui,66:Add,Button, x+10 yp w50 GLVMenuEnvEdit, * 修改
+	Gui,66:Add,Button, x+10 yp w50 GLVMenuEnvRemove, - 减少
+	Gui,66:Add,Listview,xm yp+30 w%GROUP_EDIT_WIDTH_66% r16 grid AltSubmit -Multi vRunAnyMenuEnvLV glistviewMenuEnv, 菜单变量名|类型|菜单变量值
+	GuiControl, 66:-Redraw, RunAnyMenuEnvLV
+	For k, v in MenuEnvIniList
+	{
+		typeName:=(MenuEnvTypeList[k]=1) ? "RunAny变量" : (MenuEnvTypeList[k]=2) ? "系统环境变量" : "用户自定义变量"
+		LV_Add("", k, typeName, v)
+	}
+	LV_ModifyCol()
+	GuiControl, 66:+Redraw, RunAnyMenuEnvLV
 	
 	Gui,66:Tab,Everything设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h55,一键Everything [搜索选中文字、激活、隐藏]
@@ -4090,6 +4105,16 @@ SetOK:
 			IniWrite,%openExtName%,%RunAnyConfig%,OpenExt,%openExtRun%
 		}
 	}
+	;[保存自定义菜单变量]
+	if(MenuEnvFlag){
+		IniDelete, %RunAnyConfig%, MenuEnv
+		Loop % LV_GetCount()
+		{
+			LV_GetText(menuEnvName, A_Index, 1)
+			LV_GetText(menuEnvVal, A_Index, 3)
+			IniWrite,%menuEnvVal%,%RunAnyConfig%,MenuEnv,%menuEnvName%
+		}
+	}
 	Reload
 return
 SetCancel:
@@ -4196,6 +4221,7 @@ Var_Read(rValue,defVar=""){
 }
 ;-------------------------------------自定义打开后缀界面-------------------------------------
 Open_Ext_Edit:
+	Gui, ListView, RunAnyOpenExtLV
 	if(openExtItem="编辑"){
 		RunRowNumber := LV_GetNext(0, "F")
 		if not RunRowNumber
@@ -4271,6 +4297,104 @@ SaveOpenExt:
 	LV_ModifyCol()  ; 根据内容自动调整每列的大小.
 	Gui,SaveExt:Destroy
 return
+;--------------------------------------菜单变量设置界面--------------------------------------
+Menu_Env_Edit:
+	Gui, ListView, RunAnyMenuEnvLV
+	if(menuEnvItem="编辑"){
+		RunRowNumber := LV_GetNext(0, "F")
+		if not RunRowNumber
+			return
+		LV_GetText(menuEnvName, RunRowNumber, 1)
+		LV_GetText(menuEnvType, RunRowNumber, 2)
+		LV_GetText(menuEnvVal, RunRowNumber, 3)
+	}
+	Gui,SaveEnv:Destroy
+	Gui,SaveEnv:Default
+	Gui,SaveEnv:Margin,20,20
+	Gui,SaveEnv:Font,,Microsoft YaHei
+	Gui,SaveEnv:Add, GroupBox,xm y+10 w400 h145 vvmenuEnvType,%menuEnvType%
+	Gui,SaveEnv:Add, Text, xm+5 y+35 y35 w60,菜单变量名
+	Gui,SaveEnv:Add, Edit, x+5 yp w300 vvmenuEnvName gSetMenuEnvVal, %menuEnvName%
+	Gui,SaveEnv:Add, Text, xm+5 y+15 w60,菜单变量值
+	Gui,SaveEnv:Add, Edit, x+5 yp w300 r3 -WantReturn vvmenuEnvVal, %menuEnvVal%
+	Gui,SaveEnv:Font
+	Gui,SaveEnv:Add,Button,Default xm+100 y+25 w75 GSaveMenuEnv,保存(&S)
+	Gui,SaveEnv:Add,Button,x+20 w75 GSetCancel,取消(&C)
+	Gui,SaveEnv:Show,,%RunAnyZz% - %menuEnvItem%菜单变量和变量值 %RunAny_update_version% %RunAny_update_time%
+return
+listviewMenuEnv:
+    if A_GuiEvent = DoubleClick
+    {
+		menuEnvItem:="编辑"
+		gosub,Menu_Env_Edit
+    }
+return
+LVMenuEnvAdd:
+	menuEnvItem:="新建"
+	menuEnvName:=menuEnvVal:=""
+	gosub,Menu_Env_Edit
+return
+LVMenuEnvEdit:
+	menuEnvItem:="编辑"
+	gosub,Menu_Env_Edit
+return
+LVMenuEnvRemove:
+	MenuEnvFlag:=true
+	RunRowNumber := LV_GetNext(0, "F")
+	if not RunRowNumber
+		return
+	LV_Delete(RunRowNumber)
+return
+SetMenuEnvVal:
+	Gui,SaveEnv:Submit, NoHide
+	if(vmenuEnvName="")
+		return
+	if(RegExMatch(vmenuEnvName,"%|\s")){
+		MsgBox, 48, ,变量名不能包含空格或者 `%
+		return
+	}
+	EnvGet, %vmenuEnvName%, %vmenuEnvName%
+	if(%vmenuEnvName%){
+		menuEnvType:="系统环境变量"
+		GuiControl,, vmenuEnvVal, % %vmenuEnvName%
+		GuiControl,, vmenuEnvType, %menuEnvType%
+		GuiControl,Disable, vmenuEnvVal
+	}else{
+		if(%vmenuEnvName%){
+			menuEnvType:="RunAny变量"
+			GuiControl,, vmenuEnvVal, % %vmenuEnvName%
+			GuiControl,, vmenuEnvType, %menuEnvType%
+			GuiControl,Disable, vmenuEnvVal
+		}else{
+			menuEnvType:="用户自定义变量"
+			GuiControl,, vmenuEnvType, %menuEnvType%
+			GuiControl,Enable, vmenuEnvVal
+		}
+	}
+return
+SaveMenuEnv:
+	MenuEnvFlag:=true
+	Gui,SaveEnv:Submit, NoHide
+	if(!vmenuEnvName){
+		ToolTip, 请填入菜单变量名,195,35
+		SetTimer,RemoveToolTip,3000
+		return
+	}
+	Gui,66:Default
+	if(menuEnvItem="新建"){
+		if(MenuEnvIniList[vmenuEnvName]){
+			ToolTip, 已有相同菜单变量名！,195,35
+			SetTimer,RemoveToolTip,3000
+			return
+		}
+		LV_Add("",vmenuEnvName,menuEnvType,vmenuEnvVal)
+	}else{
+		LV_Modify(RunRowNumber,"",vmenuEnvName,menuEnvType,vmenuEnvVal)
+	}
+	LV_ModifyCol()  ; 根据内容自动调整每列的大小.
+	Gui,SaveEnv:Destroy
+return
+
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化]
 ;══════════════════════════════════════════════════════════════════
@@ -4362,7 +4486,8 @@ Var_Set:
 	}
 	EvCommandVar:=RegExReplace(EvCommand,"i).*file:(\*\.[^\s]*).*","$1")
 	global EvCommandExtList:=StrSplit(EvCommandVar,"|")
-	EnvGet, LocalAppData, LocalAppData
+	
+	gosub,Menu_Env_Set
 	gosub,Icon_Set
 	;~[最近运行项]
 	if(RecentMax>0){
@@ -4394,6 +4519,32 @@ Var_Set:
 				return
 		}
 		Gosub,Auto_Update
+	}
+return
+;~;[菜单自定义变量]
+Menu_Env_Set:
+	global MenuEnvIniList:={}
+	global MenuEnvTypeList:={}
+	IniRead,menuEnvVar,%RunAnyConfig%,MenuEnv
+	Loop, parse, menuEnvVar, `n, `r
+	{
+		itemList:=StrSplit(A_LoopField,"=")
+		envName:=itemList[1]
+		envVal:=itemList[2]
+		if(%envName%){
+			MenuEnvIniList[itemList[1]]:=%envName%
+			MenuEnvTypeList[envName]:=1
+		}else{
+			EnvGet, %envName%, %envName%
+			if(%envName%){
+				MenuEnvIniList[itemList[1]]:=%envName%
+				MenuEnvTypeList[envName]:=2
+			}else{
+				%envName%:=envVal
+				MenuEnvTypeList[envName]:=3
+				MenuEnvIniList[itemList[1]]:=itemList[2]
+			}
+		}
 	}
 return
 ;~;[自定义打开方式]
