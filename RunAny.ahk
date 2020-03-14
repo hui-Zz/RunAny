@@ -2133,6 +2133,7 @@ return
 		gosub,TVUp
 		return
 	F3::gosub,TVAdd
+	F4::gosub,TVAddTree
 	F8::gosub,TVImportFile
 	F9::gosub,TVImportFolder
 	^s::gosub,TVSave
@@ -2177,8 +2178,10 @@ TVMenu(addMenu){
 	flag:=addMenu="GuiMenu" ? true : false
 	Menu, %addMenu%, Add,% flag ? "保存" : "保存`tCtrl+S", TVSave
 	Menu, %addMenu%, Icon,% flag ? "保存" : "保存`tCtrl+S", SHELL32.dll,194
-	Menu, %addMenu%, Add,% flag ? "添加" : "添加`tF3", TVAdd
-	Menu, %addMenu%, Icon,% flag ? "添加" : "添加`tF3", SHELL32.dll,1
+	Menu, %addMenu%, Add,% flag ? "添加应用" : "添加应用`tF3", TVAdd
+	Menu, %addMenu%, Icon,% flag ? "添加应用" : "添加应用`tF3", SHELL32.dll,3
+	Menu, %addMenu%, Add,% flag ? "添加分类" : "添加分类`tF4", TVAddTree
+	Menu, %addMenu%, Icon,% flag ? "添加分类" : "添加分类`tF4", SHELL32.dll,4
 	Menu, %addMenu%, Add,% flag ? "编辑" : "编辑`tF2", TVEdit
 	Menu, %addMenu%, Icon,% flag ? "编辑" : "编辑`tF2", SHELL32.dll,134
 	Menu, %addMenu%, Add,% flag ? "删除" : "删除`tDel", TVDel
@@ -2235,6 +2238,17 @@ TVAdd:
 	menuGuiFlag:=true
 	gosub,Menu_Item_Edit
 return
+TVAddTree:
+	selID:=TV_Add("",TV_GetParent(TV_GetSelection()),TV_GetSelection())
+	TV_GetText(parentTreeName, TV_GetParent(TV_GetSelection()))
+	itemName:=RegExReplace(parentTreeName,"S)(^-+).*","$1") "-"
+	itemGlobalWinKey:=0
+	itemPath:=hotStrOption:=hotStrShow:=itemGlobalHotKey:=itemGlobalKey:=getZz:=""
+	menuGuiFlag:=true
+	ToolTip,% "菜单分类开头是" itemName "表示新建 " StrLen(itemName) "级目录",195,250
+	SetTimer,RemoveToolTip,5000
+	gosub,Menu_Item_Edit
+return
 TVEdit:
 	selID:=TV_GetSelection()
 	if(selIDTVEdit!="")
@@ -2288,8 +2302,10 @@ Menu_Item_Edit:
 	}
 	if(InStr(itemName,"-")){
 		treeYNum:=20
+		itemNameText:="菜单分类"
 	}else{
 		treeYNum:=10
+		itemNameText:="菜单项名"
 	}
 	SplitPath, itemPath, fName,, fExt, name_no_ext
 	itemIconName:=itemName ? itemName : name_no_ext
@@ -2299,7 +2315,7 @@ Menu_Item_Edit:
 	Gui,SaveItem:Margin,20,20
 	Gui,SaveItem:Font,,Microsoft YaHei
 	Gui,SaveItem:Add, GroupBox,xm y+10 w600 h340,新增修改菜单项
-	Gui,SaveItem:Add, Text, xm+10 y+30 y35 w60, 菜单项名：
+	Gui,SaveItem:Add, Text, xm+10 y+30 y35 w60, %itemNameText%：
 	Gui,SaveItem:Add, Edit, x+5 yp-3 w350 vvitemName GEditItemPathChange, %itemName%
 	Gui,SaveItem:Add, Picture, x+50 yp+3 w64 h-1 gSetItemIconPath, %itemIconFile%
 	Gui,SaveItem:Add, Text, xp yp+8 w72 cGreen vvTextIconAdd gSetItemIconPath BackgroundTrans, 点击添加图标
@@ -2346,7 +2362,7 @@ Menu_Item_Edit:
 		GuiControl,SaveItem:Hide, vhotStrOption
 		GuiControl,SaveItem:Move, vhotStrShow, x95 y67
 	}
-	thisMenuStr:=thisMenuItemStr:=""
+	itemNameText:=thisMenuStr:=thisMenuItemStr:=""
 	gosub,EditItemPathChange
 return
 ;[保存新增修改菜单项内容]
@@ -2396,7 +2412,7 @@ SetSaveItemGui:
 	TV_Modify(selID, Set_Icon(saveText))
 	if(ItemText!=saveText)
 		TVFlag:=true
-	if(!itemName && selID && RegExMatch(saveText,"S)^-+[^-]+.*")){
+	if(selID && RegExMatch(saveText,"S)^-+[^-]+.*")){
 		insertID:=TV_Add("",selID)
 		TV_Modify(selID, "Bold Expand")
 		TV_Modify(insertID, "Select Vis")
