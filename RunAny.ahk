@@ -4551,19 +4551,19 @@ Menu_Var_Set:
 	Loop, parse, menuVarVar, `n, `r
 	{
 		itemList:=StrSplit(A_LoopField,"=")
-		envName:=itemList[1]
-		envVal:=itemList[2]
-		if(%envName%){
-			MenuVarIniList[itemList[1]]:=%envName%
-			MenuVarTypeList[envName]:=1
+		menuVarName:=itemList[1]
+		menuVarVal:=itemList[2]
+		if(%menuVarName%){
+			MenuVarIniList[itemList[1]]:=%menuVarName%
+			MenuVarTypeList[menuVarName]:=1
 		}else{
-			try EnvGet, %envName%, %envName%
-			if(%envName%){
-				MenuVarIniList[itemList[1]]:=%envName%
-				MenuVarTypeList[envName]:=2
+			try EnvGet, %menuVarName%, %menuVarName%
+			if(%menuVarName%){
+				MenuVarIniList[itemList[1]]:=%menuVarName%
+				MenuVarTypeList[menuVarName]:=2
 			}else{
-				%envName%:=envVal
-				MenuVarTypeList[envName]:=3
+				%menuVarName%:=menuVarVal
+				MenuVarTypeList[menuVarName]:=3
 				MenuVarIniList[itemList[1]]:=itemList[2]
 			}
 		}
