@@ -3886,10 +3886,10 @@ Menu_Set:
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuVarRemove, - 减少
 	Gui,66:Add,Listview,xm yp+30 w%GROUP_EDIT_WIDTH_66% r16 grid AltSubmit -Multi vRunAnyMenuVarLV glistviewMenuVar, 菜单变量名|类型|菜单变量值（仅用户自定义变量是固定值）
 	GuiControl, 66:-Redraw, RunAnyMenuVarLV
-	For k, v in MenuVarIniList
+	For menuVarName, menuVarVal in MenuVarIniList
 	{
-		typeName:=(MenuVarTypeList[k]=1) ? "RunAny变量(动态)" : (MenuVarTypeList[k]=2) ? "系统环境变量(动态)" : "用户自定义变量"
-		LV_Add("", k, typeName, v)
+		typeName:=(MenuVarTypeList[menuVarName]=1) ? "RunAny变量(动态)" : (MenuVarTypeList[menuVarName]=2) ? "系统环境变量(动态)" : "用户自定义变量"
+		LV_Add("", menuVarName, typeName, menuVarVal)
 	}
 	LV_ModifyCol()
 	GuiControl, 66:+Redraw, RunAnyMenuVarLV
@@ -3936,9 +3936,9 @@ Menu_Set:
 	Gui,66:Add,Text, x+10 yp+5 w320,（特殊类型：文件夹folder 网址http https www ftp等）
 	Gui,66:Add,Listview,xm yp+30 w%GROUP_EDIT_WIDTH_66% r16 grid AltSubmit -Multi vRunAnyOpenExtLV glistviewOpenExt, 文件后缀(用空格分隔)|打开方式(支持无路径)
 	GuiControl, 66:-Redraw, RunAnyOpenExtLV
-	For k, v in openExtIniList
+	For openExtName, openExtVal in openExtIniList
 	{
-		LV_Add("", v, k)
+		LV_Add("", openExtVal, openExtName)
 	}
 	LV_ModifyCol()
 	GuiControl, 66:+Redraw, RunAnyOpenExtLV
@@ -3987,6 +3987,7 @@ Menu_Set:
 	Gui,66:Add,Button,x+15 w75 GSetReSet,重置
 	Gui,66:Add,Text,x+40 yp+5 w75 GMenu_Config,RunAnyConfig.ini
 	Gui,66:Show,,%RunAnyZz%设置 %RunAny_update_version% %RunAny_update_time%%AdminMode%
+	k:=v:=menuVarName:=menuVarVal:=openExtName:=openExtVal:=""
 	return
 ;~;[关于]
 Menu_About:
@@ -4569,7 +4570,8 @@ Menu_Var_Set:
 	global MenuVarTypeList:={}
 	IniRead,menuVarVar,%RunAnyConfig%,MenuVar
 	if(!menuVarVar)
-		menuVarVar:="A_ScriptDir=`nLocalAppData=`nOneDrive=`nProgramFiles="
+		menuVarVar:="A_ScriptDir`nA_Desktop`nA_MyDocuments`nA_UserName`nA_ComputerName`n"
+		menuVarVar.="ProgramFiles`nAppData`nLocalAppData`nOneDrive`nUserProfile`nWinDir"
 	Loop, parse, menuVarVar, `n, `r
 	{
 		itemList:=StrSplit(A_LoopField,"=")
