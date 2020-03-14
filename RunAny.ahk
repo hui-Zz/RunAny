@@ -2123,7 +2123,7 @@ Menu_Edit2:
 	iniFileVar:=iniVar2
 	gosub,Menu_Edit
 return
-#If WinActive(RunAnyZz "菜单树管理【" both "】(双击修改，右键操作)")
+#If WinActive(RunAnyZz "菜单树管理【" both "】")
 	F5::
 	PGDN::
 		gosub,TVDown
