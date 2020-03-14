@@ -3865,18 +3865,18 @@ Menu_Set:
 	
 	Gui,66:Tab,菜单变量,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h435,自定义配置RunAny菜单中可以使用的变量
-	Gui,66:Add,Button, xm yp+30 w50 GLVMenuEnvAdd, + 增加
-	Gui,66:Add,Button, x+10 yp w50 GLVMenuEnvEdit, * 修改
-	Gui,66:Add,Button, x+10 yp w50 GLVMenuEnvRemove, - 减少
-	Gui,66:Add,Listview,xm yp+30 w%GROUP_EDIT_WIDTH_66% r16 grid AltSubmit -Multi vRunAnyMenuEnvLV glistviewMenuEnv, 菜单变量名|类型|菜单变量值（仅用户自定义变量是固定值）
-	GuiControl, 66:-Redraw, RunAnyMenuEnvLV
-	For k, v in MenuEnvIniList
+	Gui,66:Add,Button, xm yp+30 w50 GLVMenuVarAdd, + 增加
+	Gui,66:Add,Button, x+10 yp w50 GLVMenuVarEdit, * 修改
+	Gui,66:Add,Button, x+10 yp w50 GLVMenuVarRemove, - 减少
+	Gui,66:Add,Listview,xm yp+30 w%GROUP_EDIT_WIDTH_66% r16 grid AltSubmit -Multi vRunAnyMenuVarLV glistviewMenuVar, 菜单变量名|类型|菜单变量值（仅用户自定义变量是固定值）
+	GuiControl, 66:-Redraw, RunAnyMenuVarLV
+	For k, v in MenuVarIniList
 	{
-		typeName:=(MenuEnvTypeList[k]=1) ? "RunAny变量(动态)" : (MenuEnvTypeList[k]=2) ? "系统环境变量(动态)" : "用户自定义变量"
+		typeName:=(MenuVarTypeList[k]=1) ? "RunAny变量(动态)" : (MenuVarTypeList[k]=2) ? "系统环境变量(动态)" : "用户自定义变量"
 		LV_Add("", k, typeName, v)
 	}
 	LV_ModifyCol()
-	GuiControl, 66:+Redraw, RunAnyMenuEnvLV
+	GuiControl, 66:+Redraw, RunAnyMenuVarLV
 	
 	Gui,66:Tab,Everything设置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h55,一键Everything [搜索选中文字、激活、隐藏]
@@ -4122,13 +4122,13 @@ SetOK:
 		}
 	}
 	;[保存自定义菜单变量]
-	if(MenuEnvFlag){
-		IniDelete, %RunAnyConfig%, MenuEnv
+	if(MenuVarFlag){
+		IniDelete, %RunAnyConfig%, MenuVar
 		Loop % LV_GetCount()
 		{
-			LV_GetText(menuEnvName, A_Index, 1)
-			LV_GetText(menuEnvVal, A_Index, 3)
-			IniWrite,%menuEnvVal%,%RunAnyConfig%,MenuEnv,%menuEnvName%
+			LV_GetText(menuVarName, A_Index, 1)
+			LV_GetText(menuVarVal, A_Index, 3)
+			IniWrite,%menuVarVal%,%RunAnyConfig%,MenuVar,%menuVarName%
 		}
 	}
 	Reload
@@ -4314,107 +4314,107 @@ SaveOpenExt:
 	Gui,SaveExt:Destroy
 return
 ;--------------------------------------菜单变量设置界面--------------------------------------
-Menu_Env_Edit:
-	Gui, ListView, RunAnyMenuEnvLV
-	if(menuEnvItem="编辑"){
+Menu_Var_Edit:
+	Gui, ListView, RunAnyMenuVarLV
+	if(menuVarItem="编辑"){
 		RunRowNumber := LV_GetNext(0, "F")
 		if not RunRowNumber
 			return
-		LV_GetText(menuEnvName, RunRowNumber, 1)
-		LV_GetText(menuEnvType, RunRowNumber, 2)
-		LV_GetText(menuEnvVal, RunRowNumber, 3)
+		LV_GetText(menuVarName, RunRowNumber, 1)
+		LV_GetText(menuVarType, RunRowNumber, 2)
+		LV_GetText(menuVarVal, RunRowNumber, 3)
 	}
-	Gui,SaveEnv:Destroy
-	Gui,SaveEnv:Default
-	Gui,SaveEnv:Margin,20,20
-	Gui,SaveEnv:Font,,Microsoft YaHei
-	Gui,SaveEnv:Add, GroupBox,xm y+10 w400 h145 vvmenuEnvType,%menuEnvType%
-	Gui,SaveEnv:Add, Text, xm+5 y+35 y35 w60,菜单变量名
-	Gui,SaveEnv:Add, Edit, x+5 yp w300 vvmenuEnvName gSetMenuEnvVal, %menuEnvName%
-	Gui,SaveEnv:Add, Text, xm+5 y+15 w60,菜单变量值
-	Gui,SaveEnv:Add, Edit, x+5 yp w300 r3 -WantReturn vvmenuEnvVal, %menuEnvVal%
-	Gui,SaveEnv:Font
-	Gui,SaveEnv:Add,Button,Default xm+100 y+25 w75 GSaveMenuEnv,保存(&S)
-	Gui,SaveEnv:Add,Button,x+20 w75 GSetCancel,取消(&C)
-	Gui,SaveEnv:Show,,%RunAnyZz% - %menuEnvItem%菜单变量和变量值 %RunAny_update_version% %RunAny_update_time%
+	Gui,SaveVar:Destroy
+	Gui,SaveVar:Default
+	Gui,SaveVar:Margin,20,20
+	Gui,SaveVar:Font,,Microsoft YaHei
+	Gui,SaveVar:Add, GroupBox,xm y+10 w400 h145 vvmenuVarType,%menuVarType%
+	Gui,SaveVar:Add, Text, xm+5 y+35 y35 w60,菜单变量名
+	Gui,SaveVar:Add, Edit, x+5 yp w300 vvmenuVarName gSetMenuVarVal, %menuVarName%
+	Gui,SaveVar:Add, Text, xm+5 y+15 w60,菜单变量值
+	Gui,SaveVar:Add, Edit, x+5 yp w300 r3 -WantReturn vvmenuVarVal, %menuVarVal%
+	Gui,SaveVar:Font
+	Gui,SaveVar:Add,Button,Default xm+100 y+25 w75 GSaveMenuVar,保存(&S)
+	Gui,SaveVar:Add,Button,x+20 w75 GSetCancel,取消(&C)
+	Gui,SaveVar:Show,,%RunAnyZz% - %menuVarItem%菜单变量和变量值 %RunAny_update_version% %RunAny_update_time%
 return
-listviewMenuEnv:
+listviewMenuVar:
     if A_GuiEvent = DoubleClick
     {
-		menuEnvItem:="编辑"
-		gosub,Menu_Env_Edit
+		menuVarItem:="编辑"
+		gosub,Menu_Var_Edit
     }
 return
-LVMenuEnvAdd:
-	menuEnvItem:="新建"
-	menuEnvName:=menuEnvVal:=""
-	gosub,Menu_Env_Edit
+LVMenuVarAdd:
+	menuVarItem:="新建"
+	menuVarName:=menuVarVal:=""
+	gosub,Menu_Var_Edit
 return
-LVMenuEnvEdit:
-	menuEnvItem:="编辑"
-	gosub,Menu_Env_Edit
+LVMenuVarEdit:
+	menuVarItem:="编辑"
+	gosub,Menu_Var_Edit
 return
-LVMenuEnvRemove:
-	MenuEnvFlag:=true
+LVMenuVarRemove:
+	MenuVarFlag:=true
 	RunRowNumber := LV_GetNext(0, "F")
 	if not RunRowNumber
 		return
 	LV_Delete(RunRowNumber)
 return
-SetMenuEnvVal:
-	Gui,SaveEnv:Submit, NoHide
-	if(vmenuEnvName="")
+SetMenuVarVal:
+	Gui,SaveVar:Submit, NoHide
+	if(vmenuVarName="")
 		return
-	if(!RegExMatch(vmenuEnvName,"^[\p{Han}A-Za-z0-9_]+$")){
+	if(!RegExMatch(vmenuVarName,"^[\p{Han}A-Za-z0-9_]+$")){
 		ToolTip, 变量名只能为中文、数字、字母、下划线,195,35
 		SetTimer,RemoveToolTip,3000
 		return
 	}
-	try EnvGet, %sysMenuEnvName%, %vmenuEnvName%
-	if(%sysMenuEnvName%){
-		menuEnvType:="系统环境变量(动态)"
-		GuiControl,, vmenuEnvVal, % %vmenuEnvName%
-		GuiControl,, vmenuEnvType, %menuEnvType%
-		GuiControl,Disable, vmenuEnvVal
+	try EnvGet, %sysMenuVarName%, %vmenuVarName%
+	if(%sysMenuVarName%){
+		menuVarType:="系统环境变量(动态)"
+		GuiControl,, vmenuVarVal, % %vmenuVarName%
+		GuiControl,, vmenuVarType, %menuVarType%
+		GuiControl,Disable, vmenuVarVal
 	}else{
-		if(%vmenuEnvName%){
-			menuEnvType:="RunAny变量(动态)"
-			GuiControl,, vmenuEnvVal, % %vmenuEnvName%
-			GuiControl,, vmenuEnvType, %menuEnvType%
-			GuiControl,Disable, vmenuEnvVal
+		if(%vmenuVarName%){
+			menuVarType:="RunAny变量(动态)"
+			GuiControl,, vmenuVarVal, % %vmenuVarName%
+			GuiControl,, vmenuVarType, %menuVarType%
+			GuiControl,Disable, vmenuVarVal
 		}else{
-			menuEnvType:="用户自定义变量"
-			GuiControl,, vmenuEnvType, %menuEnvType%
-			GuiControl,Enable, vmenuEnvVal
+			menuVarType:="用户自定义变量"
+			GuiControl,, vmenuVarType, %menuVarType%
+			GuiControl,Enable, vmenuVarVal
 		}
 	}
 return
-SaveMenuEnv:
-	MenuEnvFlag:=true
-	Gui,SaveEnv:Submit, NoHide
-	if(vmenuEnvName=""){
+SaveMenuVar:
+	MenuVarFlag:=true
+	Gui,SaveVar:Submit, NoHide
+	if(vmenuVarName=""){
 		ToolTip, 请填入菜单变量名,195,35
 		SetTimer,RemoveToolTip,3000
 		return
 	}
-	if(!RegExMatch(vmenuEnvName,"^[\p{Han}A-Za-z0-9_]+$")){
+	if(!RegExMatch(vmenuVarName,"^[\p{Han}A-Za-z0-9_]+$")){
 		ToolTip, 变量名只能为中文、数字、字母、下划线,195,35
 		SetTimer,RemoveToolTip,3000
 		return
 	}
 	Gui,66:Default
-	if(menuEnvItem="新建"){
-		if(MenuEnvIniList[vmenuEnvName]){
+	if(menuVarItem="新建"){
+		if(MenuVarIniList[vmenuVarName]){
 			ToolTip, 已有相同菜单变量名！,195,35
 			SetTimer,RemoveToolTip,3000
 			return
 		}
-		LV_Add("",vmenuEnvName,menuEnvType,vmenuEnvVal)
+		LV_Add("",vmenuVarName,menuVarType,vmenuVarVal)
 	}else{
-		LV_Modify(RunRowNumber,"",vmenuEnvName,menuEnvType,vmenuEnvVal)
+		LV_Modify(RunRowNumber,"",vmenuVarName,menuVarType,vmenuVarVal)
 	}
 	LV_ModifyCol()  ; 根据内容自动调整每列的大小.
-	Gui,SaveEnv:Destroy
+	Gui,SaveVar:Destroy
 return
 
 ;══════════════════════════════════════════════════════════════════
@@ -4509,7 +4509,7 @@ Var_Set:
 	EvCommandVar:=RegExReplace(EvCommand,"i).*file:(\*\.[^\s]*).*","$1")
 	global EvCommandExtList:=StrSplit(EvCommandVar,"|")
 	
-	gosub,Menu_Env_Set
+	gosub,Menu_Var_Set
 	gosub,Icon_Set
 	;~[最近运行项]
 	if(RecentMax>0){
@@ -4544,27 +4544,27 @@ Var_Set:
 	}
 return
 ;~;[菜单自定义变量]
-Menu_Env_Set:
-	global MenuEnvIniList:={}
-	global MenuEnvTypeList:={}
-	IniRead,menuEnvVar,%RunAnyConfig%,MenuEnv
-	Loop, parse, menuEnvVar, `n, `r
+Menu_Var_Set:
+	global MenuVarIniList:={}
+	global MenuVarTypeList:={}
+	IniRead,menuVarVar,%RunAnyConfig%,MenuVar
+	Loop, parse, menuVarVar, `n, `r
 	{
 		itemList:=StrSplit(A_LoopField,"=")
 		envName:=itemList[1]
 		envVal:=itemList[2]
 		if(%envName%){
-			MenuEnvIniList[itemList[1]]:=%envName%
-			MenuEnvTypeList[envName]:=1
+			MenuVarIniList[itemList[1]]:=%envName%
+			MenuVarTypeList[envName]:=1
 		}else{
 			try EnvGet, %envName%, %envName%
 			if(%envName%){
-				MenuEnvIniList[itemList[1]]:=%envName%
-				MenuEnvTypeList[envName]:=2
+				MenuVarIniList[itemList[1]]:=%envName%
+				MenuVarTypeList[envName]:=2
 			}else{
 				%envName%:=envVal
-				MenuEnvTypeList[envName]:=3
-				MenuEnvIniList[itemList[1]]:=itemList[2]
+				MenuVarTypeList[envName]:=3
+				MenuVarIniList[itemList[1]]:=itemList[2]
 			}
 		}
 	}
