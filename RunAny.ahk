@@ -4129,6 +4129,7 @@ SetOK:
 	}
 	;[保存自定义打开后缀列表]
 	if(OpenExtFlag){
+		Gui, ListView, RunAnyOpenExtLV
 		IniDelete, %RunAnyConfig%, OpenExt
 		Loop % LV_GetCount()
 		{
@@ -4139,6 +4140,7 @@ SetOK:
 	}
 	;[保存自定义菜单变量]
 	if(MenuVarFlag){
+		Gui, ListView, RunAnyMenuVarLV
 		IniDelete, %RunAnyConfig%, MenuVar
 		Loop % LV_GetCount()
 		{
@@ -4292,6 +4294,7 @@ LVOpenExtEdit:
 	gosub,Open_Ext_Edit
 return
 LVOpenExtRemove:
+	Gui, ListView, RunAnyOpenExtLV
 	OpenExtFlag:=true
 	RunRowNumber := LV_GetNext(0, "F")
 	if not RunRowNumber
@@ -4371,6 +4374,7 @@ LVMenuVarEdit:
 	gosub,Menu_Var_Edit
 return
 LVMenuVarRemove:
+	Gui, ListView, RunAnyMenuVarLV
 	MenuVarFlag:=true
 	RunRowNumber := LV_GetNext(0, "F")
 	if not RunRowNumber
