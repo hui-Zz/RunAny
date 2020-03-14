@@ -2440,9 +2440,9 @@ EditItemPathChange:
 			fileValue:=RegExReplace(filePath,"iS)(.*?\..*?)($| .*)","$1")	;去掉参数
 			SplitPath, fileValue, fName,, fExt  ; 获取扩展名
 			if(fExt="exe" || fExt="lnk"){
-				GuiControlShow("vTextTransparent","vitemTrNum")
+				GuiControlShow("SaveItem","vTextTransparent","vitemTrNum")
 			}else{
-				GuiControlHide("vTextTransparent","vitemTrNum")
+				GuiControlHide("SaveItem","vTextTransparent","vitemTrNum")
 			}
 		}
 		GuiControl, SaveItem:Choose, vItemMode,% GetMenuItemMode(filePath)
