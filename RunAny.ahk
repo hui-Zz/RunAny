@@ -4390,10 +4390,10 @@ SetMenuVarVal:
 		SetTimer,RemoveToolTip,3000
 		return
 	}
-	try EnvGet, %sysMenuVarName%, %vmenuVarName%
-	if(%sysMenuVarName%){
+	try EnvGet, sysMenuVarName, %vmenuVarName%
+	if(sysMenuVarName){
 		menuVarType:="系统环境变量(动态)"
-		GuiControl,, vmenuVarVal, % %vmenuVarName%
+		GuiControl,, vmenuVarVal, %sysMenuVarName%
 		GuiControl,, vmenuVarType, %menuVarType%
 		GuiControl,Disable, vmenuVarVal
 	}else{
@@ -4568,6 +4568,8 @@ Menu_Var_Set:
 	global MenuVarIniList:={}
 	global MenuVarTypeList:={}
 	IniRead,menuVarVar,%RunAnyConfig%,MenuVar
+	if(!menuVarVar)
+		menuVarVar:="A_ScriptDir=`nLocalAppData=`nOneDrive=`nProgramFiles="
 	Loop, parse, menuVarVar, `n, `r
 	{
 		itemList:=StrSplit(A_LoopField,"=")
