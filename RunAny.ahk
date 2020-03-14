@@ -157,7 +157,7 @@ Gosub,Icon_FileExt_Set
 global MenuExeArray:=Object()		;~程序数据数组
 global MenuExeIconArray:=Object()	;~程序优先加载图标数组
 global MenuObjTreeLevel:=Object()	;~菜单对应级别
-global MenuObjPublic:=Object()	;~后缀公共菜单
+global MenuObjPublic:=Object()		;~后缀公共菜单
 global MenuShowFlag:=false			;~菜单功能是否可以显示
 global MenuIconFlag:=false			;~菜单图标是否加载完成
 global MenuCount:=MENU2FLAG ? 2 : 1
@@ -170,6 +170,7 @@ Loop,%MenuCount%
 	MenuSendStrList%A_Index%:=Object()	;菜单中短语项列表
 	MenuWebList%A_Index%:=Object()		;菜单中网址%s搜索项列表
 	MenuGetZzList%A_Index%:=Object()		;菜单中GetZz搜索项列表
+	MenuExeList%A_Index%:=Object()		;菜单中的exe列表
 	MenuObjList%A_Index%:=Object()   		;菜单分类运行项列表
 	MenuObjText%A_Index%:=Object()		;选中文字菜单
 	MenuObjFile%A_Index%:=Object()		;选中文件菜单
@@ -209,7 +210,7 @@ Loop,%MenuCount%
 	Menu_Item_List_Filter(A_Index,"MenuWebList",HideWeb)
 	Menu_Item_List_Filter(A_Index,"MenuGetZzList",HideGetZz)
 	
-	;~[带%s的网址菜单节点下增加批量搜索功能项]
+	;[带%s的网址菜单分类下增加批量搜索功能项]
 	For mn,items in MenuWebList%A_Index%
 	{
 		if(!RegExMatch(mn,"[^\s]+\s$")){
@@ -222,9 +223,24 @@ Loop,%MenuCount%
 	MenuObjExt["public"]:=MenuObjPublic
 	
 	if(MenuObjText%A_Index%.MaxIndex()>0){
+		;[选中文本菜单过滤分类]
 		Menu_Tree_List_Filter(A_Index,"MenuObjText",2)
+		rootName:=menuWebRoot%A_Index%[1]
+		;[开启选中文字菜单后主菜单下exe不再显示]
+		For mn,items in MenuExeList%A_Index%
+		{
+			if(mn=rootName){
+				Loop, Parse, items, `n
+				{
+					if(A_LoopField="")
+						continue
+					try Menu,%mn%,Delete,%A_LoopField%
+				}
+			}
+		}
 	}
 	if(MenuObjFile%A_Index%.MaxIndex()>0){
+		;[选中文件菜单过滤分类]
 		Menu_Tree_List_Filter(A_Index,"MenuObjFile",3)
 	}
 	
@@ -326,7 +342,7 @@ Menu_Item_List_Filter(M_Index,MenuTypeList,HideFlag,MenuType:=1){
 		}
 	}
 }
-;~[菜单节点过滤]
+;~[菜单节点分类过滤]
 Menu_Tree_List_Filter(M_Index,MenuTypeList,MenuType){
 	if(MenuType=2){
 		TREE_TYPE:="  "
@@ -464,7 +480,7 @@ RunABackupClear(RunABackupDir,RunABackupFile){
 ;~;[获取菜单项启动模式]
 ;~;1-启动路径|2-短语模式|3-模拟打字短语|4-热键映射|5-AHK热键映射|6-网址|60-传参数中带网址
 ;~;7-文件夹|8-插件脚本函数
-;~;10-菜单节点|11-分割符|12-注释说明
+;~;10-菜单分类|11-分割符|12-注释说明
 GetMenuItemMode(item,fullItemFlag:=false){
 	if(fullItemFlag){
 		if(InStr(item,";")=1)
@@ -2346,8 +2362,8 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add, Button, xm+6 yp w60 vvSetMenuText GSetMenuText,文本菜单
 	Gui,SaveItem:Add, Button, xm+6 yp w60 vvSetMenuFile GSetMenuFile,文件菜单
 	Gui,SaveItem:Add, Button, xm+6 yp+27 w60 vvSetFileRelativePath GSetFileRelativePath,相对路径
-	Gui,SaveItem:Add, Button, xm+6 yp+27 w60 vvSetItemPathGetZz GSetItemPathGetZz,选中变量
 	Gui,SaveItem:Add, Button, xm+6 yp+27 w60 vvSetShortcut GSetShortcut,快捷目标
+	Gui,SaveItem:Add, Button, xm+6 yp+27 w60 vvSetItemPathGetZz GSetItemPathGetZz,选中变量
 
 	Gui,SaveItem:Add,Button,Default xm+220 y+25 w75 G%SaveLabel%,保存
 	Gui,SaveItem:Add,Button,x+20 w75 GSetCancel,取消
