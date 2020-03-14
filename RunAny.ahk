@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2020.03.12
+║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2020.03.14
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -24,7 +24,7 @@ global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.6.9"
-global RunAny_update_time:="2020.03.12"
+global RunAny_update_time:="2020.03.14"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -3886,10 +3886,10 @@ Menu_Set:
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuVarRemove, - 减少
 	Gui,66:Add,Listview,xm yp+30 w%GROUP_EDIT_WIDTH_66% r16 grid AltSubmit -Multi vRunAnyMenuVarLV glistviewMenuVar, 菜单变量名|类型|菜单变量值（仅用户自定义变量是固定值）
 	GuiControl, 66:-Redraw, RunAnyMenuVarLV
-	For menuVarName, menuVarVal in MenuVarIniList
+	For mVarName, mVarVal in MenuVarIniList
 	{
-		typeName:=(MenuVarTypeList[menuVarName]=1) ? "RunAny变量(动态)" : (MenuVarTypeList[menuVarName]=2) ? "系统环境变量(动态)" : "用户自定义变量"
-		LV_Add("", menuVarName, typeName, menuVarVal)
+		mtypeStr:=(MenuVarTypeList[mVarName]=1) ? "RunAny变量(动态)" : (MenuVarTypeList[mVarName]=2) ? "系统环境变量(动态)" : "用户自定义变量"
+		LV_Add("", mVarName, mtypeStr, mVarVal)
 	}
 	LV_ModifyCol()
 	GuiControl, 66:+Redraw, RunAnyMenuVarLV
@@ -3936,9 +3936,9 @@ Menu_Set:
 	Gui,66:Add,Text, x+10 yp+5 w320,（特殊类型：文件夹folder 网址http https www ftp等）
 	Gui,66:Add,Listview,xm yp+30 w%GROUP_EDIT_WIDTH_66% r16 grid AltSubmit -Multi vRunAnyOpenExtLV glistviewOpenExt, 文件后缀(用空格分隔)|打开方式(支持无路径)
 	GuiControl, 66:-Redraw, RunAnyOpenExtLV
-	For openExtName, openExtVal in openExtIniList
+	For mOpenExtName, mOpenExtRun in openExtIniList
 	{
-		LV_Add("", openExtVal, openExtName)
+		LV_Add("", mOpenExtRun, mOpenExtName)
 	}
 	LV_ModifyCol()
 	GuiControl, 66:+Redraw, RunAnyOpenExtLV
@@ -3987,7 +3987,7 @@ Menu_Set:
 	Gui,66:Add,Button,x+15 w75 GSetReSet,重置
 	Gui,66:Add,Text,x+40 yp+5 w75 GMenu_Config,RunAnyConfig.ini
 	Gui,66:Show,,%RunAnyZz%设置 %RunAny_update_version% %RunAny_update_time%%AdminMode%
-	k:=v:=menuVarName:=menuVarVal:=openExtName:=openExtVal:=""
+	k:=v:=mVarName:=mVarVal:=mOpenExtName:=mOpenExtRun:=""
 	return
 ;~;[关于]
 Menu_About:
@@ -4569,9 +4569,10 @@ Menu_Var_Set:
 	global MenuVarIniList:={}
 	global MenuVarTypeList:={}
 	IniRead,menuVarVar,%RunAnyConfig%,MenuVar
-	if(!menuVarVar)
+	if(!menuVarVar){
 		menuVarVar:="A_ScriptDir`nA_Desktop`nA_MyDocuments`nA_UserName`nA_ComputerName`n"
 		menuVarVar.="ProgramFiles`nAppData`nLocalAppData`nOneDrive`nUserProfile`nWinDir"
+	}
 	Loop, parse, menuVarVar, `n, `r
 	{
 		itemList:=StrSplit(A_LoopField,"=")
