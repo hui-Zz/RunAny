@@ -1686,7 +1686,7 @@ Get_Transform_Val(var){
 ;~;[获取分类名称]
 Get_Tree_Name(z_item,show_key=true){
 	if(InStr(z_item,"|")){
-		menuDiy:=StrSplit(z_item,"|")
+		menuDiy:=StrSplit(z_item,"|",,2)
 		z_item:=menuDiy[1]
 		if(show_key && InStr(menuDiy[1],"`t")){
 			menuKeyStr:=RegExReplace(menuDiy[1], "S)\t+", A_Tab)
@@ -1699,7 +1699,7 @@ Get_Tree_Name(z_item,show_key=true){
 ;~;[获取应用名称]
 Get_Obj_Name(z_item){
 	if(InStr(z_item,"|")){
-		menuDiy:=StrSplit(z_item,"|")
+		menuDiy:=StrSplit(z_item,"|",,2)
 		return menuDiy[1]
 	}else if(RegExMatch(z_item,"iS)^(\\\\|.:\\).*?\.exe$")){
 		SplitPath,itemContent,fileName,,,menuItem
@@ -1712,7 +1712,7 @@ Get_Obj_Name(z_item){
 Get_Obj_Path(z_item){
 	obj_path:=""
 	if(InStr(z_item,"|")){
-		menuDiy:=StrSplit(z_item,"|")
+		menuDiy:=StrSplit(z_item,"|",,2)
 		obj_path:=MenuObj[menuDiy[1]]
 	}else{
 		z_item:=RegExReplace(z_item,"iS)(.*?\.[a-zA-Z0-9]+)($| .*)","$1")	;去掉参数，取路径
@@ -3633,13 +3633,13 @@ PluginsDownVersion:
 			IniRead,objRegIniVar,%ObjRegIniPath%,version
 			Loop, parse, objRegIniVar, `n, `r
 			{
-				varList:=StrSplit(A_LoopField,"=")
+				varList:=StrSplit(A_LoopField,"=",,2)
 				pluginsDownList[(varList[1])]:=varList[2]
 			}
 			IniRead,objRegIniVar,%ObjRegIniPath%,name
 			Loop, parse, objRegIniVar, `n, `r
 			{
-				varList:=StrSplit(A_LoopField,"=")
+				varList:=StrSplit(A_LoopField,"=",,2)
 				pluginsNameList[(varList[1])]:=varList[2]
 			}
 			checkGithub:=true
@@ -4575,7 +4575,7 @@ Menu_Var_Set:
 	}
 	Loop, parse, menuVarVar, `n, `r
 	{
-		itemList:=StrSplit(A_LoopField,"=")
+		itemList:=StrSplit(A_LoopField,"=",,2)
 		menuVarName:=itemList[1]
 		menuVarVal:=itemList[2]
 		if(%menuVarName%){
@@ -4605,7 +4605,7 @@ Open_Ext_Set:
 	IniRead,openExtVar,%RunAnyConfig%,OpenExt
 	Loop, parse, openExtVar, `n, `r
 	{
-		itemList:=StrSplit(A_LoopField,"=")
+		itemList:=StrSplit(A_LoopField,"=",,2)
 		openExtIniList[itemList[1]]:=itemList[2]
 		Loop, parse,% itemList[2], %A_Space%
 		{
@@ -4829,7 +4829,7 @@ Plugins_Read:
 	IniRead,pluginsVar,%RunAnyConfig%,Plugins
 	Loop, parse, pluginsVar, `n, `r
 	{
-		varList:=StrSplit(A_LoopField,"=")
+		varList:=StrSplit(A_LoopField,"=",,2)
 		SplitPath,% varList[1], name,, ext, name_no_ext
 		PluginsObjList[(varList[1])]:=varList[2]
 		if(varList[2])
@@ -4855,7 +4855,7 @@ Plugins_Object_Register:
 		IniRead,objRegVar,%RunAny_ObjReg_Path%,objreg
 		Loop, parse, objRegVar, `n, `r
 		{
-			varList:=StrSplit(A_LoopField,"=")
+			varList:=StrSplit(A_LoopField,"=",,2)
 			PluginsObjRegGUID[(varList[1])]:=varList[2]
 		}
 	}
