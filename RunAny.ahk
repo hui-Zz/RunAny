@@ -591,6 +591,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				Z_LoopField:=StrReplace(Z_LoopField,Chr(3),"%getZz%")
 				transformValFlag:=true
 			}
+			itemMode:=GetMenuItemMode(Z_LoopField,true)
 			;~添加到分类目录程序全数据
 			MenuObjTree%TREE_NO%[(menuRootFn[menuLevel])].Push(Z_LoopField)
 			flagEXE:=false			;~添加exe菜单项目
@@ -1026,6 +1027,7 @@ Menu_Show:
 		if(MENU_NO=1){
 			openFlag:=false
 			calcFlag:=false
+			notCalcFlag:=false
 			calcResult:=""
 			selectResult:=""
 			Loop, parse, getZz, `n, `r
@@ -1038,9 +1040,26 @@ Menu_Show:
 						selectResult.=A_LoopField "`n"
 					continue
 				}
-				if(selectResult){  ;选中内容多种类型时不输出公式结果
-					calcFlag:=false
-					openFlag:=false
+				;一键计算公式数字加减乘除
+				if(RegExMatch(S_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+($|=$)")){
+					formula:=S_LoopField
+					if(RegExMatch(S_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+=$")){
+						StringTrimRight, formula, formula, 1
+					}
+					calc:=js_eval(formula)
+					selectResult.=A_LoopField
+					if(RegExMatch(S_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+=$")){
+						calcFlag:=true
+						selectResult.=calc
+					}else{
+						calcResult.=calc "`n"
+					}
+					selectResult.="`n"
+					if(!notCalcFlag)
+						openFlag:=true
+					continue
+				}else{
+					notCalcFlag:=true
 				}
 				;一键打开网址
 				if(OneKeyWeb && RegExMatch(S_LoopField,"iS)^([\w-]+://?|www[.]).*")){
@@ -1072,24 +1091,6 @@ Menu_Show:
 						continue
 					}
 				}
-				;一键计算公式数字加减乘除
-				if(RegExMatch(S_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+($|=$)")){
-					formula:=S_LoopField
-					if(RegExMatch(S_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+=$")){
-						StringTrimRight, formula, formula, 1
-					}
-					calc:=js_eval(formula)
-					selectResult.=A_LoopField
-					if(RegExMatch(S_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+=$")){
-						calcFlag:=true
-						selectResult.=calc
-					}else{
-						calcResult.=calc "`n"
-					}
-					selectResult.="`n"
-					openFlag:=true
-					continue
-				}
 			}
 			if(calcResult){
 				StringTrimRight, calcResult, calcResult, 1
@@ -1098,7 +1099,7 @@ Menu_Show:
 				Clipboard:=calcResult
 				SetTimer,RemoveToolTip,% (calcResult="?") ? 1000 : 3000
 			}
-			if(calcFlag && selectResult){
+			if(calcFlag && !notCalcFlag && selectResult){  ;选中内容多种类型时不输出公式结果
 				StringTrimRight, selectResult, selectResult, 1
 				Send_Str_Zz(selectResult)
 			}
