@@ -768,7 +768,8 @@ MenuExeArrayPush(menuName,menuItem,itemFile,itemAny,TREE_NO){
 		MenuExeArray.Push(MenuObjEXE)
 	}else{
 		MenuExeIconArray.Push(MenuObjEXE)
-		MenuExeList%TREE_NO%[menuName].=menuItem "`n"
+		if(!RegExMatch(itemAny,"iS).*?\.[a-zA-Z0-9]+ .*"))
+			MenuExeList%TREE_NO%[menuName].=menuItem "`n"
 	}
 }
 ;~;[读取热字串用作提示文字]
