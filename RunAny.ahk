@@ -2464,8 +2464,8 @@ EditItemPathChange:
 		GuiControlHide("SaveItem","vSetFileSuffix","vSetMenuPublic","vSetMenuText","vSetMenuFile")
 		GuiControlShow("SaveItem","vItemMode","vSetItemPath","vSetFileRelativePath","vSetItemPathGetZz","vSetShortcut")
 		filePath:=!vitemPath && vitemName ? vitemName : vitemPath
+		getItemMode:=GetMenuItemMode(filePath)
 		if(filePath){
-			getItemMode:=GetMenuItemMode(filePath)
 			if(getItemMode!=1 || EvDemandSearch || Check_Obj_Ext(filePath)){
 				GuiControl, SaveItem:Hide, vExtPrompt
 			}else{
@@ -2479,7 +2479,7 @@ EditItemPathChange:
 				GuiControlHide("SaveItem","vTextTransparent","vitemTrNum")
 			}
 		}
-		GuiControl, SaveItem:Choose, vItemMode,% GetMenuItemMode(filePath)
+		GuiControl, SaveItem:Choose, vItemMode,% getItemMode=60 ? 1 : getItemMode
 	}
 return
 HotStrShowChange:
@@ -2580,7 +2580,7 @@ SetItemIconPath:
 		MsgBox, 48, ,菜单项名和启动路径不能同时为空时设置图标
 		return
 	}
-	FileSelectFile, iconSelPath, , , 图标文件路径
+	FileSelectFile, iconSelPath, , , 图标文件路径, (*.ico;*.exe;*.bmp;*.dib;*.jpg;*.jpeg;*.jpe;*.jfif;*.gif;*.tif;*.tiff;*.png;*.heic)
 	if(iconSelPath){
 		SplitPath, vitemPath, fName,, fExt, name_no_ext
 		itemIconName:=vitemName ? vitemName : name_no_ext
