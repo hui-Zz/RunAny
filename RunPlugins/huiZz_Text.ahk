@@ -2,7 +2,7 @@
 ;* 【ObjReg文本操作脚本[文本函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.9"
+global RunAny_Plugins_Version:="1.1.0"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
@@ -166,7 +166,7 @@ class RunAnyObj {
 			downApp:=downApp A_Space
 		Run,%downApp%%url%
 	}
-	;[选中文字编辑]
+	;[选中文字用指定编辑器打开]
 	;参数说明：getZz：选中的文本内容
 	;editApp：编辑器软件
 	text_edit_zz(getZz:="",editApp:=""){
@@ -190,7 +190,7 @@ class RunAnyObj {
 	text_baidu_zz(){
 		Run,https://www.baidu.com/s?wd=%Clipboard%
 	}
-	;[选中文本比较剪贴板]
+	;[比较工具(Beyond Compare)比较选中文本内容和剪贴板]
 	;参数说明：getZz：选中的文本内容
 	;compareApp：文本对比软件
 	text_compare_zz(getZz:="",compareApp:=""){
@@ -234,6 +234,29 @@ class RunAnyObj {
 		textResult:=RegExReplace(textResult,"`n$")
 		this.Send_Str_Zz(textResult)
 	}
+	;[文本删除重复行保留顺序]
+	;参数说明：getZz：选中的文本内容
+	text_remove_repeat(getZz:=""){
+		textResult:=""
+		textResultObj:={}
+		textResultList:=[]
+		Loop, parse, getZz, `n, `r
+		{
+			getZzLoop:=A_LoopField
+			textResultObj[getZzLoop]:=A_Index
+			textResultList.Push(getZzLoop)
+		}
+		For k, v in textResultList
+		{
+			if(textResultObj[v] <> ""){
+				textResult.=v . "`n"
+				textResultObj.Delete(v)
+			}
+		}
+		textResult:=RegExReplace(textResult,"`n$")
+		this.Send_Str_Zz(textResult)
+	}
+	;══════════════════════════════════════════════════════════════════
 	;数字转中文   by FeiYue
 	n2c(n){
 		if !(n ~= "^[1-9]\d*$")    ;当不是整数
@@ -273,27 +296,71 @@ class RunAnyObj {
 	text_cn2_zz(getZz:="",cn=0){
 		this.Send_Str_Zz(cn ? this.n2c(getZz) : this.c2n(getZz))
 	}
-	;[文本删除重复行保留顺序]
+	;══════════════════════════════════════════════════════════════════
+	;[文本编码转换]
 	;参数说明：getZz：选中的文本内容
-	text_remove_repeat(getZz:=""){
-		textResult:=""
-		textResultObj:={}
-		textResultList:=[]
-		Loop, parse, getZz, `n, `r
-		{
-			getZzLoop:=A_LoopField
-			textResultObj[getZzLoop]:=A_Index
-			textResultList.Push(getZzLoop)
+	;sCode：要转换的文本编码
+	;cCode：转换后的文本编码
+	text_encode_zz(getZz:="",sCode:="",cCode:=""){
+		if(getZz="" || sCode="" || cCode=""){
+			ToolTip,没有选中文本或指定需要转换的编码格式
+			Sleep,2000
+			ToolTip
+			return
 		}
-		For k, v in textResultList
-		{
-			if(textResultObj[v] <> ""){
-				textResult.=v . "`n"
-				textResultObj.Delete(v)
+		if(sCode="uri"){
+			this.Send_Str_Zz(this.URI_Encode(getZz))
+		}else if(sCode="unicode"){
+			this.Send_Str_Zz(this.Unicode_Decode(getZz))
+		}else if(sCode="cn"){
+			if(cCode="uri"){
+				this.Send_Str_Zz(this.URI_Decode(getZz))
+			}else if(cCode="unicode"){
+				this.Send_Str_Zz(this.CN2uXXXX(getZz))
 			}
 		}
-		textResult:=RegExReplace(textResult,"`n$")
-		this.Send_Str_Zz(textResult)
+	}
+	;[中文转换为URI编码]
+	URI_Encode(Str, All := False)
+	{
+		Static doc := ComObjCreate("HTMLfile")
+		Try
+		{
+			doc.write("<body><script>document.body.innerText = encodeURI" . (All ? "Component" : "") . "(""" . Str . """);</script>")
+			Return, doc.body.innerText, doc.body.innerText := ""
+		}
+	}
+	;[URI编码转换为中文]
+	URI_Decode(Str)
+	{
+		Static doc := ComObjCreate("HTMLfile")
+		Try
+		{
+			doc.write("<body><script>document.body.innerText = decodeURIComponent(""" . Str . """);</script>")
+			Return, doc.body.innerText, doc.body.innerText := ""
+		}
+	}
+	;[中文转Unicode编码]properties配置文件可以使用这种格式
+	CN2uXXXX(cnStr) ; in: "爱尔兰之狐" out: "\u7231\u5C14\u5170\u4E4B\u72D0"
+	{	; by https://github.com/cocobelgica/AutoHotkey-JSON
+		while RegExMatch(cnStr, "[^\x20-\x7e]", ch) {
+			ustr := Asc(ch), esc_ch := "\u", n := 12
+			while (n >= 0)
+				esc_ch .= Chr((x:=(ustr>>n) & 15) + (x<10 ? 48 : 55))
+				, n -= 4
+			StringReplace, cnStr, cnStr, % ch, % esc_ch, A
+		}
+		return, cnStr
+	}
+	;[Unicode编码转换为中文]
+	Unicode_Decode(Str)
+	{
+		Static doc := ComObjCreate("HTMLfile")
+		Try
+		{
+			doc.write("<body><script>document.body.innerText = unescape(""" . Str . """);</script>")
+			Return, doc.body.innerText, doc.body.innerText := ""
+		}
 	}
 }
 
