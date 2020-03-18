@@ -1441,9 +1441,11 @@ Menu_Recent:
 	recentAny:=any
 	Loop,% MenuCommonList.MaxIndex()
 	{
-		if(RegExMatch(MenuCommonList[A_Index],"S)&\d+\s" A_ThisMenuItem)){
-			return
-		}
+		try{
+			if(RegExMatch(MenuCommonList[A_Index],"S)&\d+\s" A_ThisMenuItem)){
+				return
+			}
+		}catch{}
 	}
 	MenuCommonList.InsertAt(1,"&1" A_Space A_ThisMenuItem)  ;插入到最近运行第一条
 	Loop,% MenuCommonList.MaxIndex()
@@ -2353,7 +2355,7 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add, Text, x+5 yp cBlue w200 BackgroundTrans, %itemGlobalHotKey%
 	Gui,SaveItem:Add, Text, xm+10 y+15 w100, 分 隔 符 ：  |
 	Gui,SaveItem:Add, Text, xm+90 yp w355 cRed vvExtPrompt GSetSaveItemFullPath, 注意：RunAny不支持当前后缀无路径运行，%PromptStr%使用全路径
-	Gui,SaveItem:Add, DropDownList,x+30 yp-5 w110 AltSubmit vvItemMode GSetItemMode Choose%setItemMode%,启动路径|短语模式|模拟打字短语|热键映射|AHK热键映射|网址|文件夹|插件脚本函数
+	Gui,SaveItem:Add, DropDownList,x+30 yp-5 w110 AltSubmit vvItemMode GChooseItemMode Choose%setItemMode%,启动路径|短语模式|模拟打字短语|热键映射|AHK热键映射|网址|文件夹|插件脚本函数
 	
 	Gui,SaveItem:Add, Text, xm+10 yp w60 vvSetFileSuffix,文件后缀：
 	Gui,SaveItem:Add, Button, xm+6 y+%treeYNum% w60 vvSetItemPath GSetItemPath,启动路径
@@ -2464,7 +2466,9 @@ EditItemPathChange:
 		GuiControlHide("SaveItem","vSetFileSuffix","vSetMenuPublic","vSetMenuText","vSetMenuFile")
 		GuiControlShow("SaveItem","vItemMode","vSetItemPath","vSetFileRelativePath","vSetItemPathGetZz","vSetShortcut")
 		filePath:=!vitemPath && vitemName ? vitemName : vitemPath
-		getItemMode:=GetMenuItemMode(filePath)
+		itemPathMode:=StrReplace(filePath,"%getZz%",Chr(3))
+		itemPathMode:=Get_Transform_Val(itemPathMode)
+		getItemMode:=GetMenuItemMode(itemPathMode)
 		if(filePath){
 			if(getItemMode!=1 || EvDemandSearch || Check_Obj_Ext(filePath)){
 				GuiControl, SaveItem:Hide, vExtPrompt
@@ -2490,9 +2494,11 @@ HotStrShowChange:
 	}
 return
 ;[启动模式变换]
-SetItemMode:
+ChooseItemMode:
 	Gui,SaveItem:Submit, NoHide
-	getItemMode:=GetMenuItemMode(vitemPath)
+	itemPathMode:=StrReplace(vitemPath,"%getZz%",Chr(3))
+	itemPathMode:=Get_Transform_Val(itemPathMode)
+	getItemMode:=GetMenuItemMode(itemPathMode)
 	if((vItemMode=1 || vItemMode!=2) && getItemMode=2){	;清除短语
 		StringTrimRight, vitemPath, vitemPath, 1
 	}else if((vItemMode=1 || vItemMode!=3) && getItemMode=3){		;清除打字短语
@@ -3932,7 +3938,7 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r3 -WantReturn vvBrowserPath,%BrowserPath%
 	
 	Gui,66:Tab,自定义打开后缀,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h435,使用自定义软件打开【%RunAnyZz%菜单内】不同后缀的文件(合并原来TC打开目录功能)
+	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h435,自定义软件打开%RunAnyZz%菜单内（不是资源管理器中！）不同后缀的文件(合并原来TC打开目录功能)
 	Gui,66:Add,Button, xm yp+30 w50 GLVOpenExtAdd, + 增加
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtEdit, * 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtRemove, - 减少
