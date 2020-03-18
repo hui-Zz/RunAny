@@ -91,6 +91,8 @@
 ;使用左Alt键搭配鼠标滚轮的使用调节音量
 系统音量增加&#9LAlt & WheelUp|huiZz_System[system_sound_volume](1,10)
 系统音量减少&#9LAlt & WheelDown|huiZz_System[system_sound_volume](0,10)
+系统静音|huiZz_System[system_sound_volume](2,0)
+系统音量50|huiZz_System[system_sound_volume](2,50)
 </PRE>
 
 ```autohotkey

@@ -152,6 +152,7 @@
 -文件(&File)
     ;文件搜索
 	Everything文件秒搜|Everything.exe
+	Everything搜索选中内容|Everything.exe -search "%getZz%"
 	Listary.exe
 	FileLocatorPro.exe
 	--
@@ -267,11 +268,12 @@
 -输入(inpu&T)
 	;当前时间（变量语法参考AHK文档https://wyagd001.github.io/zh-cn/docs/Variables.htm）
 	日期:*X:date;|%A_YYYY%%A_MM%%A_DD%;
-	日期-:*X:date-;|%A_YYYY%-%A_MM%-%A_DD%;
-	日期中文_:*X:date=;|%A_YYYY%年%A_MM%月%A_DD%日;
+	日期-:*X:date-|%A_YYYY%-%A_MM%-%A_DD%;
+	日期.:*X:date.|%A_YYYY%.%A_MM%.%A_DD%;
+	日期中文':*X:date'|%A_YYYY%年%A_MM%月%A_DD%日;
 	时间:*X:time;|%A_YYYY%%A_MM%%A_DD%%A_Hour%%A_Min%%A_Sec%;
-	时间_:*X:time-;|%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%;
-	时间中文_:*X:time=;|%A_YYYY%年%A_MM%月%A_DD%日 %A_Hour%时%A_Min%分%A_Sec%秒;
+	时间_:*X:time-|%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%;
+	时间中文_:*X:time'|%A_YYYY%年%A_MM%月%A_DD%日 %A_Hour%时%A_Min%分%A_Sec%秒;
 	--
 	:*X:magn|magnet:?xt=urn:btih:;
 

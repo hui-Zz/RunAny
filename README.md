@@ -256,7 +256,7 @@ github|https://github.com/search?utf8=%E2%9C%93&q=%s&type=
 
 ### 热字符串说明
 
-> 中文别名说明 + `冒号:` + 选项字母 + `冒号:` + 热字符串 + `竖杠|` + 程序、短语、网址等等
+> 菜单项名为说明 + `冒号:` + 选项字母 + `冒号:` + 热字符串 + `竖杠|` + 程序、短语、网址等等
 
 - 选项字母：
 - `星号*`代表无需按结束按键(回车Tab等)
@@ -335,6 +335,9 @@ RunAny可以储存邮箱、手机号，想用时就快捷输出，更支持AHK�
 左手删除&#9LShift & CapsLock|{Delete}::
 退格删除&#9CapsLock & Tab|{BackSpace}::
 激活上个标签&#9LCtrl & CapsLock|^+{Tab}::
+音量增加	LAlt & WheelUp|{Volume_Up 10}::
+音量减少	LAlt & WheelDown|{Volume_Down 10}::
+静音|{Volume_Mute}::
 </PRE>
 
 > `<`代表左边 `>`代表右边
