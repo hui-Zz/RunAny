@@ -4848,10 +4848,6 @@ Plugins_Read:
 		if(FileExist(A_ScriptDir "\" PluginsDir "\" name_no_ext "\" varList[1]))
 			PluginsPathList[(varList[1])]:=A_ScriptDir "\" PluginsDir "\" name_no_ext "\" varList[1]
 	}
-	For ki, kv in PluginsObjList
-	{
-		IniWrite,%kv%,%RunAnyConfig%,Plugins,%ki%
-	}
 return
 ;~;[RunAny的AHK脚本对象注册]
 Plugins_Object_Register:
