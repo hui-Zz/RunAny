@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2020.03.14
+║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2020.03.18
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -22,9 +22,8 @@ StartTick:=A_TickCount  ;评估RunAny初始化时间
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
-global PluginsDir:="RunPlugins"	;~插件目录
 global RunAny_update_version:="5.6.9"
-global RunAny_update_time:="2020.03.14"
+global RunAny_update_time:="2020.03.18"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -1129,7 +1128,7 @@ Menu_All_Show:
 	extMenuHideFlag:=false
 return
 RunAny_Menu:
-	RunAnyMenu:=A_ScriptDir "\" PluginsDir "\RunAny_Menu.ahk"
+	RunAnyMenu:=PluginsPathList["RunAny_Menu.ahk"]
 	if(A_AhkPath && FileExist(RunAnyMenu) && PluginsObjList["RunAny_Menu.ahk"]){
 		Run,%A_AhkPath%%A_Space%"%RunAnyMenu%"
 	}
@@ -3658,7 +3657,11 @@ PluginsDownVersion:
 	checkGithub:=false
 return
 LVDown:
-	MsgBox,33,RunAny下载插件,是否下载插件？如有修改过插件代码请注意备份！`n(旧版文件会转移到%A_Temp%\%RunAnyZz%\%PluginsDir%)
+	MsgBox,33,RunAny下载插件,是否下载插件？如有修改过插件代码请注意备份！`n
+	(
+仅仅更新下载 %A_ScriptDir%\%PluginsDir% 目录下的插件
+(旧版文件会转移到%A_Temp%\%RunAnyZz%\%PluginsDir%)
+	)
 	IfMsgBox Ok
 	{
 		if(!Check_Network(giteeUrl)){
@@ -4816,23 +4819,34 @@ Run_Exist:
 return
 ;~;[AHK插件脚本读取]
 Plugins_Read:
+	global PluginsDir:="RunPlugins"	;~插件目录
+	global PluginsDirList:=Object()
 	global PluginsObjList:=Object()
 	global PluginsPathList:=Object()
 	global PluginsTitleList:=Object()
 	global PluginsObjNum:=0
-	Loop,%A_ScriptDir%\%PluginsDir%\*.ahk,0	;Plugins目录下AHK脚本
+	global PluginsDirPath:=Var_Read("PluginsDirPath","%A_ScriptDir%\RunPlugins\|%A_ScriptDir%\..\RunAnyCtrl\")
+	Loop, parse, PluginsDirPath, |
 	{
-		PluginsObjList[(A_LoopFileName)]:=0
-		PluginsPathList[(A_LoopFileName)]:=A_LoopFileFullPath
-		PluginsTitleList[(A_LoopFileName)]:=Plugins_Read_Title(A_LoopFileFullPath)
-	}
-	Loop,%A_ScriptDir%\%PluginsDir%\*.*,2		;Plugins目录下文件夹内同名AHK脚本
-	{
-		IfExist,%A_LoopFileFullPath%\%A_LoopFileName%.ahk
+		PluginsFolder:=Get_Transform_Val(A_LoopField)
+		PluginsFolder:=RegExReplace(PluginsFolder,"(.*)\\$","$1")
+		if(!FileExist(PluginsFolder))
+			return
+		PluginsDirList.Push(PluginsFolder)
+		Loop,%PluginsFolder%\*.ahk,0	;Plugins目录下AHK脚本
 		{
-			PluginsObjList[(A_LoopFileName . ".ahk")]:=0
-			PluginsPathList[(A_LoopFileName . ".ahk")]:=A_LoopFileFullPath "\" A_LoopFileName ".ahk"
-			PluginsTitleList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Title(A_LoopFileFullPath "\" A_LoopFileName ".ahk")
+			PluginsObjList[(A_LoopFileName)]:=0
+			PluginsPathList[(A_LoopFileName)]:=A_LoopFileFullPath
+			PluginsTitleList[(A_LoopFileName)]:=Plugins_Read_Title(A_LoopFileFullPath)
+		}
+		Loop,%PluginsFolder%\*.*,2	;Plugins目录下文件夹内同名AHK脚本
+		{
+			IfExist,%A_LoopFileFullPath%\%A_LoopFileName%.ahk
+			{
+				PluginsObjList[(A_LoopFileName . ".ahk")]:=0
+				PluginsPathList[(A_LoopFileName . ".ahk")]:=A_LoopFileFullPath "\" A_LoopFileName ".ahk"
+				PluginsTitleList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Title(A_LoopFileFullPath "\" A_LoopFileName ".ahk")
+			}
 		}
 	}
 	IniRead,pluginsVar,%RunAnyConfig%,Plugins
@@ -4843,10 +4857,13 @@ Plugins_Read:
 		PluginsObjList[(varList[1])]:=varList[2]
 		if(varList[2])
 			PluginsObjNum++
-		if(FileExist(A_ScriptDir "\" PluginsDir "\" varList[1]))
-			PluginsPathList[(varList[1])]:=A_ScriptDir "\" PluginsDir "\" varList[1]
-		if(FileExist(A_ScriptDir "\" PluginsDir "\" name_no_ext "\" varList[1]))
-			PluginsPathList[(varList[1])]:=A_ScriptDir "\" PluginsDir "\" name_no_ext "\" varList[1]
+		Loop,% PluginsDirList.MaxIndex()
+		{
+			if(FileExist(PluginsDirList[A_Index] "\" varList[1]))
+				PluginsPathList[(varList[1])]:=PluginsDirList[A_Index] "\" varList[1]
+			if(FileExist(PluginsDirList[A_Index] "\" name_no_ext "\" varList[1]))
+				PluginsPathList[(varList[1])]:=PluginsDirList[A_Index] "\" name_no_ext "\" varList[1]
+		}
 	}
 return
 ;~;[RunAny的AHK脚本对象注册]
