@@ -278,7 +278,7 @@ For k, v in MenuExeArray
 		Menu_Item_Icon(v["menuName"],v["menuItem"],v["itemFile"])
 	}
 }
-;══════════════════════════════════════════════════════════════════
+;-------------------------------------------------------------------------------------------
 ;#菜单已经加载完毕，托盘图标变化
 try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 t6:=A_TickCount-StartTick
@@ -292,12 +292,13 @@ if(iniFlag){
 	gosub,Menu_About
 	gosub,Menu_Show1
 }
-Gosub,GuiIcon_Set
 RegRead, ReloadGosub, HKEY_CURRENT_USER, Software\RunAny, ReloadGosub
 if(ReloadGosub){
 	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, ReloadGosub, 0
 	gosub,%ReloadGosub%
 }
+Gosub,Gui_Tree_Icon_Set
+Gosub,Plugins_LV_Icon_Set
 ;自动备份配置文件
 if(RunABackupRule && RunABackupDirPath!=A_ScriptDir){
 	RunABackupFormatStr:=Get_Transform_Val(RunABackupFormat)
@@ -2585,7 +2586,7 @@ SetItemIconPath:
 		MsgBox, 48, ,菜单项名和启动路径不能同时为空时设置图标
 		return
 	}
-	FileSelectFile, iconSelPath, , , 图标文件路径, (*.ico;*.exe;*.bmp;*.dib;*.jpg;*.jpeg;*.jpe;*.jfif;*.gif;*.tif;*.tiff;*.png;*.heic)
+	FileSelectFile, iconSelPath, , , 图标文件路径, (%IconFileSuffix%)
 	if(iconSelPath){
 		SplitPath, vitemPath, fName,, fExt, name_no_ext
 		itemIconName:=vitemName ? vitemName : name_no_ext
@@ -3346,7 +3347,8 @@ Gui,P:Destroy
 Gui,P:Default
 Gui,P:+Resize
 Gui,P:Font, s10, Microsoft YaHei
-Gui,P:Add, Listview, xm w580 r20 grid AltSubmit vRunAnyLV glistview, 插件文件|运行状态|自动启动|插件描述|插件说明地址
+Gui,P:Add, Listview, xm w710 r22 grid AltSubmit vRunAnyLV glistview, 插件文件|运行状态|自动启动|插件描述|插件说明地址
+LV_SetImageList(PluginsImageListID)
 ;~;[读取启动项内容写入列表]
 GuiControl,P: -Redraw, RunAnyLV
 For runn, runv in PluginsObjList
@@ -3355,7 +3357,7 @@ For runn, runv in PluginsObjList
 	pluginsConfig:=runv ? "自启" : ""
 	if(!PluginsPathList[runn])
 		pluginsConfig:="未找到"
-	LV_Add("", runn, runStatus, pluginsConfig, PluginsTitleList[runn], PluginsHelpList[runn])
+	LV_Add(LVPluginsIcon(runn), runn, runStatus, pluginsConfig, PluginsTitleList[runn], PluginsHelpList[runn])
 }
 GuiControl,P: +Redraw, RunAnyLV
 LVMenu("LVMenu")
@@ -3460,10 +3462,10 @@ LVApply:
 			Plugins_Edit(FilePath)
 		}else if(menuItem="挂起"){
 			PostMessage, 0x111, 65404,,, %FilePath% ahk_class AutoHotkey
-			LVStatusChange(RowNumber,FileStatus,"挂起")
+			LVStatusChange(RowNumber,FileStatus,"挂起",FileName)
 		}else if(menuItem="暂停"){
 			PostMessage, 0x111, 65403,,, %FilePath% ahk_class AutoHotkey
-			LVStatusChange(RowNumber,FileStatus,"暂停")
+			LVStatusChange(RowNumber,FileStatus,"暂停",FileName)
 		}else if(menuItem="关闭"){
 			runValue:=RegExReplace(FilePath,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
 			SplitPath, runValue, name,, ext  ; 获取扩展名
@@ -3735,19 +3737,55 @@ LVDown:
 		}
 	}
 return
+;[加载插件脚本图标]
+Plugins_LV_Icon_Set:
+	global PluginsImageListID:=IL_Create(6)
+	IL_Add(PluginsImageListID, A_AhkPath, 1)
+	IL_Add(PluginsImageListID, A_AhkPath, 2)
+	IL_Add(PluginsImageListID, A_AhkPath, 3)
+	IL_Add(PluginsImageListID, A_AhkPath, 4)
+	IL_Add(PluginsImageListID, A_AhkPath, 5)
+	IL_Add(PluginsImageListID, FuncIconS[1], FuncIconS[2])
+return
+LVPluginsIcon(pname){
+	pname_no_ext:=RegExReplace(pname,"iS)\.ahk$")
+	PluginsFile:=RegExReplace(PluginsPathList[pname],"iS)\.ahk$")
+	Loop, Parse, IconFileSuffix, `;
+	{
+		suffix:=StrReplace(A_LoopField, "*")
+		if(FileExist(PluginsFile suffix)){
+			addNum:=IL_Add(PluginsImageListID, PluginsFile suffix, 0)
+			return "Icon" addNum
+		}
+	}
+	if(PluginsObjRegGUID[pname_no_ext]){
+		return "Icon6"
+	}
+	return "Icon2"
+}
 ;[判断脚本当前状态]
-LVStatusChange(RowNumber,FileStatus,lvItem){
+LVStatusChange(RowNumber,FileStatus,lvItem,FileName){
 	item:=lvItem
 	if(FileStatus="挂起" && lvItem="暂停"){
-		lvItem:="挂起暂停"
+		LV_Modify(RowNumber, "Icon5", ,"挂起暂停")
+		LV_ModifyCol()
+		return
 	}else if(FileStatus="暂停" && lvItem="挂起"){
-		lvItem:="暂停挂起"
+		LV_Modify(RowNumber, "Icon5", ,"暂停挂起")
+		LV_ModifyCol()
+		return
 	}else if(FileStatus!="启动"){
 		StringReplace, lvItem, FileStatus, %item%
 	}
 	if(lvItem="")
 		lvItem:="启动"
-	LV_Modify(RowNumber, "", ,lvItem)
+	if(lvItem="启动"){
+		LV_Modify(RowNumber, LVPluginsIcon(FileName), ,lvItem)
+	}else if(lvItem="挂起"){
+		LV_Modify(RowNumber, "Icon3", ,lvItem)
+	}else if(lvItem="暂停"){
+		LV_Modify(RowNumber, "Icon4", ,lvItem)
+	}
 	LV_ModifyCol()
 }
 ;[自动调整列表宽度]
@@ -4642,7 +4680,7 @@ return
 ;~;[图标初始化]
 Icon_Set:
 	global RunIconDir:=A_ScriptDir "\RunIcon"
-	global WebIconDir:=RunIconDir "\webIcon"
+	global WebIconDir:=RunIconDir "\WebIcon"
 	global ExeIconDir:=RunIconDir "\ExeIcon"
 	global MenuIconDir:=RunIconDir "\MenuIcon"
 	IconDirs:="ExeIcon,WebIcon,MenuIcon"
@@ -4651,6 +4689,7 @@ Icon_Set:
 		IfNotExist %RunIconDir%\%A_LoopField%
 			FileCreateDir,%RunIconDir%\%A_LoopField%
 	}
+	global IconFileSuffix:="*.ico;*.exe;*.bmp;*.png;*.gif;*.jpg;*.jpeg;*.jpe;*.jfif;*.dib;*.tif;*.tiff;*.heic"
 	global ResourcesExtractExist:=false
 	global ResourcesExtractDir:=A_ScriptDir "\ResourcesExtract"
 	global ResourcesExtractFile:=A_ScriptDir "\ResourcesExtract\ResourcesExtract.exe"
@@ -4906,7 +4945,7 @@ Plugins_Read_Version(filePath){
 	}
 	return returnStr
 }
-GuiIcon_Set:
+Gui_Tree_Icon_Set:
 	;~;[树型菜单图标集]
 	global ImageListID := IL_Create(11)
 	IL_Add(ImageListID, "shell32.dll", 1)
