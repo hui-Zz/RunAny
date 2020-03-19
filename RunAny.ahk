@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2020.03.18
+║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2020.03.19
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.6.9"
-global RunAny_update_time:="2020.03.18"
+global RunAny_update_time:="2020.03.19"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -297,8 +297,9 @@ if(ReloadGosub){
 	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, ReloadGosub, 0
 	gosub,%ReloadGosub%
 }
-Gosub,Gui_Tree_Icon_Set
+;GUI控件图标缓存加载
 Gosub,Plugins_LV_Icon_Set
+Gosub,Gui_Tree_Icon_Set
 ;自动备份配置文件
 if(RunABackupRule && RunABackupDirPath!=A_ScriptDir){
 	RunABackupFormatStr:=Get_Transform_Val(RunABackupFormat)
@@ -3331,6 +3332,7 @@ WM_NOTIFY(Param*){
 ;══════════════════════════════════════════════════════════════════
 Plugins_Manage:
 gosub,Plugins_Read
+gosub,Plugins_LV_Icon_Set
 ;根据网络自动选择对应插件说明网页地址
 pagesPluginsUrl:=RunAnyGiteePages . "/runany/#/plugins-help"
 if(!Check_Network(RunAnyGiteePages)){
@@ -3388,8 +3390,10 @@ LVMenu(addMenu){
 	Menu, %addMenu%, Icon,% flag ? "下载插件" : "下载插件`tF8", SHELL32.dll,194
 	Menu, %addMenu%, Add,% flag ? "插件说明" : "插件说明`tF9", LVHelp
 	Menu, %addMenu%, Icon,% flag ? "插件说明" : "插件说明`tF9", SHELL32.dll,92
-	Menu, %addMenu%, Add,% flag ? "新建插件" : "新建插件`tF10", LVCreate
-	Menu, %addMenu%, Icon,% flag ? "新建插件" : "新建插件`tF10", SHELL32.dll,1
+	Menu, %addMenu%, Add,% flag ? "插件库" : "插件库`tF10", LVPluginsLib
+	Menu, %addMenu%, Icon,% flag ? "插件库" : "插件库`tF10", SHELL32.dll,42
+	Menu, %addMenu%, Add,% flag ? "新建插件" : "新建插件`tF11", LVCreate
+	Menu, %addMenu%, Icon,% flag ? "新建插件" : "新建插件`tF11", SHELL32.dll,1
 }
 LVRun:
 	menuItem:="启动"
@@ -3532,7 +3536,8 @@ Plugins_Edit(FilePath){
 	F7::gosub,LVDel
 	F8::gosub,LVAdd
 	F9::gosub,LVHelp
-	F10::gosub,LVCreate
+	F10::gosub,LVPluginsLib
+	F11::gosub,LVCreate
 #If
 listview:
     if A_GuiEvent = DoubleClick
@@ -3620,6 +3625,42 @@ class RunAnyObj {
 IniWrite,1,%RunAnyConfig%,Plugins,%newObjRegInput%
 gosub,Plugins_Manage
 Run,notepad.exe %A_ScriptDir%\%PluginsDir%\%newObjRegInput%
+return
+;[插件脚本库]
+LVPluginsLib:
+	PluginsDirPath:=StrReplace(PluginsDirPath, "|", "`n")
+	Gui,PluginsLib:Destroy
+	Gui,PluginsLib:Default
+	Gui,PluginsLib:Margin,20,20
+	Gui,PluginsLib:Font,,Microsoft YaHei
+	Gui,PluginsLib:Add, GroupBox,xm y+10 w400 h170
+	Gui,PluginsLib:Add, Text, xm+5 y+35 y35 w80,%A_Space%默认插件库：
+	Gui,PluginsLib:Add, Text, x+5 yp,%A_ScriptDir%\RunPlugins
+	Gui,PluginsLib:Add, Button, xm+5 y+15 w80 gSetPluginsDirPath,其他插件库：`n支持多行`n支持变量
+	Gui,PluginsLib:Add, Edit, x+5 yp w300 r5 vvPluginsDirPath, %PluginsDirPath%
+	Gui,PluginsLib:Font
+	Gui,PluginsLib:Add,Button,Default xm+100 y+25 w75 GSavePluginsLib,保存(&S)
+	Gui,PluginsLib:Add,Button,x+20 w75 GSetCancel,取消(&C)
+	Gui,PluginsLib:Show,,%RunAnyZz% - 插件脚本库 %RunAny_update_version% %RunAny_update_time%
+return
+SetPluginsDirPath:
+	Gui,PluginsLib:Submit, NoHide
+	FileSelectFolder, PluginsLibFolder, , 0
+	if(PluginsLibFolder){
+		if(vPluginsDirPath){
+			GuiControl,, vPluginsDirPath, %vPluginsDirPath%`n%PluginsLibFolder%
+		}else{
+			GuiControl,, vPluginsDirPath, %PluginsLibFolder%
+		}
+	}
+return
+SavePluginsLib:
+	Gui,PluginsLib:Submit, NoHide
+	vPluginsDirPath:=RegExReplace(vPluginsDirPath,"S)[\n]+","|")
+	IniWrite,%vPluginsDirPath%,%RunAnyConfig%,Config,PluginsDirPath
+	Gui,PluginsLib:Destroy
+	Gui,P:Destroy
+	gosub,Plugins_Manage
 return
 PluginsDownVersion:
 	if(!Check_Network(giteeUrl)){
@@ -4858,19 +4899,20 @@ Run_Exist:
 return
 ;~;[AHK插件脚本读取]
 Plugins_Read:
-	global PluginsDir:="RunPlugins"	;~插件目录
-	global PluginsDirList:=Object()
 	global PluginsObjList:=Object()
 	global PluginsPathList:=Object()
 	global PluginsTitleList:=Object()
 	global PluginsObjNum:=0
-	global PluginsDirPath:=Var_Read("PluginsDirPath","%A_ScriptDir%\RunPlugins\|%A_ScriptDir%\..\RunAnyCtrl\")
-	Loop, parse, PluginsDirPath, |
+	global PluginsDir:="RunPlugins"	;~插件目录
+	global PluginsDirList:=Object()
+	global PluginsDirPath:=Var_Read("PluginsDirPath","%A_ScriptDir%\..\RunAnyCtrl\")
+	global PluginsDirPathList:="%A_ScriptDir%\RunPlugins|" PluginsDirPath
+	Loop, parse, PluginsDirPathList, |
 	{
 		PluginsFolder:=Get_Transform_Val(A_LoopField)
 		PluginsFolder:=RegExReplace(PluginsFolder,"(.*)\\$","$1")
 		if(!FileExist(PluginsFolder))
-			return
+			continue
 		PluginsDirList.Push(PluginsFolder)
 		Loop,%PluginsFolder%\*.ahk,0	;Plugins目录下AHK脚本
 		{
