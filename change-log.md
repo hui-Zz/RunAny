@@ -9,6 +9,37 @@
 * [修改Windows和RunAny菜单背景方法](/article/change-system-menu-theme.md)
 
 ---
+## 【RunAny】v5.7.0 2020-03-20
+?> **新版本RunAny热键选中文字默认不再自动隐藏exe程序**  
+**如果需要选中文字只显示某些分类菜单，可以修改菜单分类项的文件后缀里添加`text`**
+
+![RunAny新增修改菜单分类5.7](/assets/images/RunAny新增修改菜单分类5.7.jpg)
+
+**【新增功能】：**
++ 菜单变量功能，可以使用 系统环境变量/AHK内置变量/用户自定义值变量
++ 评估RunAny初始化时间，显示在托盘图标的鼠标悬停提示
++ 最近运行项可以设置扩大数量，不再固定2个，建议1-9个，可以使用快捷数字来运行
++ 热字符串提示可设置相对于鼠标坐标
++ 新增插件：
+  + huiZz_BatchRun.ahk 1.1.1：`多软件打开选中多文件|huiZz_BatchRun[multi_open](%getZz%,"notepad.exe","wordpad.exe")`
+  + huiZz_System.ahk 1.0.6：`管理员权限运行选中目标|huiZz_System[system_runas_zz](%getZz%)`
+  + huiZz_Text.ahk 1.1.0：
+  ```
+  uri转中文|huiZz_Text[text_encode_zz](%getZz%,uri,cn)
+  中文转uri|huiZz_Text[text_encode_zz](%getZz%,cn,uri)
+  unicode转中文|huiZz_Text[text_encode_zz](%getZz%,unicode,cn)
+  中文转unicode|huiZz_Text[text_encode_zz](%getZz%,cn,unicode)
+  ```
+
+**【优化功能】：**
+* **精简/优化/重构菜单新建、运行、过滤等相关代码**
+* 修复移动RunAny目录后，开机启动选项依然错误勾选的问题
+* 后缀公共菜单的顺序与主菜单一致
+* 选中内容多种类型时不输出公式结果
+* 带参数的程序用热键运行始终新运行一个
+* 自动备份文件名可以设置格式
+
+
 ## 【RunAny】v5.6.9 2020-01-06
 **【新增功能】：**
 + RunAny自动备份配置文件，可限制最多数量
