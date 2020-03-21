@@ -2716,7 +2716,7 @@ TVComments:
 	}
 return
 TVSave:
-	MsgBox, 35, 菜单树保存, 是：保存后重启生效`n否：保存重启后继续修改`n取消：取消保存
+	MsgBox, 4131, 菜单树保存, 是：保存后重启生效`n否：保存重启后继续修改`n取消：取消保存
 	IfMsgBox Yes
 	{
 		gosub,Menu_Save
