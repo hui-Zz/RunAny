@@ -2332,7 +2332,7 @@ Menu_Item_Edit:
 	itemIconName:=itemName ? itemName : name_no_ext
 	itemIconFile:=IconFolderList[menuItemIconFileName(itemIconName)]
 	Gui,SaveItem:Destroy
-	Gui,SaveItem:+Owner
+	Gui,SaveItem:+Owner1
 	Gui,SaveItem:Margin,20,20
 	Gui,SaveItem:Font,,Microsoft YaHei
 	Gui,SaveItem:Add, GroupBox,xm y+10 w600 h340,新增修改菜单项
@@ -3631,6 +3631,7 @@ LVPluginsLib:
 	PluginsDirPath:=StrReplace(PluginsDirPath, "|", "`n")
 	Gui,PluginsLib:Destroy
 	Gui,PluginsLib:Default
+	Gui,PluginsLib:+OwnerP
 	Gui,PluginsLib:Margin,20,20
 	Gui,PluginsLib:Font,,Microsoft YaHei
 	Gui,PluginsLib:Add, GroupBox,xm y+10 w400 h170
@@ -4357,6 +4358,7 @@ Open_Ext_Edit:
 	}
 	Gui,SaveExt:Destroy
 	Gui,SaveExt:Default
+	Gui,SaveExt:+Owner66
 	Gui,SaveExt:Margin,20,20
 	Gui,SaveExt:Font,,Microsoft YaHei
 	Gui,SaveExt:Add, GroupBox,xm y+10 w400 h145,%openExtItem%自定义后缀打开方式
@@ -4437,6 +4439,7 @@ Menu_Var_Edit:
 	}
 	Gui,SaveVar:Destroy
 	Gui,SaveVar:Default
+	Gui,SaveVar:+Owner66
 	Gui,SaveVar:Margin,20,20
 	Gui,SaveVar:Font,,Microsoft YaHei
 	Gui,SaveVar:Add, GroupBox,xm y+10 w400 h145 vvmenuVarType,%menuVarType%
