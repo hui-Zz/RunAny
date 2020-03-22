@@ -1,5 +1,5 @@
 - [**快速开始**](README.md)
-- [**配置**](CONFIG.md)
+- [**配置说明**](CONFIG.md)
 - [**插件列表**](plugins-list.md)
 - [**插件使用**](plugins-help.md)
 - [**其他功能**](other-features.md)

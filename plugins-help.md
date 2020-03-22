@@ -97,7 +97,7 @@
 
 ```autohotkey
 
--系统函数
+-系统函数|public
 	;[获取本地IP][system_ip_zz](output=0)
 	;参数说明：output：1-输出IP；0-显示IP并复制到剪贴板
 	ip地址|huiZz_System[system_ip_zz]()
@@ -133,21 +133,26 @@
 <summary>【复制路径】</summary>
 
 ```autohotkey
---复制路径
-	;复制文件说明：path路径, name名称, dir目录, ext后缀, nameNoExt无后缀名称, drive盘符
-	;复制快捷方式说明：lnkTarget指向路径, lnkDir指向目录, lnkArgs参数, lnkDesc注释, lnkIcon图标文件名, lnkIconNum图标编号, lnkRunState初始运行方式
-	复制名称|huiZz_System[system_file_path_zz](%getZz%,name)
-	复制路径|huiZz_System[system_file_path_zz](%getZz%,path)
-	复制所在目录|huiZz_System[system_file_path_zz](%getZz%,dir)
-	复制无后缀名称|huiZz_System[system_file_path_zz](%getZz%,nameNoExt)
-	复制lnk指向路径|huiZz_System[system_file_path_zz](%getZz%,lnkTarget)
-	复制lnk指向目录|huiZz_System[system_file_path_zz](%getZz%,lnkDir)
+-文件操作|file
+	管理员运行|huiZz_System[system_runas_zz](%getZz%)
+	批量运行|huiZz_BatchRun[batch_run](%getZz%)
+	多软件打开|huiZz_BatchRun[multi_open](%getZz%,"notepad.exe","wordpad.exe")
+	多软件无路径打开|huiZz_BatchRun[multi_open](%getZz%,%"notepad2.exe"%,%"sublime_text.exe"%)
+	--复制路径|file
+		;复制文件说明：path路径, name名称, dir目录, ext后缀, nameNoExt无后缀名称, drive盘符
+		;复制快捷方式说明：lnkTarget指向路径, lnkDir指向目录, lnkArgs参数, lnkDesc注释, lnkIcon图标文件名, lnkIconNum图标编号, lnkRunState初始运行方式
+		复制名称|huiZz_System[system_file_path_zz](%getZz%,name)
+		复制路径|huiZz_System[system_file_path_zz](%getZz%,path)
+		复制所在目录|huiZz_System[system_file_path_zz](%getZz%,dir)
+		复制无后缀名称|huiZz_System[system_file_path_zz](%getZz%,nameNoExt)
+		复制lnk指向路径|huiZz_System[system_file_path_zz](%getZz%,lnkTarget)
+		复制lnk指向目录|huiZz_System[system_file_path_zz](%getZz%,lnkDir)
 
-	;[创建目标快捷方式]  
-	;参数说明：getZz：选中的文件路径  
-	;target：需要发送的目标路径,默认当前目录  
-	;lnk：快捷方式名,默认是选中文件名  
-	创建快捷方式到桌面|huiZz_System[system_create_shortcut](%getZz%,%A_Desktop%)
+		;[创建目标快捷方式]  
+		;参数说明：getZz：选中的文件路径  
+		;target：需要发送的目标路径,默认当前目录  
+		;lnk：快捷方式名,默认是选中文件名  
+		创建快捷方式到桌面|huiZz_System[system_create_shortcut](%getZz%,%A_Desktop%)
 ```
 
 </details>
@@ -161,17 +166,7 @@
 <summary>【文本编辑】</summary>
 
 ```autohotkey
--文本函数
-	;[文本格式化][text_format_zz](getZz:="",formatStr:="")
-	;参数说明：
-	;getZz：选中的文本内容
-	;formatStr：格式化选项，详情查看(https://wyagd001.github.io/zh-cn/docs/commands/Format.htm)
-	转大写|huiZz_Text[text_format_zz](%getZz%,{:U})
-	转小写|huiZz_Text[text_format_zz](%getZz%,{:L})
-	首字母大写|huiZz_Text[text_format_zz](%getZz%,{:T})
-	两位小数|huiZz_Text[text_format_zz](%getZz%,{:0.2f})
-	转整数|huiZz_Text[text_format_zz](%getZz%,{:i})
-	--
+-文本函数|text
 	;[文本替换][text_replace_zz](getZz:="",searchStr:="",replaceStr:="")
 	;参数说明：
 	;getZz：选中的文本内容
@@ -217,7 +212,7 @@
 <summary>【排序函数】</summary>
 
 ```autohotkey
--排序函数
+-排序函数|text
 	;[文本排序][text_sort_zz](getZz:="",options:="")
 	;参数说明：
 	;getZz：选中的文本内容
@@ -244,7 +239,7 @@
 <summary>【变量命名】</summary>
 
 ```autohotkey
--变量命名
+-变量命名|text
 	;[变量命名][text_var_name_zz](getZz:="",varStr:="",formatStr:="",splitStr:=" ,._-|")
 	;参数说明：getZz：选中的文本内容
 	;varStr：变量命名格式符号
@@ -259,6 +254,17 @@
 	7空格命名(camel case)|huiZz_Text[text_var_name_zz](%getZz%, ,{:L})
 	8网络路径命名(dot/case)|huiZz_Text[text_var_name_zz](%getZz%,`/,{:L})
 	9文件路径命名(dot\case)|huiZz_Text[text_var_name_zz](%getZz%,`\,{:L})
+	--
+	;[文本格式化][text_format_zz](getZz:="",formatStr:="")
+	;参数说明：
+	;getZz：选中的文本内容
+	;formatStr：格式化选项，详情查看(https://wyagd001.github.io/zh-cn/docs/commands/Format.htm)
+	转大写|huiZz_Text[text_format_zz](%getZz%,{:U})
+	转小写|huiZz_Text[text_format_zz](%getZz%,{:L})
+	首字母大写|huiZz_Text[text_format_zz](%getZz%,{:T})
+	两位小数|huiZz_Text[text_format_zz](%getZz%,{:0.2f})
+	转整数|huiZz_Text[text_format_zz](%getZz%,{:i})
+	--
 ```
 
 </details>
@@ -269,7 +275,7 @@
 <summary>【Markdown】</summary>
 
 ```autohotkey
--Markdown	!m
+-Markdown	!m|text
 	;[Markdown格式化][text_format_md_zz](getZz:="",formatStr:="")
 	;参数说明：getZz：选中的文本内容
 	;formatStr：格式化选项，详情查看(https://wyagd001.github.io/zh-cn/docs/commands/Format.htm)
@@ -301,7 +307,6 @@
 ```
 
 </details>
-
 
 ---
 
