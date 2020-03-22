@@ -4773,11 +4773,11 @@ Icon_Set:
 		DownIcon:="ZzIcon.dll,6"
 	}
 	global AnyIcon:=Var_Read("AnyIcon",iconAny)
-	global AnyIconS:=StrSplit(AnyIcon,",")
+	global AnyIconS:=StrSplit(Get_Transform_Val(AnyIcon),",")
 	global MenuIcon:=Var_Read("MenuIcon",iconMenu)
-	global MenuIconS:=StrSplit(MenuIcon,",")
+	global MenuIconS:=StrSplit(Get_Transform_Val(MenuIcon),",")
 	global TreeIcon:=Var_Read("TreeIcon",iconTree)
-	global TreeIconS:=StrSplit(TreeIcon,",")
+	global TreeIconS:=StrSplit(Get_Transform_Val(TreeIcon),",")
 	global MoveIconS:=StrSplit(MoveIcon,",")
 	global UpIconS:=StrSplit(UpIcon,",")
 	global DownIconS:=StrSplit(DownIcon,",")
@@ -4792,18 +4792,18 @@ return
 Icon_FileExt_Set:
 	Menu,exeTestMenu,add,SetCancel	;只用于测试应用图标正常添加
 	FolderIcon:=Var_Read("FolderIcon","shell32.dll,4")
-	global FolderIconS:=StrSplit(FolderIcon,",")
+	global FolderIconS:=StrSplit(Get_Transform_Val(FolderIcon),",")
 	UrlIcon:=Var_Read("UrlIcon","shell32.dll,44")
-	global UrlIconS:=StrSplit(UrlIcon,",")
+	global UrlIconS:=StrSplit(Get_Transform_Val(UrlIcon),",")
 	EXEIcon:=Var_Read("EXEIcon","shell32.dll,3")
-	global EXEIconS:=StrSplit(EXEIcon,",")
+	global EXEIconS:=StrSplit(Get_Transform_Val(EXEIcon),",")
 	LNKIcon:="shell32.dll,264"
 	if(A_OSVersion="WIN_XP"){
 		LNKIcon:="shell32.dll,30"
 	}
 	global LNKIconS:=StrSplit(LNKIcon,",")
 	FuncIcon:=Var_Read("FuncIcon","shell32.dll,131")
-	global FuncIconS:=StrSplit(FuncIcon,",")
+	global FuncIconS:=StrSplit(Get_Transform_Val(FuncIcon),",")
 	try{
 		Menu,exeTestMenu,Icon,SetCancel,ZzIcon.dll,7
 		ZzIconPath:="ZzIcon.dll,7"
