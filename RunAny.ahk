@@ -3976,7 +3976,7 @@ Menu_Set:
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuVarEdit, * 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuVarRemove, - 减少
 	Gui,66:Add,Text, x+15 yp-10,使用方法：变量两边加百分号如：`%变量名`%`n编辑菜单项的启动路径中 或 RunAny.ini文件中使用
-	Gui,66:Add,Listview,xm yp+40 w%GROUP_EDIT_WIDTH_66% r16 grid AltSubmit -Multi vRunAnyMenuVarLV glistviewMenuVar, 菜单变量名|类型|菜单变量值（仅用户自定义变量是固定值）
+	Gui,66:Add,Listview,xm yp+40 w%GROUP_EDIT_WIDTH_66% r16 grid AltSubmit vRunAnyMenuVarLV glistviewMenuVar, 菜单变量名|类型|菜单变量值（仅用户自定义变量是固定值）
 	GuiControl, 66:-Redraw, RunAnyMenuVarLV
 	For mVarName, mVarVal in MenuVarIniList
 	{
@@ -4666,6 +4666,8 @@ Menu_Var_Set:
 	if(!menuVarVar){
 		menuVarVar:="A_ScriptDir`nA_Desktop`nA_MyDocuments`nA_UserName`nA_ComputerName`n"
 		menuVarVar.="ProgramFiles`nAppData`nLocalAppData`nOneDrive`nUserProfile`nWinDir"
+		if(A_Is64bitOS)
+			menuVarVar.="`nProgramW6432"
 	}
 	Loop, parse, menuVarVar, `n, `r
 	{
