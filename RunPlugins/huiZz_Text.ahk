@@ -75,7 +75,7 @@ class RunAnyObj {
 	;[Markdown格式化]
 	;参数说明：getZz：选中的文本内容
 	;formatStr：格式化选项，详情查看(https://wyagd001.github.io/zh-cn/docs/commands/Format.htm)
-	text_format_md_zz(getZz:="",formatStr:=""){
+	text_format_md_zz(getZz:="",formatStr:="",surround:=0){
 		textResult:=""
 		removeFlag:=false
 		escapeList:=StrSplit("\.*?+[{|()^$")
@@ -100,6 +100,12 @@ class RunAnyObj {
 		}
 		textResult:=RegExReplace(textResult,"`n$")
 		this.Send_Str_Zz(textResult)
+		if(surround){
+			getZzLen:=StrLen(getZz)
+			surroundKeyNum:=StrLen(StrReplace(textResult,getZz)) / 2
+			SendInput,{Left %surroundKeyNum%}
+			SendInput,+{Left %getZzLen%}
+		}
 	}
 	;[变量命名]
 	;参数说明：getZz：选中的文本内容
