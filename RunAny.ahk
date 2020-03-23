@@ -4451,6 +4451,7 @@ Menu_Var_Edit:
 	Gui,SaveVar:Add,Button,Default xm+100 y+25 w75 GSaveMenuVar,保存(&S)
 	Gui,SaveVar:Add,Button,x+20 w75 GSetCancel,取消(&C)
 	Gui,SaveVar:Show,,%RunAnyZz% - %menuVarItem%菜单变量和变量值 %RunAny_update_version% %RunAny_update_time%
+	gosub,SetMenuVarVal
 return
 listviewMenuVar:
     if A_GuiEvent = DoubleClick
