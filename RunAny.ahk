@@ -1225,7 +1225,7 @@ Menu_Run:
 		if(GetKeyState("Ctrl") && GetKeyState("Shift")){
 			anyRun.="*RunAs "
 		}
-		if(getZz!=""){
+		if(getZz!="" && (getZzFlag || AutoGetZz)){
 			firstFile:=RegExReplace(getZz,"(.*)(\n|\r).*","$1")  ;取第一行
 			if(Candy_isFile=1 || FileExist(getZz) || FileExist(firstFile)){
 				getZzStr:=""
@@ -1300,7 +1300,7 @@ Menu_Key_Run_Run:
 		getZzFlag:=InStr(any,"%getZz%") ? true : false
 		any:=Get_Transform_Val(any)
 		any:=RTrim(any," `t`n`r")
-		if(getZz){
+		if(getZz!="" && (getZzFlag || AutoGetZz)){
 			firstFile:=RegExReplace(getZz,"(.*)(\n|\r).*","$1")  ;取第一行
 			if(getZzFlag){
 				Run_Any(any)
@@ -4604,6 +4604,7 @@ Var_Set:
 	global HotStrShowY:=Var_Read("HotStrShowY",0)
 	;[隐藏配置]开始
 	global JumpSearch:=Var_Read("JumpSearch",0)				;批量搜索忽略确认弹窗
+	global AutoGetZz:=Var_Read("AutoGetZz",1)				;菜单中程序运行时自动打开当前选中文件
 	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)    	;获取选中目标到剪贴板等待时间
 	ClipWaitApp:=Var_Read("ClipWaitApp","")					;上一项剪贴板等待时间生效的应用
 	Loop,parse,ClipWaitApp,`,
