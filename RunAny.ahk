@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2020.03.19
+║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2020.03.25
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.6.9"
-global RunAny_update_time:="2020.03.19"
+global RunAny_update_time:="2020.03.25"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -1868,7 +1868,26 @@ js_eval(exp)
 {
 	HtmlObj:=ComObjCreate("HTMLfile")
 	exp:=escapeString(exp)
-	HtmlObj.write("<body><script>var t=document.body;t.innerText='';t.innerText=Math.round(eval('" . exp . "')*100000000000000)/100000000000000;</script></body>")
+	if(InStr(exp,"-") && InStr(exp,".")){
+		;解决eval减法精度失真问题，根据最长的小数位数四舍五入
+		subMaxNum:=0
+		expResult:=exp
+		while RegExMatch(expResult,"(\.\d+)")
+		{
+			sub:=RegExReplace(expResult,".*(\.\d+).*","$1")
+			if(StrLen(sub)>subMaxNum)
+				subMaxNum:=StrLen(sub)
+			expResult:=RegExReplace(expResult,sub)
+		}
+		expNum:="1"
+		Loop,%subMaxNum%
+		{
+			expNum.="0"
+		}
+	}else{
+		expNum:="100000000000000"
+	}
+	HtmlObj.write("<body><script>var t=document.body;t.innerText='';t.innerText=Math.round(eval('" . exp . "')*" expNum ")/" expNum ";</script></body>")
 	return InStr(cabbage:=HtmlObj.body.innerText, "body") ? "?" : cabbage
 }
 escapeString(string){
