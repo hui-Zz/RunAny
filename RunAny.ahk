@@ -72,6 +72,7 @@ For ki, kv in HotKeyList
 		}
 	}
 }
+global MenuShowNum:=0
 Gosub,MenuTray	;~托盘菜单
 if(errorKeyStr){
 	gosub,Menu_Set
@@ -926,13 +927,36 @@ Menu_Item_Icon(menuName,menuItem,iconPath,iconNo=0,treeLevel=""){
 Menu_Show1:
 	MENU_NO:=1
 	iniFileShow:=iniPath
-	gosub,Menu_Show
+	MenuShowNum++
+	if(MenuKeyTime<=0){
+		gosub,Menu_Show
+	}else{
+		;按两次菜单热键之间不超过这个时间
+		SetTimer,Menu_Show_Extend,%MenuKeyTime%
+	}
 return
 Menu_Show2:
 	MENU_NO:=2
 	iniFileShow:=iniPath2
 	gosub,Menu_Show
 return
+Menu_Show_Extend:
+	if MenuShowNum>=1 ;大于或等于1时关闭计时器
+		SetTimer,Menu_Show_Extend,Off
+	if MenuShowNum=1 ;只按一次时执行
+		gosub,Menu_Show
+	if MenuShowNum=2 ;按两次
+		;~ A_ThisMenu:="画图(&T)"
+		gosub,Menu_Show2
+	if MenuShowNum=3 ;按3次
+		Edit
+	if MenuShowNum>3 ;长按住不放
+	{
+		Menu, Tray, Show,
+		sleep 4000  ;需要延时4秒防止长按键被多次触发
+	}
+	MenuShowNum:= 0 ;最后把记录的变量设置为0,于下次记录.
+Return
 MenuShowTime:
 	MenuShowTimeFlag:=true
 	if(MenuShowFlag){
@@ -4584,6 +4608,7 @@ Var_Set:
 	global RunABackupRule:=Var_Read("RunABackupRule",1)
 	global RunABackupMax:=Var_Read("RunABackupMax",5)
 	global RunABackupFormat:=Var_Read("RunABackupFormat",".`%A_Now`%.bak")
+	global MenuKeyTime:=Var_Read("MenuKeyTime",0)
 	global MenuDoubleCtrlKey:=Var_Read("MenuDoubleCtrlKey",0)
 	global MenuDoubleAltKey:=Var_Read("MenuDoubleAltKey",0)
 	global MenuDoubleLWinKey:=Var_Read("MenuDoubleLWinKey",0)
