@@ -983,9 +983,9 @@ Menu_Show:
 			;#无选中内容
 			;加载顺序：无Everything菜单 -> 无图标菜单 -> 有图标无路径识别菜单
 			if(MenuIconFlag && MenuShowFlag)
-				Menu,% menuRoot%MENU_NO%[1],Show
-			else if(MenuIconFlag)
 				Menu,% menuDefaultRoot%MENU_NO%[1],Show
+			else if(MenuIconFlag)
+				Menu,% menuRoot%MENU_NO%[1],Show
 			else
 				Menu,% menuNoEvRoot%MENU_NO%[1],Show
 			return
