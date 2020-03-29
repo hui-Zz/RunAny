@@ -97,13 +97,11 @@ if(!iniFlag){
 	;~;[插件对象注册]
 	Gosub,Plugins_Object_Register
 }
-;~;[自定义后缀打开方式]
-Gosub,Open_Ext_Set
 ;~;[后缀图标初始化]
 Gosub,Icon_FileExt_Set
 ;══════════════════════════════════════════════════════════════════
 t2:=A_TickCount-StartTick
-Menu_Tray_Tip("运行插件脚本：" Round((t2-t1)/1000,3) "s`n","开始创建菜单1内容...")
+Menu_Tray_Tip("运行插件脚本：" Round((t2-t1)/1000,3) "s`n","开始创建无图标菜单...")
 ;~;
 global MenuExeArray:=Object()		;~程序数据数组
 global MenuExeIconArray:=Object()	;~程序优先加载图标数组
@@ -128,19 +126,9 @@ Loop,%MenuCount%
 	MenuObjTree%A_Index%[M%A_Index%]:=Object()
 	;菜单级别：初始为根菜单RunAny
 	menuRoot%A_Index%:=[M%A_Index%]
-}
-;~;
-Menu_Read(iniVar1,menuRoot1,"",1)
-
-t4:=t5:=A_TickCount-StartTick
-Menu_Tray_Tip("创建菜单1：" Round((t4-t3)/1000,3) "s`n")
-;~;[如果有第2菜单则开始加载]
-if(MENU2FLAG){
-	Menu_Tray_Tip("","开始创建菜单2内容...")
-	Menu_Read(iniVar2,menuRoot2,"",2)
-
-	t5:=A_TickCount-StartTick
-	Menu_Tray_Tip("创建菜单2：" Round((t5-t4)/1000,3) "s`n")
+	;创建一个无需Everything的菜单
+	menuNoEvRoot%A_Index%:=[M%A_Index% "    "]
+	Menu_Read(iniVar%A_Index%,menuNoEvRoot%A_Index%,"    ",A_Index)
 }
 MenuShowFlag:=true
 Menu_Tray_Tip("","菜单已经可以正常使用（图标和无路径应用会稍后加载）`n开始调用Everything搜索菜单内应用全路径...")
@@ -194,6 +182,19 @@ DetectHiddenWindows,Off
 ;══════════════════════════════════════════════════════════════════
 t3:=A_TickCount-StartTick
 Menu_Tray_Tip("调用Everything搜索应用全路径：" Round((t3-t2)/1000,3) "s`n","开始加载完整菜单功能...")
+;~;
+Menu_Read(iniVar1,menuRoot1,"",1)
+
+t4:=t5:=A_TickCount-StartTick
+Menu_Tray_Tip("创建菜单1：" Round((t4-t3)/1000,3) "s`n")
+;~;[如果有第2菜单则开始加载]
+if(MENU2FLAG){
+	Menu_Tray_Tip("","开始创建菜单2内容...")
+	Menu_Read(iniVar2,menuRoot2,"",2)
+
+	t5:=A_TickCount-StartTick
+	Menu_Tray_Tip("创建菜单2：" Round((t5-t4)/1000,3) "s`n")
+}
 ;~[对菜单内容项进行过滤调整]
 Loop,%MenuCount%
 {
@@ -244,6 +245,8 @@ Loop,%MenuCount%
 		Menu_Tree_List_Filter(A_Index,"MenuObjFile",3)
 	}
 }
+;~;[自定义后缀打开方式]
+Gosub,Open_Ext_Set
 ;~;[最近运行项]
 if(RecentMax>0){
 	Menu,% menuDefaultRoot1[1],Add
@@ -521,6 +524,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 			if(InStr(Z_LoopField,";")=1 || Z_LoopField=""){
 				continue
 			}
+			TREE_TYPE_FLAG:=(TREE_TYPE="" || TREE_TYPE="    ")
 			if(InStr(Z_LoopField,"-")=1){
 				;~;[生成节点树层级结构]
 				menuItem:=RegExReplace(Z_LoopField,"S)^-+")
@@ -530,7 +534,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					menuItems:=StrSplit(menuItem,"|",,2)
 					menuItem:=menuItems[1]
 					;~;[读取菜单关联后缀][不重复]
-					if(TREE_TYPE=""){
+					if(TREE_TYPE_FLAG){
 						Loop, parse,% menuItems[2],%A_Space%
 						{
 							;选中文件后显示的公共后缀菜单
@@ -561,7 +565,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					MenuObjTreeLevel[menuItemType]:=treeLevel
 					
 					;~;[分割Tab获取菜单自定义热键][不重复]
-					if(TREE_TYPE="" && InStr(menuItem,"`t")){
+					if(TREE_TYPE_FLAG && InStr(menuItem,"`t")){
 						menuKeyStr:=RegExReplace(menuItem, "S)\t+", A_Tab)
 						menuKeys:=StrSplit(menuKeyStr,"`t")
 						if(menuKeys[2]){
@@ -580,7 +584,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				continue
 			
 			itemMode:=GetMenuItemMode(Z_LoopField,true)
-			if(TREE_TYPE="" && itemMode=60 && RegExMatch(Z_LoopField,"iS).*?%s[^%]*$")){
+			if(TREE_TYPE_FLAG && itemMode=60 && RegExMatch(Z_LoopField,"iS).*?%s[^%]*$")){
 				MsgBox,48,请修改菜单项 `%s不能识别,% "菜单项：" Get_Obj_Name(Z_LoopField) "`n里面的`%s 仅支持在纯网址模式，`n在参数中请替换使用%getZz%表示选中文字"
 			}
 			;短语、网址、脚本插件函数除外的菜单项直接转换%%为系统变量值
@@ -650,7 +654,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				menuKeyStr:=RegExReplace(menuDiy[1], "S)\t+", A_Tab)
 				menuKeys:=StrSplit(menuKeyStr,"`t")
 				;~;[设置热键启动方式][不重复]
-				if(TREE_TYPE="" && InStr(menuDiy[1],"`t") && menuKeys[2]){
+				if(TREE_TYPE_FLAG && InStr(menuDiy[1],"`t") && menuKeys[2]){
 					MenuObjKey[menuKeys[2]]:=itemParam
 					MenuObjName[menuKeys[2]]:=menuKeys[1]
 					if(!InStr(menuDiy[2],"%getZz%") && RegExMatch(menuDiy[2],"iS).+?\[.+?\]%?\(.*?\)")){
@@ -660,7 +664,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					}
 				}
 				;~;[设置热字符串启动方式][不重复]
-				if(TREE_TYPE="" && RegExMatch(menuKeys[1],"S):[*?a-zA-Z0-9]+?:[^:]*")){
+				if(TREE_TYPE_FLAG && RegExMatch(menuKeys[1],"S):[*?a-zA-Z0-9]+?:[^:]*")){
 					hotStrName:=menuKeys[1]
 					if(RegExMatch(hotStrName,"S).*_:\d{1,2}$"))
 						hotStrName:=RegExReplace(hotStrName,"S)(.*)_:\d{1,2}$","$1")
@@ -976,11 +980,14 @@ Menu_Show:
 		gosub,RunAny_Menu
 		selectCheck:=Trim(getZz," `t`n`r")
 		if(selectCheck=""){
-			;#无选中内容#初始先显示无图标菜单
-			if(MenuIconFlag)
+			;#无选中内容
+			;加载顺序：无Everything菜单 -> 无图标菜单 -> 有图标无路径识别菜单
+			if(MenuIconFlag && MenuShowFlag)
+				Menu,% menuRoot%MENU_NO%[1],Show
+			else if(MenuIconFlag)
 				Menu,% menuDefaultRoot%MENU_NO%[1],Show
 			else
-				Menu,% menuRoot%MENU_NO%[1],Show
+				Menu,% menuNoEvRoot%MENU_NO%[1],Show
 			return
 		}
 		if(Candy_isFile){
