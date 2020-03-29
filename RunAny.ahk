@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2020.03.25
+║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2020.03.29
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.6.9"
-global RunAny_update_time:="2020.03.25"
+global RunAny_update_time:="2020.03.29"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -152,14 +152,13 @@ while !WinExist("ahk_exe Everything.exe")
 			Sleep,2000
 			break
 		}else{
-			gosub,Menu_Set
-			MsgBox,17,,RunAny需要Everything极速识别程序的路径`n请使用以下任意一种方式：`n
+			if(!EvNo){
+				TrayTip,,RunAny需要Everything快速识别无路径程序`n
 				(
-* 运行Everything后重启RunAny`n* 设置RunAny中Everything正确安装路径
-* 下载Everything并安装后再运行RunAny：http://www.voidtools.com/
-				)
-			IfMsgBox Ok
-				Run,http://www.voidtools.com/
+* 运行Everything后再重启RunAny
+* 或在RunAny设置中配置Everything正确安装路径`n* 或www.voidtools.com下载安装
+				),5,1
+			}
 			evExist:=false
 			break
 		}
@@ -195,6 +194,7 @@ if(MENU2FLAG){
 	t5:=A_TickCount-StartTick
 	Menu_Tray_Tip("创建菜单2：" Round((t5-t4)/1000,3) "s`n")
 }
+try Menu,Tray,Icon,% ZzIconS[1],% ZzIconS[2]
 ;~[对菜单内容项进行过滤调整]
 Loop,%MenuCount%
 {
@@ -534,7 +534,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					menuItems:=StrSplit(menuItem,"|",,2)
 					menuItem:=menuItems[1]
 					;~;[读取菜单关联后缀][不重复]
-					if(TREE_TYPE_FLAG){
+					if(TREE_TYPE=""){
 						Loop, parse,% menuItems[2],%A_Space%
 						{
 							;选中文件后显示的公共后缀菜单
@@ -584,7 +584,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				continue
 			
 			itemMode:=GetMenuItemMode(Z_LoopField,true)
-			if(TREE_TYPE_FLAG && itemMode=60 && RegExMatch(Z_LoopField,"iS).*?%s[^%]*$")){
+			if(TREE_TYPE="" && itemMode=60 && RegExMatch(Z_LoopField,"iS).*?%s[^%]*$")){
 				MsgBox,48,请修改菜单项 `%s不能识别,% "菜单项：" Get_Obj_Name(Z_LoopField) "`n里面的`%s 仅支持在纯网址模式，`n在参数中请替换使用%getZz%表示选中文字"
 			}
 			;短语、网址、脚本插件函数除外的菜单项直接转换%%为系统变量值
@@ -4654,6 +4654,7 @@ Var_Set:
 	global HotStrShowX:=Var_Read("HotStrShowX",0)
 	global HotStrShowY:=Var_Read("HotStrShowY",0)
 	;[隐藏配置]开始
+	global EvNo:=Var_Read("EvNo",0)							;不再提示Everything找不到
 	global JumpSearch:=Var_Read("JumpSearch",0)				;批量搜索忽略确认弹窗
 	global AutoGetZz:=Var_Read("AutoGetZz",1)				;菜单中程序运行时自动打开当前选中文件
 	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)    	;获取选中目标到剪贴板等待时间
