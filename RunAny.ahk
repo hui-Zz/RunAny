@@ -81,6 +81,12 @@ if(errorKeyStr){
 	MsgBox,16,RunAny热键配置不正确,% "热键错误：`n" errorKeyStr "`n请设置正确热键后重启RunAny"
 	return
 }
+if(A_AhkVersion < 1.1.28){
+	MsgBox, 16, AutoHotKey版本过低！, 由于你的AHK版本没有高于1.1.28，会影响RunAny功能的使用!`n
+	(
+1. 不支持StrSplit()函数的MaxParts`n2. 不支持动态Hotstring创建
+	)
+}
 ;══════════════════════════════════════════════════════════════════
 t1:=A_TickCount-StartTick
 Menu_Tray_Tip(RunAnyZz . AdminMode "`n")
@@ -91,9 +97,54 @@ if(!iniFlag){
 	;~;[插件对象注册]
 	Gosub,Plugins_Object_Register
 }
+;~;[自定义后缀打开方式]
+Gosub,Open_Ext_Set
+;~;[后缀图标初始化]
+Gosub,Icon_FileExt_Set
 ;══════════════════════════════════════════════════════════════════
 t2:=A_TickCount-StartTick
-Menu_Tray_Tip("运行插件脚本：" Round((t2-t1)/1000,3) "s`n","开始调用Everything搜索菜单内应用全路径...")
+Menu_Tray_Tip("运行插件脚本：" Round((t2-t1)/1000,3) "s`n","开始创建菜单1内容...")
+;~;
+global MenuExeArray:=Object()		;~程序数据数组
+global MenuExeIconArray:=Object()	;~程序优先加载图标数组
+global MenuObjTreeLevel:=Object()	;~菜单对应级别
+global MenuObjPublic:=Object()		;~后缀公共菜单
+global MenuShowFlag:=false			;~菜单功能是否可以显示
+global MenuIconFlag:=false			;~菜单图标是否加载完成
+global MenuCount:=MENU2FLAG ? 2 : 1
+MenuExeArray.SetCapacity(1024)
+MenuExeIconArray.SetCapacity(3072)
+Loop,%MenuCount%
+{
+	M%A_Index%:=RunAnyZz . A_Index
+	MenuSendStrList%A_Index%:=Object()	;菜单中短语项列表
+	MenuWebList%A_Index%:=Object()		;菜单中网址%s搜索项列表
+	MenuGetZzList%A_Index%:=Object()		;菜单中GetZz搜索项列表
+	MenuExeList%A_Index%:=Object()		;菜单中的exe列表
+	MenuObjList%A_Index%:=Object()   		;菜单分类运行项列表
+	MenuObjText%A_Index%:=Object()		;选中文字菜单
+	MenuObjFile%A_Index%:=Object()		;选中文件菜单
+	MenuObjTree%A_Index%:=Object()   		;分类目录程序全数据
+	MenuObjTree%A_Index%[M%A_Index%]:=Object()
+	;菜单级别：初始为根菜单RunAny
+	menuRoot%A_Index%:=[M%A_Index%]
+}
+;~;
+Menu_Read(iniVar1,menuRoot1,"",1)
+
+t4:=t5:=A_TickCount-StartTick
+Menu_Tray_Tip("创建菜单1：" Round((t4-t3)/1000,3) "s`n")
+;~;[如果有第2菜单则开始加载]
+if(MENU2FLAG){
+	Menu_Tray_Tip("","开始创建菜单2内容...")
+	Menu_Read(iniVar2,menuRoot2,"",2)
+
+	t5:=A_TickCount-StartTick
+	Menu_Tray_Tip("创建菜单2：" Round((t5-t4)/1000,3) "s`n")
+}
+MenuShowFlag:=true
+Menu_Tray_Tip("","菜单已经可以正常使用（图标和无路径应用会稍后加载）`n开始调用Everything搜索菜单内应用全路径...")
+;══════════════════════════════════════════════════════════════════
 ;~;[初始化everything安装路径]
 evExist:=true
 EvPath:=Var_Read("EvPath")
@@ -140,60 +191,9 @@ if(EvAutoClose && EvPath){
 	Run,%EvPathRun% -exit
 }
 DetectHiddenWindows,Off
-if(A_AhkVersion < 1.1.28){
-	MsgBox, 16, AutoHotKey版本过低！, 由于你的AHK版本没有高于1.1.28，会影响RunAny功能的使用!`n
-	(
-1. 不支持StrSplit()函数的MaxParts`n2. 不支持动态Hotstring创建
-	)
-}
 ;══════════════════════════════════════════════════════════════════
 t3:=A_TickCount-StartTick
-Menu_Tray_Tip("调用Everything搜索应用全路径：" Round((t3-t2)/1000,3) "s`n","开始创建菜单1内容...")
-;~;[自定义后缀打开方式]
-Gosub,Open_Ext_Set
-;~;[后缀图标初始化]
-Gosub,Icon_FileExt_Set
-;~;
-global MenuExeArray:=Object()		;~程序数据数组
-global MenuExeIconArray:=Object()	;~程序优先加载图标数组
-global MenuObjTreeLevel:=Object()	;~菜单对应级别
-global MenuObjPublic:=Object()		;~后缀公共菜单
-global MenuShowFlag:=false			;~菜单功能是否可以显示
-global MenuIconFlag:=false			;~菜单图标是否加载完成
-global MenuCount:=MENU2FLAG ? 2 : 1
-MenuExeArray.SetCapacity(1024)
-MenuExeIconArray.SetCapacity(3072)
-;~;
-Loop,%MenuCount%
-{
-	M%A_Index%:=RunAnyZz . A_Index
-	MenuSendStrList%A_Index%:=Object()	;菜单中短语项列表
-	MenuWebList%A_Index%:=Object()		;菜单中网址%s搜索项列表
-	MenuGetZzList%A_Index%:=Object()		;菜单中GetZz搜索项列表
-	MenuExeList%A_Index%:=Object()		;菜单中的exe列表
-	MenuObjList%A_Index%:=Object()   		;菜单分类运行项列表
-	MenuObjText%A_Index%:=Object()		;选中文字菜单
-	MenuObjFile%A_Index%:=Object()		;选中文件菜单
-	MenuObjTree%A_Index%:=Object()   		;分类目录程序全数据
-	MenuObjTree%A_Index%[M%A_Index%]:=Object()
-	;菜单级别：初始为根菜单RunAny
-	menuRoot%A_Index%:=[M%A_Index%]
-}
-
-Menu_Read(iniVar1,menuRoot1,"",1)
-
-t4:=t5:=A_TickCount-StartTick
-Menu_Tray_Tip("创建菜单1：" Round((t4-t3)/1000,3) "s`n")
-;~;[如果有第2菜单则开始加载]
-if(MENU2FLAG){
-	Menu_Tray_Tip("","开始创建菜单2内容...")
-	Menu_Read(iniVar2,menuRoot2,"",2)
-
-	t5:=A_TickCount-StartTick
-	Menu_Tray_Tip("创建菜单2：" Round((t5-t4)/1000,3) "s`n")
-}
-MenuShowFlag:=true
-Menu_Tray_Tip("","菜单已经可以正常使用（图标会稍后加载）")
+Menu_Tray_Tip("调用Everything搜索应用全路径：" Round((t3-t2)/1000,3) "s`n","开始加载完整菜单功能...")
 ;~[对菜单内容项进行过滤调整]
 Loop,%MenuCount%
 {
@@ -243,9 +243,7 @@ Loop,%MenuCount%
 		;[选中文件菜单过滤分类]
 		Menu_Tree_List_Filter(A_Index,"MenuObjFile",3)
 	}
-	
 }
-
 ;~;[最近运行项]
 if(RecentMax>0){
 	Menu,% menuDefaultRoot1[1],Add
@@ -969,8 +967,10 @@ return
 ;══════════════════════════════════════════════════════════════════
 Menu_Show:
 	try{
-		if(!MenuShowFlag && !MenuShowTimeFlag)
+		if(!MenuShowFlag && !MenuShowTimeFlag){
 			SetTimer,MenuShowTime,10
+			return
+		}
 		if(!extMenuHideFlag)
 			global getZz:=Get_Zz()
 		gosub,RunAny_Menu
@@ -1487,7 +1487,7 @@ Menu_Recent:
 		}
 		menuItem:=MenuCommonList[A_Index]
 		MenuObj[menuItem]:=recentAny
-		Menu,% menuDefaultRoot1[1],Add,%menuItem%,Menu_Run
+		try Menu,% menuDefaultRoot1[1],Add,%menuItem%,Menu_Run
 		;更改图标
 		fullPath:=Get_Obj_Path(recentAny)
 		SplitPath,fullpath, , , ext
@@ -5463,6 +5463,9 @@ everythingQuery(){
 	if(EvDemandSearch){
 		Loop, parse, iniVar1, `n, `r, %A_Space%%A_Tab%
 		{
+			if(InStr(A_LoopField,";")=1 || A_LoopField=""){
+				continue
+			}
 			RegExMatch(A_LoopField,"[^|]+?\.[a-zA-Z0-9]+",outVar)
 			if(Trim(outVar) && !RegExMatch(outVar,"\\|\/|\:|\*|\?|\""|\<|\>|\|") 
 					&& !InStr(EvCommandStr,"|" outVar "|") && GetMenuItemMode(A_LoopField)=1){
@@ -5476,6 +5479,9 @@ everythingQuery(){
 		if(MENU2FLAG){
 			Loop, parse, iniVar2, `n, `r, %A_Space%%A_Tab%
 			{
+				if(InStr(A_LoopField,";")=1 || A_LoopField=""){
+					continue
+				}
 				RegExMatch(A_LoopField,"[^|]+?\.[a-zA-Z0-9]+",outVar)
 				if(Trim(outVar) && !RegExMatch(outVar,"\\|\/|\:|\*|\?|\""|\<|\>|\|") 
 						&& !InStr(EvCommandStr,"|" outVar "|") && GetMenuItemMode(A_LoopField)=1){
