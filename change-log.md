@@ -1,14 +1,7 @@
 # RunAny已更新最新版本！感谢你的使用和支持！[![HitCount](http://hits.dwyl.io/hui-Zz/RunAny.svg)](http://hits.dwyl.io/hui-Zz/RunAny)
 
-### 📢 RunAny完整文档完成了！
-* 国内Gitee文档：[https://hui-zz.gitee.io/runany](https://hui-zz.gitee.io/runany)
-* Github文档：[https://hui-zz.github.io/RunAny](https://hui-zz.github.io/RunAny)
-### 新增右上角三篇文章：
-* [无路径如何区别运行重名的exe程序](/article/run-repeat-exe.md)
-* [RunAny菜单主题展示](/article/run-menu-theme.md)
-* [修改Windows和RunAny菜单背景方法](/article/change-system-menu-theme.md)
-
----
+#### 📢 关注RunAny一劳永逸微信公众号，分享【一劳永逸】的效率软件和解决方案！
+![RunAny公众号-白色版](/assets/images/RunAny公众号-白色版.png)
 ## 【RunAny】v5.7.0 2020-03-20
 ?> **新版本RunAny热键选中文字默认不再自动隐藏exe程序**  
 **如果需要选中文字只显示某些分类菜单，可以修改菜单分类项的文件后缀里添加`text`**
@@ -16,8 +9,12 @@
 ![RunAny新增修改菜单分类5.7](/assets/images/RunAny新增修改菜单分类5.7.jpg)
 
 **【新增功能】：**
-+ 菜单变量功能，可以使用 系统环境变量/AHK内置变量/用户自定义值变量
-+ 评估RunAny初始化时间，显示在托盘图标的鼠标悬停提示
++ **<font color="red">菜单变量功能，可以使用 系统环境变量/AHK内置变量/用户自定义值变量</font>**
++ 评估RunAny初始化时间，显示在任务栏托盘图标的鼠标悬停提示
+  + 菜单不同时间加载，刚开机也无需等待直接使用：
+    + 任务栏红色RA图标时：无图标菜单、无路径应用功能不可用
+    + 任务栏红色Z图标：无图标菜单，大部分功能可使用
+    + 任务栏标准RA图标：有图标，完整功能菜单
 + 最近运行项可以设置扩大数量，不再固定2个，建议1-9个，可以使用快捷数字来运行
 + 热字符串提示可设置相对于鼠标坐标
 + 插件管理新增插件库功能，可以管理其他目录的AHK脚本
