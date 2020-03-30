@@ -2382,7 +2382,8 @@ Menu_Item_Edit:
 	itemIconName:=itemName ? itemName : name_no_ext
 	itemIconFile:=IconFolderList[menuItemIconFileName(itemIconName)]
 	Gui,SaveItem:Destroy
-	Gui,SaveItem:+Owner1
+	if(menuGuiFlag)
+		Gui,SaveItem:+owner1
 	Gui,SaveItem:Margin,20,20
 	Gui,SaveItem:Font,,Microsoft YaHei
 	Gui,SaveItem:Add, GroupBox,xm y+10 w600 h340,新增修改菜单项
