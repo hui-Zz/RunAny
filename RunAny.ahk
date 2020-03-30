@@ -428,7 +428,7 @@ XButton1::gosub,Menu_Show1
 #If MenuXButton2Key=1
 XButton2::gosub,Menu_Show1
 #If
-#If MenuMButtonKey=1
+#If MenuMButtonKey=1 && !WinActive("ahk_group DisableGUI")
 ~MButton::gosub,Menu_Show1
 #If
 AutoReloadMTime:
