@@ -37,9 +37,12 @@ global MenuTreeKey:=Object()    ;~分类热键
 MenuObj.SetCapacity(10240)
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化菜单显示热键]
-HotKeyList:=["MenuHotKey","MenuHotKey2","EvHotKey","OneHotKey","TreeHotKey1","TreeHotKey2","TreeIniHotKey1","TreeIniHotKey2"]
+HotKeyList:=["MenuHotKey","MenuHotKey2","EvHotKey","OneHotKey"]
+RunHotKeyList:=HotKeyList.Clone()
+HotKeyList.Push("TreeHotKey1","TreeHotKey2","TreeIniHotKey1","TreeIniHotKey2")
 HotKeyList.Push("RunATrayHotKey","RunASetHotKey","RunAReloadHotKey","RunASuspendHotKey","RunAExitHotKey","PluginsManageHotKey")
-HotKeyTextList:=["菜单热键","菜单2热键","一键Everything热键","一键搜索热键","修改菜单管理(1)","修改菜单管理(2)","修改菜单文件(1)","修改菜单文件(2)"]
+HotKeyTextList:=["RunAny菜单热键","RunAny菜单2热键","一键Everything热键","一键搜索热键"]
+HotKeyTextList.Push("修改菜单管理(1)","修改菜单管理(2)","修改菜单文件(1)","修改菜单文件(2)")
 HotKeyTextList.Push("RunAny托盘菜单","设置RunAny","重启RunAny","停用RunAny","退出RunAny","插件管理")
 RunList:=["Menu_Show1","Menu_Show2","Ev_Show","One_Show","Menu_Edit1","Menu_Edit2","Menu_Ini","Menu_Ini2"]
 RunList.Push("Menu_Tray","Menu_Set","Menu_Reload","Menu_Suspend","Menu_Exit","Plugins_Manage")
@@ -3925,6 +3928,7 @@ Variable_Boolean_Reverse(vars*){
 ;══════════════════════════════════════════════════════════════════
 ;~;[设置选项]
 Menu_Set:
+	HotKeyFlag:=MenuVarFlag:=OpenExtFlag:=false
 	GROUP_WIDTH_66=560
 	GROUP_EDIT_WIDTH_66=540
 	GROUP_CHOOSE_EDIT_WIDTH_66=480
@@ -3989,8 +3993,6 @@ Menu_Set:
 			}
 		}
 		%kv%:=%winkeyV% ? "#" . %keyV% : %keyV%
-		v%keyV%:=%keyV%
-		v%winkeyV%:=%winkeyV%
 		LV_Add("", %kv%, HotKeyTextList[ki], kv)
 	}
 	LV_ModifyCol()
@@ -4007,44 +4009,6 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%MenuXButton2Key% x+171 vvMenuXButton2Key,鼠标X2键
 	Gui,66:Add,Checkbox,Checked%MenuMButtonKey% xm yp+20 vvMenuMButtonKey,鼠标中键（需要关闭插件huiZz_MButton.ahk）
 
-	
-	;~ Gui,66:Add,GroupBox,xm-10 y+20 w225 h55,RunAny托盘菜单：%RunATrayHotKey%
-	;~ Gui,66:Add,Hotkey,xm yp+20 w150 vvRunATrayKey,%RunATrayKey%
-	;~ Gui,66:Add,Checkbox,Checked%RunATrayWinKey% xm+155 yp+3 vvRunATrayWinKey,Win
-	;~ Gui,66:Add,GroupBox,x+35 yp-23 w225 h55,插件管理：%PluginsManageHotKey%
-	;~ Gui,66:Add,Hotkey,xp+10 yp+20 w150 vvPluginsManageKey,%PluginsManageKey%
-	;~ Gui,66:Add,Checkbox,Checked%PluginsManageWinKey% xp+155 yp+3 vvPluginsManageWinKey,Win
-	
-	;~ Gui,66:Add,GroupBox,xm-10 y+15 w225 h55,修改菜单管理(1)：%TreeHotKey1%
-	;~ Gui,66:Add,Hotkey,xm yp+20 w150 vvTreeKey1,%TreeKey1%
-	;~ Gui,66:Add,Checkbox,Checked%TreeWinKey1% xm+155 yp+3 vvTreeWinKey1,Win
-	;~ If(MENU2FLAG){
-		;~ Gui,66:Add,GroupBox,x+35 yp-23 w225 h55,修改菜单管理(2)：%TreeHotKey2%
-		;~ Gui,66:Add,Hotkey,xp+10 yp+20 w150 vvTreeKey2,%TreeKey2%
-		;~ Gui,66:Add,Checkbox,Checked%TreeWinKey2% xp+155 yp+3 vvTreeWinKey2,Win
-	;~ }
-	;~ Gui,66:Add,GroupBox,xm-10 y+15 w225 h55,修改菜单文件(1)：%TreeIniHotKey1%
-	;~ Gui,66:Add,Hotkey,xm yp+20 w150 vvTreeIniKey1,%TreeIniKey1%
-	;~ Gui,66:Add,Checkbox,Checked%TreeIniWinKey1% xm+155 yp+3 vvTreeIniWinKey1,Win
-	;~ If(MENU2FLAG){
-		;~ Gui,66:Add,GroupBox,x+35 yp-23 w225 h55,修改菜单文件(2)：%TreeIniHotKey2%
-		;~ Gui,66:Add,Hotkey,xp+10 yp+20 w150 vvTreeIniKey2,%TreeIniKey2%
-		;~ Gui,66:Add,Checkbox,Checked%TreeIniWinKey2% xp+155 yp+3 vvTreeIniWinKey2,Win
-	;~ }
-
-	;~ Gui,66:Add,GroupBox,xm-10 y+15 w225 h55,设置RunAny：%RunASetHotKey%
-	;~ Gui,66:Add,Hotkey,xm yp+20 w150 vvRunASetKey,%RunASetKey%
-	;~ Gui,66:Add,Checkbox,Checked%RunASetWinKey% xm+155 yp+3 vvRunASetWinKey,Win
-	;~ Gui,66:Add,GroupBox,x+35 yp-23 w225 h55,重启RunAny：%RunAReloadHotKey%
-	;~ Gui,66:Add,Hotkey,xp+10 yp+20 w150 vvRunAReloadKey,%RunAReloadKey%
-	;~ Gui,66:Add,Checkbox,Checked%RunAReloadWinKey% xp+155 yp+3 vvRunAReloadWinKey,Win
-	;~ Gui,66:Add,GroupBox,xm-10 y+15 w225 h55,停用RunAny：%RunASuspendHotKey%
-	;~ Gui,66:Add,Hotkey,xm yp+20 w150 vvRunASuspendKey,%RunASuspendKey%
-	;~ Gui,66:Add,Checkbox,Checked%RunASuspendWinKey% xm+155 yp+3 vvRunASuspendWinKey,Win
-	;~ Gui,66:Add,GroupBox,x+35 yp-23 w225 h55,退出RunAny：%RunAExitHotKey%
-	;~ Gui,66:Add,Hotkey,xp+10 yp+20 w150 vvRunAExitKey,%RunAExitKey%
-	;~ Gui,66:Add,Checkbox,Checked%RunAExitWinKey% xp+155 yp+3 vvRunAExitWinKey,Win
-	
 	Gui,66:Tab,菜单变量,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h435,自定义配置RunAny菜单中可以使用的变量
 	Gui,66:Add,Button, xm yp+30 w50 GLVMenuVarAdd, + 增加
@@ -4062,7 +4026,7 @@ Menu_Set:
 	GuiControl, 66:+Redraw, RunAnyMenuVarLV
 	
 	Gui,66:Tab,Everything设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h55,一键Everything [搜索选中文字、激活、隐藏]
+	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h55,一键Everything [搜索选中文字、激活、隐藏] %EvHotKey%
 	Gui,66:Add,Hotkey,xm+10 yp+20 w150 vvEvKey,%EvKey%
 	Gui,66:Add,Checkbox,Checked%EvWinKey% xm+170 yp+3 vvEvWinKey,Win
 	Gui,66:Add,Checkbox,Checked%EvAutoClose% x+38 vvEvAutoClose,Everything自动关闭(不常驻)
@@ -4085,7 +4049,7 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%OneKeyFolder% x+10 yp vvOneKeyFolder,文件夹路径
 	Gui,66:Add,Checkbox,Checked%OneKeyMagnet% x+10 yp vvOneKeyMagnet,磁力链接
 	
-	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h245,一键搜索选中文字
+	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h245,一键搜索选中文字 %OneHotKey%
 	Gui,66:Add,Hotkey,xm yp+30 w150 vvOneKey,%OneKey%
 	Gui,66:Add,Checkbox,Checked%OneWinKey% xm+155 yp+3 vvOneWinKey,Win
 	Gui,66:Add,Checkbox,Checked%OneKeyMenu% x+38 vvOneKeyMenu,绑定菜单1热键为一键搜索
@@ -4155,6 +4119,21 @@ Menu_Set:
 	Gui,66:Add,Text,x+40 yp+5 w75 GMenu_Config,RunAnyConfig.ini
 	Gui,66:Show,,%RunAnyZz%设置 %RunAny_update_version% %RunAny_update_time%%AdminMode%
 	k:=v:=mVarName:=mVarVal:=mOpenExtName:=mOpenExtRun:=""
+	SetValueList:=["AdminRun"]
+	;[手写AHK热键情况下不根据Hotkey热键控件保存，避免清空手写热键值]
+	Gui,66:Submit, NoHide
+	For ki, kv in RunHotKeyList
+	{
+		keyV:=StrReplace(kv,"Hot")
+		winkeyV:=StrReplace(kv,"Hot","Win")
+		if(v%keyV%="" && %kv%!=""){
+			GuiControl,Disable,v%keyV%
+			GuiControl,Disable,v%winkeyV%
+		}else{
+			SetValueList.Push(keyV)
+			SetValueList.Push(winkeyV)
+		}
+	}
 	return
 ;~;[关于]
 Menu_About:
@@ -4267,36 +4246,15 @@ SetOK:
 			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		}
 	}
-	SetValueList:=["AdminRun","AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupFormat","RunABackupDir","DisableApp"]
+	SetValueList.Push("AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupFormat","RunABackupDir","DisableApp")
 	SetValueList.Push("EvPath","EvCommand","EvAutoClose","EvExeVerNew","EvDemandSearch")
 	SetValueList.Push("HideFail","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideSelectZz","RecentMax")
 	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu")
 	SetValueList.Push("BrowserPath","IconFolderPath","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon","AnyIcon","MenuIcon")
 	SetValueList.Push("HideHotStr","HotStrShowLen","HotStrShowTime","HotStrShowTransparent","HotStrShowX","HotStrShowY")
-	;~ SetValueList.Push("TreeKey1", "TreeWinKey1", "TreeIniKey1", "TreeIniWinKey1")
 	SetValueList.Push("MenuDoubleCtrlKey", "MenuDoubleAltKey", "MenuDoubleLWinKey", "MenuDoubleRWinKey")
 	SetValueList.Push("MenuCtrlRightKey", "MenuShiftRightKey", "MenuXButton1Key", "MenuXButton2Key", "MenuMButtonKey")
-	;~ If(MENU2FLAG){
-		;~ SetValueList.Push("MenuKey2", "MenuWinKey2", "TreeKey2", "TreeWinKey2", "TreeIniKey2", "TreeIniWinKey2")
-	;~ }
-	;热键配置保存
-	Gui, ListView, RunAnyHotkeyLV
-	Loop % LV_GetCount()
-	{
-		LV_GetText(RunAHotKey, A_Index, 1)
-		LV_GetText(RunAHotKeyVal, A_Index, 3)
-		keyV:=StrReplace(RunAHotKeyVal,"Hot")
-		winkeyV:=StrReplace(RunAHotKeyVal,"Hot","Win")
-		SetValueList.Push(keyV)
-		SetValueList.Push(winkeyV)
-	}
-	;~ RunHotKeyList:=["Menu","Ev","One","PluginsManage"]
-	;~ RunHotKeyList.Push("RunATray","RunASet","RunAReload","RunASuspend","RunAExit")
-	;~ For ki, kv in RunHotKeyList
-	;~ {
-		;~ SetValueList.Push(kv . "Key")
-		;~ SetValueList.Push(kv . "WinKey")
-	;~ }
+	;[回车转换成竖杠保存到ini配置文件]
 	OneKeyUrl:=RegExReplace(OneKeyUrl,"S)[\n]+","|")
 	vOneKeyUrl:=RegExReplace(vOneKeyUrl,"S)[\n]+","|")
 	IconFolderPath:=RegExReplace(IconFolderPath,"S)[\n]+","|")
@@ -4305,6 +4263,21 @@ SetOK:
 	{
 		vValue:="v" . vv
 		Reg_Set(%vValue%,%vv%,vv)
+	}
+	;[保存热键配置列表]
+	if(HotKeyFlag){
+		Gui, ListView, RunAnyHotkeyLV
+		Loop % LV_GetCount()
+		{
+			LV_GetText(RunAHotKey, A_Index, 1)
+			LV_GetText(RunAHotKeyVal, A_Index, 3)
+			keyV:=StrReplace(RunAHotKeyVal,"Hot")
+			winkeyV:=StrReplace(RunAHotKeyVal,"Hot","Win")
+			v_keyV:=StrReplace(RunAHotKey,"#")
+			v_winkeyV:=InStr(RunAHotKey,"#")
+			IniWrite,%v_keyV%,%RunAnyConfig%,Config,%keyV%
+			IniWrite,%v_winkeyV%,%RunAnyConfig%,Config,%winkeyV%
+		}
 	}
 	;[保存自定义打开后缀列表]
 	if(OpenExtFlag){
@@ -4463,17 +4436,18 @@ listviewHotkey:
     {
 		gosub,RunA_Hotkey_Edit
     }
+	if A_GuiEvent = e
+	{
+		HotKeyFlag:=true
+	}
 return
 SaveRunAHotkey:
+	HotKeyFlag:=true
 	Gui,key:Submit, NoHide
 	vKeyWinKeyV:=vwinkeyV ? "#" . vkeyV : vkeyV
-	v%keyV%:=vkeyV
-	v%winkeyV%:=vwinkeyV
 	Gui,66:Default
 	LV_Modify(RunRowNumber,"",vKeyWinKeyV)
 	LV_ModifyCol()  ; 根据内容自动调整每列的大小.
-	GuiControl,, v%keyV%, %vkeyV%
-	GuiControl,, v%winkeyV%, %vwinkeyV%
 	Gui,key:Destroy
 return
 ;-------------------------------------自定义打开后缀界面-------------------------------------
