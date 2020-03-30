@@ -2,7 +2,7 @@
 ;* 【ObjReg文本操作脚本[文本函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.1.0"
+global RunAny_Plugins_Version:="1.1.1"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
@@ -307,7 +307,8 @@ class RunAnyObj {
 	;参数说明：getZz：选中的文本内容
 	;sCode：要转换的文本编码
 	;cCode：转换后的文本编码
-	text_encode_zz(getZz:="",sCode:="",cCode:=""){
+	;isShow：是否显示文本编码
+	text_encode_zz(getZz:="",sCode:="",cCode:="",isShow:=true){
 		if(getZz="" || sCode="" || cCode=""){
 			ToolTip,没有选中文本或指定需要转换的编码格式
 			Sleep,2000
@@ -315,15 +316,21 @@ class RunAnyObj {
 			return
 		}
 		if(sCode="uri"){
-			this.Send_Str_Zz(this.URI_Encode(getZz))
+			textResult:=this.URI_Decode(getZz)
 		}else if(sCode="unicode"){
-			this.Send_Str_Zz(this.Unicode_Decode(getZz))
+			textResult:=this.Unicode_Decode(getZz)
 		}else if(sCode="cn"){
 			if(cCode="uri"){
-				this.Send_Str_Zz(this.URI_Decode(getZz))
+				textResult:=this.URI_Encode(getZz)
 			}else if(cCode="unicode"){
-				this.Send_Str_Zz(this.CN2uXXXX(getZz))
+				textResult:=this.CN2uXXXX(getZz)
 			}
+		}
+		this.Send_Str_Zz(textResult)
+		if(isShow){
+			ToolTip,%textResult%
+			Sleep,3000
+			ToolTip
 		}
 	}
 	;[中文转换为URI编码]
