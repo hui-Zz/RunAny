@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2020.03.29
+║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2020.03.30
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.6.9"
-global RunAny_update_time:="2020.03.29"
+global RunAny_update_time:="2020.03.30"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -3981,6 +3981,7 @@ Menu_Set:
 	Gui,66:Tab,热键配置,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h265,%RunAnyZz%热键配置列表
 	Gui,66:Add,Listview,xm yp+20 w%GROUP_EDIT_WIDTH_66% r10 grid AltSubmit -ReadOnly vRunAnyHotkeyLV glistviewHotkey, 热键AHK写法|热键说明|热键变量名
+	kvLenMax:=0
 	GuiControl, 66:-Redraw, RunAnyHotkeyLV
 	For ki, kv in HotKeyList
 	{
@@ -3994,8 +3995,12 @@ Menu_Set:
 		}
 		%kv%:=%winkeyV% ? "#" . %keyV% : %keyV%
 		LV_Add("", %kv%, HotKeyTextList[ki], kv)
+		if(StrLen(%kv%)>kvLenMax)
+			kvLenMax:=StrLen(%kv%)
 	}
 	LV_ModifyCol()
+	if(kvLenMax<13)
+		LV_ModifyCol(1,"AutoHdr")  ;列宽调整为标题对齐
 	GuiControl, 66:+Redraw, RunAnyHotkeyLV
 	
 	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h125,RunAny多种方式启动菜单（与第三方软件热键冲突则取消勾选）
@@ -4066,12 +4071,17 @@ Menu_Set:
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtRemove, - 减少
 	Gui,66:Add,Text, x+10 yp+5 w320,（特殊类型：文件夹folder 网址http https www ftp等）
 	Gui,66:Add,Listview,xm yp+30 w%GROUP_EDIT_WIDTH_66% r16 grid AltSubmit -Multi vRunAnyOpenExtLV glistviewOpenExt, 文件后缀(用空格分隔)|打开方式(支持无路径)
+	kvLenMax:=0
 	GuiControl, 66:-Redraw, RunAnyOpenExtLV
 	For mOpenExtName, mOpenExtRun in openExtIniList
 	{
 		LV_Add("", mOpenExtRun, mOpenExtName)
+		if(StrLen(mOpenExtRun)>kvLenMax)
+			kvLenMax:=StrLen(mOpenExtRun)
 	}
 	LV_ModifyCol()
+	if(kvLenMax<22)
+		LV_ModifyCol(1,"AutoHdr")  ;列宽调整为标题对齐
 	GuiControl, 66:+Redraw, RunAnyOpenExtLV
 	
 	Gui,66:Tab,热字符串,,Exact
