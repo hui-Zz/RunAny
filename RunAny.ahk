@@ -669,7 +669,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					}
 				}
 				;~;[设置热字符串启动方式][不重复]
-				if(TREE_TYPE_FLAG && RegExMatch(menuKeys[1],"S):[*?a-zA-Z0-9]+?:[^:]*")){
+				if(TREE_TYPE="" && RegExMatch(menuKeys[1],"S):[*?a-zA-Z0-9]+?:[^:]*")){
 					hotStrName:=menuKeys[1]
 					if(RegExMatch(hotStrName,"S).*_:\d{1,2}$"))
 						hotStrName:=RegExReplace(hotStrName,"S)(.*)_:\d{1,2}$","$1")
@@ -3979,7 +3979,7 @@ Menu_Set:
 	Gui,66:Add,Edit,xm yp+25 w%GROUP_EDIT_WIDTH_66% r4 -WantReturn vvDisableApp,%DisableApp%
 	
 	Gui,66:Tab,热键配置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h265,%RunAnyZz%热键配置列表
+	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h265,%RunAnyZz%热键配置列表（双击修改，按F2可手写AHK使用特殊热键，如Space、CapsLock、Tab等）
 	Gui,66:Add,Listview,xm yp+20 w%GROUP_EDIT_WIDTH_66% r10 grid AltSubmit -ReadOnly vRunAnyHotkeyLV glistviewHotkey, 热键AHK写法|热键说明|热键变量名
 	kvLenMax:=0
 	GuiControl, 66:-Redraw, RunAnyHotkeyLV
