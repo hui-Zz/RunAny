@@ -288,12 +288,13 @@ RunAny可以储存邮箱、手机号，想用时就快捷输出，更支持AHK�
 
 ```ini
 -短语
-	日期:*X:date!|%A_YYYY%%A_MM%%A_DD%;
-	日期-:*X:date@|%A_YYYY%-%A_MM%-%A_DD%;
-	日期中文_:*X:date#|%A_YYYY%年%A_MM%月%A_DD%日;
-	时间:*X:time!|%A_YYYY%%A_MM%%A_DD%%A_Hour%%A_Min%%A_Sec%;
-	时间-:*X:time@|%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%;
-	时间中文_:*X:time#|%A_YYYY%年%A_MM%月%A_DD%日 %A_Hour%时%A_Min%分%A_Sec%秒;
+	日期:*X:date;|%A_YYYY%%A_MM%%A_DD%;
+	日期-:*X:date-|%A_YYYY%-%A_MM%-%A_DD%;
+	日期.:*X:date.|%A_YYYY%.%A_MM%.%A_DD%;
+	日期中文':*X:date'|%A_YYYY%年%A_MM%月%A_DD%日;
+	时间:*X:time;|%A_YYYY%%A_MM%%A_DD%%A_Hour%%A_Min%%A_Sec%;
+	时间_:*X:time-|%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%;
+	时间中文_:*X:time'|%A_YYYY%年%A_MM%月%A_DD%日 %A_Hour%时%A_Min%分%A_Sec%秒;
 ```
 
 </details>
@@ -329,7 +330,7 @@ RunAny可以储存邮箱、手机号，想用时就快捷输出，更支持AHK�
 - 映射 左手的<kbd>Shift</kbd>+`空格键`<kbd>Space</kbd>  转变成 => `回车键`<kbd>Enter</kbd> 的功能
 - 映射 左手的<kbd>Shift</kbd>+`大小写键`<kbd>CapsLock</kbd>  转变成 => `删除键`<kbd>Delete</kbd> 的功能
 
-> RunAny.ini文件写入
+**RunAny.ini文件写入**
 <PRE>
 左手回车&#9<+Space|{Enter}::
 左手删除&#9LShift & CapsLock|{Delete}::
@@ -340,17 +341,32 @@ RunAny可以储存邮箱、手机号，想用时就快捷输出，更支持AHK�
 静音|{Volume_Mute}::
 </PRE>
 
-> `<`代表左边 `>`代表右边
-> 
-> 前面加`L`也代表左边 前面加`R`也代表右边
-> 
+### 键盘上特殊按键通过手写来使用
+
 > `^`代表Ctrl键 `!`代表Alt键 `#`代表Win键 `+`代表Shift键
 > 
-> `{Enter}`回车键 `{CapsLock}`是大小写键 `{BackSpace}`是退格键 `{Space}`是空格键 `{Tab}`是制表符键
+> `<^ <! <# <+` 和 `LCtrl LAlt LWin LShift` 代表左边的Ctrl键、Alt键、Win键、Shift键
 > 
-> `{Down}`方向下键 `{Up}`方向上键 `{Left}`方向左键 `{Right}`方向右键
+> `>^ >! ># >+` 和 `RCtrl RAlt RWin RShift` 代表右边的Ctrl键、Alt键、Win键、Shift键
+> 
+> `F1 F2 F3 ... F12` 键盘顶部从<kbd>F1</kbd>开头到<kbd>F12</kbd>的 12 个功能键
 
-?> 了解更多AHK热键文档：https://wyagd001.github.io/zh-cn/docs/Hotkeys.htm
+| AHK按键写法 | 按键说明         | AHK按键写法 | 按键说明     |
+| ----------- | ---------------- | ----------- | ------------ |
+| {LButton}   | 鼠标左键         | {CapsLock}  | 大小写锁定键 |
+| {RButton}   | 鼠标右键         | {Space}     | 空格键       |
+| {MButton}   | 鼠标中键或滚轮   | {Tab}       | Tab 键       |
+| {XButton1}  | 鼠标的第四个按键 | {Enter}     | 回车键       |
+| {XButton2}  | 鼠标的第五个按键 | {Esc}       | 退出键       |
+| {WheelDown} | 向下转动鼠标滚轮 | {Backspace} | 退格键       |
+| {WheelUp}   | 向上转动鼠标滚轮 | {Delete}    | 删除键       |
+
+> `{ScrollLock}` 滚动锁定键 `{Delete} 或 {Del}` 删除键 `{Insert} 或 {Ins}` 插入改写切换键  
+> `{Home}` Home 键 `{End}` End 键 `{PgUp}` 向上翻页键 `{PgDn}` 向下翻页键  
+> `{Down}`方向下键 `{Up}`方向上键 `{Left}`方向左键 `{Right}`方向右键  
+
+?> 更多AHK热键写法查看文档：（记得在RunAny中用大括号特殊按键名称，不然就会误认为是字母按键了）  
+https://wyagd001.github.io/zh-cn/docs/KeyList.htm  
 
 ### Vim映射模式，左Alt键辅助方案
 
@@ -378,6 +394,5 @@ RunAny可以储存邮箱、手机号，想用时就快捷输出，更支持AHK�
 &#9跳转选中到顶部&#9&#60;!+i|^+{Home}::
 &#9跳转选中到底部&#9&#60;!+u|^+{End}::
 </PRE>
-
 ---
 
