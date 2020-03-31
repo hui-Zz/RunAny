@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.6.9 @2020.03.30
+║【RunAny】一劳永逸的快速启动工具 v5.7.0 @2020.03.31
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -22,8 +22,8 @@ StartTick:=A_TickCount  ;评估RunAny初始化时间
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
-global RunAny_update_version:="5.6.9"
-global RunAny_update_time:="2020.03.30"
+global RunAny_update_version:="5.7.0"
+global RunAny_update_time:="2020.03.31"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
@@ -3979,8 +3979,8 @@ Menu_Set:
 	Gui,66:Add,Edit,xm yp+25 w%GROUP_EDIT_WIDTH_66% r4 -WantReturn vvDisableApp,%DisableApp%
 	
 	Gui,66:Tab,热键配置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h265,%RunAnyZz%热键配置列表（双击修改，按F2可手写AHK使用特殊热键，如Space、CapsLock、Tab等）
-	Gui,66:Add,Listview,xm yp+20 w%GROUP_EDIT_WIDTH_66% r10 grid AltSubmit -ReadOnly vRunAnyHotkeyLV glistviewHotkey, 热键AHK写法|热键说明|热键变量名
+	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h285,%RunAnyZz%热键配置列表（双击修改，按F2可手写AHK使用特殊热键，如Space、CapsLock、Tab等）
+	Gui,66:Add,Listview,xm yp+20 w%GROUP_EDIT_WIDTH_66% r11 grid AltSubmit -ReadOnly vRunAnyHotkeyLV glistviewHotkey, 热键AHK写法|热键说明|热键变量名
 	kvLenMax:=0
 	GuiControl, 66:-Redraw, RunAnyHotkeyLV
 	For ki, kv in HotKeyList
