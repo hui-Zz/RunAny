@@ -4445,10 +4445,12 @@ listviewHotkey:
     if A_GuiEvent = DoubleClick
     {
 		gosub,RunA_Hotkey_Edit
-    }
-	if A_GuiEvent = e
+    }else if A_GuiEvent = e
 	{
 		HotKeyFlag:=true
+	}else if  A_GuiEvent = R
+	{
+		Run,https://wyagd001.github.io/zh-cn/docs/KeyList.htm
 	}
 return
 SaveRunAHotkey:
