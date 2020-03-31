@@ -2,7 +2,7 @@
 ;* 【ObjReg窗口操作脚本[窗口函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.4"
+global RunAny_Plugins_Version:="1.0.5"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
@@ -23,6 +23,10 @@ class RunAnyObj {
 	win_center_zz(){
 		WinGetActiveStats,zTitle,var_width,var_height,var_x,var_y
 		WinMove,%zTitle%,,(A_ScreenWidth-var_width)/2,(A_ScreenHeight-var_height)/2+15,var_width,var_height
+	}
+	;[窗口移动]
+	win_move_zz(var_x,var_y){
+		WinMove,A,,%var_x%,%var_y%
 	}
 	;[窗口改变大小]
 	win_size_zz(var_width,var_height){
