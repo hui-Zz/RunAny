@@ -19,7 +19,6 @@
 | [huiZz_QRCode.ahk](/plugins-list?id=huizz_qrcode二维码脚本)   | ObjReg二维码脚本{}           |
 | huiZz_BatchRun.ahk | ObjReg批量自定义运行         |
 | huiZz_Work.ahk     | ObjReg工作相关脚本           |
-| huiZz_Web.ahk      | ObjReg网页相关脚本（待开发） |
 
 ---
 

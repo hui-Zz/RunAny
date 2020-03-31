@@ -7,6 +7,11 @@
 
 ![Mr.Liu-菜单1](../assets/images/theme/Mr.Liu-菜单1.jpg)
 ![Mr.Liu-菜单2](../assets/images/theme/Mr.Liu-菜单2.jpg)
+![Mr.Liu-菜单3](../assets/images/theme/Mr.Liu-搜索菜单.jpg)
+
+## Mr。麦的菜单主题 - 多彩
+
+![Mr。麦-多彩](../assets/images/theme/Mr。麦-多彩.jpg)
 
 ## UnderCooled的菜单主题 - 反色
 
