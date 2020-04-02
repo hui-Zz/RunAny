@@ -254,6 +254,8 @@ Loop,%MenuCount%
 	if(RecentMax>0){
 		M_Index:=A_Index
 		Menu,% menuDefaultRoot%M_Index%[1],Add
+		Menu,% menuWebRoot%M_Index%[1],Add
+		Menu,% menuFileRoot%M_Index%[1],Add
 		For mci, mcItem in MenuCommonList
 		{
 			if(A_Index>RecentMax)
@@ -261,12 +263,18 @@ Loop,%MenuCount%
 			obj:=RegExReplace(mcItem,"&" mci A_Space)
 			MenuObj[mcItem]:=MenuObj[obj]
 			Menu,% menuDefaultRoot%M_Index%[1],Add,%mcItem%,Menu_Run
+			Menu,% menuWebRoot%M_Index%[1],Add,%mcItem%,Menu_Run
+			Menu,% menuFileRoot%M_Index%[1],Add,%mcItem%,Menu_Run
 			fullpath:=Get_Obj_Path(MenuObj[mcItem])
 			SplitPath,fullpath, , , ext
 			if(ext="exe"){
 				Menu_Item_Icon(menuDefaultRoot%M_Index%[1],mcItem,fullpath)
+				Menu_Item_Icon(menuWebRoot%M_Index%[1],mcItem,fullpath)
+				Menu_Item_Icon(menuFileRoot%M_Index%[1],mcItem,fullpath)
 			}else{
 				Menu_Add(menuDefaultRoot%M_Index%[1],mcItem,MenuObj[mcItem],GetMenuItemMode(MenuObj[mcItem]),"")
+				Menu_Add(menuWebRoot%M_Index%[1],mcItem,MenuObj[mcItem],GetMenuItemMode(MenuObj[mcItem]),"")
+				Menu_Add(menuFileRoot%M_Index%[1],mcItem,MenuObj[mcItem],GetMenuItemMode(MenuObj[mcItem]),"")
 			}
 		}
 	}
@@ -1492,13 +1500,25 @@ Menu_Recent:
 	{
 		if(A_Index>=(RecentMax+1)){  ;如果超出最大运行项数
 			PopVal:=MenuCommonList.Pop()
-			try Menu,% menuDefaultRoot1[1],Delete,%PopVal%
-			try Menu,% menuDefaultRoot2[1],Delete,%PopVal%
+			try {
+				Menu,% menuDefaultRoot1[1],Delete,%PopVal%
+				Menu,% menuDefaultRoot2[1],Delete,%PopVal%
+				Menu,% menuWebRoot1[1],Delete,%PopVal%
+				Menu,% menuWebRoot2[1],Delete,%PopVal%
+				Menu,% menuFileRoot1[1],Delete,%PopVal%
+				Menu,% menuFileRoot2[1],Delete,%PopVal%
+			}catch{}
 			break
 		}
 		if(A_Index>1){
-			try Menu,% menuDefaultRoot1[1],Delete,% MenuCommonList[A_Index]
-			try Menu,% menuDefaultRoot2[1],Delete,% MenuCommonList[A_Index]
+			try {
+				Menu,% menuDefaultRoot1[1],Delete,% MenuCommonList[A_Index]
+				Menu,% menuDefaultRoot2[1],Delete,% MenuCommonList[A_Index]
+				Menu,% menuWebRoot1[1],Delete,% MenuCommonList[A_Index]
+				Menu,% menuWebRoot2[1],Delete,% MenuCommonList[A_Index]
+				Menu,% menuFileRoot1[1],Delete,% MenuCommonList[A_Index]
+				Menu,% menuFileRoot2[1],Delete,% MenuCommonList[A_Index]
+			}catch{}
 			recentAny:=MenuObj[MenuCommonList[A_Index]]  ;获取原顺序下运行路径
 			MenuCommonList[A_Index]:=RegExReplace(MenuCommonList[A_Index],"&\d+","&" A_Index)  ;修改序号
 		}
@@ -1506,15 +1526,27 @@ Menu_Recent:
 		MenuObj[menuItem]:=recentAny
 		Menu,% menuDefaultRoot1[1],Add,%menuItem%,Menu_Run
 		Menu,% menuDefaultRoot2[1],Add,%menuItem%,Menu_Run
+		Menu,% menuWebRoot1[1],Add,%menuItem%,Menu_Run
+		Menu,% menuWebRoot2[1],Add,%menuItem%,Menu_Run
+		Menu,% menuFileRoot1[1],Add,%menuItem%,Menu_Run
+		Menu,% menuFileRoot2[1],Add,%menuItem%,Menu_Run
 		;更改图标
 		fullPath:=Get_Obj_Path(recentAny)
 		SplitPath,fullpath, , , ext
 		if(ext="exe"){
 			Menu_Item_Icon(menuDefaultRoot1[1],menuItem,fullpath)
 			Menu_Item_Icon(menuDefaultRoot2[1],menuItem,fullpath)
+			Menu_Item_Icon(menuWebRoot1[1],menuItem,fullpath)
+			Menu_Item_Icon(menuWebRoot2[1],menuItem,fullpath)
+			Menu_Item_Icon(menuFileRoot1[1],menuItem,fullpath)
+			Menu_Item_Icon(menuFileRoot2[1],menuItem,fullpath)
 		}else{
 			Menu_Add(menuDefaultRoot1[1],menuItem,recentAny,itemMode,"")
 			Menu_Add(menuDefaultRoot2[1],menuItem,recentAny,itemMode,"")
+			Menu_Add(menuWebRoot1[1],menuItem,recentAny,itemMode,"")
+			Menu_Add(menuWebRoot2[1],menuItem,recentAny,itemMode,"")
+			Menu_Add(menuFileRoot1[1],menuItem,recentAny,itemMode,"")
+			Menu_Add(menuFileRoot2[1],menuItem,recentAny,itemMode,"")
 		}
 	}
 	;保存菜单最近运行项至注册表，重启后加载
