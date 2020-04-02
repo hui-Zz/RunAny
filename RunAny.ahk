@@ -250,28 +250,30 @@ Loop,%MenuCount%
 		;[选中文件菜单过滤分类]
 		Menu_Tree_List_Filter(A_Index,"MenuObjFile",3)
 	}
-}
-;~;[自定义后缀打开方式]
-Gosub,Open_Ext_Set
-;~;[最近运行项]
-if(RecentMax>0){
-	Menu,% menuDefaultRoot1[1],Add
-	For mci, mcItem in MenuCommonList
-	{
-		if(A_Index>RecentMax)
-			break
-		obj:=RegExReplace(mcItem,"&" mci A_Space)
-		MenuObj[mcItem]:=MenuObj[obj]
-		Menu,% menuDefaultRoot1[1],Add,%mcItem%,Menu_Run
-		fullpath:=Get_Obj_Path(MenuObj[mcItem])
-		SplitPath,fullpath, , , ext
-		if(ext="exe"){
-			Menu_Item_Icon(menuDefaultRoot1[1],mcItem,fullpath)
-		}else{
-			Menu_Add(menuDefaultRoot1[1],mcItem,MenuObj[mcItem],GetMenuItemMode(MenuObj[mcItem]),"")
+	;~;[最近运行项]
+	if(RecentMax>0){
+		M_Index:=A_Index
+		Menu,% menuDefaultRoot%M_Index%[1],Add
+		For mci, mcItem in MenuCommonList
+		{
+			if(A_Index>RecentMax)
+				break
+			obj:=RegExReplace(mcItem,"&" mci A_Space)
+			MenuObj[mcItem]:=MenuObj[obj]
+			Menu,% menuDefaultRoot%M_Index%[1],Add,%mcItem%,Menu_Run
+			fullpath:=Get_Obj_Path(MenuObj[mcItem])
+			SplitPath,fullpath, , , ext
+			if(ext="exe"){
+				Menu_Item_Icon(menuDefaultRoot%M_Index%[1],mcItem,fullpath)
+			}else{
+				Menu_Add(menuDefaultRoot%M_Index%[1],mcItem,MenuObj[mcItem],GetMenuItemMode(MenuObj[mcItem]),"")
+			}
 		}
 	}
 }
+;~;[自定义后缀打开方式]
+Gosub,Open_Ext_Set
+
 Menu_Tray_Tip("","菜单已经可以正常使用`n开始为菜单中exe程序加载图标...")
 ;~;[循环为菜单中EXE程序添加图标，过程较慢]
 For k, v in MenuExeIconArray
@@ -1489,25 +1491,30 @@ Menu_Recent:
 	Loop,% MenuCommonList.MaxIndex()
 	{
 		if(A_Index>=(RecentMax+1)){  ;如果超出最大运行项数
-			try Menu,% menuDefaultRoot1[1],Delete,% MenuCommonList[A_Index]
-			MenuCommonList.Pop()
+			PopVal:=MenuCommonList.Pop()
+			try Menu,% menuDefaultRoot1[1],Delete,%PopVal%
+			try Menu,% menuDefaultRoot2[1],Delete,%PopVal%
 			break
 		}
 		if(A_Index>1){
 			try Menu,% menuDefaultRoot1[1],Delete,% MenuCommonList[A_Index]
+			try Menu,% menuDefaultRoot2[1],Delete,% MenuCommonList[A_Index]
 			recentAny:=MenuObj[MenuCommonList[A_Index]]  ;获取原顺序下运行路径
 			MenuCommonList[A_Index]:=RegExReplace(MenuCommonList[A_Index],"&\d+","&" A_Index)  ;修改序号
 		}
 		menuItem:=MenuCommonList[A_Index]
 		MenuObj[menuItem]:=recentAny
-		try Menu,% menuDefaultRoot1[1],Add,%menuItem%,Menu_Run
+		Menu,% menuDefaultRoot1[1],Add,%menuItem%,Menu_Run
+		Menu,% menuDefaultRoot2[1],Add,%menuItem%,Menu_Run
 		;更改图标
 		fullPath:=Get_Obj_Path(recentAny)
 		SplitPath,fullpath, , , ext
 		if(ext="exe"){
 			Menu_Item_Icon(menuDefaultRoot1[1],menuItem,fullpath)
+			Menu_Item_Icon(menuDefaultRoot2[1],menuItem,fullpath)
 		}else{
 			Menu_Add(menuDefaultRoot1[1],menuItem,recentAny,itemMode,"")
+			Menu_Add(menuDefaultRoot2[1],menuItem,recentAny,itemMode,"")
 		}
 	}
 	;保存菜单最近运行项至注册表，重启后加载
