@@ -5536,23 +5536,9 @@ everythingQuery(){
 	ev := new everything
 	EvCommandStr:=""
 	if(EvDemandSearch){
-		Loop, parse, iniVar1, `n, `r, %A_Space%%A_Tab%
+		Loop,%MenuCount%
 		{
-			if(InStr(A_LoopField,";")=1 || A_LoopField=""){
-				continue
-			}
-			RegExMatch(A_LoopField,"[^|]+?\.[a-zA-Z0-9]+",outVar)
-			if(Trim(outVar) && !RegExMatch(outVar,"\\|\/|\:|\*|\?|\""|\<|\>|\|") 
-					&& !InStr(EvCommandStr,"|" outVar "|") && GetMenuItemMode(A_LoopField)=1){
-				if(InStr(outVar,A_Space)){
-					EvCommandStr.="""" outVar . """|"
-				}else{
-					EvCommandStr.=outVar . "|"
-				}
-			}
-		}
-		if(MENU2FLAG){
-			Loop, parse, iniVar2, `n, `r, %A_Space%%A_Tab%
+			Loop, parse, iniVar%A_Index%, `n, `r, %A_Space%%A_Tab%
 			{
 				if(InStr(A_LoopField,";")=1 || A_LoopField=""){
 					continue
