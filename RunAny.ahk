@@ -5594,15 +5594,16 @@ everythingQuery(){
 		Z_Index:=A_Index-1
 		objFileName:=ev.GetResultFileName(Z_Index)
 		objFullPathName:=ev.GetResultFullPathName(Z_Index)
-		if(EvExeVerNew && MenuObj[(RegExReplace(objFileName,"iS)\.exe$",""))]){
+		objFileNameNoExeExt:=RegExReplace(objFileName,"iS)\.exe$","")
+		if(EvExeVerNew && RegExMatch(objFileName,"iS).*?\.exe$") && MenuObj[objFileNameNoExeExt]){
 			;优先选择最新版本的同名exe全路径
-			FileGetVersion,objFullPathNameVersionOld,% MenuObj[(RegExReplace(objFileName,"iS)\.exe$",""))]
+			FileGetVersion,objFullPathNameVersionOld,% MenuObj[objFileNameNoExeExt]
 			FileGetVersion,objFullPathNameVersionNew,% objFullPathName
 			if(objFullPathNameVersionOld<objFullPathNameVersionNew){
-				MenuObj[(RegExReplace(objFileName,"iS)\.exe$",""))]:=objFullPathName
+				MenuObj[objFileNameNoExeExt]:=objFullPathName
 			}
 		}else{
-			MenuObj[(RegExReplace(objFileName,"iS)\.exe$",""))]:=objFullPathName
+			MenuObj[objFileNameNoExeExt]:=objFullPathName
 		}
 	}
 }
