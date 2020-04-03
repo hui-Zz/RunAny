@@ -140,6 +140,7 @@ MenuShowFlag:=true
 Menu_Tray_Tip("","菜单已经可以正常使用（图标和无路径应用会稍后加载）`n开始调用Everything搜索菜单内应用全路径...")
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化everything安装路径]
+global MenuObjEvFlag:=false
 evExist:=true
 EvPath:=Var_Read("EvPath")
 DetectHiddenWindows,On
@@ -172,10 +173,16 @@ while !WinExist("ahk_exe Everything.exe")
 }
 ;~;[使用everything读取整个系统所有exe]
 If(evExist){
+	global MenuObjEv:=Object()  ;~Everything搜索结果程序全径
 	everythingQuery()
 	if(!EvPath){
 		;>>发现Everything已运行则取到路径
 		WinGet, EvPath, ProcessPath, ahk_exe Everything.exe
+	}
+	for k,v in MenuObjEv
+	{
+		MenuObjEvFlag:=true
+		break
 	}
 }
 ;~;[如果需要自动关闭everything]
@@ -533,6 +540,9 @@ GetMenuItemMode(item,fullItemFlag:=false){
 ;══════════════════════════════════════════════════════════════════
 Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 	menuLevel:=1
+	if(MenuObjEvFlag){
+		MenuObj:=MenuObjEv.Clone()
+	}
 	Loop, parse, iniReadVar, `n, `r
 	{
 		try{
@@ -625,6 +635,9 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				if(item){
 					SplitPath, item,,, FileExt  ; 获取文件扩展名.
 					appParm:=RegExReplace(menuDiy[2],"iS).*?\." FileExt "($| .*)","$1")	;去掉应用名，取参数
+					if(FileExt!="exe" && MenuObjEv[menuDiy[1]]){
+						menuDiy[1].="重复"
+					}
 					MenuObjParam[menuDiy[1]]:=item . appParm
 					itemParam:=item . appParm
 					flagEXE:=true
@@ -5618,15 +5631,15 @@ everythingQuery(){
 		objFileName:=ev.GetResultFileName(Z_Index)
 		objFullPathName:=ev.GetResultFullPathName(Z_Index)
 		objFileNameNoExeExt:=RegExReplace(objFileName,"iS)\.exe$","")
-		if(EvExeVerNew && RegExMatch(objFileName,"iS).*?\.exe$") && MenuObj[objFileNameNoExeExt]){
+		if(EvExeVerNew && RegExMatch(objFileName,"iS).*?\.exe$") && MenuObjEv[objFileNameNoExeExt]){
 			;优先选择最新版本的同名exe全路径
-			FileGetVersion,objFullPathNameVersionOld,% MenuObj[objFileNameNoExeExt]
+			FileGetVersion,objFullPathNameVersionOld,% MenuObjEv[objFileNameNoExeExt]
 			FileGetVersion,objFullPathNameVersionNew,% objFullPathName
 			if(objFullPathNameVersionOld<objFullPathNameVersionNew){
-				MenuObj[objFileNameNoExeExt]:=objFullPathName
+				MenuObjEv[objFileNameNoExeExt]:=objFullPathName
 			}
 		}else{
-			MenuObj[objFileNameNoExeExt]:=objFullPathName
+			MenuObjEv[objFileNameNoExeExt]:=objFullPathName
 		}
 	}
 }
