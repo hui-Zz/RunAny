@@ -1487,68 +1487,65 @@ return
 ;~;[菜单最近运行]
 Menu_Recent:
 	recentAny:=any
-	Loop,% MenuCommonList.MaxIndex()
-	{
-		try{
+	try{
+		Loop,% MenuCommonList.MaxIndex()
+		{
 			if(RegExMatch(MenuCommonList[A_Index],"S)&\d+\s" A_ThisMenuItem)){
 				return
 			}
-		}catch{}
-	}
-	MenuCommonList.InsertAt(1,"&1" A_Space A_ThisMenuItem)  ;插入到最近运行第一条
-	Loop,% MenuCommonList.MaxIndex()
-	{
-		if(A_Index>=(RecentMax+1)){  ;如果超出最大运行项数
-			PopVal:=MenuCommonList.Pop()
-			try {
+		}
+		MenuCommonList.InsertAt(1,"&1" A_Space A_ThisMenuItem)  ;插入到最近运行第一条
+		
+		Loop,% MenuCommonList.MaxIndex()
+		{
+			if(A_Index>=(RecentMax+1)){  ;如果超出最大运行项数
+				PopVal:=MenuCommonList.Pop()
 				Menu,% menuDefaultRoot1[1],Delete,%PopVal%
 				Menu,% menuDefaultRoot2[1],Delete,%PopVal%
 				Menu,% menuWebRoot1[1],Delete,%PopVal%
 				Menu,% menuWebRoot2[1],Delete,%PopVal%
 				Menu,% menuFileRoot1[1],Delete,%PopVal%
 				Menu,% menuFileRoot2[1],Delete,%PopVal%
-			}catch{}
-			break
-		}
-		if(A_Index>1){
-			try {
+				break
+			}
+			if(A_Index>1){
 				Menu,% menuDefaultRoot1[1],Delete,% MenuCommonList[A_Index]
 				Menu,% menuDefaultRoot2[1],Delete,% MenuCommonList[A_Index]
 				Menu,% menuWebRoot1[1],Delete,% MenuCommonList[A_Index]
 				Menu,% menuWebRoot2[1],Delete,% MenuCommonList[A_Index]
 				Menu,% menuFileRoot1[1],Delete,% MenuCommonList[A_Index]
 				Menu,% menuFileRoot2[1],Delete,% MenuCommonList[A_Index]
-			}catch{}
-			recentAny:=MenuObj[MenuCommonList[A_Index]]  ;获取原顺序下运行路径
-			MenuCommonList[A_Index]:=RegExReplace(MenuCommonList[A_Index],"&\d+","&" A_Index)  ;修改序号
+				recentAny:=MenuObj[MenuCommonList[A_Index]]  ;获取原顺序下运行路径
+				MenuCommonList[A_Index]:=RegExReplace(MenuCommonList[A_Index],"&\d+","&" A_Index)  ;修改序号
+			}
+			menuItem:=MenuCommonList[A_Index]
+			MenuObj[menuItem]:=recentAny
+			Menu,% menuDefaultRoot1[1],Add,%menuItem%,Menu_Run
+			Menu,% menuDefaultRoot2[1],Add,%menuItem%,Menu_Run
+			Menu,% menuWebRoot1[1],Add,%menuItem%,Menu_Run
+			Menu,% menuWebRoot2[1],Add,%menuItem%,Menu_Run
+			Menu,% menuFileRoot1[1],Add,%menuItem%,Menu_Run
+			Menu,% menuFileRoot2[1],Add,%menuItem%,Menu_Run
+			;更改图标
+			fullPath:=Get_Obj_Path(recentAny)
+			SplitPath,fullpath, , , ext
+			if(ext="exe"){
+				Menu_Item_Icon(menuDefaultRoot1[1],menuItem,fullpath)
+				Menu_Item_Icon(menuDefaultRoot2[1],menuItem,fullpath)
+				Menu_Item_Icon(menuWebRoot1[1],menuItem,fullpath)
+				Menu_Item_Icon(menuWebRoot2[1],menuItem,fullpath)
+				Menu_Item_Icon(menuFileRoot1[1],menuItem,fullpath)
+				Menu_Item_Icon(menuFileRoot2[1],menuItem,fullpath)
+			}else{
+				Menu_Add(menuDefaultRoot1[1],menuItem,recentAny,itemMode,"")
+				Menu_Add(menuDefaultRoot2[1],menuItem,recentAny,itemMode,"")
+				Menu_Add(menuWebRoot1[1],menuItem,recentAny,itemMode,"")
+				Menu_Add(menuWebRoot2[1],menuItem,recentAny,itemMode,"")
+				Menu_Add(menuFileRoot1[1],menuItem,recentAny,itemMode,"")
+				Menu_Add(menuFileRoot2[1],menuItem,recentAny,itemMode,"")
+			}
 		}
-		menuItem:=MenuCommonList[A_Index]
-		MenuObj[menuItem]:=recentAny
-		Menu,% menuDefaultRoot1[1],Add,%menuItem%,Menu_Run
-		Menu,% menuDefaultRoot2[1],Add,%menuItem%,Menu_Run
-		Menu,% menuWebRoot1[1],Add,%menuItem%,Menu_Run
-		Menu,% menuWebRoot2[1],Add,%menuItem%,Menu_Run
-		Menu,% menuFileRoot1[1],Add,%menuItem%,Menu_Run
-		Menu,% menuFileRoot2[1],Add,%menuItem%,Menu_Run
-		;更改图标
-		fullPath:=Get_Obj_Path(recentAny)
-		SplitPath,fullpath, , , ext
-		if(ext="exe"){
-			Menu_Item_Icon(menuDefaultRoot1[1],menuItem,fullpath)
-			Menu_Item_Icon(menuDefaultRoot2[1],menuItem,fullpath)
-			Menu_Item_Icon(menuWebRoot1[1],menuItem,fullpath)
-			Menu_Item_Icon(menuWebRoot2[1],menuItem,fullpath)
-			Menu_Item_Icon(menuFileRoot1[1],menuItem,fullpath)
-			Menu_Item_Icon(menuFileRoot2[1],menuItem,fullpath)
-		}else{
-			Menu_Add(menuDefaultRoot1[1],menuItem,recentAny,itemMode,"")
-			Menu_Add(menuDefaultRoot2[1],menuItem,recentAny,itemMode,"")
-			Menu_Add(menuWebRoot1[1],menuItem,recentAny,itemMode,"")
-			Menu_Add(menuWebRoot2[1],menuItem,recentAny,itemMode,"")
-			Menu_Add(menuFileRoot1[1],menuItem,recentAny,itemMode,"")
-			Menu_Add(menuFileRoot2[1],menuItem,recentAny,itemMode,"")
-		}
-	}
+	}catch{}
 	;保存菜单最近运行项至注册表，重启后加载
 	commonStr:=""
 	For k, v in MenuCommonList
