@@ -24,9 +24,9 @@ global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.7.0"
 global RunAny_update_time:="2020.04.02"
-Gosub,Var_Set       ;~参数初始化
-Gosub,Run_Exist     ;~调用判断依赖
-Gosub,Plugins_Read  ;~插件脚本读取
+Gosub,Var_Set          ;~参数初始化
+Gosub,Run_Exist        ;~调用判断依赖
+Gosub,Plugins_Read     ;~插件脚本读取
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化菜单显示热键]
 HotKeyList:=["MenuHotKey","MenuHotKey2","EvHotKey","OneHotKey"]
@@ -100,21 +100,21 @@ Gosub,Icon_FileExt_Set
 ;══════════════════════════════════════════════════════════════════
 t2:=A_TickCount-StartTick
 Menu_Tray_Tip("运行插件脚本：" Round((t2-t1)/1000,3) "s`n","开始创建无图标菜单...")
-global MenuObj:=Object()        ;~程序全路径
-global MenuObjKey:=Object()     ;~程序热键
-global MenuObjKeyName:=Object() ;~程序热键关联菜单项名称
-global MenuObjName:=Object()    ;~程序菜单项名称
-global MenuObjParam:=Object()   ;~程序参数
-global MenuObjExt:=Object()     ;~后缀对应的菜单
-global MenuHotStrList:=Object() ;~热字符串数据数组
-global MenuTreeKey:=Object()    ;~菜单树分类热键
+global MenuObj:=Object()               ;~程序全路径
+global MenuObjKey:=Object()            ;~程序热键
+global MenuObjKeyName:=Object()        ;~程序热键关联菜单项名称
+global MenuObjName:=Object()           ;~程序菜单项名称
+global MenuObjParam:=Object()          ;~程序参数
+global MenuObjExt:=Object()            ;~后缀对应的菜单
+global MenuHotStrList:=Object()        ;~热字符串数据数组
+global MenuTreeKey:=Object()           ;~菜单树分类热键
 ;~;
-global MenuExeArray:=Object()		;~EXE程序数据数组
-global MenuExeIconArray:=Object()	;~EXE程序优先加载图标数组
-global MenuObjTreeLevel:=Object()	;~菜单对应级别
-global MenuObjPublic:=Object()		;~后缀公共菜单
-global MenuShowFlag:=false			;~菜单功能是否可以显示
-global MenuIconFlag:=false			;~菜单图标是否加载完成
+global MenuExeArray:=Object()			;~EXE程序数据数组
+global MenuExeIconArray:=Object()		;~EXE程序优先加载图标数组
+global MenuObjTreeLevel:=Object()		;~菜单对应级别
+global MenuObjPublic:=Object()			;~后缀公共菜单
+global MenuShowFlag:=false				;~菜单功能是否可以显示
+global MenuIconFlag:=false				;~菜单图标是否加载完成
 global MenuCount:=MENU2FLAG ? 2 : 1
 MenuObj.SetCapacity(10240)
 MenuExeArray.SetCapacity(1024)
@@ -124,12 +124,12 @@ Loop,%MenuCount%
 	M%A_Index%:=RunAnyZz . A_Index
 	MenuSendStrList%A_Index%:=Object()	;菜单中短语项列表
 	MenuWebList%A_Index%:=Object()		;菜单中网址%s搜索项列表
-	MenuGetZzList%A_Index%:=Object()		;菜单中GetZz搜索项列表
+	MenuGetZzList%A_Index%:=Object()	;菜单中GetZz搜索项列表
 	MenuExeList%A_Index%:=Object()		;菜单中的exe列表
-	MenuObjList%A_Index%:=Object()   		;菜单分类运行项列表
+	MenuObjList%A_Index%:=Object()   	;菜单分类运行项列表
 	MenuObjText%A_Index%:=Object()		;选中文字菜单
 	MenuObjFile%A_Index%:=Object()		;选中文件菜单
-	MenuObjTree%A_Index%:=Object()   		;分类目录程序全数据
+	MenuObjTree%A_Index%:=Object()   	;分类目录程序全数据
 	MenuObjTree%A_Index%[M%A_Index%]:=Object()
 	;菜单级别：初始为根菜单RunAny
 	menuRoot%A_Index%:=[M%A_Index%]
