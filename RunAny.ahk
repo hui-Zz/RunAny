@@ -5491,7 +5491,7 @@ Menu_Config:
 	Run,%RunAnyConfig%
 return
 Menu_Reload:
-	gosub,Menu_Reload
+	Reload
 	Sleep,1000
 	Run,%A_AhkPath%%A_Space%"%A_ScriptFullPath%"
 	ExitApp
