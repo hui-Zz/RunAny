@@ -1673,9 +1673,11 @@ Run_Search(any,getZz="",browser=""){
 ;~;[一键Everything][搜索选中文字][激活][隐藏]
 Ev_Show:
 	getZz:=Get_Zz()
-	if(RegExMatch(getZz,"S)^(\\\\|.:\\).*?$")){
-		SplitPath,getZz,fileName
-		getZz:=fileName
+	if(!InStr(FileExist(getZz), "D") && !RegExMatch(getZz,".*\\$")){
+		if(RegExMatch(getZz,"S)^(\\\\|.:\\).*?$")){
+			SplitPath,getZz,fileName
+			getZz:=fileName
+		}
 	}
 	EvPathRun:=Get_Transform_Val(EvPath)
 	IfWinExist ahk_class EVERYTHING
