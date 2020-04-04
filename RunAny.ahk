@@ -540,6 +540,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 	global MenuObjName:=Object()   ;~程序菜单项名称
 	MenuObjParam:=Object()         ;~程序参数
 	menuLevel:=1
+	menuBar:=""
 	Loop, parse, iniReadVar, `n, `r
 	{
 		try{
@@ -576,7 +577,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				if(menuItem!=""){
 					menuItemType:=menuItem . TREE_TYPE
 					Menu,%menuItemType%,add
-					try Menu,% menuRootFn[menuLevel],add,%menuItemType%,:%menuItemType%
+					try Menu,% menuRootFn[menuLevel],add,%menuItemType%,:%menuItemType%,%menuBar%
 					Menu_Item_Icon(menuRootFn[menuLevel],menuItemType,TreeIconS[1],TreeIconS[2],treeLevel . menuItemType)
 					Menu,%menuItemType%,Delete, 1&
 					menuLevel+=1	;比初始根菜单加一级
@@ -601,6 +602,11 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					Menu,%menuRootFnLevel%,Add
 					MenuObjTree%TREE_NO%[menuRootFnLevel].Push(Z_LoopField)
 				}
+				menuBar:=""
+				continue
+			}
+			if(Z_LoopField="|" || Z_LoopField="||"){
+				menuBar:=(Z_LoopField="||") ? "+BarBreak" : "+Break"
 				continue
 			}
 			if(menuRootFn[menuLevel]="")
@@ -670,7 +676,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 						flagEXE:=true
 					;~;[添加菜单项]
 					if(flagEXE){
-						Menu,% menuRootFn[menuLevel],add,% menuDiy[1],Menu_Run
+						Menu,% menuRootFn[menuLevel],add,% menuDiy[1],Menu_Run,%menuBar%
 						if(IconFail)
 							Menu_Item_Icon(menuRootFn[menuLevel],menuDiy[1],"SHELL32.dll","124")
 					}
@@ -716,6 +722,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 						}
 					}
 				}
+				menuBar:=""
 				continue
 			}
 			;~;[生成完全路径的应用]
@@ -734,11 +741,12 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					flagEXE:=true
 				;~;[添加菜单项]
 				if(flagEXE){
-					Menu,% menuRootFn[menuLevel],add,% nameNotExt,Menu_Run
+					Menu,% menuRootFn[menuLevel],add,% nameNotExt,Menu_Run,%menuBar%
 					if(IconFail){
 						Menu_Item_Icon(menuRootFn[menuLevel],nameNotExt,"SHELL32.dll","124")
 					}
 				}
+				menuBar:=""
 				continue
 			}
 			;~;[生成通过Everything取到的无路径应用]
@@ -766,7 +774,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					flagEXE:=true
 				;~;[添加菜单项]
 				if(flagEXE){
-					Menu,% menuRootFn[menuLevel],add,% appName,Menu_Run
+					Menu,% menuRootFn[menuLevel],add,% appName,Menu_Run,%menuBar%
 					if(IconFail)
 						Menu_Item_Icon(menuRootFn[menuLevel],appName,"SHELL32.dll","124")
 				}
@@ -777,7 +785,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					MenuObj[Z_LoopField]:=MenuObjEv[Z_LoopField]
 				Menu_Add(menuRootFn[menuLevel],Z_LoopField,MenuObj[Z_LoopField],itemMode,TREE_NO)
 			}
-
+			menuBar:=""
 		} catch e {
 			MsgBox,16,构建菜单出错,% "菜单名：" menuRootFn[menuLevel] "`n菜单项：" A_LoopField "`n
 			(
@@ -790,7 +798,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 		MenuObj[key]:=value
 	}
 	if(!HideMenuTray){
-		Menu,% menuRootFn[1],add,RunAny设置,:Tray
+		Menu,% menuRootFn[1],add,RunAny设置,:Tray,%menuBar%
 		Menu,% menuRootFn[1],Icon,RunAny设置,% AnyIconS[1],% AnyIconS[2]
 	}
 }
@@ -876,7 +884,8 @@ Menu_Add(menuName,menuItem,item,itemMode,TREE_NO){
 		return
 	try {
 		SplitPath, item,,, FileExt  ; 获取文件扩展名.
-		Menu,%menuName%,add,%menuItem%,Menu_Run
+		Menu,%menuName%,add,%menuItem%,Menu_Run,%menuBar%
+		menuBar:=""
 		MenuObjList%TREE_NO%[menuName].=menuItem "`n"
 		if(itemMode=2 || itemMode=3){  ; {短语}
 			Menu_Item_Icon(menuName,menuItem,"SHELL32.dll",itemMode=3 ? "2" : "71")
