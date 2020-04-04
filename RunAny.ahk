@@ -103,8 +103,6 @@ Menu_Tray_Tip("运行插件脚本：" Round((t2-t1)/1000,3) "s`n","开始创建�
 global MenuObj:=Object()               ;~程序全路径
 global MenuObjKey:=Object()            ;~程序热键
 global MenuObjKeyName:=Object()        ;~程序热键关联菜单项名称
-global MenuObjName:=Object()           ;~程序菜单项名称
-global MenuObjParam:=Object()          ;~程序参数
 global MenuObjExt:=Object()            ;~后缀对应的菜单
 global MenuHotStrList:=Object()        ;~热字符串数据数组
 global MenuTreeKey:=Object()           ;~菜单树分类热键
@@ -184,7 +182,6 @@ If(evExist){
 	{
 		MenuObjEvFlag:=true
 		MenuObj:=MenuObjEv.Clone()
-		MenuObjParam:=Object()
 		break
 	}
 }
@@ -542,11 +539,9 @@ GetMenuItemMode(item,fullItemFlag:=false){
 ;~;[读取配置并开始创建菜单]
 ;══════════════════════════════════════════════════════════════════
 Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
+	global MenuObjName:=Object()   ;~程序菜单项名称
+	MenuObjParam:=Object()         ;~程序参数
 	menuLevel:=1
-	;~ if(TREE_NO=1){
-		;~ MenuObj:=Object()
-		;~ MenuObjParam:=Object()
-	;~ }
 	Loop, parse, iniReadVar, `n, `r
 	{
 		try{
@@ -635,9 +630,9 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				menuDiy:=StrSplit(Z_LoopField,"|",,2)
 				appName:=RegExReplace(menuDiy[2],"iS)(.*?\.[a-zA-Z0-9]+)($| .*)","$1")	;去掉参数，取应用名
 				appName:=RegExReplace(appName,"iS)\.exe$")	;去掉exe后缀，取应用名
-				;~ if(MenuObj.HasKey(menuDiy[1]) || MenuObjParam.HasKey(menuDiy[1])){
-					;~ menuDiy[1].="重名"
-				;~ }
+				if(MenuObjName.HasKey(menuDiy[1]) || MenuObjParam.HasKey(menuDiy[1])){
+					menuDiy[1].="重名"
+				}
 				item:=MenuObjEv[appName]
 				if(item){
 					SplitPath, item,,, FileExt  ; 获取文件扩展名.
@@ -963,9 +958,7 @@ Menu_Item_Icon(menuName,menuItem,iconPath,iconNo=0,treeLevel=""){
 		}else{
 			Menu,%menuName%,Icon,%menuItem%,%iconPath%,%iconNo%
 		}
-		if(!MenuShowFlag){
-			menuObjName[menuItemSet]:=1
-		}
+		MenuObjName[menuItemSet]:=1
 	}catch{}
 }
 Menu_Show1:
