@@ -1307,7 +1307,7 @@ Menu_Run:
 					gosub,Menu_Add_File_Item
 					return
 				}
-				if(InStr(FileExist(any), "D")){
+				if(getZzFlag || InStr(FileExist(any), "D")){
 					Run_Any(any)
 				}else{
 					Run_Any(any . A_Space . getZzStr)
@@ -5184,13 +5184,12 @@ Gui_Tree_Icon_Set:
 	IL_Add(ImageListID, "shell32.dll", 101)
 	IL_Add(ImageListID, FuncIconS[1], FuncIconS[2])
 	;#菜单加载完后，预读完成"修改菜单"的GUI图标
-	Loop, parse, iniVar1, `n, `r, %A_Space%%A_Tab%
+	Loop,%MenuCount%
 	{
-		Set_Icon(A_LoopField,false)
-	}
-	if(MENU2FLAG){
-		Loop, parse, iniVar2, `n, `r, %A_Space%%A_Tab%
+		Loop, parse, iniVar%A_Index%, `n, `r, %A_Space%%A_Tab%
 		{
+			if(InStr(A_LoopField,";")=1 || A_LoopField="")
+				continue
 			Set_Icon(A_LoopField,false)
 		}
 	}
