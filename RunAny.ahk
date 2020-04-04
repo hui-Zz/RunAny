@@ -27,9 +27,10 @@ global RunAny_update_time:="2020.04.02"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
-global MenuObj:=Object()        ;~程序全径
+global MenuObj:=Object()        ;~程序全路径
 global MenuObjKey:=Object()     ;~程序热键
-global MenuObjName:=Object()    ;~程序别名
+global MenuObjKeyName:=Object() ;~程序热键关联菜单项名称
+global MenuObjName:=Object()    ;~程序菜单项名称
 global MenuObjParam:=Object()   ;~程序参数
 global MenuObjExt:=Object()     ;~后缀对应菜单
 global MenuHotStrList:=Object() ;~热字符串数据数组
@@ -182,6 +183,8 @@ If(evExist){
 	for k,v in MenuObjEv
 	{
 		MenuObjEvFlag:=true
+		MenuObj:=MenuObjEv.Clone()
+		MenuObjParam:=Object()
 		break
 	}
 }
@@ -540,9 +543,10 @@ GetMenuItemMode(item,fullItemFlag:=false){
 ;══════════════════════════════════════════════════════════════════
 Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 	menuLevel:=1
-	if(MenuObjEvFlag){
-		MenuObj:=MenuObjEv.Clone()
-	}
+	;~ if(TREE_NO=1){
+		;~ MenuObj:=Object()
+		;~ MenuObjParam:=Object()
+	;~ }
 	Loop, parse, iniReadVar, `n, `r
 	{
 		try{
@@ -631,12 +635,16 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				menuDiy:=StrSplit(Z_LoopField,"|",,2)
 				appName:=RegExReplace(menuDiy[2],"iS)(.*?\.[a-zA-Z0-9]+)($| .*)","$1")	;去掉参数，取应用名
 				appName:=RegExReplace(appName,"iS)\.exe$")	;去掉exe后缀，取应用名
-				item:=MenuObj[appName]
+				;~ if(MenuObj.HasKey(menuDiy[1]) || MenuObjParam.HasKey(menuDiy[1])){
+					;~ menuDiy[1].="重名"
+				;~ }
+				item:=MenuObjEv[appName]
 				if(item){
 					SplitPath, item,,, FileExt  ; 获取文件扩展名.
 					appParm:=RegExReplace(menuDiy[2],"iS).*?\." FileExt "($| .*)","$1")	;去掉应用名，取参数
-					if(FileExt!="exe" && MenuObjEv[menuDiy[1]]){
-						menuDiy[1].="重复"
+					;非exe后缀的菜单项名与无路径exe的名称相同，则自动在菜单项名末尾添加后缀标记
+					if(FileExt!="exe" && appName!=menuDiy[1] && MenuObjEv[menuDiy[1]]){
+						menuDiy[1].="." FileExt
 					}
 					MenuObjParam[menuDiy[1]]:=item . appParm
 					itemParam:=item . appParm
@@ -745,9 +753,9 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				appParm:=RegExReplace(Z_LoopField,"iS).*?\.exe($| .*)","$1")	;去掉应用名，取参数
 				Z_LoopField:=RegExReplace(Z_LoopField,"iS)(.*?\.exe)($| .*)","$1")
 				appName:=RegExReplace(Z_LoopField,"iS)\.exe$")
-				if(MenuObj[appName]){
+				if(MenuObjEv[appName]){
 					flagEXE:=true
-					MenuObjParam[appName]:=MenuObj[appName] . appParm
+					MenuObjParam[appName]:=MenuObjEv[appName] . appParm
 				}else if(FileExist(A_WinDir "\" Z_LoopField) || FileExist(A_WinDir "\system32\" Z_LoopField)){
 					flagEXE:=true
 					MenuObj[appName]:=Z_LoopField
@@ -770,8 +778,10 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 						Menu_Item_Icon(menuRootFn[menuLevel],appName,"SHELL32.dll","124")
 				}
 			}else{
-				if(!MenuObj[Z_LoopField])
+				if(!MenuObjEv[Z_LoopField])
 					MenuObj[Z_LoopField]:=Z_LoopField
+				else
+					MenuObj[Z_LoopField]:=MenuObjEv[Z_LoopField]
 				Menu_Add(menuRootFn[menuLevel],Z_LoopField,MenuObj[Z_LoopField],itemMode,TREE_NO)
 			}
 
@@ -1247,6 +1257,7 @@ Menu_Run:
 		;[按住Shift编辑菜单项]
 		if(!GetKeyState("Alt") && !GetKeyState("LWin") && !GetKeyState("Ctrl") && GetKeyState("Shift")){
 			TVEditItem:=A_ThisMenuItem
+			TVEditItem:=RegExReplace(TVEditItem,"重名$")
 			gosub,Menu_Edit%MENU_NO%
 			TVEditItem:=""
 			return
