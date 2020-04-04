@@ -139,7 +139,6 @@ MenuShowFlag:=true
 Menu_Tray_Tip("","菜单已经可以正常使用（图标和无路径应用会稍后加载）`n开始调用Everything搜索菜单内应用全路径...")
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化everything安装路径]
-global MenuObjEvFlag:=false
 evExist:=true
 EvPath:=Var_Read("EvPath")
 DetectHiddenWindows,On
@@ -180,7 +179,6 @@ If(evExist){
 	}
 	for k,v in MenuObjEv
 	{
-		MenuObjEvFlag:=true
 		MenuObj:=MenuObjEv.Clone()
 		break
 	}
@@ -458,13 +456,13 @@ AutoReloadMTime:
 	RegRead, MTimeIniPathReg, HKEY_CURRENT_USER, Software\RunAny, %iniPath%
 	FileGetTime,MTimeIniPath, %iniPath%, M  ; 获取修改时间.
 	if(MTimeIniPathReg!=MTimeIniPath){
-		Reload
+		gosub,Menu_Reload
 	}
 	if(MENU2FLAG){
 		RegRead, MTimeIniPath2, HKEY_CURRENT_USER, Software\RunAny, %iniPath2%
 		FileGetTime,MTimeIniPath2Reg, %iniPath2%, M  ; 获取修改时间.
 		if(MTimeIniPath2!=MTimeIniPath2Reg){
-			Reload
+			gosub,Menu_Reload
 		}
 	}
 return
@@ -2162,7 +2160,7 @@ SetSaveItem:
 		stringtrimright, saveText, saveText, 1
 		FileDelete,%iniFileShow%
 		FileAppend,%saveText%,%iniFileShow%
-		Reload
+		gosub,Menu_Reload
 	}
 return
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -2298,7 +2296,7 @@ GuiClose:
 		IfMsgBox Yes
 		{
 			gosub,Menu_Save
-			Reload
+			gosub,Menu_Reload
 		}
 		IfMsgBox No
 			Gui, Destroy
@@ -2833,13 +2831,13 @@ TVSave:
 	IfMsgBox Yes
 	{
 		gosub,Menu_Save
-		Reload
+		gosub,Menu_Reload
 	}
 	IfMsgBox No
 	{
 		gosub,Menu_Save
 		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, ReloadGosub, Menu_Edit
-		Reload
+		gosub,Menu_Reload
 	}
 return
 Menu_Save:
@@ -2964,7 +2962,7 @@ Website_Icon:
 					URLDownloadToFile(webSiteInput,webIcon)
 					MsgBox,65,,图标下载成功，是否要重新打开RunAny生效？
 					IfMsgBox Ok
-						Reload
+						gosub,Menu_Reload
 				}
 			}
 		} catch e {
@@ -2987,7 +2985,7 @@ Website_Icon:
 			GuiControl, Hide, MyProgress
 			MsgBox,65,,图标下载完成，是否要重新打开RunAny生效？
 			IfMsgBox Ok
-				Reload
+				gosub,Menu_Reload
 		}
 		return
 	}
@@ -3012,7 +3010,7 @@ Website_Icon:
 		GuiControl, Hide, MyProgress
 		MsgBox,65,,图标下载完成，是否要重新打开RunAny生效？
 		IfMsgBox Ok
-			Reload
+			gosub,Menu_Reload
 	}
 return
 Website_Icon_Down:
@@ -3885,7 +3883,7 @@ LVDown:
 				}
 			}
 			RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, ReloadGosub, Plugins_Manage
-			Reload
+			gosub,Menu_Reload
 		}else{
 			ToolTip,请至少选中一项
 			SetTimer,RemoveToolTip,2000
@@ -4368,7 +4366,7 @@ SetOK:
 			IniWrite,%menuVarVal%,%RunAnyConfig%,MenuVar,%menuVarName%
 		}
 	}
-	Reload
+	gosub,Menu_Reload
 return
 SetCancel:
 	Gui,Destroy
@@ -4384,7 +4382,7 @@ SetReSet:
 		RegDelete, HKEY_CURRENT_USER, SOFTWARE\RunAny
 		RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		FileDelete, %RunAnyConfig%
-		Reload
+		gosub,Menu_Reload
 	}
 return
 SetAdminRun:
@@ -5069,7 +5067,7 @@ Run_Exist:
 		IfMsgBox Ok
 		{
 			URLDownloadToFile(RunAnyDownDir "/" everyDLL,A_ScriptDir "\" everyDLL)
-			Reload
+			gosub,Menu_Reload
 		}
 	}
 	;~[记录配置修改时间]
@@ -5493,7 +5491,10 @@ Menu_Config:
 	Run,%RunAnyConfig%
 return
 Menu_Reload:
-	Reload
+	gosub,Menu_Reload
+	Sleep,1000
+	Run,%A_AhkPath%%A_Space%"%A_ScriptFullPath%"
+	ExitApp
 return
 Menu_Suspend:
 	Menu,tray,ToggleCheck,停用(&S)`t%RunASuspendHotKey%
@@ -5717,8 +5718,8 @@ Desktop_Import:
 	MsgBox,33,导入桌面程序,确定导入桌面程序到菜单当中吗？
 	IfMsgBox Ok
 	{
-		Gosub,Desktop_Append
-		Reload
+		gosub,Desktop_Append
+		gosub,Menu_Reload
 	}
 return
 Desktop_Append:
