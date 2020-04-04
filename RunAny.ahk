@@ -507,7 +507,7 @@ RunABackupClear(RunABackupDir,RunABackupFile){
 }
 ;══════════════════════════════════════════════════════════════════
 ;~;[获取菜单项启动模式]
-;~;1-启动路径|2-短语模式|3-模拟打字短语|4-热键映射|5-AHK热键映射|6-网址|60-传参数中带网址
+;~;1-启动路径|2-短语模式|3-模拟打字短语|4-热键映射|5-AHK热键映射|6-网址|60-程序参数中带网址
 ;~;7-文件夹|8-插件脚本函数
 ;~;10-菜单分类|11-分割符|12-注释说明
 GetMenuItemMode(item,fullItemFlag:=false){
@@ -693,7 +693,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				;~;[设置热键启动方式][不重复]
 				if(TREE_TYPE_FLAG && InStr(menuDiy[1],"`t") && menuKeys[2]){
 					MenuObjKey[menuKeys[2]]:=itemParam
-					MenuObjName[menuKeys[2]]:=menuKeys[1]
+					MenuObjKeyName[menuKeys[2]]:=menuKeys[1]
 					if(!InStr(menuDiy[2],"%getZz%") && RegExMatch(menuDiy[2],"iS).+?\[.+?\]%?\(.*?\)")){
 						Hotkey,% menuKeys[2],Menu_Key_NoGet_Run,On
 					}else{
@@ -709,7 +709,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					hotStrName:=RegExReplace(hotStrName,"S)^([^:]*?):[*?a-zA-Z0-9]+?:[^:]*","$1")
 					if(hotstr){
 						MenuObjKey[hotstr]:=itemParam
-						MenuObjName[hotstr]:=menuKeys[1]
+						MenuObjKeyName[hotstr]:=menuKeys[1]
 						if(RegExMatch(hotstr,":[^:]*?X[^:]*?:[^:]*")){
 							if(!InStr(menuDiy[2],"%getZz%") && RegExMatch(menuDiy[2],"iS).+?\[.+?\]%?\(.*?\)")){
 								Hotstring(hotstr,"Menu_Key_NoGet_Run","On")
@@ -743,7 +743,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				if(flagEXE){
 					Menu,% menuRootFn[menuLevel],add,% nameNotExt,Menu_Run
 					if(IconFail){
-						Menu_Item_Icon(menuRootFn[menuLevel],menuDiy[1],"SHELL32.dll","124")
+						Menu_Item_Icon(menuRootFn[menuLevel],nameNotExt,"SHELL32.dll","124")
 					}
 				}
 				continue
@@ -1355,7 +1355,7 @@ Menu_Key_NoGet_Run:
 return
 Menu_Key_Run_Run:
 	any:=menuObjkey[(A_ThisHotkey)]
-	thisMenuName:=MenuObjName[(A_ThisHotkey)]
+	thisMenuName:=MenuObjKeyName[(A_ThisHotkey)]
 	SplitPath, any, , dir
 	if(dir && FileExist(dir))
 		SetWorkingDir,%dir%
