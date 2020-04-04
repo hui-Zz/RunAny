@@ -27,15 +27,6 @@ global RunAny_update_time:="2020.04.02"
 Gosub,Var_Set       ;~参数初始化
 Gosub,Run_Exist     ;~调用判断依赖
 Gosub,Plugins_Read  ;~插件脚本读取
-global MenuObj:=Object()        ;~程序全路径
-global MenuObjKey:=Object()     ;~程序热键
-global MenuObjKeyName:=Object() ;~程序热键关联菜单项名称
-global MenuObjName:=Object()    ;~程序菜单项名称
-global MenuObjParam:=Object()   ;~程序参数
-global MenuObjExt:=Object()     ;~后缀对应菜单
-global MenuHotStrList:=Object() ;~热字符串数据数组
-global MenuTreeKey:=Object()    ;~分类热键
-MenuObj.SetCapacity(10240)
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化菜单显示热键]
 HotKeyList:=["MenuHotKey","MenuHotKey2","EvHotKey","OneHotKey"]
@@ -109,14 +100,23 @@ Gosub,Icon_FileExt_Set
 ;══════════════════════════════════════════════════════════════════
 t2:=A_TickCount-StartTick
 Menu_Tray_Tip("运行插件脚本：" Round((t2-t1)/1000,3) "s`n","开始创建无图标菜单...")
+global MenuObj:=Object()        ;~程序全路径
+global MenuObjKey:=Object()     ;~程序热键
+global MenuObjKeyName:=Object() ;~程序热键关联菜单项名称
+global MenuObjName:=Object()    ;~程序菜单项名称
+global MenuObjParam:=Object()   ;~程序参数
+global MenuObjExt:=Object()     ;~后缀对应的菜单
+global MenuHotStrList:=Object() ;~热字符串数据数组
+global MenuTreeKey:=Object()    ;~菜单树分类热键
 ;~;
-global MenuExeArray:=Object()		;~程序数据数组
-global MenuExeIconArray:=Object()	;~程序优先加载图标数组
+global MenuExeArray:=Object()		;~EXE程序数据数组
+global MenuExeIconArray:=Object()	;~EXE程序优先加载图标数组
 global MenuObjTreeLevel:=Object()	;~菜单对应级别
 global MenuObjPublic:=Object()		;~后缀公共菜单
 global MenuShowFlag:=false			;~菜单功能是否可以显示
 global MenuIconFlag:=false			;~菜单图标是否加载完成
 global MenuCount:=MENU2FLAG ? 2 : 1
+MenuObj.SetCapacity(10240)
 MenuExeArray.SetCapacity(1024)
 MenuExeIconArray.SetCapacity(3072)
 Loop,%MenuCount%
@@ -748,7 +748,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				}
 				continue
 			}
-			;~;[生成已取到的应用]
+			;~;[生成通过Everything取到的无路径应用]
 			if(RegExMatch(Z_LoopField,"iS)\.exe($| .*)")){
 				appParm:=RegExReplace(Z_LoopField,"iS).*?\.exe($| .*)","$1")	;去掉应用名，取参数
 				Z_LoopField:=RegExReplace(Z_LoopField,"iS)(.*?\.exe)($| .*)","$1")
@@ -962,6 +962,9 @@ Menu_Item_Icon(menuName,menuItem,iconPath,iconNo=0,treeLevel=""){
 			Menu,%menuName%,Icon,%menuItem%,% IconFolderList[menuItemSet],0
 		}else{
 			Menu,%menuName%,Icon,%menuItem%,%iconPath%,%iconNo%
+		}
+		if(!MenuShowFlag){
+			menuObjName[menuItemSet]:=1
 		}
 	}catch{}
 }
