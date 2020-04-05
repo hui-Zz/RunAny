@@ -228,7 +228,7 @@ Loop,%MenuCount%
 		if(!RegExMatch(mn,"[^\s]+\s$")){
 			Menu,%mn%,add
 			Menu,%mn%,add,&1批量搜索%mn%,Web_Run
-			Menu,%mn%,Icon,&1批量搜索%mn%,% UrlIconS[1],% UrlIconS[2]
+			Menu,%mn%,Icon,&1批量搜索%mn%,% UrlIconS[1],% UrlIconS[2],%MenuIconSize%
 		}
 	}
 	;设置后缀公共菜单
@@ -799,7 +799,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 	}
 	if(!HideMenuTray){
 		Menu,% menuRootFn[1],add,RunAny设置,:Tray,%menuBar%
-		Menu,% menuRootFn[1],Icon,RunAny设置,% AnyIconS[1],% AnyIconS[2]
+		Menu,% menuRootFn[1],Icon,RunAny设置,% AnyIconS[1],% AnyIconS[2],%MenuIconSize%
 	}
 }
 ;~;[统一集合菜单中软件运行项]
@@ -917,7 +917,7 @@ Menu_Add(menuName,menuItem,item,itemMode,TREE_NO){
 			return
 		}
 		if(itemMode=7){  ; {目录}
-			Menu,%menuName%,Icon,%menuItem%,% FolderIconS[1],% FolderIconS[2]
+			Menu,%menuName%,Icon,%menuItem%,% FolderIconS[1],% FolderIconS[2],%MenuIconSize%
 		}else if(FileExt="lnk"){  ; {快捷方式}
 			try{
 				FileGetShortcut, %item%, OutItem, , , , OutIcon, OutIconNum
@@ -961,9 +961,9 @@ Menu_Item_Icon(menuName,menuItem,iconPath,iconNo=0,treeLevel=""){
 		menuItemSet:=RTrim(menuItemSet)
 		menuItemSet:=menuItemIconFileName(menuItemSet)
 		if(IconFolderList[menuItemSet]){
-			Menu,%menuName%,Icon,%menuItem%,% IconFolderList[menuItemSet],0
+			Menu,%menuName%,Icon,%menuItem%,% IconFolderList[menuItemSet],0,%MenuIconSize%
 		}else{
-			Menu,%menuName%,Icon,%menuItem%,%iconPath%,%iconNo%
+			Menu,%menuName%,Icon,%menuItem%,%iconPath%,%iconNo%,%MenuIconSize%
 		}
 		MenuObjName[menuItemSet]:=1
 	}catch{}
@@ -1046,11 +1046,11 @@ Menu_Show:
 						gosub,Menu_Run
 					}else{
 						Menu,%extMenuName%,Insert, ,-【显示菜单全部】,Menu_All_Show
-						Menu,%extMenuName%,Icon,-【显示菜单全部】,SHELL32.dll,40
+						Menu,%extMenuName%,Icon,-【显示菜单全部】,SHELL32.dll,40,%MenuIconSize%
 						if(!HideAddItem){
 							Menu,%extMenuName%,Insert, ,0【添加到此菜单】,Menu_Add_File_Item
 							Menu,%extMenuName%,Default,0【添加到此菜单】
-							Menu,%extMenuName%,Icon,0【添加到此菜单】,SHELL32.dll,166
+							Menu,%extMenuName%,Icon,0【添加到此菜单】,SHELL32.dll,166,%MenuIconSize%
 						}
 						;添加后缀公共菜单
 						publicMenuMaxNum:=MenuObjExt["public"].MaxIndex()
@@ -1084,7 +1084,7 @@ Menu_Show:
 					if(!HideAddItem){
 						Menu,% menuFileRoot%MENU_NO%[1],Insert, ,0【添加到此菜单】,Menu_Add_File_Item
 						Menu,% menuFileRoot%MENU_NO%[1],Default,0【添加到此菜单】
-						Menu,% menuFileRoot%MENU_NO%[1],Icon,0【添加到此菜单】,SHELL32.dll,166
+						Menu,% menuFileRoot%MENU_NO%[1],Icon,0【添加到此菜单】,SHELL32.dll,166,%MenuIconSize%
 						Menu_Add_Del_Temp(1,MENU_NO,"0【添加到此菜单】","Menu_Add_File_Item","SHELL32.dll","166")
 					}
 					Menu_Show_Show(menuFileRoot%MENU_NO%[1],FileName)
@@ -1235,7 +1235,7 @@ Menu_Add_Del_Temp(addDel=1,TREE_NO=1,mName="",LabelName="",mIcon="",mIconNum="")
 		if(RegExMatch(mn,"S)[^\s]+\s{3}$")){
 			if(addDel){
 				Menu,%mn%,Insert, ,%mName%,%LabelName%
-				Menu,%mn%,Icon,%mName%,%mIcon%,%mIconNum%
+				Menu,%mn%,Icon,%mName%,%mIcon%,%mIconNum%,%MenuIconSize%
 			}else{
 				Menu,%mn%,Delete,%mName%
 			}
@@ -4168,7 +4168,9 @@ Menu_Set:
 	Gui,66:Add,Text,xm yp+50 cBlue,提示文字自动消失后，而且后续输入字符不触发热字符串功能`n需要按Tab/回车/句点/空格等键之后才会再次进行提示
 	
 	Gui,66:Tab,图标设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h245,图标自定义设置（图片或图标文件路径 , 序号不填默认1）
+	Gui,66:Add,Text,x+5 xm y+%MARGIN_TOP_66%,RunAny菜单项图标像素大小
+	Gui,66:Add,Edit,x+5 yp w70 h20 vvMenuIconSize,%MenuIconSize%
+	Gui,66:Add,GroupBox,xm-10 yp+20 w%GROUP_WIDTH_66% h245,图标自定义设置（图片或图标文件路径 , 序号不填默认1）
 	Gui,66:Add,Button,xm yp+20 w80 GSetAnyIcon,RunAny图标
 	Gui,66:Add,Edit,xm+85 yp+1 w440 r1 vvAnyIcon,%AnyIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetMenuIcon,准备图标
@@ -4183,7 +4185,7 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+85 yp+1 w440 r1 vvEXEIcon,%EXEIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetFuncIcon,脚本插件函数
 	Gui,66:Add,Edit,xm+85 yp+1 w440 r1 vvFuncIcon,%FuncIcon%
-	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h180,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含热字符串和全局热键）
+	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h170,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含热字符串和全局热键）
 	Gui,66:Add,Text, xm yp+20 w380,如图标文件名可以为：-常用(&&App).ico、cmd.png、百度(&&B).ico
 	if(ResourcesExtractExist)
 		Gui,66:Add,Button,x+5 yp w110 GMenu_Exe_Icon_Create,生成所有EXE图标
@@ -4328,7 +4330,7 @@ SetOK:
 	SetValueList.Push("EvPath","EvCommand","EvAutoClose","EvExeVerNew","EvDemandSearch")
 	SetValueList.Push("HideFail","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideSelectZz","RecentMax")
 	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu")
-	SetValueList.Push("BrowserPath","IconFolderPath","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon","AnyIcon","MenuIcon")
+	SetValueList.Push("BrowserPath","IconFolderPath","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon","AnyIcon","MenuIcon","MenuIconSize")
 	SetValueList.Push("HideHotStr","HotStrShowLen","HotStrShowTime","HotStrShowTransparent","HotStrShowX","HotStrShowY")
 	SetValueList.Push("MenuDoubleCtrlKey", "MenuDoubleAltKey", "MenuDoubleLWinKey", "MenuDoubleRWinKey")
 	SetValueList.Push("MenuCtrlRightKey", "MenuShiftRightKey", "MenuXButton1Key", "MenuXButton2Key", "MenuMButtonKey")
@@ -4923,7 +4925,9 @@ Icon_Set:
 		IfNotExist %RunIconDir%\%A_LoopField%
 			FileCreateDir,%RunIconDir%\%A_LoopField%
 	}
-	global IconFileSuffix:="*.ico;*.exe;*.bmp;*.png;*.gif;*.jpg;*.jpeg;*.jpe;*.jfif;*.dib;*.tif;*.tiff;*.heic"
+	global IconFileSuffix:="*.ico;*.exe"
+		. ";*.bmp;*.png;*.gif;*.jpg;*.jpeg;*.jpe;*.jfif;*.dib;*.tif;*.tiff;*.heic"
+		. ";*.cur;*.ani,*.cpl,*.scr"
 	global ResourcesExtractExist:=false
 	global ResourcesExtractDir:=A_ScriptDir "\ResourcesExtract"
 	global ResourcesExtractFile:=A_ScriptDir "\ResourcesExtract\ResourcesExtract.exe"
@@ -4960,6 +4964,7 @@ Icon_Set:
 		UpIcon:="ZzIcon.dll,5"
 		DownIcon:="ZzIcon.dll,6"
 	}
+	global MenuIconSize:=Var_Read("MenuIconSize","24")
 	global AnyIcon:=Var_Read("AnyIcon",iconAny)
 	global AnyIconS:=StrSplit(Get_Transform_Val(AnyIcon),",")
 	global MenuIcon:=Var_Read("MenuIcon",iconMenu)
