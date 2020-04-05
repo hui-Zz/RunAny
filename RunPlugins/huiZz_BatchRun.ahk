@@ -13,9 +13,9 @@ class RunAnyObj {
 	;保存到RunAny.ini为：批量运行|huiZz_BatchRun[batch_run](%getZz%)
 	batch_run(getZz){
 		;在这里添加你要批量运行或搜索的东西 %getZz%：选中的文本或文件
+		;Run,D:\Users\OneDrive\Apps\Zz\TotalCMD64\Tools\Everything.exe -search "%getZz%"
 		Run,https://www.baidu.com/s?wd=%getZz%
 		Run,https://www.google.com/search?q=%getZz%&gws_rd=ssl
-		Run,D:\Users\OneDrive\Apps\Zz\TotalCMD64\Tools\Everything.exe -search "%getZz%"
 	}
 	;[多软件打开选中多文件]
 	;保存到RunAny.ini为：多软件打开|huiZz_BatchRun[multi_open](%getZz%,"notepad.exe","wordpad.exe")
