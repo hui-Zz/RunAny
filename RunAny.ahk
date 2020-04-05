@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.0 @2020.04.04
+║【RunAny】一劳永逸的快速启动工具 v5.7.0 @2020.04.05
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.7.0"
-global RunAny_update_time:="2020.04.04"
+global RunAny_update_time:="2020.04.05"
 Gosub,Var_Set          ;~参数初始化
 Gosub,Run_Exist        ;~调用判断依赖
 Gosub,Plugins_Read     ;~插件脚本读取
@@ -4168,9 +4168,11 @@ Menu_Set:
 	Gui,66:Add,Text,xm yp+50 cBlue,提示文字自动消失后，而且后续输入字符不触发热字符串功能`n需要按Tab/回车/句点/空格等键之后才会再次进行提示
 	
 	Gui,66:Tab,图标设置,,Exact
-	Gui,66:Add,Text,x+5 xm y+%MARGIN_TOP_66%,RunAny菜单项图标像素大小
-	Gui,66:Add,Edit,x+5 yp w70 h20 vvMenuIconSize,%MenuIconSize%
-	Gui,66:Add,GroupBox,xm-10 yp+20 w%GROUP_WIDTH_66% h245,图标自定义设置（图片或图标文件路径 , 序号不填默认1）
+	Gui,66:Add,Text,xm y+%MARGIN_TOP_66%,RunAny菜单项图标大小(默认24像素)
+	Gui,66:Add,Edit,x+5 yp w30 h20 vvMenuIconSize,%MenuIconSize%
+	Gui,66:Add,Text,x+20 yp,任务栏右键图标菜单项图标大小(像素)
+	Gui,66:Add,Edit,x+5 yp w30 h20 vvMenuTrayIconSize,%MenuTrayIconSize%
+	Gui,66:Add,GroupBox,xm-10 yp+30 w%GROUP_WIDTH_66% h245,图标自定义设置（图片或图标文件路径 , 序号不填默认1）
 	Gui,66:Add,Button,xm yp+20 w80 GSetAnyIcon,RunAny图标
 	Gui,66:Add,Edit,xm+85 yp+1 w440 r1 vvAnyIcon,%AnyIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetMenuIcon,准备图标
@@ -4185,12 +4187,12 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+85 yp+1 w440 r1 vvEXEIcon,%EXEIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetFuncIcon,脚本插件函数
 	Gui,66:Add,Edit,xm+85 yp+1 w440 r1 vvFuncIcon,%FuncIcon%
-	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h170,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含热字符串和全局热键）
+	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h160,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含热字符串和全局热键）
 	Gui,66:Add,Text, xm yp+20 w380,如图标文件名可以为：-常用(&&App).ico、cmd.png、百度(&&B).ico
 	if(ResourcesExtractExist)
 		Gui,66:Add,Button,x+5 yp w110 GMenu_Exe_Icon_Create,生成所有EXE图标
 	Gui,66:Add,Button,xm yp+30 w50 GSetIconFolderPath,选择
-	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r6 vvIconFolderPath,%IconFolderPath%
+	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r5 vvIconFolderPath,%IconFolderPath%
 
 	Gui,66:Tab
 	Gui,66:Add,Button,Default xm+100 y+40 w75 GSetOK,确定
@@ -4329,8 +4331,8 @@ SetOK:
 	SetValueList.Push("AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupFormat","RunABackupDir","DisableApp")
 	SetValueList.Push("EvPath","EvCommand","EvAutoClose","EvExeVerNew","EvDemandSearch")
 	SetValueList.Push("HideFail","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideSelectZz","RecentMax")
-	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu")
-	SetValueList.Push("BrowserPath","IconFolderPath","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon","AnyIcon","MenuIcon","MenuIconSize")
+	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu","BrowserPath","IconFolderPath")
+	SetValueList.Push("MenuIconSize","MenuTrayIconSize","MenuIcon","AnyIcon","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon")
 	SetValueList.Push("HideHotStr","HotStrShowLen","HotStrShowTime","HotStrShowTransparent","HotStrShowX","HotStrShowY")
 	SetValueList.Push("MenuDoubleCtrlKey", "MenuDoubleAltKey", "MenuDoubleLWinKey", "MenuDoubleRWinKey")
 	SetValueList.Push("MenuCtrlRightKey", "MenuShiftRightKey", "MenuXButton1Key", "MenuXButton2Key", "MenuMButtonKey")
@@ -4964,7 +4966,8 @@ Icon_Set:
 		UpIcon:="ZzIcon.dll,5"
 		DownIcon:="ZzIcon.dll,6"
 	}
-	global MenuIconSize:=Var_Read("MenuIconSize","24")
+	global MenuIconSize:=Var_Read("MenuIconSize")
+	global MenuTrayIconSize:=Var_Read("MenuTrayIconSize")
 	global AnyIcon:=Var_Read("AnyIcon",iconAny)
 	global AnyIconS:=StrSplit(Get_Transform_Val(AnyIcon),",")
 	global MenuIcon:=Var_Read("MenuIcon",iconMenu)
@@ -5005,18 +5008,18 @@ Icon_FileExt_Set:
 	}
 	global ZzIconS:=StrSplit(ZzIconPath,",")
 	;[RunAny菜单图标初始化]
-	try Menu,Tray,Icon,启动菜单(&Z)`t%MenuHotKey%,% ZzIconS[1],% ZzIconS[2]
-	try Menu,Tray,Icon,修改菜单(&E)`t%TreeHotKey1%,% TreeIconS[1],% TreeIconS[2]
-	Menu,Tray,Icon,修改文件(&F)`t%TreeIniHotKey1%,% EditFileIconS[1],% EditFileIconS[2]
+	try Menu,Tray,Icon,启动菜单(&Z)`t%MenuHotKey%,% ZzIconS[1],% ZzIconS[2],%MenuTrayIconSize%
+	try Menu,Tray,Icon,修改菜单(&E)`t%TreeHotKey1%,% TreeIconS[1],% TreeIconS[2],%MenuTrayIconSize%
+	Menu,Tray,Icon,修改文件(&F)`t%TreeIniHotKey1%,% EditFileIconS[1],% EditFileIconS[2],%MenuTrayIconSize%
 	If(MENU2FLAG){
-		try Menu,Tray,Icon,启动菜单2(&2)`t%MenuHotKey2%,% ZzIconS[1],% ZzIconS[2]
-		try Menu,Tray,Icon,修改菜单2(&W)`t%TreeHotKey2%,% TreeIconS[1],% TreeIconS[2]
-		Menu,Tray,Icon,修改文件2(&G)`t%TreeIniHotKey2%,% EditFileIconS[1],% EditFileIconS[2]
+		try Menu,Tray,Icon,启动菜单2(&2)`t%MenuHotKey2%,% ZzIconS[1],% ZzIconS[2],%MenuTrayIconSize%
+		try Menu,Tray,Icon,修改菜单2(&W)`t%TreeHotKey2%,% TreeIconS[1],% TreeIconS[2],%MenuTrayIconSize%
+		Menu,Tray,Icon,修改文件2(&G)`t%TreeIniHotKey2%,% EditFileIconS[1],% EditFileIconS[2],%MenuTrayIconSize%
 	}
-	try Menu,Tray,Icon,设置RunAny(&D)`t%RunASetHotKey%,% MenuIconS[1],% MenuIconS[2]
-	try Menu,Tray,Icon,关于RunAny(&A)...,% AnyIconS[1],% AnyIconS[2]
-	Menu,Tray,Icon,插件管理(&C)`t%PluginsManageHotKey%,% PluginsManageIconS[1],% PluginsManageIconS[2]
-	Menu,Tray,Icon,检查更新(&U),% CheckUpdateIconS[1],% CheckUpdateIconS[2]
+	try Menu,Tray,Icon,设置RunAny(&D)`t%RunASetHotKey%,% MenuIconS[1],% MenuIconS[2],%MenuTrayIconSize%
+	try Menu,Tray,Icon,关于RunAny(&A)...,% AnyIconS[1],% AnyIconS[2],%MenuTrayIconSize%
+	Menu,Tray,Icon,插件管理(&C)`t%PluginsManageHotKey%,% PluginsManageIconS[1],% PluginsManageIconS[2],%MenuTrayIconSize%
+	Menu,Tray,Icon,检查更新(&U),% CheckUpdateIconS[1],% CheckUpdateIconS[2],%MenuTrayIconSize%
 	;~;[引入菜单项图标识别库]
 	global IconFolderPath:=Var_Read("IconFolderPath","%A_ScriptDir%\RunIcon\ExeIcon|%A_ScriptDir%\RunIcon\WebIcon|%A_ScriptDir%\RunIcon\MenuIcon")
 	global IconFolderList:={}
