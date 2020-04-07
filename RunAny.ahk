@@ -113,6 +113,8 @@ global MenuObjTreeLevel:=Object()		;~菜单对应级别
 global MenuObjPublic:=[]				;~后缀公共菜单
 global MenuShowFlag:=false				;~菜单功能是否可以显示
 global MenuIconFlag:=false				;~菜单图标是否加载完成
+global MenuObjName:=Object()			;~程序菜单项名称
+global MenuBar:=""						;~菜单分列标记
 global MenuCount:=MENU2FLAG ? 2 : 1
 MenuObj.SetCapacity(10240)
 MenuExeArray.SetCapacity(1024)
@@ -537,10 +539,10 @@ GetMenuItemMode(item,fullItemFlag:=false){
 ;~;[读取配置并开始创建菜单]
 ;══════════════════════════════════════════════════════════════════
 Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
-	global MenuObjName:=Object()   ;~程序菜单项名称
+	MenuObjName:=Object()	;~程序菜单项名称
+	MenuBar:=""				;~菜单分列标记
 	MenuObjParam:=Object()         ;~程序参数
 	menuLevel:=1
-	menuBar:=""
 	Loop, parse, iniReadVar, `n, `r
 	{
 		try{
@@ -577,7 +579,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				if(menuItem!=""){
 					menuItemType:=menuItem . TREE_TYPE
 					Menu,%menuItemType%,add
-					try Menu,% menuRootFn[menuLevel],add,%menuItemType%,:%menuItemType%,%menuBar%
+					try Menu,% menuRootFn[menuLevel],add,%menuItemType%,:%menuItemType%,%MenuBar%
 					Menu_Item_Icon(menuRootFn[menuLevel],menuItemType,TreeIconS[1],TreeIconS[2],treeLevel . menuItemType)
 					Menu,%menuItemType%,Delete, 1&
 					menuLevel+=1	;比初始根菜单加一级
@@ -602,11 +604,11 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					Menu,%menuRootFnLevel%,Add
 					MenuObjTree%TREE_NO%[menuRootFnLevel].Push(Z_LoopField)
 				}
-				menuBar:=""
+				MenuBar:=""
 				continue
 			}
 			if(Z_LoopField="|" || Z_LoopField="||"){
-				menuBar:=(Z_LoopField="||") ? "+BarBreak" : "+Break"
+				MenuBar:=(Z_LoopField="||") ? "+BarBreak" : "+Break"
 				continue
 			}
 			if(menuRootFn[menuLevel]="")
@@ -677,7 +679,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 						flagEXE:=true
 					;~;[添加菜单项]
 					if(flagEXE){
-						Menu,% menuRootFn[menuLevel],add,% menuDiy[1],Menu_Run,%menuBar%
+						Menu,% menuRootFn[menuLevel],add,% menuDiy[1],Menu_Run,%MenuBar%
 						if(IconFail)
 							Menu_Item_Icon(menuRootFn[menuLevel],menuDiy[1],"SHELL32.dll","124")
 					}
@@ -723,7 +725,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 						}
 					}
 				}
-				menuBar:=""
+				MenuBar:=""
 				continue
 			}
 			;~;[生成完全路径的应用]
@@ -742,12 +744,12 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					flagEXE:=true
 				;~;[添加菜单项]
 				if(flagEXE){
-					Menu,% menuRootFn[menuLevel],add,% nameNotExt,Menu_Run,%menuBar%
+					Menu,% menuRootFn[menuLevel],add,% nameNotExt,Menu_Run,%MenuBar%
 					if(IconFail){
 						Menu_Item_Icon(menuRootFn[menuLevel],nameNotExt,"SHELL32.dll","124")
 					}
 				}
-				menuBar:=""
+				MenuBar:=""
 				continue
 			}
 			;~;[生成通过Everything取到的无路径应用]
@@ -775,7 +777,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					flagEXE:=true
 				;~;[添加菜单项]
 				if(flagEXE){
-					Menu,% menuRootFn[menuLevel],add,% appName,Menu_Run,%menuBar%
+					Menu,% menuRootFn[menuLevel],add,% appName,Menu_Run,%MenuBar%
 					if(IconFail)
 						Menu_Item_Icon(menuRootFn[menuLevel],appName,"SHELL32.dll","124")
 				}
@@ -786,7 +788,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					MenuObj[Z_LoopField]:=MenuObjEv[Z_LoopField]
 				Menu_Add(menuRootFn[menuLevel],Z_LoopField,MenuObj[Z_LoopField],itemMode,TREE_NO)
 			}
-			menuBar:=""
+			MenuBar:=""
 		} catch e {
 			MsgBox,16,构建菜单出错,% "菜单名：" menuRootFn[menuLevel] "`n菜单项：" A_LoopField 
 				. "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
@@ -797,7 +799,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 		MenuObj[key]:=value
 	}
 	if(!HideMenuTray){
-		Menu,% menuRootFn[1],add,RunAny设置,:Tray,%menuBar%
+		Menu,% menuRootFn[1],add,RunAny设置,:Tray,%MenuBar%
 		Menu,% menuRootFn[1],Icon,RunAny设置,% AnyIconS[1],% AnyIconS[2],%MenuIconSize%
 	}
 }
@@ -883,8 +885,8 @@ Menu_Add(menuName,menuItem,item,itemMode,TREE_NO){
 		return
 	try {
 		SplitPath, item,,, FileExt  ; 获取文件扩展名.
-		Menu,%menuName%,add,%menuItem%,Menu_Run,%menuBar%
-		menuBar:=""
+		Menu,%menuName%,add,%menuItem%,Menu_Run,%MenuBar%
+		MenuBar:=""
 		MenuObjList%TREE_NO%[menuName].=menuItem "`n"
 		if(itemMode=2 || itemMode=3){  ; {短语}
 			Menu_Item_Icon(menuName,menuItem,"SHELL32.dll",itemMode=3 ? "2" : "71")
