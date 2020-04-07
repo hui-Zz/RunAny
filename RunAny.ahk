@@ -4168,7 +4168,7 @@ Menu_Set:
 	Gui,66:Add,Text,xm yp+50 cBlue,提示文字自动消失后，而且后续输入字符不触发热字符串功能`n需要按Tab/回车/句点/空格等键之后才会再次进行提示
 	
 	Gui,66:Tab,图标设置,,Exact
-	Gui,66:Add,Text,xm y+%MARGIN_TOP_66%,RunAny菜单项图标大小(默认24像素)
+	Gui,66:Add,Text,xm y+%MARGIN_TOP_66%,RunAny菜单项图标大小(像素)
 	Gui,66:Add,Edit,x+5 yp w30 h20 vvMenuIconSize,%MenuIconSize%
 	Gui,66:Add,Text,x+20 yp,任务栏右键图标菜单项图标大小(像素)
 	Gui,66:Add,Edit,x+5 yp w30 h20 vvMenuTrayIconSize,%MenuTrayIconSize%
