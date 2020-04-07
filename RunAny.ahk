@@ -104,13 +104,13 @@ global MenuObj:=Object()               ;~程序全路径
 global MenuObjKey:=Object()            ;~程序热键
 global MenuObjKeyName:=Object()        ;~程序热键关联菜单项名称
 global MenuObjExt:=Object()            ;~后缀对应的菜单
-global MenuHotStrList:=Object()        ;~热字符串数据数组
+global MenuHotStrList:=Object()        ;~热字符串对象数组
 global MenuTreeKey:=Object()           ;~菜单树分类热键
 ;~;
-global MenuExeArray:=Object()			;~EXE程序数据数组
-global MenuExeIconArray:=Object()		;~EXE程序优先加载图标数组
+global MenuExeArray:=Object()			;~EXE程序对象数组
+global MenuExeIconArray:=Object()		;~EXE程序优先加载图标对象数组
 global MenuObjTreeLevel:=Object()		;~菜单对应级别
-global MenuObjPublic:=Object()			;~后缀公共菜单
+global MenuObjPublic:=[]				;~后缀公共菜单
 global MenuShowFlag:=false				;~菜单功能是否可以显示
 global MenuIconFlag:=false				;~菜单图标是否加载完成
 global MenuCount:=MENU2FLAG ? 2 : 1
@@ -125,8 +125,8 @@ Loop,%MenuCount%
 	MenuGetZzList%A_Index%:=Object()	;菜单中GetZz搜索项列表
 	MenuExeList%A_Index%:=Object()		;菜单中的exe列表
 	MenuObjList%A_Index%:=Object()   	;菜单分类运行项列表
-	MenuObjText%A_Index%:=Object()		;选中文字菜单
-	MenuObjFile%A_Index%:=Object()		;选中文件菜单
+	MenuObjText%A_Index%:=[]			;选中文字菜单
+	MenuObjFile%A_Index%:=[]			;选中文件菜单
 	MenuObjTree%A_Index%:=Object()   	;分类目录程序全数据
 	MenuObjTree%A_Index%[M%A_Index%]:=Object()
 	;菜单级别：初始为根菜单RunAny
@@ -5105,7 +5105,7 @@ Plugins_Read:
 	global PluginsTitleList:=Object()
 	global PluginsObjNum:=0
 	global PluginsDir:="RunPlugins"	;~插件目录
-	global PluginsDirList:=Object()
+	global PluginsDirList:=[]
 	global PluginsDirPath:=Var_Read("PluginsDirPath","%A_ScriptDir%\..\RunAnyCtrl\")
 	global PluginsDirPathList:="%A_ScriptDir%\RunPlugins|" PluginsDirPath
 	Loop, parse, PluginsDirPathList, |
