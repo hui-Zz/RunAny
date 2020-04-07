@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.0 @2020.04.05
+║【RunAny】一劳永逸的快速启动工具 v5.7.0 @2020.04.07
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.7.0"
-global RunAny_update_time:="2020.04.05"
+global RunAny_update_time:="2020.04.07"
 Gosub,Var_Set          ;~参数初始化
 Gosub,Run_Exist        ;~调用判断依赖
 Gosub,Plugins_Read     ;~插件脚本读取
@@ -1520,60 +1520,56 @@ Menu_Recent:
 				return
 			}
 		}
+		Loop,% MenuCommonList.MaxIndex()
+		{
+			Menu,% menuDefaultRoot1[1],Delete,% MenuCommonList[A_Index]
+			Menu,% menuDefaultRoot2[1],Delete,% MenuCommonList[A_Index]
+			Menu,% menuWebRoot1[1],Delete,% MenuCommonList[A_Index]
+			Menu,% menuWebRoot2[1],Delete,% MenuCommonList[A_Index]
+			Menu,% menuFileRoot1[1],Delete,% MenuCommonList[A_Index]
+			Menu,% menuFileRoot2[1],Delete,% MenuCommonList[A_Index]
+		}
+		
 		MenuCommonList.InsertAt(1,"&1" A_Space A_ThisMenuItem)  ;插入到最近运行第一条
+		MenuCommonNewList:=[]
+		MenuCommonNewList.InsertAt(1,"&1" A_Space A_ThisMenuItem)  ;插入到最近运行第一条
 		
 		Loop,% MenuCommonList.MaxIndex()
 		{
-			if(A_Index>=(RecentMax+1)){  ;如果超出最大运行项数
-				PopVal:=MenuCommonList.Pop()
-				Menu,% menuDefaultRoot1[1],Delete,%PopVal%
-				Menu,% menuDefaultRoot2[1],Delete,%PopVal%
-				Menu,% menuWebRoot1[1],Delete,%PopVal%
-				Menu,% menuWebRoot2[1],Delete,%PopVal%
-				Menu,% menuFileRoot1[1],Delete,%PopVal%
-				Menu,% menuFileRoot2[1],Delete,%PopVal%
-				break
-			}
-			if(A_Index>1){
-				Menu,% menuDefaultRoot1[1],Delete,% MenuCommonList[A_Index]
-				Menu,% menuDefaultRoot2[1],Delete,% MenuCommonList[A_Index]
-				Menu,% menuWebRoot1[1],Delete,% MenuCommonList[A_Index]
-				Menu,% menuWebRoot2[1],Delete,% MenuCommonList[A_Index]
-				Menu,% menuFileRoot1[1],Delete,% MenuCommonList[A_Index]
-				Menu,% menuFileRoot2[1],Delete,% MenuCommonList[A_Index]
-				recentAny:=MenuObj[MenuCommonList[A_Index]]  ;获取原顺序下运行路径
-				MenuCommonList[A_Index]:=RegExReplace(MenuCommonList[A_Index],"&\d+","&" A_Index)  ;修改序号
-			}
-			menuItem:=MenuCommonList[A_Index]
-			MenuObj[menuItem]:=recentAny
-			Menu,% menuDefaultRoot1[1],Add,%menuItem%,Menu_Run
-			Menu,% menuDefaultRoot2[1],Add,%menuItem%,Menu_Run
-			Menu,% menuWebRoot1[1],Add,%menuItem%,Menu_Run
-			Menu,% menuWebRoot2[1],Add,%menuItem%,Menu_Run
-			Menu,% menuFileRoot1[1],Add,%menuItem%,Menu_Run
-			Menu,% menuFileRoot2[1],Add,%menuItem%,Menu_Run
-			;更改图标
-			fullPath:=Get_Obj_Path(recentAny)
-			SplitPath,fullpath, , , ext
-			if(ext="exe"){
-				Menu_Item_Icon(menuDefaultRoot1[1],menuItem,fullpath)
-				Menu_Item_Icon(menuDefaultRoot2[1],menuItem,fullpath)
-				Menu_Item_Icon(menuWebRoot1[1],menuItem,fullpath)
-				Menu_Item_Icon(menuWebRoot2[1],menuItem,fullpath)
-				Menu_Item_Icon(menuFileRoot1[1],menuItem,fullpath)
-				Menu_Item_Icon(menuFileRoot2[1],menuItem,fullpath)
-			}else{
-				Menu_Add(menuDefaultRoot1[1],menuItem,recentAny,itemMode,"")
-				Menu_Add(menuDefaultRoot2[1],menuItem,recentAny,itemMode,"")
-				Menu_Add(menuWebRoot1[1],menuItem,recentAny,itemMode,"")
-				Menu_Add(menuWebRoot2[1],menuItem,recentAny,itemMode,"")
-				Menu_Add(menuFileRoot1[1],menuItem,recentAny,itemMode,"")
-				Menu_Add(menuFileRoot2[1],menuItem,recentAny,itemMode,"")
+			if(A_Index<=RecentMax){
+				if(A_Index>1){
+					recentAny:=MenuObj[MenuCommonList[A_Index]]  ;获取原顺序下运行路径
+					MenuCommonNewList[A_Index]:=RegExReplace(MenuCommonList[A_Index],"&\d+","&" A_Index)  ;修改序号
+				}
+				menuItem:=MenuCommonNewList[A_Index]
+				MenuObj[menuItem]:=recentAny
+				Menu,% menuDefaultRoot1[1],Add,%menuItem%,Menu_Run
+				Menu,% menuDefaultRoot2[1],Add,%menuItem%,Menu_Run
+				Menu,% menuWebRoot1[1],Add,%menuItem%,Menu_Run
+				Menu,% menuWebRoot2[1],Add,%menuItem%,Menu_Run
+				Menu,% menuFileRoot1[1],Add,%menuItem%,Menu_Run
+				Menu,% menuFileRoot2[1],Add,%menuItem%,Menu_Run
+				;更改图标
+				fullPath:=Get_Obj_Path(recentAny)
+				SplitPath,fullpath, , , ext
+				Loop,%MenuCount%
+				{
+					if(ext="exe"){
+						Menu_Item_Icon(menuDefaultRoot%A_Index%[1],menuItem,fullpath)
+						Menu_Item_Icon(menuWebRoot%A_Index%[1],menuItem,fullpath)
+						Menu_Item_Icon(menuFileRoot%A_Index%[1],menuItem,fullpath)
+					}else{
+						Menu_Add(menuDefaultRoot%A_Index%[1],menuItem,recentAny,itemMode,"")
+						Menu_Add(menuWebRoot%A_Index%[1],menuItem,recentAny,itemMode,"")
+						Menu_Add(menuFileRoot%A_Index%[1],menuItem,recentAny,itemMode,"")
+					}
+				}
 			}
 		}
 	}catch{}
 	;保存菜单最近运行项至注册表，重启后加载
 	commonStr:=""
+	MenuCommonList:=MenuCommonNewList.Clone()
 	For k, v in MenuCommonList
 	{
 		commonStr:=commonStr ? commonStr "|" v : v
