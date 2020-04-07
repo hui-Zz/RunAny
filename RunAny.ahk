@@ -5630,7 +5630,7 @@ everythingQuery(){
 				RegExMatch(A_LoopField,"[^|]+?\.[a-zA-Z0-9]+",outVar)
 				if(Trim(outVar) && !RegExMatch(outVar,"\\|\/|\:|\*|\?|\""|\<|\>|\|") 
 						&& !InStr(EvCommandStr,"|" outVar "|") && GetMenuItemMode(A_LoopField)=1){
-					if(InStr(outVar,A_Space)){
+					if(InStr(outVar,A_Space) || InStr(outVar,"!")){
 						EvCommandStr.="""" outVar . """|"
 					}else{
 						EvCommandStr.=outVar . "|"
