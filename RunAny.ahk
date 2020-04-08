@@ -1516,29 +1516,33 @@ return
 ;~;[菜单最近运行]
 Menu_Recent:
 	recentAny:=any
-	try{
-		Loop,% MenuCommonList.MaxIndex()
-		{
-			if(RegExMatch(MenuCommonList[A_Index],"S)&\d+\s" A_ThisMenuItem)){
-				return
+	Loop,% MenuCommonList.MaxIndex()
+	{
+		if(RegExMatch(MenuCommonList[A_Index],"S)&\d+\s" A_ThisMenuItem)){
+			return
+		}
+	}
+	Loop,% MenuCommonList.MaxIndex()
+	{
+		C_Index:=A_Index
+		try{
+			Loop,%MenuCount%
+			{
+				Menu,% menuDefaultRoot%A_Index%[1],Delete,% MenuCommonList[C_Index]
+				Menu,% menuWebRoot%A_Index%[1],Delete,% MenuCommonList[C_Index]
+				Menu,% menuFileRoot%A_Index%[1],Delete,% MenuCommonList[C_Index]
 			}
-		}
-		Loop,% MenuCommonList.MaxIndex()
-		{
-			Menu,% menuDefaultRoot1[1],Delete,% MenuCommonList[A_Index]
-			Menu,% menuDefaultRoot2[1],Delete,% MenuCommonList[A_Index]
-			Menu,% menuWebRoot1[1],Delete,% MenuCommonList[A_Index]
-			Menu,% menuWebRoot2[1],Delete,% MenuCommonList[A_Index]
-			Menu,% menuFileRoot1[1],Delete,% MenuCommonList[A_Index]
-			Menu,% menuFileRoot2[1],Delete,% MenuCommonList[A_Index]
-		}
-		
-		MenuCommonList.InsertAt(1,"&1" A_Space A_ThisMenuItem)  ;插入到最近运行第一条
-		MenuCommonNewList:=[]
-		MenuCommonNewList.InsertAt(1,"&1" A_Space A_ThisMenuItem)  ;插入到最近运行第一条
-		
-		Loop,% MenuCommonList.MaxIndex()
-		{
+		}catch{}
+	}
+	
+	;插入到最近运行第一条
+	MenuCommonList.InsertAt(1,"&1" A_Space A_ThisMenuItem)
+	MenuCommonNewList:=[]
+	MenuCommonNewList.InsertAt(1,"&1" A_Space A_ThisMenuItem)
+	
+	Loop,% MenuCommonList.MaxIndex()
+	{
+		try{
 			if(A_Index<=RecentMax){
 				if(A_Index>1){
 					recentAny:=MenuObj[MenuCommonList[A_Index]]  ;获取原顺序下运行路径
@@ -1546,17 +1550,14 @@ Menu_Recent:
 				}
 				menuItem:=MenuCommonNewList[A_Index]
 				MenuObj[menuItem]:=recentAny
-				Menu,% menuDefaultRoot1[1],Add,%menuItem%,Menu_Run
-				Menu,% menuDefaultRoot2[1],Add,%menuItem%,Menu_Run
-				Menu,% menuWebRoot1[1],Add,%menuItem%,Menu_Run
-				Menu,% menuWebRoot2[1],Add,%menuItem%,Menu_Run
-				Menu,% menuFileRoot1[1],Add,%menuItem%,Menu_Run
-				Menu,% menuFileRoot2[1],Add,%menuItem%,Menu_Run
-				;更改图标
 				fullPath:=Get_Obj_Path(recentAny)
 				SplitPath,fullpath, , , ext
 				Loop,%MenuCount%
 				{
+					Menu,% menuDefaultRoot%A_Index%[1],Add,%menuItem%,Menu_Run
+					Menu,% menuWebRoot%A_Index%[1],Add,%menuItem%,Menu_Run
+					Menu,% menuFileRoot%A_Index%[1],Add,%menuItem%,Menu_Run
+					;更改图标
 					if(ext="exe"){
 						Menu_Item_Icon(menuDefaultRoot%A_Index%[1],menuItem,fullpath)
 						Menu_Item_Icon(menuWebRoot%A_Index%[1],menuItem,fullpath)
@@ -1569,8 +1570,8 @@ Menu_Recent:
 					}
 				}
 			}
-		}
-	}catch{}
+		}catch{}
+	}
 	;保存菜单最近运行项至注册表，重启后加载
 	commonStr:=""
 	MenuCommonList:=MenuCommonNewList.Clone()
