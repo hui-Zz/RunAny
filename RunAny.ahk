@@ -1561,9 +1561,10 @@ Menu_Recent:
 						Menu_Item_Icon(menuWebRoot%A_Index%[1],menuItem,fullpath)
 						Menu_Item_Icon(menuFileRoot%A_Index%[1],menuItem,fullpath)
 					}else{
-						Menu_Add(menuDefaultRoot%A_Index%[1],menuItem,recentAny,itemMode,"")
-						Menu_Add(menuWebRoot%A_Index%[1],menuItem,recentAny,itemMode,"")
-						Menu_Add(menuFileRoot%A_Index%[1],menuItem,recentAny,itemMode,"")
+						recentItemMode:=GetMenuItemMode(recentAny)
+						Menu_Add(menuDefaultRoot%A_Index%[1],menuItem,recentAny,recentItemMode,"")
+						Menu_Add(menuWebRoot%A_Index%[1],menuItem,recentAny,recentItemMode,"")
+						Menu_Add(menuFileRoot%A_Index%[1],menuItem,recentAny,recentItemMode,"")
 					}
 				}
 			}
