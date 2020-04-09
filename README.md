@@ -323,7 +323,7 @@ RunAny可以储存邮箱、手机号，想用时就快捷输出，更支持AHK�
 
 **有了RunAny左键右鼠不是梦，左边有大量未使用快捷组合键，利用好这些键，左手再也不用移到键盘的右边😁**
 
-![RunAny短语和热键映射功能](/assets/images/RunAny短语和热键映射功能.gif)
+![RunAny热键映射功能](/assets/images/RunAny热键映射功能.gif)
 
 映射空闲的组合键转变为常用键功能，如：
 
@@ -365,7 +365,7 @@ RunAny可以储存邮箱、手机号，想用时就快捷输出，更支持AHK�
 > `{Home}` Home 键 `{End}` End 键 `{PgUp}` 向上翻页键 `{PgDn}` 向下翻页键  
 > `{Down}`方向下键 `{Up}`方向上键 `{Left}`方向左键 `{Right}`方向右键  
 
-?> 更多AHK热键写法查看文档：（记得在RunAny中用大括号特殊按键名称，不然就会误认为是字母按键了）  
+?> 更多AHK热键写法查看文档：（记得在RunAny.ini竖杠后面的运行路径中特殊按键要用大括号括起来，不然会误模拟成按字母按键了）  
 https://wyagd001.github.io/zh-cn/docs/KeyList.htm  
 
 ### Vim映射模式，左Alt键辅助方案
