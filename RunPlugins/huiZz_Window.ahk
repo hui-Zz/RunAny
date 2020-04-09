@@ -2,7 +2,7 @@
 ;* 【ObjReg窗口操作脚本[窗口函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.5"
+global RunAny_Plugins_Version:="1.0.6"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
@@ -152,6 +152,19 @@ class RunAnyObj {
 	win_kill_zz(){
 		WinGet,name,ProcessName,A
 		Process,Close,%name%
+	}
+	;[打开当前窗口进程所在目录] v1.0.6
+	;openFolder：使用第三方文件管理器打开文件夹，3种方式：不填使用系统资源管理器、普通全路径、无路径写法
+	;openParams：第三方文件管理器的打开参数，可选填
+	;无路径TotalCommander写法示例：
+	;当前窗口目录|huiZz_Window[win_folder_zz](%"Totalcmd64.exe"%, /O /S)
+	win_folder_zz(openFolder,openParams){
+		WinGet,path,ProcessPath ,A
+		if(openFolder){
+			Run,%openFolder%%openParams%%A_Space%"%path%"
+		}else{
+			Run,% "explorer.exe /select," path
+		}
 	}
 }
 
