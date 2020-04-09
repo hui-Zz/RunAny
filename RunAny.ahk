@@ -2403,6 +2403,12 @@ TVEdit:
 	;分解已有菜单项到编辑框中
 	itemGlobalWinKey:=itemTrNum:=setItemMode:=0
 	itemName:=itemPath:=hotStrOption:=hotStrShow:=itemGlobalHotKey:=itemGlobalKey:=getZz:=""
+	gosub,TVEdit_GuiVal
+	menuGuiFlag:=true
+	selIDTVEdit:=""
+	gosub,Menu_Item_Edit
+return
+TVEdit_GuiVal:
 	if(InStr(ItemText,"|") || InStr(ItemText,"-")=1){
 		menuDiy:=StrSplit(ItemText,"|",,2)
 		itemName:=menuDiy[1]
@@ -2434,9 +2440,6 @@ TVEdit:
 	}else{
 		itemPath:=ItemText
 	}
-	menuGuiFlag:=true
-	selIDTVEdit:=""
-	gosub,Menu_Item_Edit
 return
 Menu_Item_Edit:
 	SaveLabel:=menuGuiFlag ? "SetSaveItemGui" : "SetSaveItem"
@@ -2580,6 +2583,39 @@ GuiControlHide(guiName,controls*){
 	GuiControl, %guiName%:Hide, %v%
 	}
 }
+GuiControlSet(guiName,guival){
+	if(guival!="")
+		GuiControl, SaveItem:, %guiName%, %guival%
+}
+#If WinActive("新增修改菜单项 - " RunAnyZz " - 支持拖放应用")
+	~^v::
+		if(InStr(Clipboard,"|")){
+			Sleep,200
+			ItemText:=Trim(Clipboard)
+			MsgBox,36,,是否需要把RunAny菜单项值，自动添加到各个编辑框中？
+			IfMsgBox Yes
+			{
+				gosub,TVEdit_GuiVal
+				GuiControlSet("vitemGlobalKey",itemGlobalKey)
+				GuiControlSet("vitemPath",itemPath)
+				Gui,SaveItem:Submit, NoHide
+				if(itemGlobalKey!="" && vitemGlobalKey=""){
+					MsgBox, 48,,% itemGlobalHotKey "`n无法设置到全局热键的编辑框里，变为保存在菜单项名中`n"
+					. "建议有特殊热键的菜单项，后续修改直接打开RunAny.ini来编辑生效"
+					GuiControlSet("vitemName",menuDiy[1])
+					GuiControlHide("SaveItem","vhotStrOption","vhotStrShow","vitemTrNum","vitemGlobalKey","vitemGlobalWinKey")
+				}else{
+					GuiControlSet("vitemName",itemName)
+					GuiControlSet("vhotStrOption",hotStrOption)
+					GuiControlSet("vhotStrShow",hotStrShow)
+					GuiControlSet("vitemTrNum",itemTrNum)
+					GuiControlSet("vitemGlobalWinKey",itemGlobalWinKey)
+				}
+				
+			}
+		}
+	return
+#If
 EditItemPathChange:
 	Gui,SaveItem:Submit, NoHide
 	if(InStr(vitemName,"-")=1){
