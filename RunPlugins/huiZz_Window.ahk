@@ -154,9 +154,9 @@ class RunAnyObj {
 		Process,Close,%name%
 	}
 	;[打开当前窗口进程所在目录] v1.0.6
-	;openFolder：使用第三方文件管理器打开文件夹，3种方式：不填使用系统资源管理器、普通全路径、无路径写法
+	;openFolder：填写第三方文件管理器全路径打开文件夹，可选填，特殊写法：%"无路径软件"%
 	;openParams：第三方文件管理器的打开参数，可选填
-	;当前窗口目录|huiZz_Window[win_folder_zz]()
+	;资源管理器打开当前窗口目录|huiZz_Window[win_folder_zz]()
 	;无路径TotalCommander写法示例：
 	;当前窗口目录|huiZz_Window[win_folder_zz](%"Totalcmd64.exe"%, /O /S)
 	win_folder_zz(openFolder:="",openParams:=""){

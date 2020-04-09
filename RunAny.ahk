@@ -287,7 +287,7 @@ Loop,%MenuCount%
 		}
 	}
 }
-;~;[自定义后缀打开方式]
+;~;[内部关联后缀打开方式]
 Gosub,Open_Ext_Set
 
 Menu_Tray_Tip("","菜单已经可以正常使用`n开始为菜单中exe程序加载图标...")
@@ -4010,7 +4010,7 @@ Menu_Set:
 	Gui,66:Font,,Microsoft YaHei
 	Gui,66:Margin,30,20
 	Gui,66:Default
-	Gui,66:Add,Tab,x10 y10 w590 h540,RunAny设置|热键配置|菜单变量|Everything设置|一键直达|自定义打开后缀|热字符串|图标设置
+	Gui,66:Add,Tab,x10 y10 w590 h540,RunAny设置|热键配置|菜单变量|Everything设置|一键直达|内部关联打开|热字符串|图标设置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+%MARGIN_TOP_66% vvAutoRun,开机自动启动
 	Gui,66:Add,Checkbox,Checked%AdminRun% x+148 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
@@ -4137,13 +4137,13 @@ Menu_Set:
 	Gui,66:Add,Button,xm yp+20 w50 GSetBrowserPath,选择
 	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r3 -WantReturn vvBrowserPath,%BrowserPath%
 	
-	Gui,66:Tab,自定义打开后缀,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h435,自定义软件打开%RunAnyZz%菜单内（不是资源管理器中！）不同后缀的文件(合并原来TC打开目录功能)
+	Gui,66:Tab,内部关联打开,,Exact
+	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h435,内部关联软件打开%RunAnyZz%菜单内不同后缀的文件（不是打开资源管理器中的文件！）
 	Gui,66:Add,Button, xm yp+30 w50 GLVOpenExtAdd, + 增加
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtEdit, * 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtRemove, - 减少
-	Gui,66:Add,Text, x+10 yp+5 w320,（特殊类型：文件夹folder 网址http https www ftp等）
-	Gui,66:Add,Listview,xm yp+30 w%GROUP_EDIT_WIDTH_66% r16 grid AltSubmit -Multi vRunAnyOpenExtLV glistviewOpenExt, 文件后缀(用空格分隔)|打开方式(支持无路径)
+	Gui,66:Add,Text, x+10 yp-10 w320,特殊类型：网址http https www ftp等`n文件夹folder（原来使用TC第三方软件打开文件夹的功能）
+	Gui,66:Add,Listview,xm yp+40 w%GROUP_EDIT_WIDTH_66% r16 grid AltSubmit -Multi vRunAnyOpenExtLV glistviewOpenExt, RunAny菜单内文件后缀(用空格分隔)|打开方式(支持无路径)
 	kvLenMax:=0
 	GuiControl, 66:-Redraw, RunAnyOpenExtLV
 	For mOpenExtName, mOpenExtRun in openExtIniList
@@ -4554,7 +4554,7 @@ Open_Ext_Edit:
 	Gui,SaveExt:+Owner66
 	Gui,SaveExt:Margin,20,20
 	Gui,SaveExt:Font,,Microsoft YaHei
-	Gui,SaveExt:Add, GroupBox,xm y+10 w400 h145,%openExtItem%自定义后缀打开方式
+	Gui,SaveExt:Add, GroupBox,xm y+10 w400 h145,%openExtItem%内部关联后缀打开方式
 	Gui,SaveExt:Add, Text, xm+10 y+35 y35 w62, 文件后缀    (空格分隔)
 	Gui,SaveExt:Add, Edit, x+5 yp+5 w300 vvopenExtName, %openExtName%
 	Gui,SaveExt:Add, Button, xm+5 y+15 w60 GSetOpenExtRun,打开方式软件路径
@@ -4562,7 +4562,7 @@ Open_Ext_Edit:
 	Gui,SaveExt:Font
 	Gui,SaveExt:Add,Button,Default xm+100 y+25 w75 GSaveOpenExt,保存(&Y)
 	Gui,SaveExt:Add,Button,x+20 w75 GSetCancel,取消(&C)
-	Gui,SaveExt:Show,,%RunAnyZz% - %openExtItem%自定义后缀打开方式 %RunAny_update_version% %RunAny_update_time%
+	Gui,SaveExt:Show,,%RunAnyZz% - %openExtItem%内部关联后缀打开方式 %RunAny_update_version% %RunAny_update_time%
 return
 listviewOpenExt:
     if A_GuiEvent = DoubleClick
@@ -4887,12 +4887,11 @@ Menu_Var_Set:
 		}
 	}
 return
-;~;[自定义打开方式]
+;~;[内部关联后缀打开方式]
 Open_Ext_Set:
 	;~;[支持一键直达浏览器无路径识别]
 	global BrowserPath:=Var_Read("BrowserPath")
 	global BrowserPathRun:=Get_Obj_Path_Transform(BrowserPath)
-	;~;[自定义后缀文件打开方式]
 	global openExtIniList:={}
 	global openExtRunList:={}
 	IniRead,openExtVar,%RunAnyConfig%,OpenExt
