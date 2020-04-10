@@ -2082,6 +2082,7 @@ Menu_Add_File_Item:
 	if(!Z_ThisMenu)
 		return
 	menuGuiFlag:=false
+	menuGuiEditFlag:=false
 	thisMenuItemStr:=X_ThisMenuItem="0【添加到此菜单】" ? "" : "菜单项（" Z_ThisMenuItem "）的上面"
 	thisMenuStr:=Z_ThisMenu=RunAnyZz . "File" . TREE_NO 
 		? "新增项会在『根目录』分类下（如果没有用“-”回归1级会添加在最末的菜单内）" 
@@ -2382,6 +2383,7 @@ TVAdd:
 	itemGlobalWinKey:=0
 	itemName:=itemPath:=hotStrOption:=hotStrShow:=itemGlobalHotKey:=itemGlobalKey:=getZz:=""
 	menuGuiFlag:=true
+	menuGuiEditFlag:=false
 	gosub,Menu_Item_Edit
 return
 TVAddTree:
@@ -2391,6 +2393,7 @@ TVAddTree:
 	itemGlobalWinKey:=0
 	itemPath:=hotStrOption:=hotStrShow:=itemGlobalHotKey:=itemGlobalKey:=getZz:=""
 	menuGuiFlag:=true
+	menuGuiEditFlag:=false
 	ToolTip,% "菜单分类开头是" itemName "表示新建 " StrLen(itemName) "级目录",195,250
 	SetTimer,RemoveToolTip,5000
 	gosub,Menu_Item_Edit
@@ -2403,6 +2406,7 @@ TVEdit:
 	;分解已有菜单项到编辑框中
 	gosub,TVEdit_GuiVal
 	menuGuiFlag:=true
+	menuGuiEditFlag:=true
 	selIDTVEdit:=""
 	gosub,Menu_Item_Edit
 return
@@ -2562,7 +2566,7 @@ SetSaveItemGui:
 	TV_Modify(selID, Set_Icon(saveText))
 	if(ItemText!=saveText)
 		TVFlag:=true
-	if(selID && RegExMatch(saveText,"S)^-+[^-]+.*")){
+	if(!menuGuiEditFlag && selID && RegExMatch(saveText,"S)^-+[^-]+.*")){
 		insertID:=TV_Add("",selID)
 		TV_Modify(selID, "Bold Expand")
 		TV_Modify(insertID, "Select Vis")
