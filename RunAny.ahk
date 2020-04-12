@@ -1455,7 +1455,7 @@ Menu_Run_Plugins_ObjReg:
 	appParmStr:=RegExReplace(any,"iS).+?\[.+?\]%?\((.*?)\)","$1")	;取函数参数
 	appParmErrorStr:=(appParmStr="") ? "空" : appParmStr
 	if(!PluginsObjRegGUID[appPlugins]){
-		ToolTip,脚本插件：%appPlugins%`n脚本函数：%appFunc%`n函数参数：%appParmErrorStr%`n插件%appPlugins%没有找到！`n请检查修改后重启RunAny重试
+		ToolTip,脚本插件：%appPlugins%`n脚本函数：%appFunc%`n函数参数：%appParmErrorStr%`n插件%appPlugins%没有找到！`n【请检查修改后重启RunAny重试】
 		SetTimer,RemoveToolTip,8000
 		return
 	}
@@ -1514,7 +1514,10 @@ Menu_Run_Plugins_ObjReg:
 		}
 	}
 	if(!InStr(PluginsContentList[(appPlugins ".ahk")],appFunc "(")){
-		ToolTip,脚本插件：%appPlugins%`n脚本函数：%appFunc%`n函数参数：%appParmErrorStr%`n函数%appFunc%没有找到！`n请检查修改后重启RunAny重试
+		ToolTip,脚本插件：%appPlugins%`n脚本函数：%appFunc%`n函数参数：%appParmErrorStr%`n
+		(
+函数%appFunc%没有找到！`n【请检查插件脚本是否已更新版本，或修改错误后重启RunAny重试】
+		)
 		SetTimer,RemoveToolTip,8000
 	}
 return
