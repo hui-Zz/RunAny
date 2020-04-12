@@ -1453,9 +1453,10 @@ Menu_Run_Plugins_ObjReg:
 	appPlugins:=RegExReplace(any,"iS)(.+?)\[.+?\]%?\(.*?\)","$1")	;取插件名
 	appFunc:=RegExReplace(any,"iS).+?\[(.+?)\]%?\(.*?\)","$1")	;取函数名
 	appParmStr:=RegExReplace(any,"iS).+?\[.+?\]%?\((.*?)\)","$1")	;取函数参数
+	appParmErrorStr:=(appParmStr="") ? "空" : appParmStr
 	if(!PluginsObjRegGUID[appPlugins]){
-		ToolTip,脚本插件：%appPlugins%`n脚本函数：%appFunc%`n函数参数：%appParmStr%`n没有正确识别！请检查修改并重启RunAny重试
-		SetTimer,RemoveToolTip,5000
+		ToolTip,脚本插件：%appPlugins%`n脚本函数：%appFunc%`n函数参数：%appParmErrorStr%`n插件%appPlugins%没有找到！`n请检查修改后重启RunAny重试
+		SetTimer,RemoveToolTip,8000
 		return
 	}
 	if(RegExMatch(any,"iS).+?\[.+?\]%\(.*?\)")){  ;动态函数执行
@@ -1511,6 +1512,10 @@ Menu_Run_Plugins_ObjReg:
 		}else if(appParms.MaxIndex()=10){
 			PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8],appParms[9],appParms[10])
 		}
+	}
+	if(!InStr(PluginsContentList[(appPlugins ".ahk")],appFunc "(")){
+		ToolTip,脚本插件：%appPlugins%`n脚本函数：%appFunc%`n函数参数：%appParmErrorStr%`n函数%appFunc%没有找到！`n请检查修改后重启RunAny重试
+		SetTimer,RemoveToolTip,8000
 	}
 return
 ;~;[菜单最近运行]
@@ -5150,10 +5155,11 @@ Plugins_Read:
 	global PluginsObjList:=Object()
 	global PluginsPathList:=Object()
 	global PluginsTitleList:=Object()
+	global PluginsContentList:=Object()
 	global PluginsObjNum:=0
 	global PluginsDir:="RunPlugins"	;~插件目录
 	global PluginsDirList:=[]
-	global PluginsDirPath:=Var_Read("PluginsDirPath","%A_ScriptDir%\..\RunAnyCtrl\")
+	global PluginsDirPath:=Var_Read("PluginsDirPath")
 	global PluginsDirPathList:="%A_ScriptDir%\RunPlugins|" PluginsDirPath
 	Loop, parse, PluginsDirPathList, |
 	{
@@ -5167,6 +5173,10 @@ Plugins_Read:
 			PluginsObjList[(A_LoopFileName)]:=0
 			PluginsPathList[(A_LoopFileName)]:=A_LoopFileFullPath
 			PluginsTitleList[(A_LoopFileName)]:=Plugins_Read_Title(A_LoopFileFullPath)
+			if(A_LoopField="%A_ScriptDir%\RunPlugins"){
+				FileRead,pluginsContent,%A_LoopFileFullPath%
+				PluginsContentList[(A_LoopFileName)]:=pluginsContent
+			}
 		}
 		Loop,%PluginsFolder%\*.*,2	;Plugins目录下文件夹内同名AHK脚本
 		{
@@ -5175,6 +5185,10 @@ Plugins_Read:
 				PluginsObjList[(A_LoopFileName . ".ahk")]:=0
 				PluginsPathList[(A_LoopFileName . ".ahk")]:=A_LoopFileFullPath "\" A_LoopFileName ".ahk"
 				PluginsTitleList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Title(A_LoopFileFullPath "\" A_LoopFileName ".ahk")
+				if(A_LoopField="%A_ScriptDir%\RunPlugins"){
+					FileRead,pluginsContent,% A_LoopFileFullPath "\" A_LoopFileName ".ahk"
+					PluginsContentList[(A_LoopFileName . ".ahk")]:=pluginsContent
+				}
 			}
 		}
 	}
