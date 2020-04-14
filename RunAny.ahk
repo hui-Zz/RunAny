@@ -624,8 +624,12 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 			transformValFlag:=false
 			if(itemMode!=2 && itemMode!=3 && itemMode!=6 && itemMode!=8){
 				Z_LoopField:=StrReplace(Z_LoopField,"%getZz%",Chr(3))
+				Z_LoopField:=StrReplace(Z_LoopField,"%Clipboard%",Chr(4))
+				Z_LoopField:=StrReplace(Z_LoopField,"%ClipboardAll%",Chr(5))
 				Z_LoopField:=Get_Transform_Val(Z_LoopField)
 				Z_LoopField:=StrReplace(Z_LoopField,Chr(3),"%getZz%")
+				Z_LoopField:=StrReplace(Z_LoopField,Chr(4),"%Clipboard%")
+				Z_LoopField:=StrReplace(Z_LoopField,Chr(5),"%ClipboardAll%")
 				transformValFlag:=true
 			}
 			itemMode:=GetMenuItemMode(Z_LoopField,true)
@@ -907,7 +911,7 @@ Menu_Add(menuName,menuItem,item,itemMode,TREE_NO){
 				webIconNum:=UrlIconS[2]
 			}
 			Menu_Item_Icon(menuName,menuItem,webIcon,webIconNum)
-			if(InStr(item,"%s"))
+			if(InStr(item,"%s") || InStr(item,"%getZz%"))
 				MenuWebList%TREE_NO%[menuName].=menuItem "`n"
 			return
 		}
@@ -1678,6 +1682,8 @@ Run_Search(any,getZz="",browser=""){
 	}
 	if(InStr(any,"%getZz%")){
 		Run,% browserRun """" StrReplace(any,"%getZz%",getZz) """"
+	}else if(InStr(any,"%Clipboard%")){
+		Run,% browserRun """" StrReplace(any,"%Clipboard%",Clipboard) """"
 	}else if(InStr(any,"%s",true)){
 		Run,% browserRun """" StrReplace(any,"%s",getZz) """"
 	}else if(InStr(any,"%S",true)){
@@ -2512,6 +2518,7 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add, Button, xm+6 yp+27 w60 vvSetFileRelativePath GSetFileRelativePath,相对路径
 	Gui,SaveItem:Add, Button, xm+6 yp+27 w60 vvSetShortcut GSetShortcut,快捷目标
 	Gui,SaveItem:Add, Button, xm+6 yp+27 w60 vvSetItemPathGetZz GSetItemPathGetZz,选中变量
+	Gui,SaveItem:Add, Button, xm+6 yp+27 w60 vvSetItemPathClipboard GSetItemPathClipboard, 剪贴板 
 
 	Gui,SaveItem:Add,Button,Default xm+220 y+25 w75 G%SaveLabel%,保存
 	Gui,SaveItem:Add,Button,x+20 w75 GSetCancel,取消
@@ -2636,7 +2643,7 @@ GuiControlSet(guiName,controlName,controlVal:=""){
 EditItemPathChange:
 	Gui,SaveItem:Submit, NoHide
 	if(InStr(vitemName,"-")=1){
-		GuiControlHide("SaveItem","vItemMode","vSetItemPath","vSetFileRelativePath","vSetItemPathGetZz","vSetShortcut")
+		GuiControlHide("SaveItem","vItemMode","vSetItemPath","vSetFileRelativePath","vSetItemPathGetZz","vSetItemPathClipboard","vSetShortcut")
 		GuiControlShow("SaveItem","vSetFileSuffix","vSetMenuPublic","vSetMenuText","vSetMenuFile")
 		GuiControl,SaveItem:Move, vSetFileSuffix, y+180
 		GuiControl,SaveItem:Move, vSetMenuPublic, y+200
@@ -2644,7 +2651,7 @@ EditItemPathChange:
 		GuiControl,SaveItem:Move, vSetMenuFile, y+260
 	}else{
 		GuiControlHide("SaveItem","vSetFileSuffix","vSetMenuPublic","vSetMenuText","vSetMenuFile")
-		GuiControlShow("SaveItem","vItemMode","vSetItemPath","vSetFileRelativePath","vSetItemPathGetZz","vSetShortcut")
+		GuiControlShow("SaveItem","vItemMode","vSetItemPath","vSetFileRelativePath","vSetItemPathGetZz","vSetItemPathClipboard","vSetShortcut")
 		filePath:=!vitemPath && vitemName ? vitemName : vitemPath
 		itemPathMode:=StrReplace(filePath,"%getZz%",Chr(3))
 		itemPathMode:=Get_Transform_Val(itemPathMode)
@@ -2729,12 +2736,14 @@ SetItemPath:
 	}
 return
 SetItemPathGetZz:
-	if(vItemMode=6){
-		GuiControl, SaveItem:, vitemPath, %vitemPath%`%s
-	}else{
-		GuiControl, SaveItem:, vStatusBar,`%getZz`%在运行时会转换为你鼠标选中的文本内容
-		GuiControl, SaveItem:, vitemPath, %vitemPath% `%getZz`%
-	}
+	GuiControl, SaveItem:, vStatusBar,`%getZz`%在运行时会转换为你鼠标选中的文本内容
+	GuiControl, SaveItem:Focus, vitemPath
+	Send_Str_Zz("%getZz%")
+return
+SetItemPathClipboard:
+	GuiControl, SaveItem:, vStatusBar,`%Clipboard`%在运行时会转换为剪贴板里的文本内容
+	GuiControl, SaveItem:Focus, vitemPath
+	Send_Str_Zz("%Clipboard%")
 return
 ;[全路径转换为RunAnyCtrl的相对路径]
 SetFileRelativePath:
