@@ -19,6 +19,7 @@ __多台电脑你只需配置一套软件列表(RunAny.ini)，就能到处运行
 - ☑ [外接脚本，个性函数，自由定制](#runPlugins)
 
 【Github下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.7.0.zip
+【Github下载地址：】https://github.com/hui-Zz/RunAny/archive/v5.7.1.zip
 - 蓝奏云下载：https://www.lanzous.com/b902490/
 - 百度云下载：https://pan.baidu.com/s/1qxbYAx0UA-u1dkoY-RXZJg
 

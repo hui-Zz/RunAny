@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.0 @2020.04.08
+║【RunAny】一劳永逸的快速启动工具 v5.7.1 @2020.04.12
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -22,8 +22,8 @@ StartTick:=A_TickCount  ;评估RunAny初始化时间
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
-global RunAny_update_version:="5.7.0"
-global RunAny_update_time:="2020.04.08"
+global RunAny_update_version:="5.7.1"
+global RunAny_update_time:="2020.04.12"
 Gosub,Var_Set          ;~参数初始化
 Gosub,Run_Exist        ;~调用判断依赖
 Gosub,Plugins_Read     ;~插件脚本读取
@@ -33,7 +33,7 @@ HotKeyList:=["MenuHotKey","MenuHotKey2","EvHotKey","OneHotKey"]
 RunHotKeyList:=HotKeyList.Clone()
 HotKeyList.Push("TreeHotKey1","TreeHotKey2","TreeIniHotKey1","TreeIniHotKey2")
 HotKeyList.Push("RunATrayHotKey","RunASetHotKey","RunAReloadHotKey","RunASuspendHotKey","RunAExitHotKey","PluginsManageHotKey")
-HotKeyTextList:=["RunAny菜单热键","RunAny菜单2热键","一键Everything热键","一键搜索热键"]
+HotKeyTextList:=["RunAny菜单显示热键","RunAny菜单2热键","一键Everything热键","一键搜索热键"]
 HotKeyTextList.Push("修改菜单管理(1)","修改菜单管理(2)","修改菜单文件(1)","修改菜单文件(2)")
 HotKeyTextList.Push("RunAny托盘菜单","设置RunAny","重启RunAny","停用RunAny","退出RunAny","插件管理")
 RunList:=["Menu_Show1","Menu_Show2","Ev_Show","One_Show","Menu_Edit1","Menu_Edit2","Menu_Ini","Menu_Ini2"]
@@ -2230,6 +2230,8 @@ Menu_Edit:
 			}else{
 				TV_Add(A_LoopField,treeRoot[treeLevel],"Bold Icon8")
 			}
+		}else if(A_LoopField="|" || A_LoopField="||"){
+			TV_Add(A_LoopField,treeRoot[treeLevel],"Bold Icon8")
 		}else if(InStr(A_LoopField,";")=1){
 			hwnd:=TV_Add(A_LoopField,treeRoot[treeLevel],"Icon8")
 			Tv.modify({hwnd:hwnd,fore:0x00A000})
@@ -5844,7 +5846,7 @@ FileAppend,
 	Chrome浏览器|chrome.exe
 	;多个同名iexplore.exe用全路径指定运行32位IE
 	;在【|】前加上IE(&E)的简称显示
-	IE(&E)|C:\Program Files (x86)\Internet Explorer\iexplore.exe
+	IE(&E)|`%ProgramFiles`%\Internet Explorer\iexplore.exe
 	;2级分隔符【--】
 	--
 	StrokesPlus鼠标手势|StrokesPlus.exe
