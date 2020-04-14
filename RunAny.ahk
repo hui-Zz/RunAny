@@ -1690,13 +1690,13 @@ Run_Search(any,getZz="",browser=""){
 ;~;[一键Everything][搜索选中文字][激活][隐藏]
 Ev_Show:
 	getZz:=Get_Zz()
-	if(InStr(FileExist(getZz), "D") || RegExMatch(getZz,".*\\$")){
+	if(EvShowFolder && (InStr(FileExist(getZz), "D") || RegExMatch(getZz,".*\\$"))){
 		if(InStr(getZz,A_Space)){
 			getZz="""%getZz%"""
 		}
 	}else if(RegExMatch(getZz,"S)^(\\\\|.:\\).*?$")){
-		SplitPath,getZz,fileName
-		getZz:=fileName
+		SplitPath,getZz,fileName,,,name_no_ext
+		getZz:=EvShowExt ? fileName : name_no_ext
 	}
 	EvPathRun:=Get_Transform_Val(EvPath)
 	IfWinExist ahk_class EVERYTHING
@@ -4157,11 +4157,13 @@ Menu_Set:
 	GuiControl, 66:+Redraw, RunAnyMenuVarLV
 	
 	Gui,66:Tab,Everything设置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h55,一键Everything [搜索选中文字、激活、隐藏] %EvHotKey%
-	Gui,66:Add,Hotkey,xm+10 yp+20 w150 vvEvKey,%EvKey%
-	Gui,66:Add,Checkbox,Checked%EvWinKey% xm+170 yp+3 vvEvWinKey,Win
-	Gui,66:Add,Checkbox,Checked%EvAutoClose% x+38 vvEvAutoClose,Everything自动关闭(不常驻)
-	Gui,66:Add,GroupBox,xm-10 y+30 w%GROUP_WIDTH_66% h100,Everything安装路径（支持内置变量和相对路径..\为RunAny相对上级目录）
+	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h70,一键Everything [搜索选中文字、激活、隐藏] %EvHotKey%
+	Gui,66:Add,Hotkey,xm+10 yp+20 w130 vvEvKey,%EvKey%
+	Gui,66:Add,Checkbox,Checked%EvWinKey% xm+150 yp+3 vvEvWinKey,Win
+	Gui,66:Add,Checkbox,Checked%EvShowExt% x+38 vvEvShowExt,搜索带文件后缀
+	Gui,66:Add,Checkbox,Checked%EvShowFolder% x+5 vvEvShowFolder,搜索选中文件夹内部
+	Gui,66:Add,Checkbox,Checked%EvAutoClose% xm+10 yp+25 vvEvAutoClose,Everything自动关闭(不常驻后台)
+	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h100,Everything安装路径（支持内置变量和相对路径..\为RunAny相对上级目录）
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r3 -WantReturn vvEvPath,%EvPath%
 	Gui,66:Add,GroupBox,xm-10 y+25 w%GROUP_WIDTH_66% h250,Everything通信搜索参数（搜索结果可在RunAny无路径运行，搜索为空请尝试重建Everything索引）
@@ -4387,7 +4389,7 @@ SetOK:
 		}
 	}
 	SetValueList.Push("AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupFormat","RunABackupDir","DisableApp")
-	SetValueList.Push("EvPath","EvCommand","EvAutoClose","EvExeVerNew","EvDemandSearch")
+	SetValueList.Push("EvPath","EvCommand","EvAutoClose","EvShowExt","EvShowFolder","EvExeVerNew","EvDemandSearch")
 	SetValueList.Push("HideFail","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideSelectZz","RecentMax")
 	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu","BrowserPath","IconFolderPath")
 	SetValueList.Push("MenuIconSize","MenuTrayIconSize","MenuIcon","AnyIcon","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon")
@@ -4835,6 +4837,8 @@ Var_Set:
 	global OneKeyMagnet:=Var_Read("OneKeyMagnet",1)
 	global OneKeyFile:=Var_Read("OneKeyFile",1)
 	global OneKeyMenu:=Var_Read("OneKeyMenu",0)
+	global EvShowExt:=Var_Read("EvShowExt",1)
+	global EvShowFolder:=Var_Read("EvShowFolder",1)
 	global EvAutoClose:=Var_Read("EvAutoClose",0)
 	global EvExeVerNew:=Var_Read("EvExeVerNew",0)
 	global EvDemandSearch:=Var_Read("EvDemandSearch",1)
