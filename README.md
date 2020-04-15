@@ -34,7 +34,7 @@ __多台电脑你只需配置一套软件列表(RunAny.ini)，就能到处运行
 
 
 ## 📢 关注RunAny一劳永逸微信公众号，分享【一劳永逸】的效率软件和解决方案！
-<img src="https://hui-zz.gitee.io/runany/assets/images/RunAny%E5%85%AC%E4%BC%97%E5%8F%B7-%E7%99%BD%E8%89%B2%E7%89%88.png" alt="RunAny公众号-白色版">
+<img src="https://hui-zz.gitee.io/runany/assets/images/RunAny%E5%85%AC%E4%BC%97%E5%8F%B7-%E7%99%BD%E8%89%B2%E7%89%88.jpg" alt="RunAny公众号-白色版">
 
 ---
 
