@@ -2,7 +2,7 @@
 ;* 【ObjReg文本操作脚本[文本函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.1.1"
+global RunAny_Plugins_Version:="1.1.2"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
@@ -19,14 +19,6 @@ CoordMode,Menu,Window   ;~坐标相对活动窗口
 #Include %A_ScriptDir%\RunAny_ObjReg.ahk
 
 class RunAnyObj {
-	;~;[输出短语]
-	Send_Str_Zz(strZz){
-		Candy_Saved:=ClipboardAll
-		Clipboard:=strZz
-		SendInput,^v
-		Sleep,200
-		Clipboard:=Candy_Saved
-	}
 	;[文本多行合并]
 	;参数说明：getZz：选中的文本内容
 	;splitStr：换行符替换的分隔文本(默认空格，逗号为特殊字符，转义写成`,)
@@ -39,7 +31,7 @@ class RunAnyObj {
 				textResult.=str . splitStr
 		}
 		StringTrimRight, textResult, textResult, 1
-		this.Send_Str_Zz(textResult)
+		Send_Str_Zz(textResult)
 	}
 	;[文本替换]
 	;参数说明：getZz：选中的文本内容
@@ -53,7 +45,7 @@ class RunAnyObj {
 		getZz:=StrReplace(getZz,searchStr,replaceStr)
 		if(formatStr!="")
 			getZz:=Format(formatStr,getZz)
-		this.Send_Str_Zz(getZz)
+		Send_Str_Zz(getZz)
 	}
 	;[文本格式化]
 	;参数说明：getZz：选中的文本内容
@@ -70,7 +62,7 @@ class RunAnyObj {
 			textResult.=Format(formatStr,getZzLoop) . "`n"
 		}
 		textResult:=RegExReplace(textResult,"`n$")
-		this.Send_Str_Zz(textResult)
+		Send_Str_Zz(textResult)
 	}
 	;[Markdown格式化]
 	;参数说明：getZz：选中的文本内容
@@ -99,7 +91,7 @@ class RunAnyObj {
 			textResult.=Format(formatStr,getZzLoop) . "`n"
 		}
 		textResult:=RegExReplace(textResult,"`n$")
-		this.Send_Str_Zz(textResult)
+		Send_Str_Zz(textResult)
 		if(surround){
 			getZzLen:=StrLen(getZz)
 			surroundKeyNum:=StrLen(StrReplace(textResult,getZz)) / 2
@@ -151,14 +143,14 @@ class RunAnyObj {
 			textResult.=Format(formatLoop,getZzList*) . "`n"
 		}
 		textResult:=RegExReplace(textResult,"`n$")
-		this.Send_Str_Zz(textResult)
+		Send_Str_Zz(textResult)
 	}
 	;[文本排序]
 	;参数说明：
 	;options：排序选项，详情查看(https://wyagd001.github.io/zh-cn/docs/commands/Sort.htm)
 	text_sort_zz(getZz:="",options:=""){
 		Sort,getZz,%options%
-		this.Send_Str_Zz(getZz)
+		Send_Str_Zz(getZz)
 	}
 	;[便捷运行磁力链接]
 	;参数说明：getZz：选中的文本内容
@@ -184,7 +176,7 @@ class RunAnyObj {
 			}
 			WinActivate,ahk_exe %editApp%
 			Sleep,200
-			this.Send_Str_Zz(getZz)
+			Send_Str_Zz(getZz)
 		}
 	}
 	;[便捷替换粘贴文本]
@@ -234,11 +226,11 @@ class RunAnyObj {
 				continue
 			}
 			numIndex:=A_Index-ignoreNum
-			numIndex:=(arab=1) ? numIndex : this.n2c(numIndex)
+			numIndex:=(arab=1) ? numIndex : n2c(numIndex)
 			textResult.=numIndex seqNumStr getZzLoop . "`n"
 		}
 		textResult:=RegExReplace(textResult,"`n$")
-		this.Send_Str_Zz(textResult)
+		Send_Str_Zz(textResult)
 	}
 	;[文本删除重复行保留顺序]
 	;参数说明：getZz：选中的文本内容
@@ -260,49 +252,14 @@ class RunAnyObj {
 			}
 		}
 		textResult:=RegExReplace(textResult,"`n$")
-		this.Send_Str_Zz(textResult)
-	}
-	;══════════════════════════════════════════════════════════════════
-	;数字转中文   by FeiYue
-	n2c(n){
-		if !(n ~= "^[1-9]\d*$")    ;当不是整数
-			return
-		static a:=StrSplit("零一二三四五六七八九")
-			, b:=StrSplit("十百千万十百千亿十百千兆十百千京十百千垓")
-		c:=d:="", k:=StrLen(n)
-		Loop, Parse, n
-			c.=a[A_LoopField+1] . b[k-A_Index]
-		if StrLen(c)>(max:=2*b.MaxIndex()+1)
-			d:=SubStr(c,1,-max+2), c:=SubStr(c,-max+3)
-		c:=RegExReplace(c,"零(十|百|千)","零")
-		c:=RegExReplace(c,"零{4}(万|亿|兆|京)","零")
-		c:=RegExReplace(c,"零+(万|亿|兆|京)","$1零")
-		c:=RegExReplace(c,"零+(?=零|$)")
-		return, d . c
-	}
-	;中文转数字   by FeiYue
-	c2n(c){
-		static a:={"零":0,一:1,二:2,两:2,三:3,四:4,五:5
-			,六:6,七:7,八:8,九:9,十:10,百:100,千:1000
-			,万:10000,亿:10**8,兆:10**12,京:10**16,垓:10**20}
-		c:=RegExReplace(c,"[[:ascii:]]")
-		c:=SubStr(c,1,1)="十" ? "一" c:c
-		r:=StrSplit(c), q:=w:=bak:=1, n:=0
-		Loop, % i:=r.MaxIndex()
-			if (v:=Round(a[r[i--]]))>1000
-				w*=(v>bak ? v//bak : v), bak:=v, q:=1
-			else if (v>=10)
-				q:=v
-			else n+=v*q*w
-		return, n
+		Send_Str_Zz(textResult)
 	}
 	;[中文数字互转]
 	;参数说明：getZz：选中的文本内容
 	;cn：0-转为阿拉伯数字；1-转为中文数字
 	text_cn2_zz(getZz:="",cn=0){
-		this.Send_Str_Zz(cn ? this.n2c(getZz) : this.c2n(getZz))
+		Send_Str_Zz(cn ? n2c(getZz) : c2n(getZz))
 	}
-	;══════════════════════════════════════════════════════════════════
 	;[文本编码转换]
 	;参数说明：getZz：选中的文本内容
 	;sCode：要转换的文本编码
@@ -316,64 +273,109 @@ class RunAnyObj {
 			return
 		}
 		if(sCode="uri"){
-			textResult:=this.URI_Decode(getZz)
+			textResult:=URI_Decode(getZz)
 		}else if(sCode="unicode"){
-			textResult:=this.Unicode_Decode(getZz)
+			textResult:=Unicode_Decode(getZz)
 		}else if(sCode="cn"){
 			if(cCode="uri"){
-				textResult:=this.URI_Encode(getZz)
+				textResult:=URI_Encode(getZz)
 			}else if(cCode="unicode"){
-				textResult:=this.CN2uXXXX(getZz)
+				textResult:=CN2uXXXX(getZz)
 			}
 		}
-		this.Send_Str_Zz(textResult)
+		Send_Str_Zz(textResult)
 		if(isShow){
 			ToolTip,%textResult%
 			Sleep,3000
 			ToolTip
 		}
 	}
-	;[中文转换为URI编码]
-	URI_Encode(Str, All := False)
+	
+}
+
+;════════════════════════════以下为需要依赖的函数════════════════════════════
+
+;~;输出短语
+Send_Str_Zz(strZz){
+	ClipSaved:=ClipboardAll
+	Clipboard:=strZz
+	SendInput,^v
+	Sleep,200
+	Clipboard:=ClipSaved
+}
+;数字转中文   by FeiYue
+n2c(n){
+	if !(n ~= "^[1-9]\d*$")    ;当不是整数
+		return
+	static a:=StrSplit("零一二三四五六七八九")
+		, b:=StrSplit("十百千万十百千亿十百千兆十百千京十百千垓")
+	c:=d:="", k:=StrLen(n)
+	Loop, Parse, n
+		c.=a[A_LoopField+1] . b[k-A_Index]
+	if StrLen(c)>(max:=2*b.MaxIndex()+1)
+		d:=SubStr(c,1,-max+2), c:=SubStr(c,-max+3)
+	c:=RegExReplace(c,"零(十|百|千)","零")
+	c:=RegExReplace(c,"零{4}(万|亿|兆|京)","零")
+	c:=RegExReplace(c,"零+(万|亿|兆|京)","$1零")
+	c:=RegExReplace(c,"零+(?=零|$)")
+	return, d . c
+}
+;中文转数字   by FeiYue
+c2n(c){
+	static a:={"零":0,一:1,二:2,两:2,三:3,四:4,五:5
+		,六:6,七:7,八:8,九:9,十:10,百:100,千:1000
+		,万:10000,亿:10**8,兆:10**12,京:10**16,垓:10**20}
+	c:=RegExReplace(c,"[[:ascii:]]")
+	c:=SubStr(c,1,1)="十" ? "一" c:c
+	r:=StrSplit(c), q:=w:=bak:=1, n:=0
+	Loop, % i:=r.MaxIndex()
+		if (v:=Round(a[r[i--]]))>1000
+			w*=(v>bak ? v//bak : v), bak:=v, q:=1
+		else if (v>=10)
+			q:=v
+		else n+=v*q*w
+	return, n
+}
+;[中文转换为URI编码]
+URI_Encode(Str, All := False)
+{
+	Static doc := ComObjCreate("HTMLfile")
+	Try
 	{
-		Static doc := ComObjCreate("HTMLfile")
-		Try
-		{
-			doc.write("<body><script>document.body.innerText = encodeURI" . (All ? "Component" : "") . "(""" . Str . """);</script>")
-			Return, doc.body.innerText, doc.body.innerText := ""
-		}
+		doc.write("<body><script>document.body.innerText = encodeURI" . (All ? "Component" : "") . "(""" . Str . """);</script>")
+		Return, doc.body.innerText, doc.body.innerText := ""
 	}
-	;[URI编码转换为中文]
-	URI_Decode(Str)
+}
+;[URI编码转换为中文]
+URI_Decode(Str)
+{
+	Static doc := ComObjCreate("HTMLfile")
+	Try
 	{
-		Static doc := ComObjCreate("HTMLfile")
-		Try
-		{
-			doc.write("<body><script>document.body.innerText = decodeURIComponent(""" . Str . """);</script>")
-			Return, doc.body.innerText, doc.body.innerText := ""
-		}
+		doc.write("<body><script>document.body.innerText = decodeURIComponent(""" . Str . """);</script>")
+		Return, doc.body.innerText, doc.body.innerText := ""
 	}
-	;[中文转Unicode编码]properties配置文件可以使用这种格式
-	CN2uXXXX(cnStr) ; in: "爱尔兰之狐" out: "\u7231\u5C14\u5170\u4E4B\u72D0"
-	{	; by https://github.com/cocobelgica/AutoHotkey-JSON
-		while RegExMatch(cnStr, "[^\x20-\x7e]", ch) {
-			ustr := Asc(ch), esc_ch := "\u", n := 12
-			while (n >= 0)
-				esc_ch .= Chr((x:=(ustr>>n) & 15) + (x<10 ? 48 : 55))
-				, n -= 4
-			StringReplace, cnStr, cnStr, % ch, % esc_ch, A
-		}
-		return, cnStr
+}
+;[中文转Unicode编码]properties配置文件可以使用这种格式
+CN2uXXXX(cnStr) ; in: "爱尔兰之狐" out: "\u7231\u5C14\u5170\u4E4B\u72D0"
+{	; by https://github.com/cocobelgica/AutoHotkey-JSON
+	while RegExMatch(cnStr, "[^\x20-\x7e]", ch) {
+		ustr := Asc(ch), esc_ch := "\u", n := 12
+		while (n >= 0)
+			esc_ch .= Chr((x:=(ustr>>n) & 15) + (x<10 ? 48 : 55))
+			, n -= 4
+		StringReplace, cnStr, cnStr, % ch, % esc_ch, A
 	}
-	;[Unicode编码转换为中文]
-	Unicode_Decode(Str)
+	return, cnStr
+}
+;[Unicode编码转换为中文]
+Unicode_Decode(Str)
+{
+	Static doc := ComObjCreate("HTMLfile")
+	Try
 	{
-		Static doc := ComObjCreate("HTMLfile")
-		Try
-		{
-			doc.write("<body><script>document.body.innerText = unescape(""" . Str . """);</script>")
-			Return, doc.body.innerText, doc.body.innerText := ""
-		}
+		doc.write("<body><script>document.body.innerText = unescape(""" . Str . """);</script>")
+		Return, doc.body.innerText, doc.body.innerText := ""
 	}
 }
 
