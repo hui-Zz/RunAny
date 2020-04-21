@@ -265,6 +265,11 @@ class RunAnyObj {
 	;sCode：要转换的文本编码
 	;cCode：转换后的文本编码
 	;isShow：是否显示文本编码(1显示;0隐藏)
+	;保存到RunAny.ini为：
+	;uri转中文|huiZz_Text[text_encode_zz](%getZz%,uri,cn)
+	;中文转uri|huiZz_Text[text_encode_zz](%getZz%,cn,uri)
+	;unicode转中文|huiZz_Text[text_encode_zz](%getZz%,unicode,cn)
+	;中文转unicode|huiZz_Text[text_encode_zz](%getZz%,cn,unicode)
 	text_encode_zz(getZz:="",sCode:="",cCode:="",isShow:=true){
 		if(getZz="" || sCode="" || cCode=""){
 			ToolTip,没有选中文本或指定需要转换的编码格式
@@ -291,6 +296,7 @@ class RunAnyObj {
 		}
 	}
 	;~;[文本加密]
+	;注意：钥匙不要为全中文
 	;保存到RunAny.ini为：
     ;选中文本加密|huiZz_Text[encrypt](%getZz%,钥匙1)
 	;选中加密到剪贴板|huiZz_Text[encrypt](%getZz%,钥匙2,0)
@@ -298,6 +304,7 @@ class RunAnyObj {
         Send_Or_Show(encryptstr(text,key),isSend)
 	}
     ;~;[文本解密]
+	;注意：钥匙不要为全中文
     ;保存到RunAny.ini为：
 	;文本解密输出|huiZz_Text[decrypt](被解密文本,钥匙1)
 	;选中文本解密|huiZz_Text[decrypt](%getZz%,钥匙1)
@@ -405,6 +412,7 @@ Unicode_Decode(Str)
 	}
 }
 
+;https://www.autohotkey.com/boards/viewtopic.php?f=6&t=1108&hilit=password+encryption
 encryptStr(str="",pass="")
 {
 If !(enclen:=(strput(str,"utf-16")*2))
