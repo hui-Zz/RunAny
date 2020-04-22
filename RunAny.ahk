@@ -4089,12 +4089,12 @@ Menu_Set:
 
 	Gui,66:Add,GroupBox,xm-10 y+15 w225 h55,RunAny菜单热键 %MenuHotKey%
 	Gui,66:Add,Hotkey,xm yp+20 w150 vvMenuKey,%MenuKey%
-	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+155 yp+3 w55 vvMenuWinKey gSendMenuWinKey,Win
+	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+155 yp+3 w55 vvMenuWinKey gSetMenuWinKey,Win
 
 	If(MENU2FLAG){
 		Gui,66:Add,GroupBox,x+40 yp-23 w225 h55,菜单2热键 %MenuHotKey2%
 		Gui,66:Add,Hotkey,xp+10 yp+20 w150 vvMenuKey2,%MenuKey2%
-		Gui,66:Add,Checkbox,Checked%MenuWinKey2% xp+155 yp+3 w55 vvMenuWinKey2 gSendMenuWinKey2,Win
+		Gui,66:Add,Checkbox,Checked%MenuWinKey2% xp+155 yp+3 w55 vvMenuWinKey2 gSetMenuWinKey2,Win
 	}else{
 		Gui,66:Add,Button,x+40 yp-5 w150 GSetMenu2,开启第2个菜单
 	}
@@ -4155,11 +4155,11 @@ Menu_Set:
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuVarEdit, * 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuVarRemove, - 减少
 	Gui,66:Add,Text, x+15 yp-10,使用方法：变量两边加百分号如：`%变量名`%`n编辑菜单项的启动路径中 或 RunAny.ini文件中使用
-	Gui,66:Add,Listview,xm yp+40 w%GROUP_EDIT_WIDTH_66% r16 grid AltSubmit vRunAnyMenuVarLV glistviewMenuVar, 菜单变量名|类型|菜单变量值（仅用户自定义变量是固定值）
+	Gui,66:Add,Listview,xm yp+40 w%GROUP_EDIT_WIDTH_66% r16 grid AltSubmit vRunAnyMenuVarLV glistviewMenuVar, 菜单变量名|类型|菜单变量值（动态变量不同电脑会自动变化）
 	GuiControl, 66:-Redraw, RunAnyMenuVarLV
 	For mVarName, mVarVal in MenuVarIniList
 	{
-		mtypeStr:=(MenuVarTypeList[mVarName]=1) ? "RunAny变量(动态)" : (MenuVarTypeList[mVarName]=2) ? "系统环境变量(动态)" : "用户自定义变量"
+		mtypeStr:=(MenuVarTypeList[mVarName]=1) ? "RunAny变量(动态)" : (MenuVarTypeList[mVarName]=2) ? "系统环境变量(动态)" : "用户变量(固定值)"
 		LV_Add("", mVarName, mtypeStr, mVarVal)
 	}
 	LV_ModifyCol()
@@ -4174,7 +4174,7 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%EvAutoClose% xm+10 yp+25 vvEvAutoClose,Everything自动关闭(不常驻后台)
 	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h100,Everything安装路径（支持内置变量和相对路径..\为RunAny相对上级目录）
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
-	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r3 -WantReturn vvEvPath,%EvPath%
+	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r2 -WantReturn vvEvPath,%EvPath%
 	Gui,66:Add,GroupBox,xm-10 y+25 w%GROUP_WIDTH_66% h250,Everything通信搜索参数（搜索结果可在RunAny无路径运行，搜索为空请尝试重建Everything索引）
 	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+30 vvEvExeVerNew gSetEvExeVerNew,搜索结果优先最新版本同名exe全路径
 	Gui,66:Add,Checkbox,Checked%EvDemandSearch% x+10 vvEvDemandSearch gSetEvDemandSearch,按需搜索模式（只搜索RunAny菜单的无路径文件）
@@ -4237,10 +4237,11 @@ Menu_Set:
 	Gui,66:Add,Text,xm yp+50 cBlue,提示文字自动消失后，而且后续输入字符不触发热字符串功能`n需要按Tab/回车/句点/空格等键之后才会再次进行提示
 	
 	Gui,66:Tab,图标设置,,Exact
-	Gui,66:Add,Text,xm y+%MARGIN_TOP_66%,RunAny菜单项图标大小(像素)
-	Gui,66:Add,Edit,x+5 yp w30 h20 vvMenuIconSize,%MenuIconSize%
-	Gui,66:Add,Text,x+20 yp,任务栏右键图标菜单项图标大小(像素)
-	Gui,66:Add,Edit,x+5 yp w30 h20 vvMenuTrayIconSize,%MenuTrayIconSize%
+	Gui,66:Add,Checkbox,Checked%HideMenuTrayIcon% xm-10 y+%MARGIN_TOP_66% vvHideMenuTrayIcon gSetHideMenuTrayIcon,隐藏任务栏托盘图标
+	Gui,66:Add,Text,x+10 yp,RunAny菜单项图标大小(像素)
+	Gui,66:Add,Edit,x+3 yp w30 h20 vvMenuIconSize,%MenuIconSize%
+	Gui,66:Add,Text,x+15 yp,托盘右键菜单图标大小(像素)
+	Gui,66:Add,Edit,x+3 yp w30 h20 vvMenuTrayIconSize,%MenuTrayIconSize%
 	Gui,66:Add,GroupBox,xm-10 yp+30 w%GROUP_WIDTH_66% h245,图标自定义设置（图片或图标文件路径 , 序号不填默认1）
 	Gui,66:Add,Button,xm yp+20 w80 GSetAnyIcon,RunAny图标
 	Gui,66:Add,Edit,xm+85 yp+1 w440 r1 vvAnyIcon,%AnyIcon%
@@ -4256,12 +4257,12 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+85 yp+1 w440 r1 vvEXEIcon,%EXEIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetFuncIcon,脚本插件函数
 	Gui,66:Add,Edit,xm+85 yp+1 w440 r1 vvFuncIcon,%FuncIcon%
-	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h160,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含热字符串和全局热键）
+	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h140,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含热字符串和全局热键）
 	Gui,66:Add,Text, xm yp+20 w380,如图标文件名可以为：-常用(&&App).ico、cmd.png、百度(&&B).ico
 	if(ResourcesExtractExist)
 		Gui,66:Add,Button,x+5 yp w110 GMenu_Exe_Icon_Create,生成所有EXE图标
 	Gui,66:Add,Button,xm yp+30 w50 GSetIconFolderPath,选择
-	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r5 vvIconFolderPath,%IconFolderPath%
+	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r4 vvIconFolderPath,%IconFolderPath%
 
 	Gui,66:Tab
 	Gui,66:Add,Button,Default xm+100 y+40 w75 GSetOK,确定
@@ -4401,7 +4402,7 @@ SetOK:
 	SetValueList.Push("EvPath","EvCommand","EvAutoClose","EvShowExt","EvShowFolder","EvExeVerNew","EvDemandSearch")
 	SetValueList.Push("HideFail","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideSelectZz","RecentMax")
 	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu","BrowserPath","IconFolderPath")
-	SetValueList.Push("MenuIconSize","MenuTrayIconSize","MenuIcon","AnyIcon","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon")
+	SetValueList.Push("HideMenuTrayIcon","MenuIconSize","MenuTrayIconSize","MenuIcon","AnyIcon","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon")
 	SetValueList.Push("HideHotStr","HotStrShowLen","HotStrShowTime","HotStrShowTransparent","HotStrShowX","HotStrShowY")
 	SetValueList.Push("MenuDoubleCtrlKey", "MenuDoubleAltKey", "MenuDoubleLWinKey", "MenuDoubleRWinKey")
 	SetValueList.Push("MenuCtrlRightKey", "MenuShiftRightKey", "MenuXButton1Key", "MenuXButton2Key", "MenuMButtonKey")
@@ -4522,15 +4523,20 @@ SetMenu2:
 		gosub,Menu_Edit2
 	}
 return
-SendMenuWinKey:
+SetMenuWinKey:
 	GuiControlGet, outPutVar, , vMenuWinKey
 	If(outPutVar)
 		MsgBox, 48, 提示：, 使用Win+字母热键可能无法取得QQ聊天窗口中文字，`n因为QQ聊天窗口是绘制的特殊窗体
 return
-SendMenuWinKey2:
+SetMenuWinKey2:
 	GuiControlGet, outPutVar, , vMenuWinKey2
 	If(outPutVar)
 		MsgBox, 48, 提示：, 使用Win+字母热键可能无法取得QQ聊天窗口中文字，`n因为QQ聊天窗口是绘制的特殊窗体
+return
+SetHideMenuTrayIcon:
+	Gui,66:Submit, NoHide
+	If(vHideMenuTray && vHideMenuTrayIcon)
+		MsgBox, 48, 警告！, 已经隐藏菜单中的“RunAny设置”，如果再隐藏任务栏托盘图标后`n`n只能通过快捷键来再次打开RunAny设置界面，如果忘记热键的话`n`n需要手动修改 RunAnyConfig.ini 文件取消隐藏图标： HideMenuTrayIcon=0
 return
 Reg_Set(vGui, var, sz){
 	StringCaseSense, On
@@ -4816,8 +4822,11 @@ Var_Set:
 		Run *RunAs %adminahkpath%"%A_ScriptFullPath%"
 		ExitApp
 	}
+	global HideMenuTrayIcon:=Var_Read("HideMenuTrayIcon")
+	if(HideMenuTrayIcon)
+		Menu, Tray, NoIcon 
 	global AdminMode:=A_IsAdmin ? "【管理员】" : ""
-	global AutoReloadMTime:=Var_Read("AutoReloadMTime",2000)
+	global AutoReloadMTime:=Var_Read("AutoReloadMTime",2500)
 	global RunABackupDir:=Var_Read("RunABackupDir","`%A_ScriptDir`%\RunBackup")
 	global RunABackupRule:=Var_Read("RunABackupRule",1)
 	global RunABackupMax:=Var_Read("RunABackupMax",5)
