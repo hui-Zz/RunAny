@@ -4072,7 +4072,7 @@ Menu_Set:
 	Gui,66:Font,,Microsoft YaHei
 	Gui,66:Margin,30,20
 	Gui,66:Default
-	Gui,66:Add,Tab,x10 y10 w590 h540,RunAny设置|热键配置|菜单变量|Everything设置|一键直达|内部关联打开|热字符串|图标设置
+	Gui,66:Add,Tab3,x10 y10 w590 h480 +Theme -Background,RunAny设置|热键配置|菜单变量|Everything设置|一键直达|内部关联打开|热字符串|图标设置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+%MARGIN_TOP_66% vvAutoRun,开机自动启动
 	Gui,66:Add,Checkbox,Checked%AdminRun% x+148 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
@@ -4088,7 +4088,7 @@ Menu_Set:
 	Gui,66:Add,Text,x+5 yp+2,最近运行项数量 (0为隐藏)
 	Gui,66:Add,Button,x+5 w50 h20 gSetClearRecentMax,清理
 
-	Gui,66:Add,GroupBox,xm-10 y+15 w225 h55,RunAny菜单热键 %MenuHotKey%
+	Gui,66:Add,GroupBox,xm-10 y+10 w225 h55,RunAny菜单热键 %MenuHotKey%
 	Gui,66:Add,Hotkey,xm yp+20 w150 vvMenuKey,%MenuKey%
 	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+155 yp+3 w55 vvMenuWinKey gSetMenuWinKey,Win
 
@@ -4111,7 +4111,7 @@ Menu_Set:
 	Gui,66:Add,Button,xm yp+25 GSetRunABackupDir,RunAny.ini自动备份目录
 	Gui,66:Add,Edit,x+11 yp+2 w380 r1 vvRunABackupDir,%RunABackupDir%
 	
-	Gui,66:Add,GroupBox,xm-10 y+15 w%GROUP_WIDTH_66% h105,屏蔽RunAny程序列表（逗号分隔）
+	Gui,66:Add,GroupBox,xm-10 y+15 w%GROUP_WIDTH_66% h110,屏蔽RunAny程序列表（逗号分隔）
 	Gui,66:Add,Edit,xm yp+25 w%GROUP_EDIT_WIDTH_66% r4 -WantReturn vvDisableApp,%DisableApp%
 	
 	Gui,66:Tab,热键配置,,Exact
@@ -4155,7 +4155,7 @@ Menu_Set:
 	Gui,66:Add,Button, xm yp+30 w50 GLVMenuVarAdd, + 增加
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuVarEdit, * 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuVarRemove, - 减少
-	Gui,66:Add,Text, x+15 yp-10,使用方法：变量两边加百分号如：`%变量名`%`n编辑菜单项的启动路径中 或 RunAny.ini文件中使用
+	Gui,66:Add,Text, x+15 yp-5,使用方法：变量两边加百分号如：`%变量名`%`n编辑菜单项的启动路径中 或 RunAny.ini文件中使用
 	Gui,66:Add,Listview,xm yp+40 w%GROUP_EDIT_WIDTH_66% r16 grid AltSubmit vRunAnyMenuVarLV glistviewMenuVar, 菜单变量名|类型|菜单变量值（动态变量不同电脑会自动变化）
 	GuiControl, 66:-Redraw, RunAnyMenuVarLV
 	For mVarName, mVarVal in MenuVarIniList
@@ -4170,10 +4170,10 @@ Menu_Set:
 	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h70,一键Everything [搜索选中文字、激活、隐藏] %EvHotKey%
 	Gui,66:Add,Hotkey,xm+10 yp+20 w130 vvEvKey,%EvKey%
 	Gui,66:Add,Checkbox,Checked%EvWinKey% xm+150 yp+3 vvEvWinKey,Win
-	Gui,66:Add,Checkbox,Checked%EvShowExt% x+38 vvEvShowExt,搜索带文件后缀
+	Gui,66:Add,Checkbox,Checked%EvShowExt% x+23 vvEvShowExt,搜索带文件后缀
 	Gui,66:Add,Checkbox,Checked%EvShowFolder% x+5 vvEvShowFolder,搜索选中文件夹内部
-	Gui,66:Add,Checkbox,Checked%EvAutoClose% xm+10 yp+25 vvEvAutoClose,Everything自动关闭(不常驻后台)
-	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h100,Everything安装路径（支持内置变量和相对路径..\为RunAny相对上级目录）
+	Gui,66:Add,Checkbox,Checked%EvAutoClose% xm+220 yp+25 vvEvAutoClose,Everything自动关闭(不常驻后台)
+	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h90,Everything安装路径（支持内置变量和相对路径..\为RunAny相对上级目录）
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r2 -WantReturn vvEvPath,%EvPath%
 	Gui,66:Add,GroupBox,xm-10 y+25 w%GROUP_WIDTH_66% h250,Everything通信搜索参数（搜索结果可在RunAny无路径运行，搜索为空请尝试重建Everything索引）
@@ -4266,7 +4266,7 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r4 vvIconFolderPath,%IconFolderPath%
 
 	Gui,66:Tab
-	Gui,66:Add,Button,Default xm+100 y+40 w75 GSetOK,确定
+	Gui,66:Add,Button,Default xm+120 y+40 w75 GSetOK,确定
 	Gui,66:Add,Button,x+15 w75 GSetCancel,取消
 	Gui,66:Add,Button,x+15 w75 GSetReSet,重置
 	Gui,66:Add,Text,x+40 yp+5 w75 GMenu_Config,RunAnyConfig.ini
