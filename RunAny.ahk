@@ -4086,6 +4086,7 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%HideMenuTray% xm yp+20 vvHideMenuTray,隐藏底部“RunAny设置”
 	Gui,66:Add,Edit,x+78 w30 h20 vvRecentMax,%RecentMax%
 	Gui,66:Add,Text,x+5 yp+2,最近运行项数量 (0为隐藏)
+	Gui,66:Add,Button,x+5 w50 h20 gSetClearRecentMax,清理
 
 	Gui,66:Add,GroupBox,xm-10 y+15 w225 h55,RunAny菜单热键 %MenuHotKey%
 	Gui,66:Add,Hotkey,xm yp+20 w150 vvMenuKey,%MenuKey%
@@ -4461,6 +4462,9 @@ return
 SetHideSelectZz:
 	GuiControlGet, outPutVar, , vHideSelectZz
 	GuiControl,, vHideSelectZz2, %outPutVar%
+return
+SetClearRecentMax:
+	RegDelete, HKEY_CURRENT_USER, SOFTWARE\RunAny, MenuCommonList
 return
 SetReSet:
 	MsgBox,49,重置RunAny配置,此操作会删除RunAny所有注册表配置，以及删除本地配置文件%RunAnyConfig%，确认删除重置吗？
