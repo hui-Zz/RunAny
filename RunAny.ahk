@@ -5706,7 +5706,7 @@ everythingQuery(){
 				}
 				itemVars:=StrSplit(A_LoopField,"|",,2)
 				itemVar:=itemVars[2] ? itemVars[2] : itemVars[1]
-				RegExMatch(itemVar,"[^|]+?\.[a-zA-Z0-9]+$",outVar)
+				RegExMatch(itemVar,"^[^|]+?\.[a-zA-Z0-9]+",outVar)
 				if(Trim(outVar) && !RegExMatch(outVar,"\\|\/|\:|\*|\?|\""|\<|\>|\|") 
 						&& !InStr(EvCommandStr,"|" outVar "|") && GetMenuItemMode(A_LoopField)=1){
 					if(InStr(outVar,A_Space) || InStr(outVar,"!")){
