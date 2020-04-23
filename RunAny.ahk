@@ -4069,9 +4069,9 @@ Menu_Set:
 	GROUP_CHOOSE_EDIT_WIDTH_66=480
 	MARGIN_TOP_66=15
 	Gui,66:Destroy
-	Gui,66:Font,,Microsoft YaHei
-	Gui,66:Margin,30,20
 	Gui,66:Default
+	Gui,66:Margin,30,20
+	Gui,66:Font,,Microsoft YaHei
 	Gui,66:Add,Tab3,x10 y10 w590 h480 +Theme -Background,RunAny设置|热键配置|菜单变量|Everything设置|一键直达|内部关联打开|热字符串|图标设置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+%MARGIN_TOP_66% vvAutoRun,开机自动启动
@@ -4115,7 +4115,8 @@ Menu_Set:
 	Gui,66:Add,Edit,xm yp+25 w%GROUP_EDIT_WIDTH_66% r4 -WantReturn vvDisableApp,%DisableApp%
 	
 	Gui,66:Tab,热键配置,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h285,%RunAnyZz%热键配置列表（双击修改，按F2可手写AHK使用特殊热键，如Space、CapsLock、Tab等）
+	Gui,66:Add,Link,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%
+		,%RunAnyZz%热键配置列表（双击修改，按F2可手写AHK使用特殊热键，<a href="https://wyagd001.github.io/zh-cn/docs/KeyList.htm">如Space、CapsLock、Tab等</a>）
 	Gui,66:Add,Listview,xm yp+20 w%GROUP_EDIT_WIDTH_66% r11 grid AltSubmit -ReadOnly vRunAnyHotkeyLV glistviewHotkey, 热键AHK写法|热键说明|热键变量名
 	kvLenMax:=0
 	GuiControl, 66:-Redraw, RunAnyHotkeyLV
@@ -4203,11 +4204,11 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r3 -WantReturn vvBrowserPath,%BrowserPath%
 	
 	Gui,66:Tab,内部关联打开,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h435,内部关联软件打开%RunAnyZz%菜单内不同后缀的文件（不是打开资源管理器中的文件！）
+	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h435,内部关联软件打开%RunAnyZz%菜单内不同后缀的文件（不是作用打开资源管理器中的文件）
 	Gui,66:Add,Button, xm yp+30 w50 GLVOpenExtAdd, + 增加
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtEdit, * 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtRemove, - 减少
-	Gui,66:Add,Text, x+10 yp-10 w320,特殊类型：网址http https www ftp等`n文件夹folder（原来使用TC第三方软件打开文件夹的功能）
+	Gui,66:Add,Text, x+10 yp-5 w320,特殊类型：网址http https www ftp等`n文件夹folder（原来使用TC第三方软件打开文件夹的功能）
 	Gui,66:Add,Listview,xm yp+40 w%GROUP_EDIT_WIDTH_66% r16 grid AltSubmit -Multi vRunAnyOpenExtLV glistviewOpenExt, RunAny菜单内文件后缀(用空格分隔)|打开方式(支持无路径)
 	kvLenMax:=0
 	GuiControl, 66:-Redraw, RunAnyOpenExtLV
@@ -4270,7 +4271,7 @@ Menu_Set:
 	Gui,66:Add,Button,x+15 w75 GSetCancel,取消
 	Gui,66:Add,Button,x+15 w75 GSetReSet,重置
 	Gui,66:Add,Text,x+40 yp+5 w75 GMenu_Config,RunAnyConfig.ini
-	Gui,66:Show,,%RunAnyZz%设置 %RunAny_update_version% %RunAny_update_time%%AdminMode%
+	Gui,66:Show,w610,%RunAnyZz%设置 %RunAny_update_version% %RunAny_update_time%%AdminMode%
 	k:=v:=mVarName:=mVarVal:=mOpenExtName:=mOpenExtRun:=""
 	SetValueList:=["AdminRun"]
 	;[手写AHK热键情况下不根据Hotkey热键控件保存，避免清空手写热键值]
