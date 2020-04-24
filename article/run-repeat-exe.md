@@ -36,7 +36,13 @@ code.exe的路径有
 
 如果运行软件带有特殊命令参数或一次运行多个，可以创建快捷方式，在RunAny中添加`快捷方式.lnk`，在不同电脑都有该名称快捷方式就可以无路径便捷运行了
 
-### 四、全路径指定运行，只推荐固定路径安装程序，不推荐绿色软件使用此方式
+### 四、菜单变量路径运行，系统环境变量、网盘路径、AHK内置变量等（升级RunAny版本到5.7.0版本以上）
+
+如根据OneDrvie网盘路径运行应用：`PortableApps|%OneDrive%\Start.exe`
+
+相对于RunAny安装路径的应用：`Notepad2|%A_ScriptDir%\..\..\..\Apps\Zz\TotalCMD64\Tools\Notepad2.exe`
+
+### 五、全路径指定运行，只推荐固定路径安装程序，不推荐绿色软件使用此方式
 
 如：`IE(32位)|C:\Program Files (x86)\Internet Explorer\iexplore.exe`
 
