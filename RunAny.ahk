@@ -703,6 +703,8 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					MenuObjKeyName[menuKeys[2]]:=menuKeys[1]
 					if(!InStr(menuDiy[2],"%getZz%") && RegExMatch(menuDiy[2],"iS).+?\[.+?\]%?\(.*?\)")){
 						Hotkey,% menuKeys[2],Menu_Key_NoGet_Run,On
+					}else if(itemMode=4 || itemMode=5){ ;热键映射不去获取当前选中内容
+						Hotkey,% menuKeys[2],Menu_Key_NoGet_Run,On
 					}else{
 						Hotkey,% menuKeys[2],Menu_Key_Run,On
 					}
