@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.1 @2020.04.22
+║【RunAny】一劳永逸的快速启动工具 v5.7.1 @2020.04.24
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.7.1"
-global RunAny_update_time:="2020.04.22"
+global RunAny_update_time:="2020.04.24"
 Gosub,Var_Set          ;~参数初始化
 Gosub,Run_Exist        ;~调用判断依赖
 Gosub,Plugins_Read     ;~插件脚本读取
@@ -1419,10 +1419,12 @@ Menu_Run_Mode_Label:
 	anyLen:=StrLen(any)
 	if(itemMode=2){
 		StringLeft, any, any, anyLen-1
+		any:=SendStrDecrypt(any)
 		Send_Str_Zz(any,true)  ;[粘贴输出短语]
 		returnFlag:=true
 	}else if(itemMode=3){
 		StringLeft, any, any, anyLen-2
+		any:=SendStrDecrypt(any)
 		Send_Str_Input_Zz(any,true)  ;[键盘输出短语]
 		returnFlag:=true
 	}else if(itemMode=4){
@@ -1455,6 +1457,17 @@ Menu_Run_Exe_Url:
 	anyUrl:=RegExReplace(any,"iS).*?\.exe (.*)","$1")	;去掉应用名，取参数
 	Run_Search(anyUrl,getZz,BrowserPath)
 return
+;调用huiZz_Text插件函数
+SendStrDecrypt(any){
+	try{
+		if(RegExMatch(any,".*\$$") && PluginsObjRegGUID["huiZz_Text"]){
+			PluginsObjRegActive["huiZz_Text"]:=ComObjActive(PluginsObjRegGUID["huiZz_Text"])
+			anyval:=PluginsObjRegActive["huiZz_Text"]["runany_decrypt"](any,SendStrDcKey)
+			return anyval
+		}
+	} catch {}
+	return any
+}
 Menu_Run_Plugins_ObjReg:
 	appPlugins:=RegExReplace(any,"iS)(.+?)\[.+?\]%?\(.*?\)","$1")	;取插件名
 	appFunc:=RegExReplace(any,"iS).+?\[(.+?)\]%?\(.*?\)","$1")	;取函数名
@@ -4074,7 +4087,7 @@ Menu_Set:
 	Gui,66:Default
 	Gui,66:Margin,30,20
 	Gui,66:Font,,Microsoft YaHei
-	Gui,66:Add,Tab3,x10 y10 w590 h480 +Theme -Background,RunAny设置|热键配置|菜单变量|Everything设置|一键直达|内部关联打开|热字符串|图标设置
+	Gui,66:Add,Tab3,x10 y10 w590 h480 +Theme -Background,RunAny设置|热键配置|菜单变量|Everything设置|一键直达|内部关联打开|热字符串短语|图标设置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+%MARGIN_TOP_66% vvAutoRun,开机自动启动
 	Gui,66:Add,Checkbox,Checked%AdminRun% x+148 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
@@ -4225,7 +4238,7 @@ Menu_Set:
 		LV_ModifyCol(1,"AutoHdr")  ;列宽调整为标题对齐
 	GuiControl, 66:+Redraw, RunAnyOpenExtLV
 	
-	Gui,66:Tab,热字符串,,Exact
+	Gui,66:Tab,热字符串短语,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h350,热字符串设置
 	Gui,66:Add,Checkbox,Checked%HideHotStr% xm yp+30 vvHideHotStr,隐藏热字符串提示
 	Gui,66:Add,Text,xm yp+40 w250,提示启动路径最长字数 (0为隐藏)
@@ -4238,10 +4251,12 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+200 yp-3 w200 r1 vvHotStrShowX,%HotStrShowX%
 	Gui,66:Add,Text,xm yp+40 w250,提示相对于鼠标坐标 Y (可为负数)：
 	Gui,66:Add,Edit,xm+200 yp-3 w200 r1 vvHotStrShowY,%HotStrShowY%
+	Gui,66:Add,Text,xm yp+40 w250,短语key：
+	Gui,66:Add,Edit,xm+200 yp-3 Password w200 cWhite r1 vvSendStrDcKey,%SendStrDcKey%
 	Gui,66:Add,Text,xm yp+50 cBlue,提示文字自动消失后，而且后续输入字符不触发热字符串功能`n需要按Tab/回车/句点/空格等键之后才会再次进行提示
 	
 	Gui,66:Tab,图标设置,,Exact
-	Gui,66:Add,Checkbox,Checked%HideMenuTrayIcon% xm-10 y+%MARGIN_TOP_66% vvHideMenuTrayIcon gSetHideMenuTrayIcon,隐藏任务栏托盘图标
+	Gui,66:Add,Checkbox,Checked%HideMenuTrayIcon% xm-5 y+%MARGIN_TOP_66% vvHideMenuTrayIcon gSetHideMenuTrayIcon,隐藏任务栏托盘图标
 	Gui,66:Add,Text,x+10 yp,RunAny菜单项图标大小(像素)
 	Gui,66:Add,Edit,x+3 yp w30 h20 vvMenuIconSize,%MenuIconSize%
 	Gui,66:Add,Text,x+15 yp,托盘右键菜单图标大小(像素)
@@ -4407,7 +4422,7 @@ SetOK:
 	SetValueList.Push("HideFail","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideSelectZz","RecentMax")
 	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu","BrowserPath","IconFolderPath")
 	SetValueList.Push("HideMenuTrayIcon","MenuIconSize","MenuTrayIconSize","MenuIcon","AnyIcon","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon")
-	SetValueList.Push("HideHotStr","HotStrShowLen","HotStrShowTime","HotStrShowTransparent","HotStrShowX","HotStrShowY")
+	SetValueList.Push("HideHotStr","HotStrShowLen","HotStrShowTime","HotStrShowTransparent","HotStrShowX","HotStrShowY","SendStrDcKey")
 	SetValueList.Push("MenuDoubleCtrlKey", "MenuDoubleAltKey", "MenuDoubleLWinKey", "MenuDoubleRWinKey")
 	SetValueList.Push("MenuCtrlRightKey", "MenuShiftRightKey", "MenuXButton1Key", "MenuXButton2Key", "MenuMButtonKey")
 	;[回车转换成竖杠保存到ini配置文件]
@@ -4878,6 +4893,7 @@ Var_Set:
 	global HotStrShowTransparent:=Var_Read("HotStrShowTransparent",80)	;热字符串提示显示透明度，默认80%的透明度
 	global HotStrShowX:=Var_Read("HotStrShowX",0)
 	global HotStrShowY:=Var_Read("HotStrShowY",0)
+	global SendStrDcKey:=Var_Read("SendStrDcKey")
 	;[隐藏配置]开始
 	global EvNo:=Var_Read("EvNo",0)							;不再提示Everything找不到
 	global JumpSearch:=Var_Read("JumpSearch",0)				;批量搜索忽略确认弹窗
