@@ -4251,7 +4251,7 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+200 yp-3 w200 r1 vvHotStrShowX,%HotStrShowX%
 	Gui,66:Add,Text,xm yp+40 w250,提示相对于鼠标坐标 Y (可为负数)：
 	Gui,66:Add,Edit,xm+200 yp-3 w200 r1 vvHotStrShowY,%HotStrShowY%
-	Gui,66:Add,Text,xm yp+40 w250,短语key：
+	Gui,66:Add,Text,xm yp+40 w250 GMenu_Config,短语key：
 	Gui,66:Add,Edit,xm+200 yp-3 Password w200 cWhite r1 vvSendStrDcKey,%SendStrDcKey%
 	Gui,66:Add,Text,xm yp+50 cBlue,提示文字自动消失后，而且后续输入字符不触发热字符串功能`n需要按Tab/回车/句点/空格等键之后才会再次进行提示
 	
