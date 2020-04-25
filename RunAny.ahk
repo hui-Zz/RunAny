@@ -227,7 +227,7 @@ Loop,%MenuCount%
 	;[带%s的网址菜单分类下增加批量搜索功能项]
 	For mn,items in MenuWebList%A_Index%
 	{
-		if(!RegExMatch(mn,"[^\s]+\s$")){
+		if(!RegExMatch(mn,"S)[^\s]+\s$")){
 			Menu,%mn%,add
 			Menu,%mn%,add,&1批量搜索%mn%,Web_Run
 			Menu,%mn%,Icon,&1批量搜索%mn%,% UrlIconS[1],% UrlIconS[2],%MenuIconSize%
@@ -498,7 +498,7 @@ RunABackupClear(RunABackupDir,RunABackupFile){
 				oldPath:=A_LoopFileLongPath
 			}
 		}
-		if(RegExMatch(oldPath, "i).*?\.bak$")){
+		if(RegExMatch(oldPath, "iS).*?\.bak$")){
 			FileDelete, %oldPath%
 		}
 	}
@@ -719,7 +719,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					if(hotstr){
 						MenuObjKey[hotstr]:=itemParam
 						MenuObjKeyName[hotstr]:=menuKeys[1]
-						if(RegExMatch(hotstr,":[^:]*?X[^:]*?:[^:]*")){
+						if(RegExMatch(hotstr,"S):[^:]*?X[^:]*?:[^:]*")){
 							if(!InStr(menuDiy[2],"%getZz%") && RegExMatch(menuDiy[2],"iS).+?\[.+?\]%?\(.*?\)")){
 								Hotstring(hotstr,"Menu_Key_NoGet_Run","On")
 							}else{
@@ -817,7 +817,7 @@ MenuExeArrayPush(menuName,menuItem,itemFile,itemAny,TREE_NO){
 	MenuObjEXE["menuItem"]:=menuItem
 	MenuObjEXE["itemFile"]:=itemFile
 	;~ MenuObjEXE["itemAny"]:=itemAny
-	if(RegExMatch(menuName,"[^\s]+$")){
+	if(RegExMatch(menuName,"S)[^\s]+$")){
 		MenuExeArray.Push(MenuObjEXE)
 	}else{
 		MenuExeIconArray.Push(MenuObjEXE)
@@ -1121,14 +1121,14 @@ Menu_Show:
 					continue
 				}
 				;一键计算公式数字加减乘除
-				if(RegExMatch(S_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+($|=$)")){
+				if(RegExMatch(S_LoopField,"S)^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+($|=$)")){
 					formula:=S_LoopField
-					if(RegExMatch(S_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+=$")){
+					if(RegExMatch(S_LoopField,"S)^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+=$")){
 						StringTrimRight, formula, formula, 1
 					}
 					calc:=js_eval(formula)
 					selectResult.=A_LoopField
-					if(RegExMatch(S_LoopField,"^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+=$")){
+					if(RegExMatch(S_LoopField,"S)^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+=$")){
 						calcFlag:=true
 						selectResult.=calc
 					}else{
@@ -1460,7 +1460,7 @@ return
 ;调用huiZz_Text插件函数
 SendStrDecrypt(any){
 	try{
-		if(RegExMatch(any,".*\$$") && PluginsObjRegGUID["huiZz_Text"]){
+		if(RegExMatch(any,"S).*\$$") && PluginsObjRegGUID["huiZz_Text"]){
 			PluginsObjRegActive["huiZz_Text"]:=ComObjActive(PluginsObjRegGUID["huiZz_Text"])
 			anyval:=PluginsObjRegActive["huiZz_Text"]["runany_decrypt"](any,SendStrDcKey)
 			return anyval
@@ -1711,7 +1711,7 @@ Run_Search(any,getZz="",browser=""){
 ;~;[一键Everything][搜索选中文字][激活][隐藏]
 Ev_Show:
 	getZz:=Get_Zz()
-	if(EvShowFolder && (InStr(FileExist(getZz), "D") || RegExMatch(getZz,".*\\$"))){
+	if(EvShowFolder && (InStr(FileExist(getZz), "D") || RegExMatch(getZz,"S).*\\$"))){
 		if(InStr(getZz,A_Space)){
 			getZz="""%getZz%"""
 		}
@@ -2005,7 +2005,7 @@ js_eval(exp)
 		;解决eval减法精度失真问题，根据最长的小数位数四舍五入
 		subMaxNum:=0
 		expResult:=exp
-		while RegExMatch(expResult,"(\.\d+)")
+		while RegExMatch(expResult,"S)(\.\d+)")
 		{
 			sub:=RegExReplace(expResult,".*(\.\d+).*","$1")
 			if(StrLen(sub)>subMaxNum)
@@ -4767,7 +4767,7 @@ SetMenuVarVal:
 	Gui,SaveVar:Submit, NoHide
 	if(vmenuVarName="")
 		return
-	if(!RegExMatch(vmenuVarName,"^[\p{Han}A-Za-z0-9_]+$")){
+	if(!RegExMatch(vmenuVarName,"S)^[\p{Han}A-Za-z0-9_]+$")){
 		ToolTip, 变量名只能为中文、数字、字母、下划线,195,35
 		SetTimer,RemoveToolTip,3000
 		return
@@ -4799,7 +4799,7 @@ SaveMenuVar:
 		SetTimer,RemoveToolTip,3000
 		return
 	}
-	if(!RegExMatch(vmenuVarName,"^[\p{Han}A-Za-z0-9_]+$")){
+	if(!RegExMatch(vmenuVarName,"S)^[\p{Han}A-Za-z0-9_]+$")){
 		ToolTip, 变量名只能为中文、数字、字母、下划线,195,35
 		SetTimer,RemoveToolTip,3000
 		return
@@ -5742,8 +5742,8 @@ everythingQuery(){
 				}
 				itemVars:=StrSplit(A_LoopField,"|",,2)
 				itemVar:=itemVars[2] ? itemVars[2] : itemVars[1]
-				RegExMatch(itemVar,"^[^|]+?\.[a-zA-Z0-9]+",outVar)
-				if(Trim(outVar) && !RegExMatch(outVar,"\\|\/|\:|\*|\?|\""|\<|\>|\|") 
+				RegExMatch(itemVar,"S)^[^|]+?\.[a-zA-Z0-9]+",outVar)
+				if(Trim(outVar) && !RegExMatch(outVar,"S)\\|\/|\:|\*|\?|\""|\<|\>|\|") 
 						&& !InStr(EvCommandStr,"|" outVar "|") && GetMenuItemMode(A_LoopField)=1){
 					if(InStr(outVar,A_Space) || InStr(outVar,"!")){
 						EvCommandStr.="""" outVar . """|"
