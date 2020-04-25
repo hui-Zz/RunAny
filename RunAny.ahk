@@ -4736,7 +4736,8 @@ Menu_Var_Edit:
 	Gui,SaveVar:Add,Button,Default xm+100 y+25 w75 GSaveMenuVar,保存(&S)
 	Gui,SaveVar:Add,Button,x+20 w75 GSetCancel,取消(&C)
 	Gui,SaveVar:Show,,%RunAnyZz% - %menuVarItem%菜单变量和变量值 %RunAny_update_version% %RunAny_update_time%
-	gosub,SetMenuVarVal
+	if(menuVarType!="用户变量(固定值)")
+		gosub,SetMenuVarVal
 return
 listviewMenuVar:
     if A_GuiEvent = DoubleClick
@@ -5332,7 +5333,10 @@ Menu_Exe_Icon_Create:
 		MsgBox, 请将ResourcesExtract.exe放入%ResourcesExtractDir%
 		return
 	}
-	MsgBox,35,生成所有EXE图标，请稍等片刻, 是：覆盖老图标重新生成%RunAnyZz%菜单中的所有EXE图标`n否：只生成没有的EXE图标`n取消：取消生成
+	MsgBox,35,生成所有EXE图标，请稍等片刻, 
+(	
+使用生成的EXE图标可以加快开机第一次RunAny的加载速度`n`n是：覆盖老图标重新生成%RunAnyZz%菜单中的所有EXE图标`n否：只生成没有的EXE图标`n取消：取消生成
+)
 	IfMsgBox Yes
 	{
 		exeIconCreateFlag:=false
