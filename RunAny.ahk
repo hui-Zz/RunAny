@@ -3358,17 +3358,17 @@ Set_Icon(itemVar,editVar=true){
 		}
 	}
 	;~;[编辑后图标重新加载]
-	if(editVar && FileName=""){
+	if(editVar && FailFlag){
 		;~;[编辑后通过everything重新添加应用图标]
 		if(FileExt="exe"){
-			exeQueryPath:=exeQuery(objText)
+			exeQueryPath:=exeQuery(FileName="" ? objText : FileName)
 			if(exeQueryPath){
 				FileName:=exeQueryPath
 			}else{
 				return "Icon3"
 			}
 		}else{
-			FileName:=objText
+			FileName:=objText!="" ? objText : FileName
 		}
 	}
 	; 计算 SHFILEINFO 结构需要的缓存大小.
