@@ -138,7 +138,7 @@ Loop,%MenuCount%
 	Menu_Read(iniVar%A_Index%,menuNoEvRoot%A_Index%,"    ",A_Index)
 }
 MenuShowFlag:=true
-Menu_Tray_Tip("","菜单已经可以正常使用（图标和无路径应用会稍后加载）`n开始调用Everything搜索菜单内应用全路径...")
+Menu_Tray_Tip("","菜单已经可以正常使用（图标和无路径应用会稍后加载）")
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化everything安装路径]
 evExist:=true
@@ -172,9 +172,10 @@ while !WinExist("ahk_exe Everything.exe")
 	}
 }
 ;~;[使用everything读取整个系统所有exe]
+global MenuObjEv:=Object()  ;~Everything搜索结果程序全径
 If(evExist){
-	global MenuObjEv:=Object()  ;~Everything搜索结果程序全径
-	everythingQuery()
+	if(everythingCheck("explorer.exe"))
+		everythingQuery()
 	if(!EvPath){
 		;>>发现Everything已运行则取到路径
 		WinGet, EvPath, ProcessPath, ahk_exe Everything.exe
@@ -4887,7 +4888,6 @@ Var_Set:
 	global EvCommand:=Var_Read("EvCommand",EvDemandSearch ? EvCommandDefault : EvCommandDefault " file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
 	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
 	OneKeyUrl:=StrReplace(OneKeyUrl, "|", "`n")
-	global ShowGetZzLen:=Var_Read("ShowGetZzLen",30)			;菜单显示选中文字最大截取字数
 	global HideHotStr:=Var_Read("HideHotStr",0)				;是否隐藏热字符串提示，0-不隐藏；1-隐藏
 	global HotStrShowLen:=Var_Read("HotStrShowLen",30)		;热字符串提示显示最长字数，默认30个
 	global HotStrShowTime:=Var_Read("HotStrShowTime",3000)	;热字符串提示显示时长，默认3000为3秒
@@ -4896,6 +4896,7 @@ Var_Set:
 	global HotStrShowY:=Var_Read("HotStrShowY",0)
 	global SendStrDcKey:=Var_Read("SendStrDcKey")
 	;[隐藏配置]开始
+	global ShowGetZzLen:=Var_Read("ShowGetZzLen",30)			;菜单显示选中文字最大截取字数
 	global EvNo:=Var_Read("EvNo",0)							;不再提示Everything找不到
 	global JumpSearch:=Var_Read("JumpSearch",0)				;批量搜索忽略确认弹窗
 	global AutoGetZz:=Var_Read("AutoGetZz",1)				;菜单中程序运行时自动打开当前选中文件
@@ -5730,6 +5731,7 @@ URLDownloadToFile(URL, FilePath, Options:="", RequestHeaders:="")
 ;~;[使用everything搜索所有exe程序]
 ;══════════════════════════════════════════════════════════════════
 everythingQuery(){
+	SetTimer,everythingWaitTime,1000
 	ev := new everything
 	EvCommandStr:=""
 	if(EvDemandSearch){
@@ -5756,25 +5758,11 @@ everythingQuery(){
 		EvCommandStr:=RegExReplace(EvCommandStr,"\|$")
 		ev.SetMatchWholeWord(true)
 	}
+	Menu_Tray_Tip("","菜单已经可以正常使用（图标和无路径应用会稍后加载）`n开始调用Everything搜索菜单内应用全路径...")
 	;查询字串设为everything
 	ev.SetSearch(EvCommandStr ? EvCommand " " EvCommandStr : EvCommand)
 	;执行搜索
 	ev.Query()
-	while,% !ev.GetTotResults()
-	{
-		if(A_Index>300){
-			MsgBox,16,RunAny无法与Everything通信,Everything启动缓慢或异常导致无法搜索到磁盘文件`n`n
-			(
-【原因1：Everything正在创建索引】
-请手动打开Everything等待可以搜索到文件了请再重启RunAny`n
-【原因2：Everything搜索异常】
-请打开Everything菜单-工具-选项设置 安装Everything服务(S)，再重启Everything待可以搜索文件再重启RunAny
-			)
-			break
-		}
-		Sleep, 100
-		ev.Query()
-	}
 	Loop,% ev.GetTotResults()
 	{
 		Z_Index:=A_Index-1
@@ -5792,11 +5780,45 @@ everythingQuery(){
 			MenuObjEv[objFileNameNoExeExt]:=objFullPathName
 		}
 	}
+	SetTimer,everythingWaitTime,Off
+}
+everythingWaitTime:
+	if(A_TickCount-StartTick>10000){
+		RegRead, ReloadLongTime, HKEY_CURRENT_USER, Software\RunAny, ReloadLongTime
+		if(ReloadLongTime!=A_MM . A_DD){
+			MsgBox,1
+			gosub,Menu_Reload
+			RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, ReloadLongTime,%A_MM%%A_DD%
+		}
+	}
+return
+;~;[校验everything是否可正常返回搜索结果]
+everythingCheck(str){
+	ev := new everything
+	ev.SetMatchWholeWord(true)
+	ev.SetSearch(str)
+	ev.Query()
+	while,% !ev.GetTotResults()
+	{
+		if(A_Index>300){
+			MsgBox,16,RunAny无法与Everything通信,Everything启动缓慢或异常导致无法搜索到磁盘文件`n`n
+			(
+【原因1：Everything正在创建索引】
+请手动打开Everything等待可以搜索到文件了请再重启RunAny`n
+【原因2：Everything搜索异常】
+请打开Everything菜单-工具-选项设置 安装Everything服务(S)，再重启Everything待可以搜索文件再重启RunAny
+			)
+			break
+		}
+		Sleep, 100
+		ev.Query()
+	}
+	return ev.GetResultFullPathName(0)
 }
 ;~;[使用everything搜索单个exe程序]
-exeQuery(exeName){
+exeQuery(exeName,noSystemExe:=" !C:\Windows*"){
 	ev := new everything
-	str := exeName . " !C:\*Windows*"
+	str := exeName . noSystemExe
 	;查询字串设为全字匹配
 	ev.SetMatchWholeWord(true)
 	ev.SetSearch(str)
