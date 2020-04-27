@@ -5784,11 +5784,12 @@ everythingQuery(){
 	SetTimer,everythingWaitTime,Off
 }
 everythingWaitTime:
-	if(A_TickCount-StartTick>30000){
-		RegRead, ReloadLongTime, HKEY_CURRENT_USER, Software\RunAny,ReloadLongTime
+	if(A_TickCount-StartTick>10000){
+		RegRead, ReloadLongTime, HKEY_CURRENT_USER, Software\RunAny, ReloadLongTime
 		if(ReloadLongTime!=A_MM . A_DD){
-			RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny,ReloadLongTime,%A_MM%%A_DD%
+			MsgBox,1
 			gosub,Menu_Reload
+			RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, ReloadLongTime,%A_MM%%A_DD%
 		}
 	}
 return
