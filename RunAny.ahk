@@ -4092,7 +4092,7 @@ Menu_Set:
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+%MARGIN_TOP_66% vvAutoRun,开机自动启动
 	Gui,66:Add,Checkbox,Checked%AdminRun% x+148 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
-	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h125,RunAny应用菜单
+	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h105,RunAny应用菜单
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
 	Gui,66:Add,Checkbox,Checked%HideSend% x+160 vvHideSend,隐藏短语
 	Gui,66:Add,Checkbox,Checked%HideWeb% xm yp+20 vvHideWeb,隐藏带`%s网址
@@ -4100,8 +4100,7 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%HideSelectZz% xm yp+20 vvHideSelectZz gSetHideSelectZz,隐藏选中提示信息
 	Gui,66:Add,Checkbox,Checked%HideAddItem% x+124 vvHideAddItem,隐藏【添加到此菜单】
 	Gui,66:Add,Checkbox,Checked%HideMenuTray% xm yp+20 vvHideMenuTray,隐藏底部“RunAny设置”
-	Gui,66:Add,Checkbox,Checked%AutoGetZz% x+79 vvAutoGetZz,运行菜单项自动带上当前选中文件
-	Gui,66:Add,Edit,xm yp+20 w30 h20 vvRecentMax,%RecentMax%
+	Gui,66:Add,Edit,x+81 w30 h20 vvRecentMax,%RecentMax%
 	Gui,66:Add,Text,x+5 yp+2,最近运行项数量 (0为隐藏)
 	Gui,66:Add,Button,x+5 w50 h20 gSetClearRecentMax,清理
 
@@ -4419,7 +4418,7 @@ SetOK:
 			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		}
 	}
-	SetValueList.Push("AutoGetZz","AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupFormat","RunABackupDir","DisableApp")
+	SetValueList.Push("AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupFormat","RunABackupDir","DisableApp")
 	SetValueList.Push("EvPath","EvCommand","EvAutoClose","EvShowExt","EvShowFolder","EvExeVerNew","EvDemandSearch")
 	SetValueList.Push("HideFail","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideSelectZz","RecentMax")
 	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu","BrowserPath","IconFolderPath")
@@ -4852,7 +4851,6 @@ Var_Set:
 		Menu, Tray, NoIcon 
 	global AdminMode:=A_IsAdmin ? "【管理员】" : ""
 	global AutoReloadMTime:=Var_Read("AutoReloadMTime",2500)
-	global AutoGetZz:=Var_Read("AutoGetZz",1)				;菜单中程序运行时自动打开当前选中文件
 	global RunABackupDir:=Var_Read("RunABackupDir","`%A_ScriptDir`%\RunBackup")
 	global RunABackupRule:=Var_Read("RunABackupRule",1)
 	global RunABackupMax:=Var_Read("RunABackupMax",5)
@@ -4901,6 +4899,7 @@ Var_Set:
 	global ShowGetZzLen:=Var_Read("ShowGetZzLen",30)			;菜单显示选中文字最大截取字数
 	global EvNo:=Var_Read("EvNo",0)							;不再提示Everything找不到
 	global JumpSearch:=Var_Read("JumpSearch",0)				;批量搜索忽略确认弹窗
+	global AutoGetZz:=Var_Read("AutoGetZz",1)				;菜单中程序运行时自动打开当前选中文件
 	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)    	;获取选中目标到剪贴板等待时间
 	ClipWaitApp:=Var_Read("ClipWaitApp","")					;上一项剪贴板等待时间生效的应用
 	Loop,parse,ClipWaitApp,`,
