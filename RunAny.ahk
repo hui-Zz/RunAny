@@ -4172,7 +4172,7 @@ Menu_Set:
 	Gui,66:Add,Button, xm yp+30 w50 GLVMenuVarAdd, + 增加
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuVarEdit, * 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuVarRemove, - 减少
-	Gui,66:Add,Text, x+15 yp-5,使用方法：变量两边加百分号如：`%变量名`%`n编辑菜单项的启动路径中 或 RunAny.ini文件中使用
+	Gui,66:Add,Link, x+15 yp-5,使用方法：变量两边加百分号如：<a href="https://hui-zz.gitee.io/runany/#/article/built-in-variables">`%变量名`%`n</a>编辑菜单项的启动路径中 或 RunAny.ini文件中使用
 	Gui,66:Add,Listview,xm yp+40 w%GROUP_EDIT_WIDTH_66% r16 grid AltSubmit vRunAnyMenuVarLV glistviewMenuVar, 菜单变量名|类型|菜单变量值（动态变量不同电脑会自动变化）
 	GuiControl, 66:-Redraw, RunAnyMenuVarLV
 	For mVarName, mVarVal in MenuVarIniList
@@ -4961,13 +4961,16 @@ Menu_Var_Set:
 	global MenuVarTypeList:={}
 	IniRead,menuVarVar,%RunAnyConfig%,MenuVar
 	if(!menuVarVar){
-		menuVarVar:="A_ScriptDir`nA_Desktop`nA_MyDocuments`nA_UserName`nA_ComputerName`n"
-		menuVarVar.="ProgramFiles`nAppData`nLocalAppData`nOneDrive`nUserProfile`nWinDir"
+		menuVarVar:="A_Desktop`nA_MyDocuments`nA_ScriptDir`n"
+		menuVarVar.="AppData`nComputerName`nComSpec`nLocalAppData`nOneDrive`nProgramFiles`n"
 		if(A_Is64bitOS)
-			menuVarVar.="`nProgramW6432"
+			menuVarVar.="ProgramW6432`n"
+		menuVarVar.="UserName`nUserProfile`nWinDir"
 	}
 	Loop, parse, menuVarVar, `n, `r
 	{
+		if(A_LoopField="")
+			continue
 		itemList:=StrSplit(A_LoopField,"=",,2)
 		menuVarName:=itemList[1]
 		menuVarVal:=itemList[2]
