@@ -299,7 +299,7 @@ class RunAnyObj {
 	;【注意：key不要包含中文和中文标点符号】
 	;保存到RunAny.ini为：
 	;选中文本加密|huiZz_Text[encrypt](%getZz%,key1)
-	;选中加密到剪贴板|huiZz_Text[encrypt](%getZz%,key2,0)
+	;选中加密到剪贴板|huiZz_Text[encrypt](%getZz%,key1,0)
 	encrypt(text,key,isSend=1){
 		Send_Or_Show(encryptstr(text,key),isSend)
 	}
@@ -308,7 +308,7 @@ class RunAnyObj {
 	;保存到RunAny.ini为：
 	;文本解密输出|huiZz_Text[decrypt](被解密文本,key1)
 	;选中文本解密|huiZz_Text[decrypt](%getZz%,key1)
-	;选中解密到剪贴板|huiZz_Text[decrypt](%getZz%,key2,0)
+	;选中解密到剪贴板|huiZz_Text[decrypt](%getZz%,key1,0)
 	decrypt(text,key,isSend=1){
 		Send_Or_Show(decryptstr(text,key),isSend)
 	}
