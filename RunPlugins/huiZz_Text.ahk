@@ -2,7 +2,7 @@
 ;* 【ObjReg文本操作脚本[文本函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.1.3"
+global RunAny_Plugins_Version:="1.1.4"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
@@ -298,17 +298,18 @@ class RunAnyObj {
 	;~;[文本加密]
 	;【注意：key不要包含中文和中文标点符号】
 	;保存到RunAny.ini为：
-	;选中文本加密|huiZz_Text[encrypt](%getZz%,key1)
-	;选中加密到剪贴板|huiZz_Text[encrypt](%getZz%,key1,0)
+	;选中文本加密|huiZz_Text[encrypt](%getZz%,youkey1)
+	;选中加密到剪贴板|huiZz_Text[encrypt](%getZz%,youkey1,0)
 	encrypt(text,key,isSend=1){
 		Send_Or_Show(encryptstr(text,key),isSend)
 	}
 	;~;[文本解密]
 	;【注意：key不要包含中文和中文标点符号】
 	;保存到RunAny.ini为：
-	;文本解密输出|huiZz_Text[decrypt](被解密文本,key1)
-	;选中文本解密|huiZz_Text[decrypt](%getZz%,key1)
-	;选中解密到剪贴板|huiZz_Text[decrypt](%getZz%,key1,0)
+	;text：被解密文本；key：你的加密key
+	;文本解密输出|huiZz_Text[decrypt](被解密文本,youkey1)
+	;选中文本解密|huiZz_Text[decrypt](%getZz%,youkey1)
+	;选中解密到剪贴板|huiZz_Text[decrypt](%getZz%,youkey1,0)
 	decrypt(text,key,isSend=1){
 		Send_Or_Show(decryptstr(text,key),isSend)
 	}
@@ -331,6 +332,7 @@ Send_Str_Zz(strZz){
 }
 ;~;输出结果还是仅显示保存到剪贴板
 Send_Or_Show(textResult,isSend){
+	textResult:=RegExReplace(textResult,"`r`n$")
 	if(isSend){
 		Send_Str_Zz(textResult)
 		return
