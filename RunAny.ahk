@@ -138,7 +138,6 @@ Loop,%MenuCount%
 	Menu_Read(iniVar%A_Index%,menuNoEvRoot%A_Index%,"    ",A_Index)
 }
 MenuShowFlag:=true
-Menu_Tray_Tip("","菜单已经可以正常使用（图标和无路径应用会稍后加载）")
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化everything安装路径]
 evExist:=true
@@ -335,9 +334,20 @@ if(RunABackupRule && RunABackupDirPath!=A_ScriptDir){
 	FileRead, iniVarBak, %RunAnyConfig%
 	RunABackup(RunABackupDirPath "\" RunAnyConfig "\", RunAnyConfig "*", iniVarBak, RunAnyConfig, RunAnyConfig RunABackupFormatStr)
 }
+;~[记录ini文件修改时间]
+FileGetTime,MTimeIniPath, %iniPath%, M  ; 获取修改时间.
+RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, %iniPath%, %MTimeIniPath%
+if(MENU2FLAG){
+	FileGetTime,MTimeIniPath2, %iniPath2%, M  ; 获取修改时间.
+	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, %iniPath2%, %MTimeIniPath2%
+}
+if(AutoReloadMTime>0){
+	SetTimer,AutoReloadMTime,%AutoReloadMTime%
+}
+
 return
 
-;###########################################################################################
+;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
 ;~[菜单项过滤不同内容类型]
 Menu_Item_List_Filter(M_Index,MenuTypeList,HideFlag,MenuType:=1){
@@ -4252,8 +4262,10 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+200 yp-3 w200 r1 vvHotStrShowX,%HotStrShowX%
 	Gui,66:Add,Text,xm yp+40 w250,提示相对于鼠标坐标 Y (可为负数)：
 	Gui,66:Add,Edit,xm+200 yp-3 w200 r1 vvHotStrShowY,%HotStrShowY%
-	Gui,66:Add,Text,xm yp+40 w250 GMenu_Config,短语key：
-	Gui,66:Add,Edit,xm+200 yp-3 Password w200 cWhite r1 vvSendStrDcKey,%SendStrDcKey%
+	if(PluginsObjRegGUID["huiZz_Text"]){
+		Gui,66:Add,Text,xm yp+40 w250 GMenu_Config,短语key：
+		Gui,66:Add,Edit,xm+200 yp-3 Password w200 cWhite r1 vvSendStrDcKey,%SendStrDcKey%
+	}
 	Gui,66:Add,Text,xm yp+50 cBlue,提示文字自动消失后，而且后续输入字符不触发热字符串功能`n需要按Tab/回车/句点/空格等键之后才会再次进行提示
 	
 	Gui,66:Tab,图标设置,,Exact
@@ -4846,7 +4858,7 @@ Var_Set:
 		Run *RunAs %adminahkpath%"%A_ScriptFullPath%"
 		ExitApp
 	}
-	global HideMenuTrayIcon:=Var_Read("HideMenuTrayIcon")
+	global HideMenuTrayIcon:=Var_Read("HideMenuTrayIcon",0)
 	if(HideMenuTrayIcon)
 		Menu, Tray, NoIcon 
 	global AdminMode:=A_IsAdmin ? "【管理员】" : ""
@@ -5170,10 +5182,8 @@ Run_Exist:
 	IfExist,%iniPath2%
 	{
 		global iniVar2:=""
-		global MENU2FLAG:=true
+		MENU2FLAG:=true
 		FileRead, iniVar2, %iniPath2%
-		FileGetTime,MTimeIniPath2, %iniPath2%, M  ; 获取修改时间.
-		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, %iniPath2%, %MTimeIniPath2%
 		IfNotExist %RunABackupDirPath%\%RunAnyZz%2.ini
 			FileCreateDir,%RunABackupDirPath%\%RunAnyZz%2.ini
 	}
@@ -5197,12 +5207,6 @@ Run_Exist:
 			URLDownloadToFile(RunAnyDownDir "/" everyDLL,A_ScriptDir "\" everyDLL)
 			gosub,Menu_Reload
 		}
-	}
-	;~[记录配置修改时间]
-	FileGetTime,MTimeIniPath, %iniPath%, M  ; 获取修改时间.
-	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, %iniPath%, %MTimeIniPath%
-	if(AutoReloadMTime>0){
-		SetTimer,AutoReloadMTime,%AutoReloadMTime%
 	}
 return
 ;~;[AHK插件脚本读取]
@@ -5761,7 +5765,7 @@ everythingQuery(){
 		EvCommandStr:=RegExReplace(EvCommandStr,"\|$")
 		ev.SetMatchWholeWord(true)
 	}
-	Menu_Tray_Tip("","菜单已经可以正常使用（图标和无路径应用会稍后加载）`n开始调用Everything搜索菜单内应用全路径...")
+	Menu_Tray_Tip("","开始调用Everything搜索菜单内应用全路径...")
 	;查询字串设为everything
 	ev.SetSearch(EvCommandStr ? EvCommand " " EvCommandStr : EvCommand)
 	;执行搜索
