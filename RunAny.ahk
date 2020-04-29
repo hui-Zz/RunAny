@@ -141,59 +141,59 @@ MenuShowFlag:=true
 ;══════════════════════════════════════════════════════════════════
 ;~;[判断如果有无路径应用则需要使用Everything]
 EvPath:=Var_Read("EvPath")
-EvCommandStr:=EvDemandSearch ? everythingCommandStr() : ""
-if(!EvDemandSearch || (EvDemandSearch && EvCommandStr!="")){
-	;~;[获取everything路径]
-	evExist:=true
-	DetectHiddenWindows,On
-	while !WinExist("ahk_exe Everything.exe")
-	{
-		Sleep,100
-		if(A_Index>10){
-			EvPathRun:=Get_Transform_Val(EvPath)
-			if(EvPathRun && FileExist(EvPathRun)){
-				Run,%EvPathRun% -startup
-				Sleep,300
-				break
-			}else if(FileExist(A_ScriptDir "\Everything\Everything.exe")){
-				Run,%A_ScriptDir%\Everything\Everything.exe -startup
-				EvPath=%A_ScriptDir%\Everything\Everything.exe
-				Sleep,2000
-				break
-			}else{
-				if(!EvNo){
+if(!EvNo){
+	EvCommandStr:=EvDemandSearch ? everythingCommandStr() : ""
+	if(!EvDemandSearch || (EvDemandSearch && EvCommandStr!="")){
+		;~;[获取everything路径]
+		evExist:=true
+		DetectHiddenWindows,On
+		while !WinExist("ahk_exe Everything.exe")
+		{
+			Sleep,100
+			if(A_Index>10){
+				EvPathRun:=Get_Transform_Val(EvPath)
+				if(EvPathRun && FileExist(EvPathRun)){
+					Run,%EvPathRun% -startup
+					Sleep,300
+					break
+				}else if(FileExist(A_ScriptDir "\Everything\Everything.exe")){
+					Run,%A_ScriptDir%\Everything\Everything.exe -startup
+					EvPath=%A_ScriptDir%\Everything\Everything.exe
+					Sleep,2000
+					break
+				}else{
 					TrayTip,,RunAny需要Everything快速识别无路径程序`n
 					(
-	* 运行Everything后再重启RunAny
-	* 或在RunAny设置中配置Everything正确安装路径`n* 或www.voidtools.com下载安装
+* 运行Everything后再重启RunAny
+* 或在RunAny设置中配置Everything正确安装路径`n* 或www.voidtools.com下载安装
 					),5,1
+					evExist:=false
+					break
 				}
-				evExist:=false
+			}
+		}
+		;~;[使用everything补全无路径exe的全路径]
+		global MenuObjEv:=Object()  ;~Everything搜索结果程序全径
+		If(evExist){
+			if(everythingCheck("explorer.exe"))
+				everythingQuery(EvCommandStr)
+			if(!EvPath){
+				;>>发现Everything已运行则取到路径
+				WinGet, EvPath, ProcessPath, ahk_exe Everything.exe
+			}
+			for k,v in MenuObjEv
+			{
+				MenuObj:=MenuObjEv.Clone()
 				break
 			}
 		}
-	}
-	;~;[使用everything补全无路径exe的全路径]
-	global MenuObjEv:=Object()  ;~Everything搜索结果程序全径
-	If(evExist){
-		if(everythingCheck("explorer.exe"))
-			everythingQuery(EvCommandStr)
-		if(!EvPath){
-			;>>发现Everything已运行则取到路径
-			WinGet, EvPath, ProcessPath, ahk_exe Everything.exe
+		;~;[如果需要自动关闭everything]
+		if(EvAutoClose && EvPath){
+			EvPathRun:=Get_Transform_Val(EvPath)
+			Run,%EvPathRun% -exit
 		}
-		for k,v in MenuObjEv
-		{
-			MenuObj:=MenuObjEv.Clone()
-			break
-		}
+		DetectHiddenWindows,Off
 	}
-	;~;[如果需要自动关闭everything]
-	if(EvAutoClose && EvPath){
-		EvPathRun:=Get_Transform_Val(EvPath)
-		Run,%EvPathRun% -exit
-	}
-	DetectHiddenWindows,Off
 }
 ;══════════════════════════════════════════════════════════════════
 t3:=A_TickCount-StartTick
