@@ -957,7 +957,7 @@ Menu_Add(menuName,menuItem,item,itemMode,TREE_NO){
 				}
 			}
 		}else{  ; {处理未知的项目图标}
-			If(FileExt){
+			If(FileExt && FileExist(item)){
 				try{
 					RegRead, regFileExt, HKEY_CLASSES_ROOT, .%FileExt%
 					RegRead, regFileIcon, HKEY_CLASSES_ROOT, %regFileExt%\DefaultIcon
@@ -2459,7 +2459,9 @@ return
 TVEdit_GuiVal:
 	itemGlobalWinKey:=itemTrNum:=setItemMode:=0
 	itemName:=itemPath:=hotStrOption:=hotStrShow:=itemGlobalHotKey:=itemGlobalKey:=getZz:=""
-	if(InStr(ItemText,"|") || InStr(ItemText,"-")=1){
+	if(ItemText="|" || ItemText=";|" || ItemText="||" || ItemText=";||"){
+		itemPath:=ItemText
+	}else if(InStr(ItemText,"|") || InStr(ItemText,"-")=1){
 		menuDiy:=StrSplit(ItemText,"|",,2)
 		itemName:=menuDiy[1]
 		itemPath:=menuDiy[2]
