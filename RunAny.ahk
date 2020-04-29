@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.1 @2020.04.24
+║【RunAny】一劳永逸的快速启动工具 v5.7.1 @2020.04.29
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.7.1"
-global RunAny_update_time:="2020.04.24"
+global RunAny_update_time:="2020.04.29"
 Gosub,Var_Set          ;~参数初始化
 Gosub,Run_Exist        ;~调用判断依赖
 Gosub,Plugins_Read     ;~插件脚本读取
@@ -139,58 +139,62 @@ Loop,%MenuCount%
 }
 MenuShowFlag:=true
 ;══════════════════════════════════════════════════════════════════
-;~;[初始化everything安装路径]
-evExist:=true
+;~;[判断如果有无路径应用则需要使用Everything]
 EvPath:=Var_Read("EvPath")
-DetectHiddenWindows,On
-while !WinExist("ahk_exe Everything.exe")
-{
-	Sleep,100
-	if(A_Index>10){
-		EvPathRun:=Get_Transform_Val(EvPath)
-		if(EvPathRun && FileExist(EvPathRun)){
-			Run,%EvPathRun% -startup
-			Sleep,300
-			break
-		}else if(FileExist(A_ScriptDir "\Everything\Everything.exe")){
-			Run,%A_ScriptDir%\Everything\Everything.exe -startup
-			EvPath=%A_ScriptDir%\Everything\Everything.exe
-			Sleep,2000
-			break
-		}else{
-			if(!EvNo){
-				TrayTip,,RunAny需要Everything快速识别无路径程序`n
-				(
-* 运行Everything后再重启RunAny
-* 或在RunAny设置中配置Everything正确安装路径`n* 或www.voidtools.com下载安装
-				),5,1
+EvCommandStr:=EvDemandSearch ? everythingCommandStr() : ""
+if(!EvDemandSearch || (EvDemandSearch && EvCommandStr!="")){
+	;~;[获取everything路径]
+	evExist:=true
+	DetectHiddenWindows,On
+	while !WinExist("ahk_exe Everything.exe")
+	{
+		Sleep,100
+		if(A_Index>10){
+			EvPathRun:=Get_Transform_Val(EvPath)
+			if(EvPathRun && FileExist(EvPathRun)){
+				Run,%EvPathRun% -startup
+				Sleep,300
+				break
+			}else if(FileExist(A_ScriptDir "\Everything\Everything.exe")){
+				Run,%A_ScriptDir%\Everything\Everything.exe -startup
+				EvPath=%A_ScriptDir%\Everything\Everything.exe
+				Sleep,2000
+				break
+			}else{
+				if(!EvNo){
+					TrayTip,,RunAny需要Everything快速识别无路径程序`n
+					(
+	* 运行Everything后再重启RunAny
+	* 或在RunAny设置中配置Everything正确安装路径`n* 或www.voidtools.com下载安装
+					),5,1
+				}
+				evExist:=false
+				break
 			}
-			evExist:=false
+		}
+	}
+	;~;[使用everything补全无路径exe的全路径]
+	global MenuObjEv:=Object()  ;~Everything搜索结果程序全径
+	If(evExist){
+		if(everythingCheck("explorer.exe"))
+			everythingQuery(EvCommandStr)
+		if(!EvPath){
+			;>>发现Everything已运行则取到路径
+			WinGet, EvPath, ProcessPath, ahk_exe Everything.exe
+		}
+		for k,v in MenuObjEv
+		{
+			MenuObj:=MenuObjEv.Clone()
 			break
 		}
 	}
-}
-;~;[使用everything读取整个系统所有exe]
-global MenuObjEv:=Object()  ;~Everything搜索结果程序全径
-If(evExist){
-	if(everythingCheck("explorer.exe"))
-		everythingQuery()
-	if(!EvPath){
-		;>>发现Everything已运行则取到路径
-		WinGet, EvPath, ProcessPath, ahk_exe Everything.exe
+	;~;[如果需要自动关闭everything]
+	if(EvAutoClose && EvPath){
+		EvPathRun:=Get_Transform_Val(EvPath)
+		Run,%EvPathRun% -exit
 	}
-	for k,v in MenuObjEv
-	{
-		MenuObj:=MenuObjEv.Clone()
-		break
-	}
+	DetectHiddenWindows,Off
 }
-;~;[如果需要自动关闭everything]
-if(EvAutoClose && EvPath){
-	EvPathRun:=Get_Transform_Val(EvPath)
-	Run,%EvPathRun% -exit
-}
-DetectHiddenWindows,Off
 ;══════════════════════════════════════════════════════════════════
 t3:=A_TickCount-StartTick
 Menu_Tray_Tip("调用Everything搜索应用全路径：" Round((t3-t2)/1000,3) "s`n","开始加载完整菜单功能...")
@@ -5737,32 +5741,10 @@ URLDownloadToFile(URL, FilePath, Options:="", RequestHeaders:="")
 ;══════════════════════════════════════════════════════════════════
 ;~;[使用everything搜索所有exe程序]
 ;══════════════════════════════════════════════════════════════════
-everythingQuery(){
+everythingQuery(EvCommandStr){
 	SetTimer,everythingWaitTime,1000
 	ev := new everything
-	EvCommandStr:=""
-	if(EvDemandSearch){
-		Loop,%MenuCount%
-		{
-			Loop, parse, iniVar%A_Index%, `n, `r, %A_Space%%A_Tab%
-			{
-				if(InStr(A_LoopField,";")=1 || A_LoopField=""){
-					continue
-				}
-				itemVars:=StrSplit(A_LoopField,"|",,2)
-				itemVar:=itemVars[2] ? itemVars[2] : itemVars[1]
-				RegExMatch(itemVar,"S)^[^|]+?\.[a-zA-Z0-9]+",outVar)
-				if(Trim(outVar) && !RegExMatch(outVar,"S)\\|\/|\:|\*|\?|\""|\<|\>|\|") 
-						&& !InStr(EvCommandStr,"|" outVar "|") && GetMenuItemMode(A_LoopField)=1){
-					if(InStr(outVar,A_Space) || InStr(outVar,"!")){
-						EvCommandStr.="""" outVar . """|"
-					}else{
-						EvCommandStr.=outVar . "|"
-					}
-				}
-			}
-		}
-		EvCommandStr:=RegExReplace(EvCommandStr,"\|$")
+	if(EvCommandStr!=""){
 		ev.SetMatchWholeWord(true)
 	}
 	Menu_Tray_Tip("","开始调用Everything搜索菜单内应用全路径...")
@@ -5800,6 +5782,31 @@ everythingWaitTime:
 		}
 	}
 return
+everythingCommandStr(){
+	Loop,%MenuCount%
+	{
+		Loop, parse, iniVar%A_Index%, `n, `r, %A_Space%%A_Tab%
+		{
+			if(InStr(A_LoopField,";")=1 || A_LoopField=""){
+				continue
+			}
+			itemVars:=StrSplit(A_LoopField,"|",,2)
+			itemVar:=itemVars[2] ? itemVars[2] : itemVars[1]
+			RegExMatch(itemVar,"S)^[^|]+?\.[a-zA-Z0-9]+",outVar)
+			if(!RegExMatch(outVar,"S)\\|\/|\:|\*|\?|\""|\<|\>|\|") 
+					&& !InStr(EvCommandStr,"|" outVar "|") && GetMenuItemMode(A_LoopField)=1
+					&& !FileExist(A_WinDir "\" outVar) && !FileExist(A_WinDir "\system32\" outVar)){
+				if(InStr(outVar,A_Space) || InStr(outVar,"!")){
+					EvCommandStr.="""" outVar . """|"
+				}else{
+					EvCommandStr.=outVar . "|"
+				}
+			}
+		}
+	}
+	EvCommandStr:=RegExReplace(EvCommandStr,"\|$")
+	return EvCommandStr
+}
 ;~;[校验everything是否可正常返回搜索结果]
 everythingCheck(str){
 	ev := new everything
