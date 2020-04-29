@@ -5792,7 +5792,7 @@ everythingCommandStr(){
 			}
 			itemVars:=StrSplit(A_LoopField,"|",,2)
 			itemVar:=itemVars[2] ? itemVars[2] : itemVars[1]
-			RegExMatch(itemVar,"S)^[^|]+?\.[a-zA-Z0-9]+",outVar)
+			RegExMatch(itemVar,"S)^[^|]+?\.[\.a-zA-Z0-9]+",outVar)
 			if(!RegExMatch(outVar,"S)\\|\/|\:|\*|\?|\""|\<|\>|\|") 
 					&& !InStr(EvCommandStr,"|" outVar "|") && GetMenuItemMode(A_LoopField)=1
 					&& !FileExist(A_WinDir "\" outVar) && !FileExist(A_WinDir "\system32\" outVar)){
