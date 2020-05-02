@@ -133,9 +133,6 @@ Loop,%MenuCount%
 	MenuObjTree%A_Index%[M%A_Index%]:=Object()
 	;菜单级别：初始为根菜单RunAny
 	menuRoot%A_Index%:=[M%A_Index%]
-	;创建一个无需Everything的菜单
-	menuNoEvRoot%A_Index%:=[M%A_Index% "    "]
-	Menu_Read(iniVar%A_Index%,menuNoEvRoot%A_Index%,"    ",A_Index)
 }
 MenuShowFlag:=true
 ;══════════════════════════════════════════════════════════════════
@@ -1047,10 +1044,8 @@ Menu_Show:
 			;加载顺序：无Everything菜单 -> 无图标菜单 -> 有图标无路径识别菜单
 			if(MenuIconFlag && MenuShowFlag)
 				Menu,% menuDefaultRoot%MENU_NO%[1],Show
-			else if(MenuIconFlag)
-				Menu,% menuRoot%MENU_NO%[1],Show
 			else
-				Menu,% menuNoEvRoot%MENU_NO%[1],Show
+				Menu,% menuRoot%MENU_NO%[1],Show
 			return
 		}
 		if(Candy_isFile){
