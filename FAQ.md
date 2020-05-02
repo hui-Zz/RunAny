@@ -8,6 +8,7 @@
 
 ---
 
+
 ## 2. RunAny菜单无法消失问题解决
 
 #### Win10 1709版本使用<kbd>Win</kbd>+<kbd>`</kbd>热键显示RunAny菜单后，菜单不消失
@@ -23,7 +24,6 @@
 **解决**：卸载360安全卫士后菜单恢复正常
 
 ---
-
 
 
 ## 3. 在Total Command，Directory Opus中RunAny没有获取到选中文件
@@ -42,7 +42,19 @@ ClipWaitTime=2
 > ClipWaitApp（在什么应用界面延长等待复制时间, 多个逗号分隔） <br>
 > ClipWaitTime（最长等待复制的时间（2秒）大概在1.5秒以上可以稳定获取到）
 
-
-
 ---
 
+
+## 4. 开机后RunAny加载慢和RunAny调用Everything缓慢问题
+
+鼠标移动到任务栏托盘图标后显示，调用Everything搜索应用全路径时间过长：
+![RunAny调用Everything缓慢问题](/assets/images/RunAny调用Everything缓慢问题.png)
+
+**原因**：因Everything正在索引、或是数据库在不同磁盘导致读写缓慢等原因。（可以开机后马上尝试能不能用Everything来验证）
+
+**解决**：在Everything搜索框中搜索“Everything”，查看`Everything.exe`和文件`Everything.db`是否不在同一硬盘
+在Everything窗口最上面菜单的“工具”——“选项”——找到选中左边的“索引”——修改右边的数据库路径到`Everything.exe`同一硬盘，加快读写速度
+
+?> 若计算机中文件过多导致的Everything创建索引缓慢，则需要尽量减少索引磁盘、文件夹、文件属性等设置
+
+---
