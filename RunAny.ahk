@@ -2510,46 +2510,46 @@ Menu_Item_Edit:
 	if(menuGuiFlag)
 		Gui,SaveItem:+owner1
 	Gui,SaveItem:Margin,20,20
+	Gui,SaveItem:+Resize
 	Gui,SaveItem:Font,,Microsoft YaHei
-	Gui,SaveItem:Add, GroupBox,xm y+10 w600 h340,新增修改菜单项
-	Gui,SaveItem:Add, Text, xm+10 y+30 y35 w60, %itemNameText%：
+	Gui,SaveItem:Add, Text, xm+10 y+20 y20 w60, %itemNameText%：
 	Gui,SaveItem:Add, Edit, x+5 yp-3 w350 vvitemName GEditItemPathChange, %itemName%
 	Gui,SaveItem:Add, Picture, x+50 yp+3 w64 h-1 gSetItemIconPath, %itemIconFile%
 	Gui,SaveItem:Add, Text, xp yp+8 w72 cGreen vvTextIconAdd gSetItemIconPath BackgroundTrans, 点击添加图标
 	if(!InStr(itemName,"-")){
-		Gui,SaveItem:Add, Text, xm+10 y+10 w60 vvTextHotStr, 热字符串：
+		Gui,SaveItem:Add, Text, xm+10 y+4 w60 vvTextHotStr, 热字符串：
 		Gui,SaveItem:Font,,Consolas
-		Gui,SaveItem:Add, Edit, x+5 yp-3 w60 vvhotStrOption, % hotStrShow="" ? ":*X:" : hotStrOption
+		Gui,SaveItem:Add, Edit, x+5 yp-1 w60 vvhotStrOption, % hotStrShow="" ? ":*X:" : hotStrOption
 		Gui,SaveItem:Add, Edit, x+5 yp w90 vvhotStrShow GHotStrShowChange, %hotStrShow%
 		Gui,SaveItem:Font,,Microsoft YaHei
 		Gui,SaveItem:Add, Text, x+5 yp+3 w55 vvTextTransparent,透明度(`%)
 		Gui,SaveItem:Add, Slider, x+5 yp ToolTip w135 r1 vvitemTrNum,%itemTrNum%
 	}
-	Gui,SaveItem:Add, Text, xm+10 y+%treeYNum% w100, 制 表 符 ：  Tab
-	Gui,SaveItem:Add, Text, xm+10 y+%treeYNum% w60, 全局热键：
-	Gui,SaveItem:Add, Hotkey,x+5 yp-3 w150 vvitemGlobalKey,%itemGlobalKey%
-	Gui,SaveItem:Add, Checkbox,Checked%itemGlobalWinKey% x+5 yp+3 vvitemGlobalWinKey,Win
-	Gui,SaveItem:Add, Text, x+5 yp cBlue w200 BackgroundTrans, %itemGlobalHotKey%
-	Gui,SaveItem:Add, Text, xm+10 y+15 w100, 分 隔 符 ：  |
-	Gui,SaveItem:Add, Text, xm+90 yp w355 cRed vvExtPrompt GSetSaveItemFullPath, 注意：RunAny不支持当前后缀无路径运行，%PromptStr%使用全路径
+	Gui,SaveItem:Add,Text, xm+10 y+%treeYNum%+10 w100, 制 表 符 ：  Tab
+	Gui,SaveItem:Add,Text, xm+10 y+%treeYNum% w60, 全局热键：
+	Gui,SaveItem:Add,Hotkey,x+5 yp-3 w150 vvitemGlobalKey,%itemGlobalKey%
+	Gui,SaveItem:Add,Checkbox,Checked%itemGlobalWinKey% x+5 yp+3 vvitemGlobalWinKey,Win
+	Gui,SaveItem:Add,Text, x+5 yp cBlue w200 BackgroundTrans, %itemGlobalHotKey%
+	Gui,SaveItem:Add,Text, xm+10 y+15 w100, 分 隔 符 ：  |
+	Gui,SaveItem:Add,Text, xm+90 yp w355 cRed vvExtPrompt GSetSaveItemFullPath, 注意：RunAny不支持当前后缀无路径运行，%PromptStr%使用全路径
 	Gui,SaveItem:Add, DropDownList,x+30 yp-5 w110 AltSubmit vvItemMode GChooseItemMode Choose%setItemMode%,启动路径|短语模式|模拟打字短语|热键映射|AHK热键映射|网址|文件夹|插件脚本函数
 	
-	Gui,SaveItem:Add, Text, xm+10 yp w60 vvSetFileSuffix,文件后缀：
-	Gui,SaveItem:Add, Button, xm+6 y+%treeYNum% w60 vvSetItemPath GSetItemPath,启动路径
+	Gui,SaveItem:Add,Text, xm+10 yp w60 vvSetFileSuffix,文件后缀：
+	Gui,SaveItem:Add,Button, xm+6 y+%treeYNum% w60 vvSetItemPath GSetItemPath,启动路径
 	Gui,SaveItem:Font,,Consolas
-	Gui,SaveItem:Add, Edit, x+10 yp WantTab w510 r8 vvitemPath GEditItemPathChange, %itemPath%
+	Gui,SaveItem:Add,Edit, x+10 yp WantTab w510 r8 vvitemPath GEditItemPathChange, %itemPath%
 	Gui,SaveItem:Font,,Microsoft YaHei
-	Gui,SaveItem:Add, Button, xm+6 yp w60 vvSetMenuPublic GSetMenuPublic,公共菜单
-	Gui,SaveItem:Add, Button, xm+6 yp w60 vvSetMenuText GSetMenuText,文本菜单
-	Gui,SaveItem:Add, Button, xm+6 yp w60 vvSetMenuFile GSetMenuFile,文件菜单
-	Gui,SaveItem:Add, Button, xm+6 yp+27 w60 vvSetFileRelativePath GSetFileRelativePath,相对路径
-	Gui,SaveItem:Add, Button, xm+6 yp+27 w60 vvSetShortcut GSetShortcut,快捷目标
-	Gui,SaveItem:Add, Button, xm+6 yp+27 w60 vvSetItemPathGetZz GSetItemPathGetZz,选中变量
-	Gui,SaveItem:Add, Button, xm+6 yp+27 w60 vvSetItemPathClipboard GSetItemPathClipboard, 剪贴板 
+	Gui,SaveItem:Add,Button, xm+6 yp w60 vvSetMenuPublic GSetMenuPublic,公共菜单
+	Gui,SaveItem:Add,Button, xm+6 yp w60 vvSetMenuText GSetMenuText,文本菜单
+	Gui,SaveItem:Add,Button, xm+6 yp w60 vvSetMenuFile GSetMenuFile,文件菜单
+	Gui,SaveItem:Add,Button, xm+6 yp+27 w60 vvSetFileRelativePath GSetFileRelativePath,相对路径
+	Gui,SaveItem:Add,Button, xm+6 yp+27 w60 vvSetShortcut GSetShortcut,快捷目标
+	Gui,SaveItem:Add,Button, xm+6 yp+27 w60 vvSetItemPathGetZz GSetItemPathGetZz,选中变量
+	Gui,SaveItem:Add,Button, xm+6 yp+27 w60 vvSetItemPathClipboard GSetItemPathClipboard, 剪贴板 
 
-	Gui,SaveItem:Add,Button,Default xm+220 y+25 w75 G%SaveLabel%,保存
-	Gui,SaveItem:Add,Button,x+20 w75 GSetCancel,取消
-	Gui,SaveItem:Add, Text, xm y+25 w590 cBlue vvStatusBar, %thisMenuStr% %thisMenuItemStr%
+	Gui,SaveItem:Add,Button,Default xm+220 y+25 w75 vvSaveItemSaveBtn G%SaveLabel%,保存
+	Gui,SaveItem:Add,Button,x+20 w75 vvSaveItemCancelBtn GSetCancel,取消
+	Gui,SaveItem:Add,Text, xm y+25 w590 cBlue vvStatusBar, %thisMenuStr% %thisMenuItemStr%
 	Gui,SaveItem:Show,,新增修改菜单项 - %RunAnyZz% - 支持拖放应用
 	GuiControl,SaveItem:Hide, vExtPrompt
 	if(fExt!="lnk")
@@ -2558,7 +2558,7 @@ Menu_Item_Edit:
 		GuiControl,SaveItem:Hide, vTextIconAdd
 	if(hotStrShow=""){
 		GuiControl,SaveItem:Hide, vhotStrOption
-		GuiControl,SaveItem:Move, vhotStrShow, x95 y67
+		GuiControl,SaveItem:Move, vhotStrShow, x95 y47
 	}
 	itemNameText:=thisMenuStr:=thisMenuItemStr:=""
 	gosub,EditItemPathChange
@@ -2672,10 +2672,10 @@ EditItemPathChange:
 	if(InStr(vitemName,"-")=1){
 		GuiControlHide("SaveItem","vItemMode","vSetItemPath","vSetFileRelativePath","vSetItemPathGetZz","vSetItemPathClipboard","vSetShortcut")
 		GuiControlShow("SaveItem","vSetFileSuffix","vSetMenuPublic","vSetMenuText","vSetMenuFile")
-		GuiControl,SaveItem:Move, vSetFileSuffix, y+180
-		GuiControl,SaveItem:Move, vSetMenuPublic, y+200
-		GuiControl,SaveItem:Move, vSetMenuText, y+230
-		GuiControl,SaveItem:Move, vSetMenuFile, y+260
+		GuiControl,SaveItem:Move, vSetFileSuffix, y+160
+		GuiControl,SaveItem:Move, vSetMenuPublic, y+190
+		GuiControl,SaveItem:Move, vSetMenuText, y+220
+		GuiControl,SaveItem:Move, vSetMenuFile, y+250
 	}else{
 		GuiControlHide("SaveItem","vSetFileSuffix","vSetMenuPublic","vSetMenuText","vSetMenuFile")
 		GuiControlShow("SaveItem","vItemMode","vSetItemPath","vSetFileRelativePath","vSetItemPathGetZz","vSetItemPathClipboard","vSetShortcut")
@@ -2704,7 +2704,7 @@ HotStrShowChange:
 	Gui,SaveItem:Submit, NoHide
 	if(vhotStrShow){
 		GuiControl,SaveItem:Show, vhotStrOption
-		GuiControl,SaveItem:Move, vhotStrShow, x160 y67
+		GuiControl,SaveItem:Move, vhotStrShow, x160 y47
 	}
 return
 ;[启动模式变换]
@@ -2846,6 +2846,14 @@ SetShortcut:
 		gosub,SetSaveItemFullPath
 	}
 	gosub,EditItemPathChange
+return
+SaveItemGuiSize:
+	if A_EventInfo = 1
+		return
+	GuiControl,SaveItem:Move, vitemPath, % "H" . (A_GuiHeight-240) . " W" . (A_GuiWidth - 120)
+	GuiControl,SaveItem:Move, vSaveItemSaveBtn,% "x" . (A_GuiWidth / 2 - 110) . "y" . (A_GuiHeight-70)
+	GuiControl,SaveItem:Move, vSaveItemCancelBtn,% "x" . (A_GuiWidth / 2) . "y" . (A_GuiHeight-70)
+	GuiControl,SaveItem:Move, vStatusBar,% "x30" . "y" . (A_GuiHeight-30)
 return
 GuiDropFiles:  ; 对拖放提供支持.
 SaveItemGuiDropFiles:
