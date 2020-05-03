@@ -208,6 +208,8 @@ if(MENU2FLAG){
 	t5:=A_TickCount-StartTick
 	Menu_Tray_Tip("创建菜单2：" Round((t5-t4)/1000,3) "s`n")
 }
+if(SendStrEcKey!="")
+	SendStrDcKey:=SendStrDecrypt(SendStrEcKey,RunAnyZz ConfigDate)
 try Menu,Tray,Icon,% ZzIconS[1],% ZzIconS[2]
 ;~[对菜单内容项进行过滤调整]
 Loop,%MenuCount%
@@ -1429,12 +1431,14 @@ Menu_Run_Mode_Label:
 	anyLen:=StrLen(any)
 	if(itemMode=2){
 		StringLeft, any, any, anyLen-1
-		any:=SendStrDecrypt(any)
+		if(RegExMatch(any,"S).*\$$"))
+			any:=SendStrDecrypt(any)
 		Send_Str_Zz(any,true)  ;[粘贴输出短语]
 		returnFlag:=true
 	}else if(itemMode=3){
 		StringLeft, any, any, anyLen-2
-		any:=SendStrDecrypt(any)
+		if(RegExMatch(any,"S).*\$$"))
+			any:=SendStrDecrypt(any)
 		Send_Str_Input_Zz(any,true)  ;[键盘输出短语]
 		returnFlag:=true
 	}else if(itemMode=4){
@@ -1468,21 +1472,23 @@ Menu_Run_Exe_Url:
 	Run_Search(anyUrl,getZz,BrowserPath)
 return
 ;调用huiZz_Text插件函数
-SendStrDecrypt(any){
+SendStrDecrypt(any,key:=""){
 	try{
-		if(RegExMatch(any,"S).*\$$") && PluginsObjRegGUID["huiZz_Text"]){
+		if(PluginsObjRegGUID["huiZz_Text"]){
+			key:=(key="") ? SendStrDcKey : key
 			PluginsObjRegActive["huiZz_Text"]:=ComObjActive(PluginsObjRegGUID["huiZz_Text"])
-			anyval:=PluginsObjRegActive["huiZz_Text"]["runany_decrypt"](any,SendStrDcKey)
+			anyval:=PluginsObjRegActive["huiZz_Text"]["runany_decrypt"](any,key)
 			return anyval
 		}
 	} catch {}
 	return any
 }
-SendStrEncrypt(any){
+SendStrEncrypt(any,key:=""){
 	try{
 		if(PluginsObjRegGUID["huiZz_Text"]){
+			key:=(key="") ? SendStrDcKey : key
 			PluginsObjRegActive["huiZz_Text"]:=ComObjActive(PluginsObjRegGUID["huiZz_Text"])
-			anyval:=PluginsObjRegActive["huiZz_Text"]["runany_encrypt"](any,SendStrDcKey)
+			anyval:=PluginsObjRegActive["huiZz_Text"]["runany_encrypt"](any,key)
 			return anyval
 		}
 	} catch {}
@@ -4304,7 +4310,7 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+200 yp-3 w200 r1 vvHotStrShowY,%HotStrShowY%
 	if(PluginsObjRegGUID["huiZz_Text"]){
 		Gui,66:Add,Text,xm yp+40 w250 GMenu_Config,短语key：
-		Gui,66:Add,Edit,xm+200 yp-3 Password w200 cWhite r1 vvSendStrDcKey,%SendStrDcKey%
+		Gui,66:Add,Edit,xm+200 yp-3 Password w200 cWhite r1 vvSendStrEcKey,%SendStrEcKey%
 	}
 	Gui,66:Add,Text,xm yp+50 cBlue,提示文字自动消失后，而且后续输入字符不触发热字符串功能`n需要按Tab/回车/句点/空格等键之后才会再次进行提示
 	
@@ -4462,6 +4468,7 @@ SetEvCommand:
 return
 SetOK:
 	Gui,Submit
+	vConfigDate:=A_MM A_DD
 	if(vAutoRun!=AutoRun){
 		AutoRun:=vAutoRun
 		if(AutoRun){
@@ -4470,12 +4477,14 @@ SetOK:
 			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		}
 	}
-	SetValueList.Push("AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupFormat","RunABackupDir","DisableApp")
+	if(vSendStrEcKey!=SendStrEcKey)
+		vSendStrEcKey:=SendStrEncrypt(vSendStrEcKey,RunAnyZz vConfigDate)
+	SetValueList.Push("ConfigDate","AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupFormat","RunABackupDir","DisableApp")
 	SetValueList.Push("EvPath","EvCommand","EvAutoClose","EvShowExt","EvShowFolder","EvExeVerNew","EvDemandSearch")
 	SetValueList.Push("HideFail","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideSelectZz","RecentMax")
 	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu","BrowserPath","IconFolderPath")
 	SetValueList.Push("HideMenuTrayIcon","MenuIconSize","MenuTrayIconSize","MenuIcon","AnyIcon","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon")
-	SetValueList.Push("HideHotStr","HotStrShowLen","HotStrShowTime","HotStrShowTransparent","HotStrShowX","HotStrShowY","SendStrDcKey")
+	SetValueList.Push("HideHotStr","HotStrShowLen","HotStrShowTime","HotStrShowTransparent","HotStrShowX","HotStrShowY","SendStrEcKey")
 	SetValueList.Push("MenuDoubleCtrlKey", "MenuDoubleAltKey", "MenuDoubleLWinKey", "MenuDoubleRWinKey")
 	SetValueList.Push("MenuCtrlRightKey", "MenuShiftRightKey", "MenuXButton1Key", "MenuXButton2Key", "MenuMButtonKey")
 	;[回车转换成竖杠保存到ini配置文件]
@@ -4903,6 +4912,7 @@ Var_Set:
 		Menu, Tray, NoIcon 
 	global AdminMode:=A_IsAdmin ? "【管理员】" : ""
 	global AutoReloadMTime:=Var_Read("AutoReloadMTime",2500)
+	global ConfigDate:=Var_Read("ConfigDate")
 	global RunABackupDir:=Var_Read("RunABackupDir","`%A_ScriptDir`%\RunBackup")
 	global RunABackupRule:=Var_Read("RunABackupRule",1)
 	global RunABackupMax:=Var_Read("RunABackupMax",5)
@@ -4946,6 +4956,7 @@ Var_Set:
 	global HotStrShowTransparent:=Var_Read("HotStrShowTransparent",80)	;热字符串提示显示透明度，默认80%的透明度
 	global HotStrShowX:=Var_Read("HotStrShowX",0)
 	global HotStrShowY:=Var_Read("HotStrShowY",0)
+	global SendStrEcKey:=Var_Read("SendStrEcKey")
 	global SendStrDcKey:=Var_Read("SendStrDcKey")
 	;[隐藏配置]开始
 	global ShowGetZzLen:=Var_Read("ShowGetZzLen",30)			;菜单显示选中文字最大截取字数

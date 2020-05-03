@@ -295,6 +295,12 @@ class RunAnyObj {
 			ToolTip
 		}
 	}
+	runany_encrypt(text,key){
+		return RegExReplace(encryptstr(text,key),"`r`n$")
+	}
+	runany_decrypt(text,key){
+		return RegExReplace(decryptstr(text,key),"`r`n$")
+	}
 	;~;[文本加密]
 	;【注意：key不要包含中文和中文标点符号】
 	;保存到RunAny.ini为：
@@ -312,12 +318,6 @@ class RunAnyObj {
 	;选中解密到剪贴板|huiZz_Text[decrypt](%getZz%,youkey1,0)
 	decrypt(text,key,isSend=1){
 		Send_Or_Show(decryptstr(text,key),isSend)
-	}
-	runany_encrypt(text,key){
-		return RegExReplace(encryptstr(text,key),"`r`n$")
-	}
-	runany_decrypt(text,key){
-		return RegExReplace(decryptstr(text,key),"`r`n$")
 	}
 }
 
