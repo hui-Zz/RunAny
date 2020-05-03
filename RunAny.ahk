@@ -1478,6 +1478,16 @@ SendStrDecrypt(any){
 	} catch {}
 	return any
 }
+SendStrEncrypt(any){
+	try{
+		if(PluginsObjRegGUID["huiZz_Text"]){
+			PluginsObjRegActive["huiZz_Text"]:=ComObjActive(PluginsObjRegGUID["huiZz_Text"])
+			anyval:=PluginsObjRegActive["huiZz_Text"]["runany_encrypt"](any,SendStrDcKey)
+			return anyval
+		}
+	} catch {}
+	return any
+}
 Menu_Run_Plugins_ObjReg:
 	appPlugins:=RegExReplace(any,"iS)(.+?)\[.+?\]%?\(.*?\)","$1")	;取插件名
 	appFunc:=RegExReplace(any,"iS).+?\[(.+?)\]%?\(.*?\)","$1")	;取函数名
@@ -2546,6 +2556,7 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add,Button, xm+6 yp+27 w60 vvSetShortcut GSetShortcut,快捷目标
 	Gui,SaveItem:Add,Button, xm+6 yp+27 w60 vvSetItemPathGetZz GSetItemPathGetZz,选中变量
 	Gui,SaveItem:Add,Button, xm+6 yp+27 w60 vvSetItemPathClipboard GSetItemPathClipboard, 剪贴板 
+	Gui,SaveItem:Add,Button, xm+6 yp+27 w60 vvSetSendStrEncrypt GSetSendStrEncrypt,加密短语
 
 	Gui,SaveItem:Add,Button,Default xm+220 y+25 w75 vvSaveItemSaveBtn G%SaveLabel%,保存
 	Gui,SaveItem:Add,Button,x+20 w75 vvSaveItemCancelBtn GSetCancel,取消
@@ -2699,6 +2710,11 @@ EditItemPathChange:
 		}
 		GuiControl, SaveItem:Choose, vItemMode,% getItemMode=60 ? 1 : getItemMode
 	}
+	if(PluginsObjRegGUID["huiZz_Text"] && (getItemMode=2 || getItemMode=3)){
+		GuiControlShow("SaveItem","vSetSendStrEncrypt")
+	}else{
+		GuiControlHide("SaveItem","vSetSendStrEncrypt")
+	}
 return
 HotStrShowChange:
 	Gui,SaveItem:Submit, NoHide
@@ -2771,6 +2787,21 @@ SetItemPathClipboard:
 	GuiControl, SaveItem:, vStatusBar,`%Clipboard`%在运行时会转换为剪贴板里的文本内容
 	GuiControl, SaveItem:Focus, vitemPath
 	Send_Str_Zz("%Clipboard%")
+return
+SetSendStrEncrypt:
+	Gui,SaveItem:Submit, NoHide
+	if(RegExMatch(vitemPath,"S).*\$(;|;;)$")){
+		vitemPath:=RegExReplace(vitemPath,"(;|;;)$")
+		GuiControl, SaveItem:, vitemPath, % SendStrDecrypt(vitemPath)
+		return
+	}
+	if(vItemMode=2){
+		vitemPath:=RegExReplace(vitemPath,";$")
+		GuiControl, SaveItem:, vitemPath, % SendStrEncrypt(vitemPath) "$;"
+	}else if(vItemMode=3){
+		vitemPath:=RegExReplace(vitemPath,";;$")
+		GuiControl, SaveItem:, vitemPath, % SendStrEncrypt(vitemPath) "$;;"
+	}
 return
 ;[全路径转换为RunAnyCtrl的相对路径]
 SetFileRelativePath:

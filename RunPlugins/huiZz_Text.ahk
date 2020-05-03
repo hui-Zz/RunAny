@@ -2,7 +2,7 @@
 ;* 【ObjReg文本操作脚本[文本函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.1.4"
+global RunAny_Plugins_Version:="1.1.5"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
@@ -313,8 +313,11 @@ class RunAnyObj {
 	decrypt(text,key,isSend=1){
 		Send_Or_Show(decryptstr(text,key),isSend)
 	}
+	runany_encrypt(text,key){
+		return RegExReplace(encryptstr(text,key),"`r`n$")
+	}
 	runany_decrypt(text,key){
-		return decryptstr(text,key)
+		return RegExReplace(decryptstr(text,key),"`r`n$")
 	}
 }
 
