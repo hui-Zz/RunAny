@@ -2567,7 +2567,7 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add,Button,Default xm+220 y+15 w75 vvSaveItemSaveBtn G%SaveLabel%,保存
 	Gui,SaveItem:Add,Button,x+20 w75 vvSaveItemCancelBtn GSetCancel,取消
 	Gui,SaveItem:Add,Text, xm+10 w590 cBlue vvStatusBar, %thisMenuStr% %thisMenuItemStr%
-	Gui,SaveItem:Show,H350,新增修改菜单项 - %RunAnyZz% - 支持拖放应用
+	Gui,SaveItem:Show,H365,新增修改菜单项 - %RunAnyZz% - 支持拖放应用
 	GuiControl,SaveItem:Hide, vExtPrompt
 	if(fExt!="lnk")
 		GuiControl,SaveItem:Hide, vSetShortcut
@@ -2718,7 +2718,7 @@ EditItemPathChange:
 		}
 		GuiControl, SaveItem:Choose, vItemMode,% getItemMode=60 ? 1 : getItemMode
 	}
-	if(PluginsObjRegGUID["huiZz_Text"] && (getItemMode=2 || getItemMode=3)){
+	if(SendStrDcKey!="" && PluginsObjRegGUID["huiZz_Text"] && (getItemMode=2 || getItemMode=3)){
 		GuiControlShow("SaveItem","vSetSendStrEncrypt")
 	}else{
 		GuiControlHide("SaveItem","vSetSendStrEncrypt")
@@ -2895,12 +2895,12 @@ SaveItemGuiSize:
 	if A_EventInfo = 1
 		return
 	GuiControl,SaveItem:Move, vitemName, % "W" . (A_GuiWidth-360)
-	GuiControl,SaveItem:Move, vitemPath, % "H" . (A_GuiHeight-220) . " W" . (A_GuiWidth - 120)
+	GuiControl,SaveItem:Move, vitemPath, % "H" . (A_GuiHeight-230) . " W" . (A_GuiWidth - 120)
 	GuiControl,SaveItem:Move, vPictureIconAdd,% "x" . (A_GuiWidth-130)
 	GuiControl,SaveItem:Move, vTextIconAdd,% "x" . (A_GuiWidth-130)
-	GuiControl,SaveItem:Move, vSaveItemSaveBtn,% "x" . (A_GuiWidth / 2 - 110) . " y" . (A_GuiHeight-55)
-	GuiControl,SaveItem:Move, vSaveItemCancelBtn,% "x" . (A_GuiWidth / 2) . " y" . (A_GuiHeight-55)
-	GuiControl,SaveItem:Move, vStatusBar,% "x30" . " y" . (A_GuiHeight-25)
+	GuiControl,SaveItem:Move, vSaveItemSaveBtn,% "x" . (A_GuiWidth / 2 - 100) . " y" . (A_GuiHeight-60)
+	GuiControl,SaveItem:Move, vSaveItemCancelBtn,% "x" . (A_GuiWidth / 2 + 10) . " y" . (A_GuiHeight-60)
+	GuiControl,SaveItem:Move, vStatusBar,% "x30" . " y" . (A_GuiHeight-30)
 return
 GuiDropFiles:  ; 对拖放提供支持.
 SaveItemGuiDropFiles:
