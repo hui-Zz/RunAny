@@ -2798,15 +2798,20 @@ SetItemPathClipboard:
 return
 SetSendStrEncrypt:
 	Gui,SaveItem:Submit, NoHide
-	if(RegExMatch(vitemPath,"S).*\$(;|;;)$")){
-		vitemPath:=RegExReplace(vitemPath,"(;|;;)$")
-		GuiControl, SaveItem:, vitemPath, % SendStrDecrypt(vitemPath)
-		return
-	}
 	if(vItemMode=2){
+		if(RegExMatch(vitemPath,"S).+\$;$")){
+			vitemPath:=RegExReplace(vitemPath,"\$;$")
+			GuiControl, SaveItem:, vitemPath, % SendStrDecrypt(vitemPath) ";"
+			return
+		}
 		vitemPath:=RegExReplace(vitemPath,";$")
 		GuiControl, SaveItem:, vitemPath, % SendStrEncrypt(vitemPath) "$;"
 	}else if(vItemMode=3){
+		if(RegExMatch(vitemPath,"S).+\$;;$")){
+			vitemPath:=RegExReplace(vitemPath,"\$;;$")
+			GuiControl, SaveItem:, vitemPath, % SendStrDecrypt(vitemPath) ";;"
+			return
+		}
 		vitemPath:=RegExReplace(vitemPath,";;$")
 		GuiControl, SaveItem:, vitemPath, % SendStrEncrypt(vitemPath) "$;;"
 	}
