@@ -4154,7 +4154,7 @@ Menu_Set:
 	Gui,66:Default
 	Gui,66:Margin,30,20
 	Gui,66:Font,,Microsoft YaHei
-	Gui,66:Add,Tab3,x10 y10 w590 h480 +Theme -Background,RunAny设置|热键配置|菜单变量|Everything设置|一键直达|内部关联打开|热字符串短语|图标设置
+	Gui,66:Add,Tab3,x10 y10 w590 h480 +Theme -Background,RunAny设置|热键配置|菜单变量|Everything设置|一键直达|内部关联|热字符串|图标设置|高级设置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+%MARGIN_TOP_66% vvAutoRun,开机自动启动
 	Gui,66:Add,Checkbox,Checked%AdminRun% x+148 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
@@ -4182,7 +4182,7 @@ Menu_Set:
 		Gui,66:Add,Button,x+40 yp-5 w150 GSetMenu2,开启第2个菜单
 	}
 
-	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h110,RunAny.ini设置
+	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h110,RunAny.ini文件设置
 	Gui,66:Add,Edit,xm yp+20 w50 h20 vvAutoReloadMTime,%AutoReloadMTime%
 	Gui,66:Add,Text,x+5 yp+2,(毫秒)  RunAny.ini修改后自动重启，0为不自动重启
 	Gui,66:Add,Checkbox,xm yp+25 Checked%RunABackupRule% vvRunABackupRule,自动备份
@@ -4263,7 +4263,7 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+30 vvEvExeVerNew gSetEvExeVerNew,搜索结果优先最新版本同名exe全路径
 	Gui,66:Add,Checkbox,Checked%EvDemandSearch% x+10 vvEvDemandSearch gSetEvDemandSearch,按需搜索模式（只搜索RunAny菜单的无路径文件）
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvCommand,修改
-	Gui,66:Add,Text,xm+60 yp,!C:\*Windows*为排除系统缓存和系统程序
+	Gui,66:Add,Text,xm+60 yp,!C:\*Windows*为排除系统缓存和系统程序，注意空格间隔
 	Gui,66:Add,Text,xm+60 yp+15,file:*.exe|*.lnk|后面类推增加想要的后缀
 	Gui,66:Add,Edit,ReadOnly xm yp+25 w%GROUP_EDIT_WIDTH_66% r8 -WantReturn vvEvCommand,%EvCommand%
 	
@@ -4285,7 +4285,7 @@ Menu_Set:
 	Gui,66:Add,Button,xm yp+20 w50 GSetBrowserPath,选择
 	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r3 -WantReturn vvBrowserPath,%BrowserPath%
 	
-	Gui,66:Tab,内部关联打开,,Exact
+	Gui,66:Tab,内部关联,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h435,内部关联软件打开%RunAnyZz%菜单内不同后缀的文件（不是作用打开资源管理器中的文件）
 	Gui,66:Add,Button, xm yp+30 w50 GLVOpenExtAdd, + 增加
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtEdit, * 修改
@@ -4305,7 +4305,7 @@ Menu_Set:
 		LV_ModifyCol(1,"AutoHdr")  ;列宽调整为标题对齐
 	GuiControl, 66:+Redraw, RunAnyOpenExtLV
 	
-	Gui,66:Tab,热字符串短语,,Exact
+	Gui,66:Tab,热字符串,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h350,热字符串设置
 	Gui,66:Add,Checkbox,Checked%HideHotStr% xm yp+30 vvHideHotStr,隐藏热字符串提示
 	Gui,66:Add,Text,xm yp+40 w250,提示启动路径最长字数 (0为隐藏)
@@ -4351,6 +4351,22 @@ Menu_Set:
 		Gui,66:Add,Button,x+5 yp w110 GMenu_Exe_Icon_Create,生成所有EXE图标
 	Gui,66:Add,Button,xm yp+30 w50 GSetIconFolderPath,选择
 	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r4 vvIconFolderPath,%IconFolderPath%
+
+	Gui,66:Tab,高级设置,,Exact
+	Gui,66:Add,Link,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%
+		,%RunAnyZz%高级设置列表，请不要随意修改（按F2进行修改：1或有值=启用，0或空=停用）
+	Gui,66:Add,Listview,xm yp+20 w%GROUP_EDIT_WIDTH_66% r20 grid AltSubmit -ReadOnly Checked vRunAnyConfigLV, 设置状态值|单位|设置说明
+	kvLenMax:=0
+	GuiControl, 66:-Redraw, RunAnyConfigLV
+	LV_Add(JumpSearch ? "Check" : "", JumpSearch,, "点击批量搜索时的确认弹窗自动跳过")
+	LV_Add(ShowGetZzLen ? "Check" : "", ShowGetZzLen,"字", "菜单第一行显示选中文字最大截取字数")
+	LV_Add(ReloadWaitTime ? "Check" : "", ReloadWaitTime,"秒", "RunAny运行过久时间后自动重启防止通信中断，每天一次，最小10秒")
+	LV_Add(ClipWaitTime ? "Check" : "", ClipWaitTime,"秒", "获取选中目标到剪贴板等待时间")
+	LV_Add(ClipWaitApp ? "Check" : "", ClipWaitApp,, "获取选中目标到剪贴板等待时间生效的应用（多个用,分隔）")
+	LV_Add(HideMenuAppIcon ? "Check" : "", HideMenuAppIcon,, "禁用EXE图标的菜单分类（多个用,分隔）")
+	LV_Add(AutoGetZz ? "Check" : "", AutoGetZz,, "【慎改】菜单程序运行自动带上当前选中文件，关闭后需要手动加%getZz%才可以获取到")
+	LV_Add(EvNo ? "Check" : "", EvNo,, "【慎改】不使用Everything模式，所有无路径配置都会失效！")
+	GuiControl, 66:+Redraw, RunAnyConfigLV
 
 	Gui,66:Tab
 	Gui,66:Add,Button,Default xm+120 y+40 w75 GSetOK,确定
@@ -4960,27 +4976,29 @@ Var_Set:
 	global EvCommand:=Var_Read("EvCommand",EvDemandSearch ? EvCommandDefault : EvCommandDefault " file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
 	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
 	OneKeyUrl:=StrReplace(OneKeyUrl, "|", "`n")
-	global HideHotStr:=Var_Read("HideHotStr",0)				;是否隐藏热字符串提示，0-不隐藏；1-隐藏
-	global HotStrShowLen:=Var_Read("HotStrShowLen",30)		;热字符串提示显示最长字数，默认30个
-	global HotStrShowTime:=Var_Read("HotStrShowTime",3000)	;热字符串提示显示时长，默认3000为3秒
-	global HotStrShowTransparent:=Var_Read("HotStrShowTransparent",80)	;热字符串提示显示透明度，默认80%的透明度
+	global HideHotStr:=Var_Read("HideHotStr",0)
+	global HotStrShowLen:=Var_Read("HotStrShowLen",30)
+	global HotStrShowTime:=Var_Read("HotStrShowTime",3000)
+	global HotStrShowTransparent:=Var_Read("HotStrShowTransparent",80)
 	global HotStrShowX:=Var_Read("HotStrShowX",0)
 	global HotStrShowY:=Var_Read("HotStrShowY",0)
 	global SendStrEcKey:=Var_Read("SendStrEcKey")
 	global SendStrDcKey:=Var_Read("SendStrDcKey")
 	;[隐藏配置]开始
-	global ShowGetZzLen:=Var_Read("ShowGetZzLen",30)			;菜单显示选中文字最大截取字数
-	global EvNo:=Var_Read("EvNo",0)							;不再提示Everything找不到
-	global JumpSearch:=Var_Read("JumpSearch",0)				;批量搜索忽略确认弹窗
-	global AutoGetZz:=Var_Read("AutoGetZz",1)				;菜单中程序运行时自动打开当前选中文件
-	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)    	;获取选中目标到剪贴板等待时间
-	ClipWaitApp:=Var_Read("ClipWaitApp","")					;上一项剪贴板等待时间生效的应用
+	global ShowGetZzLen:=Var_Read("ShowGetZzLen",30)
+	global EvNo:=Var_Read("EvNo",0)
+	global JumpSearch:=Var_Read("JumpSearch",0)
+	global AutoGetZz:=Var_Read("AutoGetZz",1)
+	global ReloadWaitTime:=Var_Read("ReloadWaitTime",20)
+	global ReloadWaitTimeOut:=ReloadWaitTime<10 ? 10000 : ReloadWaitTime*1000
+	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)
+	global ClipWaitApp:=Var_Read("ClipWaitApp","")
 	Loop,parse,ClipWaitApp,`,
 	{
 		GroupAdd,ClipWaitGUI,ahk_exe %A_LoopField%
 	}
 	global HideMenuAppIconList:={}
-	HideMenuAppIcon:=Var_Read("HideMenuAppIcon")  ;在菜单内禁用EXE图标
+	global HideMenuAppIcon:=Var_Read("HideMenuAppIcon")  ;在菜单内禁用EXE图标
 	Loop,parse,HideMenuAppIcon,`,
 	{
 		HideMenuAppIconList[A_LoopField]:=true
@@ -5799,7 +5817,8 @@ URLDownloadToFile(URL, FilePath, Options:="", RequestHeaders:="")
 ;~;[使用everything搜索所有exe程序]
 ;══════════════════════════════════════════════════════════════════
 everythingQuery(EvCommandStr){
-	SetTimer,everythingWaitTime,1000
+	if(ReloadWaitTime)
+		SetTimer,everythingWaitTime,1000
 	ev := new everything
 	if(EvCommandStr!=""){
 		ev.SetMatchWholeWord(true)
@@ -5829,7 +5848,7 @@ everythingQuery(EvCommandStr){
 	SetTimer,everythingWaitTime,Off
 }
 everythingWaitTime:
-	if(A_TickCount-StartTick>20000){
+	if(A_TickCount-StartTick>ReloadWaitTimeOut){
 		RegRead, ReloadLongTime, HKEY_CURRENT_USER, Software\RunAny, ReloadLongTime
 		if(ReloadLongTime!=A_MM . A_DD){
 			RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny,ReloadLongTime,%A_MM%%A_DD%
