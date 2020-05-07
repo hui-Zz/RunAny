@@ -297,13 +297,17 @@ Menu_Tray_Tip("","菜单已经可以正常使用`n开始为菜单中exe程序加
 ;~;[循环为菜单中EXE程序添加图标，过程较慢]
 For k, v in MenuExeIconArray
 {
-	if(!HideMenuAppIconList[(v["menuName"])]){
+	if(DisableExeIcon){
+		Menu_Item_Icon(v["menuName"],v["menuItem"],EXEIconS[1],EXEIconS[2])
+	}else{
 		Menu_Item_Icon(v["menuName"],v["menuItem"],v["itemFile"])
 	}
 }
 For k, v in MenuExeArray
 {
-	if(!HideMenuAppIconList[(v["menuName"])]){
+	if(DisableExeIcon){
+		Menu_Item_Icon(v["menuName"],v["menuItem"],EXEIconS[1],EXEIconS[2])
+	}else{
 		Menu_Item_Icon(v["menuName"],v["menuItem"],v["itemFile"])
 	}
 }
@@ -4146,15 +4150,15 @@ Variable_Boolean_Reverse(vars*){
 ;~;[设置选项]
 Menu_Set:
 	HotKeyFlag:=MenuVarFlag:=OpenExtFlag:=false
-	GROUP_WIDTH_66=560
-	GROUP_EDIT_WIDTH_66=540
+	GROUP_WIDTH_66=570
+	GROUP_EDIT_WIDTH_66=550
 	GROUP_CHOOSE_EDIT_WIDTH_66=480
 	MARGIN_TOP_66=15
 	Gui,66:Destroy
 	Gui,66:Default
 	Gui,66:Margin,30,20
 	Gui,66:Font,,Microsoft YaHei
-	Gui,66:Add,Tab3,x10 y10 w590 h480 +Theme -Background,RunAny设置|热键配置|菜单变量|Everything设置|一键直达|内部关联|热字符串|图标设置|高级设置
+	Gui,66:Add,Tab3,x10 y10 w600 h480 +Theme -Background,RunAny设置|热键配置|菜单变量|搜索Everything|一键直达|内部关联|热字符串|图标设置|高级设置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+%MARGIN_TOP_66% vvAutoRun,开机自动启动
 	Gui,66:Add,Checkbox,Checked%AdminRun% x+148 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
@@ -4249,7 +4253,7 @@ Menu_Set:
 	LV_ModifyCol()
 	GuiControl, 66:+Redraw, RunAnyMenuVarLV
 	
-	Gui,66:Tab,Everything设置,,Exact
+	Gui,66:Tab,搜索Everything,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h70,一键Everything [搜索选中文字、激活、隐藏] %EvHotKey%
 	Gui,66:Add,Hotkey,xm+10 yp+20 w130 vvEvKey,%EvKey%
 	Gui,66:Add,Checkbox,Checked%EvWinKey% xm+150 yp+3 vvEvWinKey,Win
@@ -4360,10 +4364,9 @@ Menu_Set:
 	GuiControl, 66:-Redraw, RunAnyConfigLV
 	LV_Add(JumpSearch ? "Check" : "", JumpSearch,, "点击批量搜索时的确认弹窗自动跳过")
 	LV_Add(ShowGetZzLen ? "Check" : "", ShowGetZzLen,"字", "菜单第一行显示选中文字最大截取字数")
-	LV_Add(ReloadWaitTime ? "Check" : "", ReloadWaitTime,"秒", "RunAny运行过久时间后自动重启防止通信中断，每天一次，最小10秒")
+	LV_Add(ReloadWaitTime ? "Check" : "", ReloadWaitTime,"秒", "RunAny运行过久时间后自动重启，每天最多一次，最小10秒")
 	LV_Add(ClipWaitTime ? "Check" : "", ClipWaitTime,"秒", "获取选中目标到剪贴板等待时间")
 	LV_Add(ClipWaitApp ? "Check" : "", ClipWaitApp,, "获取选中目标到剪贴板等待时间生效的应用（多个用,分隔）")
-	LV_Add(HideMenuAppIcon ? "Check" : "", HideMenuAppIcon,, "禁用EXE图标的菜单分类（多个用,分隔）")
 	LV_Add(AutoGetZz ? "Check" : "", AutoGetZz,, "【慎改】菜单程序运行自动带上当前选中文件，关闭后需要手动加%getZz%才可以获取到")
 	LV_Add(EvNo ? "Check" : "", EvNo,, "【慎改】不使用Everything模式，所有无路径配置都会失效！")
 	GuiControl, 66:+Redraw, RunAnyConfigLV
@@ -4373,7 +4376,7 @@ Menu_Set:
 	Gui,66:Add,Button,x+15 w75 GSetCancel,取消
 	Gui,66:Add,Button,x+15 w75 GSetReSet,重置
 	Gui,66:Add,Text,x+40 yp+5 w75 GMenu_Config,RunAnyConfig.ini
-	Gui,66:Show,w610,%RunAnyZz%设置 %RunAny_update_version% %RunAny_update_time%%AdminMode%
+	Gui,66:Show,w620,%RunAnyZz%设置 %RunAny_update_version% %RunAny_update_time%%AdminMode%
 	k:=v:=mVarName:=mVarVal:=mOpenExtName:=mOpenExtRun:=""
 	SetValueList:=["AdminRun"]
 	;[手写AHK热键情况下不根据Hotkey热键控件保存，避免清空手写热键值]
@@ -4538,7 +4541,7 @@ SetOK:
 			IniWrite,%v_winkeyV%,%RunAnyConfig%,Config,%winkeyV%
 		}
 	}
-	;[保存自定义打开后缀列表]
+	;[保存内部关联打开后缀列表]
 	if(OpenExtFlag){
 		Gui, ListView, RunAnyOpenExtLV
 		IniDelete, %RunAnyConfig%, OpenExt
@@ -4617,8 +4620,8 @@ SetEvDemandSearch:
 		MsgBox,64,Everything按需搜索模式, 不再搜索电脑上所有exe、lnk等后缀文件全路径，`n
 		(
 （只搜索%RunAnyZz%菜单的无路径文件）加快加载速度`n
-不再生效搜索参数  file:*.exe|*.lnk|*.ahk|*.bat|*.cmd
-任意在%RunAnyZz%菜单中的后缀文件都可以无路径运行`n
+如果想在%RunAnyZz%菜单中的任意后缀文件都可以无路径运行
+按需模式可以去掉file搜索参数，全量搜索在后面按格式添加其他后缀  file:*.exe|*.lnk|*.ahk|*.bat|*.cmd`n
 【注意】开启后会影响RunAny所有设置和插件脚本的无路径识别，
 不在RunAny.ini菜单内的程序无法自动识别全路径
 		)
@@ -4719,7 +4722,7 @@ SaveRunAHotkey:
 	LV_ModifyCol()  ; 根据内容自动调整每列的大小.
 	Gui,key:Destroy
 return
-;-------------------------------------自定义打开后缀界面-------------------------------------
+;-------------------------------------内部关联打开后缀界面-------------------------------------
 Open_Ext_Edit:
 	Gui, ListView, RunAnyOpenExtLV
 	if(openExtItem="编辑"){
@@ -4943,6 +4946,15 @@ Var_Set:
 	global RunABackupRule:=Var_Read("RunABackupRule",1)
 	global RunABackupMax:=Var_Read("RunABackupMax",5)
 	global RunABackupFormat:=Var_Read("RunABackupFormat",".`%A_Now`%.bak")
+	global HideFail:=Var_Read("HideFail",1)
+	global HideWeb:=Var_Read("HideWeb",0)
+	global HideGetZz:=Var_Read("HideGetZz",0)
+	global HideSend:=Var_Read("HideSend",0)
+	global HideAddItem:=Var_Read("HideAddItem",0)
+	global HideMenuTray:=Var_Read("HideMenuTray",0)
+	global HideSelectZz:=Var_Read("HideSelectZz",0)
+	global RecentMax:=Var_Read("RecentMax",3)
+	;[热键配置]
 	global MenuKeyTime:=Var_Read("MenuKeyTime",0)
 	global MenuDoubleCtrlKey:=Var_Read("MenuDoubleCtrlKey",0)
 	global MenuDoubleAltKey:=Var_Read("MenuDoubleAltKey",0)
@@ -4954,28 +4966,26 @@ Var_Set:
 	global MenuXButton1Key:=Var_Read("MenuXButton1Key",0)
 	global MenuXButton2Key:=Var_Read("MenuXButton2Key",0)
 	global MenuMButtonKey:=Var_Read("MenuMButtonKey",0)
-	global HideFail:=Var_Read("HideFail",1)
-	global HideWeb:=Var_Read("HideWeb",0)
-	global HideGetZz:=Var_Read("HideGetZz",0)
-	global HideSend:=Var_Read("HideSend",0)
-	global HideAddItem:=Var_Read("HideAddItem",0)
-	global HideMenuTray:=Var_Read("HideMenuTray",0)
-	global HideSelectZz:=Var_Read("HideSelectZz",0)
-	global RecentMax:=Var_Read("RecentMax",3)
+	;[一键直达]
 	global OneKeyWeb:=Var_Read("OneKeyWeb",1)
 	global OneKeyFolder:=Var_Read("OneKeyFolder",1)
 	global OneKeyMagnet:=Var_Read("OneKeyMagnet",1)
 	global OneKeyFile:=Var_Read("OneKeyFile",1)
 	global OneKeyMenu:=Var_Read("OneKeyMenu",0)
+	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
+	OneKeyUrl:=StrReplace(OneKeyUrl, "|", "`n")
+	;[搜索Everything]
 	global EvShowExt:=Var_Read("EvShowExt",1)
 	global EvShowFolder:=Var_Read("EvShowFolder",1)
 	global EvAutoClose:=Var_Read("EvAutoClose",0)
 	global EvExeVerNew:=Var_Read("EvExeVerNew",0)
 	global EvDemandSearch:=Var_Read("EvDemandSearch",1)
-	EvCommandDefault:="!C:\*Windows* !?:\$RECYCLE.BIN* !C:\Users\" A_UserName "\scoop\shims\*"
+	EvCommandDefault:="!C:\Windows* !?:\$RECYCLE.BIN*"
+	try EnvGet, scoopPath, scoop
+	if(scoopPath)
+		EvCommandDefault.=" !C:\Users\" A_UserName "\scoop\shims\*"
 	global EvCommand:=Var_Read("EvCommand",EvDemandSearch ? EvCommandDefault : EvCommandDefault " file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
-	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
-	OneKeyUrl:=StrReplace(OneKeyUrl, "|", "`n")
+	;[热字符串]
 	global HideHotStr:=Var_Read("HideHotStr",0)
 	global HotStrShowLen:=Var_Read("HotStrShowLen",30)
 	global HotStrShowTime:=Var_Read("HotStrShowTime",3000)
@@ -4984,7 +4994,7 @@ Var_Set:
 	global HotStrShowY:=Var_Read("HotStrShowY",0)
 	global SendStrEcKey:=Var_Read("SendStrEcKey")
 	global SendStrDcKey:=Var_Read("SendStrDcKey")
-	;[隐藏配置]开始
+	;[高级设置]开始
 	global ShowGetZzLen:=Var_Read("ShowGetZzLen",30)
 	global EvNo:=Var_Read("EvNo",0)
 	global JumpSearch:=Var_Read("JumpSearch",0)
@@ -4997,13 +5007,7 @@ Var_Set:
 	{
 		GroupAdd,ClipWaitGUI,ahk_exe %A_LoopField%
 	}
-	global HideMenuAppIconList:={}
-	global HideMenuAppIcon:=Var_Read("HideMenuAppIcon")  ;在菜单内禁用EXE图标
-	Loop,parse,HideMenuAppIcon,`,
-	{
-		HideMenuAppIconList[A_LoopField]:=true
-	}
-	;[隐藏配置]结束
+	;[高级配置]结束
 	DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe,SunloginClient.exe,War3.exe,dota2.exe,League of Legends.exe")
 	Loop,parse,DisableApp,`,
 	{
@@ -5455,7 +5459,7 @@ Menu_Exe_Icon_Extract:
 	For k, v in MenuExeArray
 	{
 		exePath:=v["itemFile"]
-		if(FileExist(exePath) && !HideMenuAppIconList[(v["menuName"])]){
+		if(FileExist(exePath)){
 			menuItem:=menuItemIconFileName(v["menuItem"])
 			if(!exeIconCreateFlag || !FileExist(ExeIconDir "\" menuItem ".ico")){
 				Run,%ResourcesExtractFile% /LoadConfig "%cfgFile%" /Source "%exePath%" /DestFold "%DestFold%"
@@ -5480,39 +5484,37 @@ Menu_Exe_Icon_Set(){
 		FileCreateDir, %ExeIconDir%
 	For k, v in MenuExeArray
 	{
-		if(!HideMenuAppIconList[(v["menuName"])]){
-			exePath:=v["itemFile"]
-			SplitPath, exePath, exeName, exeDir, ext, name_no_ext
-			iconNameFlag:=false
-			maxFileName=
-			maxFileSize=
-			maxFilePath=
-			IfExist,%A_Temp%\%RunAnyZz%\RunAnyExeIconTemp\%exeName%
+		exePath:=v["itemFile"]
+		SplitPath, exePath, exeName, exeDir, ext, name_no_ext
+		iconNameFlag:=false
+		maxFileName=
+		maxFileSize=
+		maxFilePath=
+		IfExist,%A_Temp%\%RunAnyZz%\RunAnyExeIconTemp\%exeName%
+		{
+			loop,%A_Temp%\%RunAnyZz%\RunAnyExeIconTemp\%exeName%\*.ico
 			{
-				loop,%A_Temp%\%RunAnyZz%\RunAnyExeIconTemp\%exeName%\*.ico
-				{
-					if(RegExMatch(A_LoopFileName,"iS).*_MAINICON.ico")){
-						maxFilePath:=A_LoopFileFullPath
-						break
-					}
-					if(!iconNameFlag && RegExMatch(A_LoopFileName,"iS).*_\d+\.ico")){
-						iconNum:=RegExReplace(A_LoopFileName,"iS).*_(\d+)\.ico","$1")
-						if(A_Index=1 || maxFileName>iconNum){
-							maxFileName:=iconNum
-							maxFilePath:=A_LoopFileFullPath
-						}
-						continue
-					}
-					if(maxFileSize<A_LoopFileSize){
-						iconNameFlag:=true
-						maxFileSize:=A_LoopFileSize
-						maxFilePath:=A_LoopFileFullPath
-					}
+				if(RegExMatch(A_LoopFileName,"iS).*_MAINICON.ico")){
+					maxFilePath:=A_LoopFileFullPath
+					break
 				}
-				menuItem:=menuItemIconFileName(v["menuItem"])
-				FileCopy, %maxFilePath%, %ExeIconDir%\%menuItem%.ico, 1
-				maxFilePath=
+				if(!iconNameFlag && RegExMatch(A_LoopFileName,"iS).*_\d+\.ico")){
+					iconNum:=RegExReplace(A_LoopFileName,"iS).*_(\d+)\.ico","$1")
+					if(A_Index=1 || maxFileName>iconNum){
+						maxFileName:=iconNum
+						maxFilePath:=A_LoopFileFullPath
+					}
+					continue
+				}
+				if(maxFileSize<A_LoopFileSize){
+					iconNameFlag:=true
+					maxFileSize:=A_LoopFileSize
+					maxFilePath:=A_LoopFileFullPath
+				}
 			}
+			menuItem:=menuItemIconFileName(v["menuItem"])
+			FileCopy, %maxFilePath%, %ExeIconDir%\%menuItem%.ico, 1
+			maxFilePath=
 		}
 	}
 }
