@@ -4365,6 +4365,7 @@ Menu_Set:
 	LV_Add(JumpSearch ? "Check" : "", JumpSearch,, "点击批量搜索时的确认弹窗自动跳过")
 	LV_Add(ShowGetZzLen ? "Check" : "", ShowGetZzLen,"字", "菜单第一行显示选中文字最大截取字数")
 	LV_Add(ReloadWaitTime ? "Check" : "", ReloadWaitTime,"秒", "RunAny运行过久时间后自动重启，每天最多一次，最小10秒")
+	LV_Add(DisableExeIcon ? "Check" : "", DisableExeIcon,, "禁用exe程序加载内置图标")
 	LV_Add(ClipWaitTime ? "Check" : "", ClipWaitTime,"秒", "获取选中目标到剪贴板等待时间")
 	LV_Add(ClipWaitApp ? "Check" : "", ClipWaitApp,, "获取选中目标到剪贴板等待时间生效的应用（多个用,分隔）")
 	LV_Add(AutoGetZz ? "Check" : "", AutoGetZz,, "【慎改】菜单程序运行自动带上当前选中文件，关闭后需要手动加%getZz%才可以获取到")
@@ -4999,6 +5000,7 @@ Var_Set:
 	global EvNo:=Var_Read("EvNo",0)
 	global JumpSearch:=Var_Read("JumpSearch",0)
 	global AutoGetZz:=Var_Read("AutoGetZz",1)
+	global DisableExeIcon:=Var_Read("DisableExeIcon",0)
 	global ReloadWaitTime:=Var_Read("ReloadWaitTime",20)
 	global ReloadWaitTimeOut:=ReloadWaitTime<10 ? 10000 : ReloadWaitTime*1000
 	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)
