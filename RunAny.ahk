@@ -4153,12 +4153,14 @@ Menu_Set:
 	GROUP_WIDTH_66=570
 	GROUP_EDIT_WIDTH_66=550
 	GROUP_CHOOSE_EDIT_WIDTH_66=480
-	MARGIN_TOP_66=15
+	MARGIN_TOP_66=10
+	TAB_HEIGHT:=A_ScreenDPI=144 ? 470 : 480
+	SetOKY:=A_ScreenDPI=144 ? 65 : 40
 	Gui,66:Destroy
 	Gui,66:Default
 	Gui,66:Margin,30,20
 	Gui,66:Font,,Microsoft YaHei
-	Gui,66:Add,Tab3,x10 y10 w600 h480 +Theme -Background,RunAny设置|热键配置|菜单变量|搜索Everything|一键直达|内部关联|热字符串|图标设置|高级配置
+	Gui,66:Add,Tab3,x10 y10 w600 h%TAB_HEIGHT% +Theme -Background,RunAny设置|热键配置|菜单变量|搜索Everything|一键直达|内部关联|热字符串|图标设置|高级配置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+%MARGIN_TOP_66% vvAutoRun,开机自动启动
 	Gui,66:Add,Checkbox,Checked%AdminRun% x+148 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
@@ -4238,7 +4240,7 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%MenuMButtonKey% xm yp+20 vvMenuMButtonKey,鼠标中键（需要关闭插件huiZz_MButton.ahk）
 
 	Gui,66:Tab,菜单变量,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h435,自定义配置RunAny菜单中可以使用的变量
+	Gui,66:Add,Text,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%,自定义配置RunAny菜单中可以使用的变量
 	Gui,66:Add,Button, xm yp+30 w50 GLVMenuVarAdd, + 增加
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuVarEdit, * 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuVarRemove, - 减少
@@ -4260,10 +4262,10 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%EvShowExt% x+23 vvEvShowExt,搜索带文件后缀
 	Gui,66:Add,Checkbox,Checked%EvShowFolder% x+5 vvEvShowFolder,搜索选中文件夹内部
 	Gui,66:Add,Checkbox,Checked%EvAutoClose% xm+220 yp+25 vvEvAutoClose,Everything自动关闭(不常驻后台)
-	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h90,Everything安装路径（支持内置变量和相对路径..\为RunAny相对上级目录）
+	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h80,Everything安装路径（支持内置变量和相对路径..\为RunAny相对上级目录）
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r2 -WantReturn vvEvPath,%EvPath%
-	Gui,66:Add,GroupBox,xm-10 y+25 w%GROUP_WIDTH_66% h250,RunAny调用Everything搜索参数（搜索结果可在RunAny无路径运行，Everything异常请尝试重建索引）
+	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h250,RunAny调用Everything搜索参数（搜索结果可在RunAny无路径运行，Everything异常请尝试重建索引）
 	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+30 vvEvExeVerNew gSetEvExeVerNew,搜索结果优先最新版本同名exe全路径
 	Gui,66:Add,Checkbox,Checked%EvDemandSearch% x+10 vvEvDemandSearch gSetEvDemandSearch,按需搜索模式（只搜索RunAny菜单的无路径文件）
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvCommand,修改
@@ -4290,7 +4292,7 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r3 -WantReturn vvBrowserPath,%BrowserPath%
 	
 	Gui,66:Tab,内部关联,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h435,内部关联软件打开%RunAnyZz%菜单内不同后缀的文件（不是作用打开资源管理器中的文件）
+	Gui,66:Add,Text,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%,内部关联软件打开%RunAnyZz%菜单内不同后缀的文件（仅菜单内部不作用资源管理器）
 	Gui,66:Add,Button, xm yp+30 w50 GLVOpenExtAdd, + 增加
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtEdit, * 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtRemove, - 减少
@@ -4349,7 +4351,7 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+85 yp+1 w440 r1 vvEXEIcon,%EXEIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetFuncIcon,脚本插件函数
 	Gui,66:Add,Edit,xm+85 yp+1 w440 r1 vvFuncIcon,%FuncIcon%
-	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h140,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含热字符串和全局热键）
+	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h130,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含热字符串和全局热键）
 	Gui,66:Add,Text, xm yp+20 w380,如图标文件名可以为：-常用(&&App).ico、cmd.png、百度(&&B).ico
 	if(ResourcesExtractExist)
 		Gui,66:Add,Button,x+5 yp w110 GMenu_Exe_Icon_Create,生成所有EXE图标
@@ -4362,7 +4364,7 @@ Menu_Set:
 	GuiControl, 66:-Redraw, AdvancedConfigLV
 	LV_Add(JumpSearch ? "Check" : "", JumpSearch,, "跳过显示点击批量搜索时的确认弹窗","JumpSearch")
 	LV_Add(ShowGetZzLen ? "Check" : "", ShowGetZzLen,"字", "菜单第一行显示选中文字最大截取字数","ShowGetZzLen")
-	LV_Add(ReloadWaitTime ? "Check" : "", ReloadWaitTime,"秒", "RunAny运行过久时间后自动重启，每天最多一次，最小10秒","ReloadWaitTime")
+	LV_Add(ReloadWaitTime ? "Check" : "", ReloadWaitTime,"秒", "RunAny初始化等待时间过久后自动重启，每天最多一次，最小10秒","ReloadWaitTime")
 	LV_Add(DisableExeIcon ? "Check" : "", DisableExeIcon,, "禁用exe程序加载本身图标","DisableExeIcon")
 	LV_Add(ClipWaitTime ? "Check" : "", ClipWaitTime,"秒", "获取选中目标到剪贴板等待时间","ClipWaitTime")
 	LV_Add(ClipWaitApp ? "Check" : "", ClipWaitApp,, "获取选中目标到剪贴板等待时间生效的应用（多个用,分隔）","ClipWaitApp")
@@ -4374,7 +4376,7 @@ Menu_Set:
 	GuiControl, 66:+Redraw, AdvancedConfigLV
 
 	Gui,66:Tab
-	Gui,66:Add,Button,Default xm+120 y+40 w75 GSetOK,确定
+	Gui,66:Add,Button,Default xm+120 y+%SetOKY% w75 GSetOK,确定
 	Gui,66:Add,Button,x+15 w75 GSetCancel,取消
 	Gui,66:Add,Button,x+15 w75 GSetReSet,重置
 	Gui,66:Add,Text,x+40 yp+5 w75 GMenu_Config,RunAnyConfig.ini
