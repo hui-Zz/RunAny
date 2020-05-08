@@ -4149,7 +4149,7 @@ Variable_Boolean_Reverse(vars*){
 ;══════════════════════════════════════════════════════════════════
 ;~;[设置选项]
 Menu_Set:
-	HotKeyFlag:=MenuVarFlag:=OpenExtFlag:=false
+	HotKeyFlag:=MenuVarFlag:=OpenExtFlag:=AdvancedConfigFlag:=false
 	GROUP_WIDTH_66=570
 	GROUP_EDIT_WIDTH_66=550
 	GROUP_CHOOSE_EDIT_WIDTH_66=480
@@ -4158,7 +4158,7 @@ Menu_Set:
 	Gui,66:Default
 	Gui,66:Margin,30,20
 	Gui,66:Font,,Microsoft YaHei
-	Gui,66:Add,Tab3,x10 y10 w600 h480 +Theme -Background,RunAny设置|热键配置|菜单变量|搜索Everything|一键直达|内部关联|热字符串|图标设置|高级设置
+	Gui,66:Add,Tab3,x10 y10 w600 h480 +Theme -Background,RunAny设置|热键配置|菜单变量|搜索Everything|一键直达|内部关联|热字符串|图标设置|高级配置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+%MARGIN_TOP_66% vvAutoRun,开机自动启动
 	Gui,66:Add,Checkbox,Checked%AdminRun% x+148 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
@@ -4203,7 +4203,7 @@ Menu_Set:
 	Gui,66:Tab,热键配置,,Exact
 	Gui,66:Add,Link,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%
 		,%RunAnyZz%热键配置列表（双击修改，按F2可手写AHK使用特殊热键，<a href="https://wyagd001.github.io/zh-cn/docs/KeyList.htm">如Space、CapsLock、Tab等</a>）
-	Gui,66:Add,Listview,xm yp+20 w%GROUP_EDIT_WIDTH_66% r11 grid AltSubmit -ReadOnly vRunAnyHotkeyLV glistviewHotkey, 热键AHK写法|热键说明|热键变量名
+	Gui,66:Add,Listview,xm yp+20 w%GROUP_EDIT_WIDTH_66% r11 AltSubmit -ReadOnly vRunAnyHotkeyLV glistviewHotkey, 热键AHK写法|热键说明|热键变量名
 	kvLenMax:=0
 	GuiControl, 66:-Redraw, RunAnyHotkeyLV
 	For ki, kv in HotKeyList
@@ -4263,7 +4263,7 @@ Menu_Set:
 	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h90,Everything安装路径（支持内置变量和相对路径..\为RunAny相对上级目录）
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r2 -WantReturn vvEvPath,%EvPath%
-	Gui,66:Add,GroupBox,xm-10 y+25 w%GROUP_WIDTH_66% h250,Everything通信搜索参数（搜索结果可在RunAny无路径运行，搜索为空请尝试重建Everything索引）
+	Gui,66:Add,GroupBox,xm-10 y+25 w%GROUP_WIDTH_66% h250,RunAny调用Everything搜索参数（搜索结果可在RunAny无路径运行，Everything异常请尝试重建索引）
 	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+30 vvEvExeVerNew gSetEvExeVerNew,搜索结果优先最新版本同名exe全路径
 	Gui,66:Add,Checkbox,Checked%EvDemandSearch% x+10 vvEvDemandSearch gSetEvDemandSearch,按需搜索模式（只搜索RunAny菜单的无路径文件）
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvCommand,修改
@@ -4356,21 +4356,22 @@ Menu_Set:
 	Gui,66:Add,Button,xm yp+30 w50 GSetIconFolderPath,选择
 	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r4 vvIconFolderPath,%IconFolderPath%
 
-	Gui,66:Tab,高级设置,,Exact
-	Gui,66:Add,Link,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%
-		,%RunAnyZz%高级设置列表，请不要随意修改（按F2进行修改：1或有值=启用，0或空=停用）
-	Gui,66:Add,Listview,xm yp+20 w%GROUP_EDIT_WIDTH_66% r20 grid AltSubmit -ReadOnly Checked vRunAnyConfigLV, 设置状态值|单位|设置说明
-	kvLenMax:=0
-	GuiControl, 66:-Redraw, RunAnyConfigLV
-	LV_Add(JumpSearch ? "Check" : "", JumpSearch,, "点击批量搜索时的确认弹窗自动跳过")
-	LV_Add(ShowGetZzLen ? "Check" : "", ShowGetZzLen,"字", "菜单第一行显示选中文字最大截取字数")
-	LV_Add(ReloadWaitTime ? "Check" : "", ReloadWaitTime,"秒", "RunAny运行过久时间后自动重启，每天最多一次，最小10秒")
-	LV_Add(DisableExeIcon ? "Check" : "", DisableExeIcon,, "禁用exe程序加载内置图标")
-	LV_Add(ClipWaitTime ? "Check" : "", ClipWaitTime,"秒", "获取选中目标到剪贴板等待时间")
-	LV_Add(ClipWaitApp ? "Check" : "", ClipWaitApp,, "获取选中目标到剪贴板等待时间生效的应用（多个用,分隔）")
-	LV_Add(AutoGetZz ? "Check" : "", AutoGetZz,, "【慎改】菜单程序运行自动带上当前选中文件，关闭后需要手动加%getZz%才可以获取到")
-	LV_Add(EvNo ? "Check" : "", EvNo,, "【慎改】不使用Everything模式，所有无路径配置都会失效！")
-	GuiControl, 66:+Redraw, RunAnyConfigLV
+	Gui,66:Tab,高级配置,,Exact
+	Gui,66:Add,Link,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%,%RunAnyZz%高级配置列表，请不要随意修改（双击或按F2进行修改：1或有值=启用，0或空=停用）
+	Gui,66:Add,Listview,xm yp+20 w%GROUP_EDIT_WIDTH_66% r18 grid AltSubmit -ReadOnly Checked vAdvancedConfigLV glistviewAdvancedConfig, 配置状态值|单位|配置说明|配置名
+	GuiControl, 66:-Redraw, AdvancedConfigLV
+	LV_Add(JumpSearch ? "Check" : "", JumpSearch,, "跳过显示点击批量搜索时的确认弹窗","JumpSearch")
+	LV_Add(ShowGetZzLen ? "Check" : "", ShowGetZzLen,"字", "菜单第一行显示选中文字最大截取字数","ShowGetZzLen")
+	LV_Add(ReloadWaitTime ? "Check" : "", ReloadWaitTime,"秒", "RunAny运行过久时间后自动重启，每天最多一次，最小10秒","ReloadWaitTime")
+	LV_Add(DisableExeIcon ? "Check" : "", DisableExeIcon,, "禁用exe程序加载本身图标","DisableExeIcon")
+	LV_Add(ClipWaitTime ? "Check" : "", ClipWaitTime,"秒", "获取选中目标到剪贴板等待时间","ClipWaitTime")
+	LV_Add(ClipWaitApp ? "Check" : "", ClipWaitApp,, "获取选中目标到剪贴板等待时间生效的应用（多个用,分隔）","ClipWaitApp")
+	LV_Add(AutoGetZz ? "Check" : "", AutoGetZz,, "【慎改】菜单程序运行自动带上当前选中文件，关闭后需要手动加%getZz%才可以获取到","AutoGetZz")
+	LV_Add(EvNo ? "Check" : "", EvNo,, "【慎改】不使用Everything模式，所有无路径配置都会失效！","EvNo")
+	LV_ModifyCol(2,"Auto")
+	LV_ModifyCol(3,"Auto")
+	LV_ModifyCol(4,"Auto")
+	GuiControl, 66:+Redraw, AdvancedConfigLV
 
 	Gui,66:Tab
 	Gui,66:Add,Button,Default xm+120 y+40 w75 GSetOK,确定
@@ -4562,6 +4563,16 @@ SetOK:
 			LV_GetText(menuVarName, A_Index, 1)
 			LV_GetText(menuVarVal, A_Index, 3)
 			IniWrite,%menuVarVal%,%RunAnyConfig%,MenuVar,%menuVarName%
+		}
+	}
+	;[保存高级配置]
+	if(AdvancedConfigFlag){
+		Gui, ListView, AdvancedConfigLV
+		Loop % LV_GetCount()
+		{
+			LV_GetText(AdvancedConfigVal, A_Index, 1)
+			LV_GetText(AdvancedConfigName, A_Index, 4)
+			Reg_Set(AdvancedConfigVal,%AdvancedConfigName%,AdvancedConfigName)
 		}
 	}
 	gosub,Menu_Reload
@@ -4910,6 +4921,15 @@ SaveMenuVar:
 	LV_ModifyCol()  ; 根据内容自动调整每列的大小.
 	Gui,SaveVar:Destroy
 return
+listviewAdvancedConfig:
+	if A_GuiEvent = DoubleClick
+	{
+		SendInput,{F2}
+	}else if A_GuiEvent = e
+	{
+		AdvancedConfigFlag:=true
+	}
+return
 
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化]
@@ -4995,7 +5015,7 @@ Var_Set:
 	global HotStrShowY:=Var_Read("HotStrShowY",0)
 	global SendStrEcKey:=Var_Read("SendStrEcKey")
 	global SendStrDcKey:=Var_Read("SendStrDcKey")
-	;[高级设置]开始
+	;[高级配置]开始
 	global ShowGetZzLen:=Var_Read("ShowGetZzLen",30)
 	global EvNo:=Var_Read("EvNo",0)
 	global JumpSearch:=Var_Read("JumpSearch",0)
