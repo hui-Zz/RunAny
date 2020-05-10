@@ -4297,11 +4297,17 @@ Menu_Set:
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuVarRemove, - 减少
 	Gui,66:Add,Link, x+15 yp-5,使用方法：变量两边加百分号如：<a href="https://hui-zz.gitee.io/runany/#/article/built-in-variables">`%变量名`%`n</a>编辑菜单项的启动路径中 或 RunAny.ini文件中使用
 	Gui,66:Add,Listview,xm yp+40 w%GROUP_EDIT_WIDTH_66% r16 grid AltSubmit vRunAnyMenuVarLV glistviewMenuVar, 菜单变量名|类型|菜单变量值（动态变量不同电脑会自动变化）
+	RunAnyMenuVarImageListID:=IL_Create(2)
+	IL_Add(RunAnyMenuVarImageListID,AnyIconS[1],AnyIconS[2])
+	IL_Add(RunAnyMenuVarImageListID,"shell32.dll",71)
+	IL_Add(RunAnyMenuVarImageListID,"shell32.dll",25)
+	LV_SetImageList(RunAnyMenuVarImageListID)
 	GuiControl, 66:-Redraw, RunAnyMenuVarLV
 	For mVarName, mVarVal in MenuVarIniList
 	{
+		mtypeIcon:=(MenuVarTypeList[mVarName]=1) ? "Icon1" : (MenuVarTypeList[mVarName]=2) ? "Icon3" : "Icon2"
 		mtypeStr:=(MenuVarTypeList[mVarName]=1) ? "RunAny变量(动态)" : (MenuVarTypeList[mVarName]=2) ? "系统环境变量(动态)" : "用户变量(固定值)"
-		LV_Add("", mVarName, mtypeStr, mVarVal)
+		LV_Add(mtypeIcon, mVarName, mtypeStr, mVarVal)
 	}
 	LV_ModifyCol()
 	GuiControl, 66:+Redraw, RunAnyMenuVarLV
