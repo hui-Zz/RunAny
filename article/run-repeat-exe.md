@@ -6,12 +6,23 @@
 
 那为了避免出现RunAny运行到老版本或不正确的重名exe程序，有以下办法：
 
-### 一、升级RunAny版本到5.6.9版本以上，自动优先最新版本exe程序功能
+### 一、升级RunAny版本到5.6.9版本以上，自动优先最新版本exe程序功能【推荐⭐⭐⭐】
 
 ?> 在RunAny 5.6.9版本以上，在RunAny设置的Everything设置中增加了`搜索结果优先最新版本同名exe全路径`的选项  
 所以打开此选项后就完美支持了Scoop这类软件库中的软件，无路径也能自动定位到最新版本的EXE程序
 
-### 二、修改RunAny设置中的Everything搜索参数，屏蔽不正确路径程序
+---
+
+### 二、创建bat、vbs、ahk、无路径cmd命令快捷方式等中转，在RunAny中添加使用这个不重名可执行文件【推荐⭐⭐】
+![无路径快捷方式](../assets/images/articleImg/无路径快捷方式.png)
+
+建议放在目标软件同一目录下，脚本命令代码不要带路径，或使用相对路径
+随软件在不同电脑、网盘、U盘同步变更目录后依然可用，加在RunAny中可以无路径定位便捷运行
+还可以做到一次运行多个、命令传递参数等功能
+
+---
+
+### 三、修改RunAny设置中的Everything搜索参数，屏蔽不正确路径程序【推荐⭐⭐】
 
 解决了高低版本的exe程序识别，那还有相同版本或者不正确的exe怎么屏蔽不让RunAny错误运行呢
 
@@ -30,17 +41,17 @@ code.exe的路径有
 
 > 通配符: `*` 匹配 0 个或多个字符  `?` 匹配 1 个字符.
 
-![RunAny的Everything设置](../assets/images/RunAny的Everything设置.jpg)
+![RunAny的Everything设置](../assets/images/articleImg/RunAny的Everything设置.jpg)
 
-### 三、创建该程序的快捷方式，在RunAny中添加使用快捷方式解决重名问题
+---
 
-如果运行软件带有特殊命令参数或一次运行多个，可以创建快捷方式，在RunAny中添加`快捷方式.lnk`，在不同电脑都有该名称快捷方式就可以无路径便捷运行了
-
-### 四、菜单变量路径运行，系统环境变量、网盘路径、AHK内置变量等（升级RunAny版本到5.7.0版本以上）
+### 四、菜单变量路径运行，系统环境变量、网盘路径、AHK内置变量等（升级RunAny版本到5.7.0版本以上）【推荐⭐】
 
 如根据OneDrvie网盘路径运行应用：`PortableApps|%OneDrive%\Start.exe`
 
 相对于RunAny安装路径的应用：`Notepad2|%A_ScriptDir%\..\..\..\Apps\Zz\TotalCMD64\Tools\Notepad2.exe`
+
+---
 
 ### 五、全路径指定运行，只推荐固定路径安装程序，不推荐绿色软件使用此方式
 

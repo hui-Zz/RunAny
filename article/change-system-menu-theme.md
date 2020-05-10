@@ -13,7 +13,7 @@
 
 3. 点应用到系统。
 
-![更改系统菜单主题背景](../assets/images/change-system-menu-theme.jpg)
+![更改系统菜单主题背景](../assets/images/articleImg/change-system-menu-theme.jpg)
 
 # Win10 1703/1709/1803 使用Dism++开启右键菜单背景
 
