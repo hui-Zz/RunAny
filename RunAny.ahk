@@ -86,7 +86,6 @@ if(A_AhkVersion < 1.1.28){
 }
 ;══════════════════════════════════════════════════════════════════
 t1:=A_TickCount-StartTick
-Menu_Tray_Tip(RunAnyZz . AdminMode "`n")
 Menu_Tray_Tip("初始化时间：" Round(t1/1000,3) "s`n","开始运行插件脚本...")
 if(!iniFlag){
 	;~;[运行插件脚本]
@@ -315,8 +314,9 @@ For k, v in MenuExeArray
 ;#菜单已经加载完毕，托盘图标变化
 try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 t6:=A_TickCount-StartTick
-Menu_Tray_Tip("为菜单中exe程序加载图标：" Round((t6-t5)/1000,3) "s`n","总加载时间：" Round(t6/1000,3) "s")
+Menu_Tray_Tip("菜单中exe加载图标：" Round((t6-t5)/1000,3) "s`n","总加载时间：" Round(t6/1000,3) "s")
 MenuIconFlag:=true
+MenuTrayTipText:=""
 
 ;#如果是第一次运行#
 if(iniFlag){
@@ -351,7 +351,6 @@ if(MENU2FLAG){
 if(AutoReloadMTime>0){
 	SetTimer,AutoReloadMTime,%AutoReloadMTime%
 }
-
 return
 
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -413,13 +412,31 @@ Menu_Tree_List_Filter(M_Index,MenuTypeList,MenuType){
 		}
 	}
 }
-;~[鼠标悬停在托盘图标上时显示信息]
+;~[鼠标悬停在托盘图标上时显示初始化信息]
 Menu_Tray_Tip(tText,tmpText:=""){
-	static tipText:=""
-	tipText.=tText
-	Menu,Tray,Tip,% tipText tmpText
+	MenuTrayTipText.=tText
+	Menu,Tray,Tip,% MenuTrayTipText tmpText
+	return MenuTrayTipText
 }
-
+;~[鼠标悬停在托盘图标上时显示运行路径信息]
+Menu_Run_Tray_Tip(tText,tmpText:=""){
+	if(Menu_Tray_Tip(tText,tmpText)!=A_IconTip){
+		MenuTrayTipText:=tText tmpText
+		Menu,Tray,Tip,%MenuTrayTipText%
+	}
+}
+;~[菜单调试模式下的调试信息]
+Menu_Debug_Mode(tText,tmpText:=""){
+	if(DebugMode){
+		DebugModeShowText.=tText
+		if(StrLen(tText)>DebugModeShowTextLen)
+			DebugModeShowTextLen:=StrLen(tText)
+		CoordMode, ToolTip
+		ToolTip,%DebugModeShowText%`n%tmpText%,A_ScreenWidth-DebugModeShowTextLen,0,1
+		SetTimer,RemoveDebugModeToolTip,%DebugModeShowTime%
+		WinSet, Transparent, % DebugModeShowTransparent/100*255, ahk_class tooltips_class32
+	}
+}
 ;══════════════════════════════════════════════════════════════════
 ;~;[多种启动菜单热键]
 #If MenuDoubleCtrlKey=1
@@ -1273,6 +1290,7 @@ Menu_Run:
 		any:=MenuObj[(MenuShowMenuRun)]
 		MenuShowMenuRun:=""
 	}
+	MenuRunDebugModeShow()
 	fullPath:=Get_Obj_Path(any)
 	SplitPath, fullPath, , dir, ext
 	if(dir && FileExist(dir))
@@ -1303,7 +1321,7 @@ Menu_Run:
 		any:=Get_Transform_Val(any)
 		any:=RTrim(any," `t`n`r")
 		anyRun:=""
-		if(!getZz && !Candy_isFile && !GetKeyState("Alt") && !GetKeyState("LWin") && !GetKeyState("Shift")){
+		if(getZz="" && !Candy_isFile && !GetKeyState("Alt") && !GetKeyState("LWin") && !GetKeyState("Shift")){
 			;[按住Ctrl键打开应用所在目录，只有目录则直接打开]
 			if(GetKeyState("Ctrl") || InStr(FileExist(any), "D")){
 				if(OpenFolderPathRun){
@@ -1387,6 +1405,8 @@ Menu_Key_Run_Run:
 		SetWorkingDir,%dir%
 	try {
 		itemMode:=GetMenuItemMode(any)
+		
+		MenuRunDebugModeShow(1)
 		;[根据菜单项模式运行]
 		returnFlag:=false
 		gosub,Menu_Run_Mode_Label
@@ -1475,6 +1495,34 @@ Menu_Run_Exe_Url:
 	anyUrl:=RegExReplace(any,"iS).*?\.exe (.*)","$1")	;去掉应用名，取参数
 	Run_Search(anyUrl,getZz,BrowserPath)
 return
+;菜单运行时显示的调试信息
+MenuRunDebugModeShow(key:=0){
+	if(DebugMode){
+		if(getZz!=""){
+			Menu_Debug_Mode("===选中内容===`n")
+			Menu_Debug_Mode(getZz "`n")
+		}
+		if(Candy_isFile)
+			Menu_Debug_Mode("选中内容类型：文件" "`n")
+		if(key){
+			Menu_Debug_Mode("全局热键：" A_ThisHotkey "`n")
+		}else if(GetKeyState("Ctrl") || GetKeyState("Shift") || GetKeyState("Alt") 
+				|| GetKeyState("LWin") || GetKeyState("RWin")){
+			Menu_Debug_Mode("按下按键：")
+			if(GetKeyState("Ctrl"))
+				Menu_Debug_Mode(" Ctrl键")
+			if(GetKeyState("Shift"))
+				Menu_Debug_Mode(" Shift键")
+			if(GetKeyState("Alt"))
+				Menu_Debug_Mode(" Alt键")
+			if(GetKeyState("LWin"))
+				Menu_Debug_Mode(" 左Win键")
+			if(GetKeyState("RWin"))
+				Menu_Debug_Mode(" 右Win键")
+			Menu_Debug_Mode("`n")
+		}
+	}
+}
 ;调用huiZz_Text插件函数
 SendStrDecrypt(any,key:=""){
 	try{
@@ -1666,6 +1714,8 @@ Web_Search:
 	}
 return
 Run_Any(any){
+	Menu_Debug_Mode("[运行路径]`n" any "`n")
+	Menu_Run_Tray_Tip("运行路径`n" any "`n")
 	Run,%any%
 }
 Run_Zz(program){
@@ -4364,6 +4414,9 @@ Menu_Set:
 	Gui,66:Add,Listview,xm yp+20 w%GROUP_EDIT_WIDTH_66% r18 grid AltSubmit -ReadOnly Checked vAdvancedConfigLV glistviewAdvancedConfig, 配置状态值|单位|配置说明|配置名
 	GuiControl, 66:-Redraw, AdvancedConfigLV
 	LV_Add(JumpSearch ? "Check" : "", JumpSearch,, "跳过显示点击批量搜索时的确认弹窗","JumpSearch")
+	LV_Add(DebugMode ? "Check" : "", DebugMode,, "[调试模式]实时显示菜单运行的信息","DebugMode")
+	LV_Add(DebugModeShowTime ? "Check" : "", DebugModeShowTime,"毫秒", "[调试模式]实时显示菜单运行信息的自动隐藏时间","DebugModeShowTime")
+	LV_Add(DebugModeShowTransparent ? "Check" : "", DebugModeShowTransparent,"%", "[调试模式]实时显示菜单运行信息的透明度","DebugModeShowTransparent")
 	LV_Add(ShowGetZzLen ? "Check" : "", ShowGetZzLen,"字", "菜单第一行显示选中文字最大截取字数","ShowGetZzLen")
 	LV_Add(ReloadWaitTime ? "Check" : "", ReloadWaitTime,"秒", "RunAny初始化等待时间过久后自动重启，每天最多一次，最小10秒","ReloadWaitTime")
 	LV_Add(DisableExeIcon ? "Check" : "", DisableExeIcon,, "禁用菜单中exe程序加载本身图标","DisableExeIcon")
@@ -4963,8 +5016,9 @@ Var_Set:
 	global getZz:=""
 	global HideMenuTrayIcon:=Var_Read("HideMenuTrayIcon",0)
 	if(HideMenuTrayIcon)
-		Menu, Tray, NoIcon 
+		Menu, Tray, NoIcon
 	global AdminMode:=A_IsAdmin ? "【管理员】" : ""
+	global MenuTrayTipText:=RunAnyZz . AdminMode "`n"
 	global AutoReloadMTime:=Var_Read("AutoReloadMTime",2500)
 	global ConfigDate:=Var_Read("ConfigDate")
 	global RunABackupDir:=Var_Read("RunABackupDir","`%A_ScriptDir`%\RunBackup")
@@ -5021,6 +5075,11 @@ Var_Set:
 	global SendStrDcKey:=Var_Read("SendStrDcKey")
 	;[高级配置]开始
 	global ShowGetZzLen:=Var_Read("ShowGetZzLen",30)
+	global DebugMode:=Var_Read("DebugMode",0)
+	global DebugModeShowTime:=Var_Read("DebugModeShowTime",10000)
+	global DebugModeShowTransparent:=Var_Read("DebugModeShowTransparent",80)
+	global DebugModeShowText:=""
+	global DebugModeShowTextLen:=0
 	global EvNo:=Var_Read("EvNo",0)
 	global JumpSearch:=Var_Read("JumpSearch",0)
 	global AutoGetZz:=Var_Read("AutoGetZz",1)
@@ -5762,6 +5821,12 @@ Menu_Exit:
 return
 RemoveToolTip:
 	SetTimer,RemoveToolTip,Off
+	ToolTip
+return
+RemoveDebugModeToolTip:
+	SetTimer,RemoveDebugModeToolTip,Off
+	DebugModeShowText:=""
+	DebugModeShowTextLen:=0
 	ToolTip
 return
 ExitSub:
