@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.1 @2020.05.09
+║【RunAny】一劳永逸的快速启动工具 v5.7.1 @2020.05.10
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.7.1"
-global RunAny_update_time:="2020.05.09"
+global RunAny_update_time:="2020.05.10"
 Gosub,Var_Set          ;~参数初始化
 Gosub,Run_Exist        ;~调用判断依赖
 Gosub,Plugins_Read     ;~插件脚本读取
@@ -434,7 +434,7 @@ Menu_Debug_Mode(tText,tmpText:=""){
 		CoordMode, ToolTip
 		ToolTip,%DebugModeShowText%`n%tmpText%,A_ScreenWidth-DebugModeShowTextLen,0,1
 		SetTimer,RemoveDebugModeToolTip,%DebugModeShowTime%
-		WinSet, Transparent, % DebugModeShowTransparent/100*255, ahk_class tooltips_class32
+		WinSet, Transparent, % DebugModeShowTrans/100*255, ahk_class tooltips_class32
 	}
 }
 ;══════════════════════════════════════════════════════════════════
@@ -4411,20 +4411,24 @@ Menu_Set:
 
 	Gui,66:Tab,高级配置,,Exact
 	Gui,66:Add,Link,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%,%RunAnyZz%高级配置列表，请不要随意修改（双击或按F2进行修改：1或有值=启用，0或空=停用）
-	Gui,66:Add,Listview,xm yp+20 w%GROUP_EDIT_WIDTH_66% r18 grid AltSubmit -ReadOnly Checked vAdvancedConfigLV glistviewAdvancedConfig, 配置状态值|单位|配置说明|配置名
+	Gui,66:Add,Listview,xm yp+20 w%GROUP_EDIT_WIDTH_66% r18 grid AltSubmit -ReadOnly vAdvancedConfigLV glistviewAdvancedConfig, 配置状态值|单位|配置说明|配置名
+	AdvancedConfigImageListID:=IL_Create(2)
+	IL_Add(AdvancedConfigImageListID,"shell32.dll",297)
+	IL_Add(AdvancedConfigImageListID,"shell32.dll",132)
+	LV_SetImageList(AdvancedConfigImageListID)
 	GuiControl, 66:-Redraw, AdvancedConfigLV
-	LV_Add(JumpSearch ? "Check" : "", JumpSearch,, "跳过显示点击批量搜索时的确认弹窗","JumpSearch")
-	LV_Add(DebugMode ? "Check" : "", DebugMode,, "[调试模式]实时显示菜单运行的信息","DebugMode")
-	LV_Add(DebugModeShowTime ? "Check" : "", DebugModeShowTime,"毫秒", "[调试模式]实时显示菜单运行信息的自动隐藏时间","DebugModeShowTime")
-	LV_Add(DebugModeShowTransparent ? "Check" : "", DebugModeShowTransparent,"%", "[调试模式]实时显示菜单运行信息的透明度","DebugModeShowTransparent")
-	LV_Add(ShowGetZzLen ? "Check" : "", ShowGetZzLen,"字", "菜单第一行显示选中文字最大截取字数","ShowGetZzLen")
-	LV_Add(ReloadWaitTime ? "Check" : "", ReloadWaitTime,"秒", "RunAny初始化等待时间过久后自动重启，每天最多一次，最小10秒","ReloadWaitTime")
-	LV_Add(DisableExeIcon ? "Check" : "", DisableExeIcon,, "禁用菜单中exe程序加载本身图标","DisableExeIcon")
-	LV_Add(ClipWaitTime ? "Check" : "", ClipWaitTime,"秒", "获取选中目标到剪贴板等待时间","ClipWaitTime")
-	LV_Add(ClipWaitApp ? "Check" : "", ClipWaitApp,, "获取选中目标到剪贴板等待时间生效的应用（多个用,分隔）","ClipWaitApp")
-	LV_Add(AutoGetZz ? "Check" : "", AutoGetZz,, "【慎改】菜单程序运行自动带上当前选中文件，关闭后需要手动加%getZz%才可以获取到","AutoGetZz")
-	LV_Add(EvNo ? "Check" : "", EvNo,, "【慎改】不使用Everything模式，所有无路径配置都会失效！","EvNo")
-	LV_ModifyCol(2,"Auto")
+	LV_Add(JumpSearch ? "Icon1" : "Icon2", JumpSearch,, "跳过显示点击批量搜索时的确认弹窗","JumpSearch")
+	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugMode,, "[调试模式] 实时显示菜单运行的信息","DebugMode")
+	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugModeShowTime,"毫秒", "[调试模式] 实时显示菜单运行信息的自动隐藏时间","DebugModeShowTime")
+	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugModeShowTrans,"%", "[调试模式] 实时显示菜单运行信息的透明度","DebugModeShowTrans")
+	LV_Add(ShowGetZzLen ? "Icon1" : "Icon2", ShowGetZzLen,"字", "[选中] 菜单第一行显示选中文字最大截取字数","ShowGetZzLen")
+	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitTime,"秒", "[选中] 获取选中目标到剪贴板等待时间","ClipWaitTime")
+	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitApp,, "[选中] 获取选中目标到剪贴板等待时间生效的应用（多个用,分隔）","ClipWaitApp")
+	LV_Add(ReloadWaitTime ? "Icon1" : "Icon2", ReloadWaitTime,"秒", "RunAny初始化等待时间过久后自动重启，每天最多一次，最小10秒","ReloadWaitTime")
+	LV_Add(DisableExeIcon ? "Icon1" : "Icon2", DisableExeIcon,, "菜单中exe程序不加载本身图标","DisableExeIcon")
+	LV_Add(AutoGetZz ? "Icon1" : "Icon2", AutoGetZz,, "【慎改】菜单程序运行自动带上当前选中文件，关闭后需要手动加%getZz%才可以获取到","AutoGetZz")
+	LV_Add(EvNo ? "Icon1" : "Icon2", EvNo,, "【慎改】不使用Everything模式，所有无路径配置都会失效！","EvNo")
+	LV_ModifyCol(2,"Auto Center")
 	LV_ModifyCol(3,"Auto")
 	LV_ModifyCol(4,"Auto")
 	GuiControl, 66:+Redraw, AdvancedConfigLV
@@ -5076,8 +5080,8 @@ Var_Set:
 	;[高级配置]开始
 	global ShowGetZzLen:=Var_Read("ShowGetZzLen",30)
 	global DebugMode:=Var_Read("DebugMode",0)
-	global DebugModeShowTime:=Var_Read("DebugModeShowTime",10000)
-	global DebugModeShowTransparent:=Var_Read("DebugModeShowTransparent",80)
+	global DebugModeShowTime:=Var_Read("DebugModeShowTime",8000)
+	global DebugModeShowTrans:=Var_Read("DebugModeShowTrans",70)
 	global DebugModeShowText:=""
 	global DebugModeShowTextLen:=0
 	global EvNo:=Var_Read("EvNo",0)
