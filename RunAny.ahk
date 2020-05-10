@@ -3483,7 +3483,8 @@ Set_Icon(itemVar,editVar=true){
 	if(editVar && FailFlag){
 		;~;[编辑后通过everything重新添加应用图标]
 		if(FileExt="exe"){
-			exeQueryPath:=exeQuery(FileName="" ? objText : FileName)
+			if(!EvNo)
+				exeQueryPath:=exeQuery(FileName="" ? objText : FileName)
 			if(exeQueryPath){
 				FileName:=exeQueryPath
 			}else{
@@ -5369,19 +5370,21 @@ Run_Exist:
 	}
 	global iniFileVar:=iniVar1
 	;#判断Everything拓展DLL文件#
-	global everyDLL:="Everything.dll"
-	if(FileExist(A_ScriptDir "\Everything.dll")){
-		everyDLL:=DllCall("LoadLibrary", str, "Everything.dll") ? "Everything.dll" : "Everything64.dll"
-	}else if(FileExist(A_ScriptDir "\Everything64.dll")){
-		everyDLL:=DllCall("LoadLibrary", str, "Everything64.dll") ? "Everything64.dll" : "Everything.dll"
-	}
-	IfNotExist,%A_ScriptDir%\%everyDLL%
-	{
-		MsgBox,17,,没有找到%everyDLL%，将不能识别菜单中程序的路径`n需要将%everyDLL%放到【%A_ScriptDir%】目录下`n是否需要从网上下载%everyDLL%？
-		IfMsgBox Ok
+	if(!EvNo){
+		global everyDLL:="Everything.dll"
+		if(FileExist(A_ScriptDir "\Everything.dll")){
+			everyDLL:=DllCall("LoadLibrary", str, "Everything.dll") ? "Everything.dll" : "Everything64.dll"
+		}else if(FileExist(A_ScriptDir "\Everything64.dll")){
+			everyDLL:=DllCall("LoadLibrary", str, "Everything64.dll") ? "Everything64.dll" : "Everything.dll"
+		}
+		IfNotExist,%A_ScriptDir%\%everyDLL%
 		{
-			URLDownloadToFile(RunAnyDownDir "/" everyDLL,A_ScriptDir "\" everyDLL)
-			gosub,Menu_Reload
+			MsgBox,17,,没有找到%everyDLL%，将不能识别菜单中程序的路径`n需要将%everyDLL%放到【%A_ScriptDir%】目录下`n是否需要从网上下载%everyDLL%？
+			IfMsgBox Ok
+			{
+				URLDownloadToFile(RunAnyDownDir "/" everyDLL,A_ScriptDir "\" everyDLL)
+				gosub,Menu_Reload
+			}
 		}
 	}
 return
@@ -5969,7 +5972,7 @@ everythingCommandStr(){
 			}
 			itemVars:=StrSplit(A_LoopField,"|",,2)
 			itemVar:=itemVars[2] ? itemVars[2] : itemVars[1]
-			RegExMatch(itemVar,"S)^[^|]+?\.[\.a-zA-Z0-9]+",outVar)
+			RegExMatch(itemVar,"S)^[^|]+?\.[\._a-zA-Z0-9]+",outVar)
 			if(!RegExMatch(outVar,"S)\\|\/|\:|\*|\?|\""|\<|\>|\|") 
 					&& !InStr(EvCommandStr,"|" outVar "|") && GetMenuItemMode(A_LoopField)=1
 					&& !FileExist(A_WinDir "\" outVar) && !FileExist(A_WinDir "\system32\" outVar)){
