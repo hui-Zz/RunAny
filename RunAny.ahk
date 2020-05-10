@@ -4389,7 +4389,7 @@ Menu_Set:
 	Gui,66:Add,Link,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%,%RunAnyZz%高级配置列表，请不要随意修改（双击或按F2进行修改：1或有值=启用，0或空=停用）
 	Gui,66:Add,Listview,xm yp+20 w%GROUP_EDIT_WIDTH_66% r18 grid AltSubmit -ReadOnly vAdvancedConfigLV glistviewAdvancedConfig, 配置状态值|单位|配置说明|配置名
 	AdvancedConfigImageListID:=IL_Create(2)
-	IL_Add(AdvancedConfigImageListID,"shell32.dll",A_OSVersion="WIN_XP" ? 145 : 297)
+	IL_Add(AdvancedConfigImageListID,"shell32.dll",(A_OSVersion="WIN_XP" || A_OSVersion="WIN_7") ? 145 : 297)
 	IL_Add(AdvancedConfigImageListID,"shell32.dll",132)
 	LV_SetImageList(AdvancedConfigImageListID)
 	GuiControl, 66:-Redraw, AdvancedConfigLV
