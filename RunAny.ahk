@@ -4205,13 +4205,11 @@ Menu_Set:
 	GROUP_EDIT_WIDTH_66=550
 	GROUP_CHOOSE_EDIT_WIDTH_66=480
 	MARGIN_TOP_66=10
-	TAB_HEIGHT:=A_ScreenDPI=144 ? 470 : 480
-	SetOKY:=A_ScreenDPI=144 ? 65 : 40
 	Gui,66:Destroy
 	Gui,66:Default
 	Gui,66:Margin,30,20
 	Gui,66:Font,,Microsoft YaHei
-	Gui,66:Add,Tab3,x10 y10 w600 h%TAB_HEIGHT% +Theme -Background,RunAny设置|热键配置|菜单变量|搜索Everything|一键直达|内部关联|热字符串|图标设置|高级配置
+	Gui,66:Add,Tab3,x10 y10 w600 h475 +Theme -Background,RunAny设置|热键配置|菜单变量|搜索Everything|一键直达|内部关联|热字符串|图标设置|高级配置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+%MARGIN_TOP_66% vvAutoRun,开机自动启动
 	Gui,66:Add,Checkbox,Checked%AdminRun% x+148 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
@@ -4319,7 +4317,7 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%EvShowExt% x+23 vvEvShowExt,搜索带文件后缀
 	Gui,66:Add,Checkbox,Checked%EvShowFolder% x+5 vvEvShowFolder,搜索选中文件夹内部
 	Gui,66:Add,Checkbox,Checked%EvAutoClose% xm+220 yp+25 vvEvAutoClose,Everything自动关闭(不常驻后台)
-	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h80,Everything安装路径（支持内置变量和相对路径..\为RunAny相对上级目录）
+	Gui,66:Add,GroupBox,xm-10 y+15 w%GROUP_WIDTH_66% h80,Everything安装路径（支持内置变量和相对路径..\为RunAny相对上级目录）
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r2 -WantReturn vvEvPath,%EvPath%
 	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h250,RunAny调用Everything搜索参数（搜索结果可在RunAny无路径运行，Everything异常请尝试重建索引）
@@ -4386,6 +4384,30 @@ Menu_Set:
 		Gui,66:Add,Edit,xm+200 yp-3 Password w200 cWhite r1 vvSendStrEcKey,%SendStrEcKey%
 	}
 	Gui,66:Add,Text,xm yp+50 cBlue,提示文字自动消失后，而且后续输入字符不触发热字符串功能`n需要按Tab/回车/句点/空格等键之后才会再次进行提示
+
+	Gui,66:Tab,高级配置,,Exact
+	Gui,66:Add,Link,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%,%RunAnyZz%高级配置列表，请不要随意修改（双击或按F2进行修改：1或有值=启用，0或空=停用）
+	Gui,66:Add,Listview,xm yp+20 w%GROUP_EDIT_WIDTH_66% r18 grid AltSubmit -ReadOnly vAdvancedConfigLV glistviewAdvancedConfig, 配置状态值|单位|配置说明|配置名
+	AdvancedConfigImageListID:=IL_Create(2)
+	IL_Add(AdvancedConfigImageListID,"shell32.dll",A_OSVersion="WIN_XP" ? 145 : 297)
+	IL_Add(AdvancedConfigImageListID,"shell32.dll",132)
+	LV_SetImageList(AdvancedConfigImageListID)
+	GuiControl, 66:-Redraw, AdvancedConfigLV
+	LV_Add(JumpSearch ? "Icon1" : "Icon2", JumpSearch,, "跳过显示点击批量搜索时的确认弹窗","JumpSearch")
+	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugMode,, "[调试模式] 实时显示菜单运行的信息","DebugMode")
+	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugModeShowTime,"毫秒", "[调试模式] 实时显示菜单运行信息的自动隐藏时间","DebugModeShowTime")
+	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugModeShowTrans,"%", "[调试模式] 实时显示菜单运行信息的透明度","DebugModeShowTrans")
+	LV_Add(ShowGetZzLen ? "Icon1" : "Icon2", ShowGetZzLen,"字", "[选中] 菜单第一行显示选中文字最大截取字数","ShowGetZzLen")
+	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitTime,"秒", "[选中] 获取选中目标到剪贴板等待时间","ClipWaitTime")
+	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitApp,, "[选中] 获取选中目标到剪贴板等待时间生效的应用（多个用,分隔）","ClipWaitApp")
+	LV_Add(ReloadWaitTime ? "Icon1" : "Icon2", ReloadWaitTime,"秒", "RunAny初始化等待时间过久后自动重启，每天最多一次，最小10秒","ReloadWaitTime")
+	LV_Add(DisableExeIcon ? "Icon1" : "Icon2", DisableExeIcon,, "菜单中exe程序不加载本身图标","DisableExeIcon")
+	LV_Add(AutoGetZz ? "Icon1" : "Icon2", AutoGetZz,, "【慎改】菜单程序运行自动带上当前选中文件，关闭后需要手动加%getZz%才可以获取到","AutoGetZz")
+	LV_Add(EvNo ? "Icon1" : "Icon2", EvNo,, "【慎改】不使用Everything模式，所有无路径配置都会失效！","EvNo")
+	LV_ModifyCol(2,"Auto Center")
+	LV_ModifyCol(3,"Auto")
+	LV_ModifyCol(4,"Auto")
+	GuiControl, 66:+Redraw, AdvancedConfigLV
 	
 	Gui,66:Tab,图标设置,,Exact
 	Gui,66:Add,Checkbox,Checked%HideMenuTrayIcon% xm-5 y+%MARGIN_TOP_66% vvHideMenuTrayIcon gSetHideMenuTrayIcon,隐藏任务栏托盘图标
@@ -4415,32 +4437,8 @@ Menu_Set:
 	Gui,66:Add,Button,xm yp+30 w50 GSetIconFolderPath,选择
 	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r4 vvIconFolderPath,%IconFolderPath%
 
-	Gui,66:Tab,高级配置,,Exact
-	Gui,66:Add,Link,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%,%RunAnyZz%高级配置列表，请不要随意修改（双击或按F2进行修改：1或有值=启用，0或空=停用）
-	Gui,66:Add,Listview,xm yp+20 w%GROUP_EDIT_WIDTH_66% r18 grid AltSubmit -ReadOnly vAdvancedConfigLV glistviewAdvancedConfig, 配置状态值|单位|配置说明|配置名
-	AdvancedConfigImageListID:=IL_Create(2)
-	IL_Add(AdvancedConfigImageListID,"shell32.dll",297)
-	IL_Add(AdvancedConfigImageListID,"shell32.dll",132)
-	LV_SetImageList(AdvancedConfigImageListID)
-	GuiControl, 66:-Redraw, AdvancedConfigLV
-	LV_Add(JumpSearch ? "Icon1" : "Icon2", JumpSearch,, "跳过显示点击批量搜索时的确认弹窗","JumpSearch")
-	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugMode,, "[调试模式] 实时显示菜单运行的信息","DebugMode")
-	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugModeShowTime,"毫秒", "[调试模式] 实时显示菜单运行信息的自动隐藏时间","DebugModeShowTime")
-	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugModeShowTrans,"%", "[调试模式] 实时显示菜单运行信息的透明度","DebugModeShowTrans")
-	LV_Add(ShowGetZzLen ? "Icon1" : "Icon2", ShowGetZzLen,"字", "[选中] 菜单第一行显示选中文字最大截取字数","ShowGetZzLen")
-	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitTime,"秒", "[选中] 获取选中目标到剪贴板等待时间","ClipWaitTime")
-	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitApp,, "[选中] 获取选中目标到剪贴板等待时间生效的应用（多个用,分隔）","ClipWaitApp")
-	LV_Add(ReloadWaitTime ? "Icon1" : "Icon2", ReloadWaitTime,"秒", "RunAny初始化等待时间过久后自动重启，每天最多一次，最小10秒","ReloadWaitTime")
-	LV_Add(DisableExeIcon ? "Icon1" : "Icon2", DisableExeIcon,, "菜单中exe程序不加载本身图标","DisableExeIcon")
-	LV_Add(AutoGetZz ? "Icon1" : "Icon2", AutoGetZz,, "【慎改】菜单程序运行自动带上当前选中文件，关闭后需要手动加%getZz%才可以获取到","AutoGetZz")
-	LV_Add(EvNo ? "Icon1" : "Icon2", EvNo,, "【慎改】不使用Everything模式，所有无路径配置都会失效！","EvNo")
-	LV_ModifyCol(2,"Auto Center")
-	LV_ModifyCol(3,"Auto")
-	LV_ModifyCol(4,"Auto")
-	GuiControl, 66:+Redraw, AdvancedConfigLV
-
 	Gui,66:Tab
-	Gui,66:Add,Button,Default xm+120 y+%SetOKY% w75 GSetOK,确定
+	Gui,66:Add,Button,Default xm+120 y+55 w75 GSetOK,确定
 	Gui,66:Add,Button,x+15 w75 GSetCancel,取消
 	Gui,66:Add,Button,x+15 w75 GSetReSet,重置
 	Gui,66:Add,Text,x+40 yp+5 w75 GMenu_Config,RunAnyConfig.ini
