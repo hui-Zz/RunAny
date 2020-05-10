@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.1 @2020.05.08
+║【RunAny】一劳永逸的快速启动工具 v5.7.1 @2020.05.09
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.7.1"
-global RunAny_update_time:="2020.05.08"
+global RunAny_update_time:="2020.05.09"
 Gosub,Var_Set          ;~参数初始化
 Gosub,Run_Exist        ;~调用判断依赖
 Gosub,Plugins_Read     ;~插件脚本读取
@@ -156,7 +156,7 @@ if(!EvNo){
 				}else if(FileExist(A_ScriptDir "\Everything\Everything.exe")){
 					Run,%A_ScriptDir%\Everything\Everything.exe -startup
 					EvPath=%A_ScriptDir%\Everything\Everything.exe
-					Sleep,2000
+					Sleep,1000
 					break
 				}else{
 					TrayTip,,RunAny需要Everything快速识别无路径程序`n
@@ -174,10 +174,6 @@ if(!EvNo){
 		If(evExist){
 			if(everythingCheck("explorer.exe"))
 				everythingQuery(EvCommandStr)
-			if(!EvPath){
-				;>>发现Everything已运行则取到路径
-				WinGet, EvPath, ProcessPath, ahk_exe Everything.exe
-			}
 			for k,v in MenuObjEv
 			{
 				MenuObj:=MenuObjEv.Clone()
@@ -191,6 +187,10 @@ if(!EvNo){
 		}
 		DetectHiddenWindows,Off
 	}
+}
+if(!EvPath){
+	;>>发现Everything已运行则取到路径
+	WinGet, EvPath, ProcessPath, ahk_exe Everything.exe
 }
 ;══════════════════════════════════════════════════════════════════
 t3:=A_TickCount-StartTick
@@ -1042,7 +1042,7 @@ Menu_Show:
 			return
 		}
 		if(!extMenuHideFlag)
-			global getZz:=Get_Zz()
+			getZz:=Get_Zz()
 		gosub,RunAny_Menu
 		selectCheck:=Trim(getZz," `t`n`r")
 		if(selectCheck=""){
@@ -1213,7 +1213,7 @@ Menu_Show:
 return
 ;~;[菜单热键显示]
 Menu_Key_Show:
-	global getZz:=Get_Zz()
+	getZz:=Get_Zz()
 	try {
 		gosub,RunAny_Menu
 		Menu_Show_Show(menuTreekey[(A_ThisHotkey)],getZz)
@@ -1812,6 +1812,7 @@ Send_Key_Zz(keyZz,keyLevel=0){
 Get_Zz(){
 	global Candy_isFile
 	global Candy_Select
+	Candy_isFile:=0
 	Candy_Saved:=ClipboardAll
 	Clipboard=
 	SendInput,^c
@@ -1822,7 +1823,7 @@ Get_Zz(){
 	}
 	If(ErrorLevel){
 		Clipboard:=Candy_Saved
-		return
+		return ""
 	}
 	Candy_isFile:=DllCall("IsClipboardFormatAvailable","UInt",15)
 	CandySel=%Clipboard%
@@ -4365,7 +4366,7 @@ Menu_Set:
 	LV_Add(JumpSearch ? "Check" : "", JumpSearch,, "跳过显示点击批量搜索时的确认弹窗","JumpSearch")
 	LV_Add(ShowGetZzLen ? "Check" : "", ShowGetZzLen,"字", "菜单第一行显示选中文字最大截取字数","ShowGetZzLen")
 	LV_Add(ReloadWaitTime ? "Check" : "", ReloadWaitTime,"秒", "RunAny初始化等待时间过久后自动重启，每天最多一次，最小10秒","ReloadWaitTime")
-	LV_Add(DisableExeIcon ? "Check" : "", DisableExeIcon,, "禁用exe程序加载本身图标","DisableExeIcon")
+	LV_Add(DisableExeIcon ? "Check" : "", DisableExeIcon,, "禁用菜单中exe程序加载本身图标","DisableExeIcon")
 	LV_Add(ClipWaitTime ? "Check" : "", ClipWaitTime,"秒", "获取选中目标到剪贴板等待时间","ClipWaitTime")
 	LV_Add(ClipWaitApp ? "Check" : "", ClipWaitApp,, "获取选中目标到剪贴板等待时间生效的应用（多个用,分隔）","ClipWaitApp")
 	LV_Add(AutoGetZz ? "Check" : "", AutoGetZz,, "【慎改】菜单程序运行自动带上当前选中文件，关闭后需要手动加%getZz%才可以获取到","AutoGetZz")
@@ -4959,6 +4960,7 @@ Var_Set:
 		Run *RunAs %adminahkpath%"%A_ScriptFullPath%"
 		ExitApp
 	}
+	global getZz:=""
 	global HideMenuTrayIcon:=Var_Read("HideMenuTrayIcon",0)
 	if(HideMenuTrayIcon)
 		Menu, Tray, NoIcon 
