@@ -1249,12 +1249,29 @@ return
 Menu_Show_Show(menuName,itemName){
 	selectCheck:=Trim(itemName," `t`n`r")
 	if(!HideSelectZz && selectCheck!=""){
+		translate:=""
+		if(translateFalg && RegExMatch(selectCheck,"S)[a-zA-Z]+") && !RegExMatch(selectCheck,"S)[\p{Han}]+")){
+			PluginsObjRegActive["huiZz_Text"]:=ComObjActive(PluginsObjRegGUID["huiZz_Text"])
+			translate:=PluginsObjRegActive["huiZz_Text"]["runany_google_translate"](selectCheck,"auto","zh-CN")
+			translate:=RegExReplace(translate,"[+].*")
+		}
 		if(StrLen(itemName)>ShowGetZzLen)
 			itemName:=SubStr(itemName, 1, ShowGetZzLen) . "..."
+		if(StrLen(translate)>ShowGetZzLen)
+			translate:=SubStr(translate, 1, ShowGetZzLen) . "..."
 		Menu,%menuName%,Insert, 1&,%itemName%,Menu_Show_Select_Clipboard
 		Menu,%menuName%,ToggleCheck, 1&
 		Menu,%menuName%,Insert, 2&
+		if(translate!=""){
+			Menu,%menuName%,Insert, 3&,%translate%,Menu_Show_Select_Translate,+Radio
+			Menu,%menuName%,ToggleCheck, 3&
+			Menu,%menuName%,Insert, 4&
+		}
 		Menu,%menuName%,Show
+		if(translate!=""){
+			Menu,%menuName%,Delete, 4&
+			Menu,%menuName%,Delete, 3&
+		}
 		Menu,%menuName%,Delete, 2&
 		Menu,%menuName%,Delete,%itemName%
 	}else{
@@ -1263,6 +1280,9 @@ Menu_Show_Show(menuName,itemName){
 }
 Menu_Show_Select_Clipboard:
 	Clipboard:=Candy_Select
+return
+Menu_Show_Select_Translate:
+	Run,https://translate.google.cn/#auto/zh-CN/%getZz%
 return
 ;~;[所有菜单(添加/删除)临时项]
 Menu_Add_Del_Temp(addDel=1,TREE_NO=1,mName="",LabelName="",mIcon="",mIconNum=""){
