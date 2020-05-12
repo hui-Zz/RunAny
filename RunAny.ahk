@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.1 @2020.05.10
+║【RunAny】一劳永逸的快速启动工具 v5.7.1 @2020.05.12
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.7.1"
-global RunAny_update_time:="2020.05.10"
+global RunAny_update_time:="2020.05.12"
 Gosub,Var_Set          ;~参数初始化
 Gosub,Run_Exist        ;~调用判断依赖
 Gosub,Plugins_Read     ;~插件脚本读取
@@ -1249,16 +1249,10 @@ return
 Menu_Show_Show(menuName,itemName){
 	selectCheck:=Trim(itemName," `t`n`r")
 	if(!HideSelectZz && selectCheck!=""){
-		translate:=""
-		if(translateFalg && RegExMatch(selectCheck,"S)[a-zA-Z]+") && !RegExMatch(selectCheck,"S)[\p{Han}]+")){
-			PluginsObjRegActive["huiZz_Text"]:=ComObjActive(PluginsObjRegGUID["huiZz_Text"])
-			translate:=PluginsObjRegActive["huiZz_Text"]["runany_google_translate"](selectCheck,"auto","zh-CN")
-			translate:=RegExReplace(translate,"[+].*")
-		}
+		;[选中内容翻译]
+		translate:=Menu_Show_Translate(selectCheck)
 		if(StrLen(itemName)>ShowGetZzLen)
 			itemName:=SubStr(itemName, 1, ShowGetZzLen) . "..."
-		if(StrLen(translate)>ShowGetZzLen)
-			translate:=SubStr(translate, 1, ShowGetZzLen) . "..."
 		Menu,%menuName%,Insert, 1&,%itemName%,Menu_Show_Select_Clipboard
 		Menu,%menuName%,ToggleCheck, 1&
 		Menu,%menuName%,Insert, 2&
@@ -1277,6 +1271,31 @@ Menu_Show_Show(menuName,itemName){
 	}else{
 		Menu,%menuName%,Show
 	}
+}
+Menu_Show_Translate(selectCheck){
+	translate:=""
+	if(translateFalg && (!GetZzTranslateMenu || GetZzTranslateMenu=MENU_NO)){
+		if(GetZzTranslateAuto){
+			if(!RegExMatch(selectCheck,"S)[\p{Han}]+")){
+				GetZzTranslateTarget:="zh-CN"
+			}else if(!RegExMatch(selectCheck,"S)[a-zA-Z]+")){
+				GetZzTranslateTarget:="en"
+			}else{
+				return ""
+			}
+		}else{
+			if(GetZzTranslateSource="en" && !RegExMatch(selectCheck,"S)[a-zA-Z]+"))
+				return ""
+			if(GetZzTranslateSource="zh-CN" && !RegExMatch(selectCheck,"S)[\p{Han}]+"))
+				return ""
+		}
+		PluginsObjRegActive["huiZz_Text"]:=ComObjActive(PluginsObjRegGUID["huiZz_Text"])
+		translate:=PluginsObjRegActive["huiZz_Text"]["runany_google_translate"](selectCheck,GetZzTranslateSource,GetZzTranslateTarget)
+		translate:=RegExReplace(translate,"[+].*")
+		if(StrLen(translate)>ShowGetZzLen)
+			translate:=SubStr(translate, 1, ShowGetZzLen) . "..."
+	}
+	return translate
 }
 Menu_Show_Select_Clipboard:
 	Clipboard:=Candy_Select
@@ -4417,6 +4436,11 @@ Menu_Set:
 	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugMode,, "[调试模式] 实时显示菜单运行的信息","DebugMode")
 	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugModeShowTime,"毫秒", "[调试模式] 实时显示菜单运行信息的自动隐藏时间","DebugModeShowTime")
 	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugModeShowTrans,"%", "[调试模式] 实时显示菜单运行信息的透明度","DebugModeShowTrans")
+	LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslate,"", "[选中翻译] 菜单第二行谷歌翻译选中内容","GetZzTranslate")
+	LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateMenu,"菜单", "[选中翻译] 1：仅菜单1显示翻译；2：仅菜单2显示翻译；0：所有菜单均显示","GetZzTranslateMenu")
+	LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateSource,"", "[选中翻译] 翻译源语言，默认auto","GetZzTranslateSource")
+	LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateTarget,"", "[选中翻译] 翻译目标语言，英文：en，中文：zh-CN，具体语言查看谷歌翻译网址","GetZzTranslateTarget")
+	LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateAuto,"", "[选中翻译] 翻译目标语言自动判断切换中英文","GetZzTranslateAuto")
 	LV_Add(ShowGetZzLen ? "Icon1" : "Icon2", ShowGetZzLen,"字", "[选中] 菜单第一行显示选中文字最大截取字数","ShowGetZzLen")
 	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitTime,"秒", "[选中] 获取选中目标到剪贴板等待时间","ClipWaitTime")
 	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitApp,, "[选中] 获取选中目标到剪贴板等待时间生效的应用（多个用,分隔）","ClipWaitApp")
@@ -4592,8 +4616,11 @@ SetOK:
 			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		}
 	}
-	if(vSendStrEcKey!=SendStrEcKey)
+	if(vSendStrEcKey!=SendStrEcKey){
 		vSendStrEcKey:=SendStrEncrypt(vSendStrEcKey,RunAnyZz vConfigDate)
+	}else{
+		vSendStrEcKey:=SendStrEncrypt(SendStrDcKey,RunAnyZz vConfigDate)
+	}
 	SetValueList.Push("ConfigDate","AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupFormat","RunABackupDir","DisableApp")
 	SetValueList.Push("EvPath","EvCommand","EvAutoClose","EvShowExt","EvShowFolder","EvExeVerNew","EvDemandSearch")
 	SetValueList.Push("HideFail","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideSelectZz","RecentMax")
@@ -5042,6 +5069,7 @@ Var_Set:
 		ExitApp
 	}
 	global getZz:=""
+	global MENU_NO:=1
 	global HideMenuTrayIcon:=Var_Read("HideMenuTrayIcon",0)
 	if(HideMenuTrayIcon)
 		Menu, Tray, NoIcon
@@ -5103,6 +5131,11 @@ Var_Set:
 	global SendStrDcKey:=Var_Read("SendStrDcKey")
 	;[高级配置]开始
 	global ShowGetZzLen:=Var_Read("ShowGetZzLen",30)
+	global GetZzTranslate:=Var_Read("GetZzTranslate",0)
+	global GetZzTranslateMenu:=Var_Read("GetZzTranslateMenu",0)
+	global GetZzTranslateSource:=Var_Read("GetZzTranslateSource","auto")
+	global GetZzTranslateTarget:=Var_Read("GetZzTranslateSource","zh-CN")
+	global GetZzTranslateAuto:=Var_Read("GetZzTranslateAuto",0)
 	global DebugMode:=Var_Read("DebugMode",0)
 	global DebugModeShowTime:=Var_Read("DebugModeShowTime",8000)
 	global DebugModeShowTrans:=Var_Read("DebugModeShowTrans",70)
@@ -5483,7 +5516,7 @@ Plugins_Object_Register:
 	}
 	if(PluginsObjRegGUID["huiZz_Text"] && PluginsObjList["huiZz_Text.ahk"]){
 		;#判断huiZz_Text插件是否可以文字翻译
-		if(InStr(PluginsContentList["huiZz_Text.ahk"],"runany_google_translate(getZz,from,to){")){
+		if(GetZzTranslate && InStr(PluginsContentList["huiZz_Text.ahk"],"runany_google_translate(getZz,from,to){")){
 			global translateFalg:=true
 		}
 		;#判断huiZz_Text插件是否可以文字加解密
