@@ -316,7 +316,6 @@ try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 t6:=A_TickCount-StartTick
 Menu_Tray_Tip("菜单中exe加载图标：" Round((t6-t5)/1000,3) "s`n","总加载时间：" Round(t6/1000,3) "s")
 MenuIconFlag:=true
-MenuTrayTipText:=""
 
 ;#如果是第一次运行#
 if(iniFlag){
@@ -421,7 +420,7 @@ Menu_Tray_Tip(tText,tmpText:=""){
 ;~[鼠标悬停在托盘图标上时显示运行路径信息]
 Menu_Run_Tray_Tip(tText,tmpText:=""){
 	if(Menu_Tray_Tip(tText,tmpText)!=A_IconTip){
-		MenuTrayTipText:=tText tmpText
+		MenuTrayTipText:="运行路径`n" tText tmpText
 		Menu,Tray,Tip,%MenuTrayTipText%
 	}
 }
@@ -1526,7 +1525,7 @@ MenuRunDebugModeShow(key:=0){
 ;调用huiZz_Text插件函数
 SendStrDecrypt(any,key:=""){
 	try{
-		if(PluginsObjRegGUID["huiZz_Text"]){
+		if(encryptFalg){
 			key:=(key="") ? SendStrDcKey : key
 			PluginsObjRegActive["huiZz_Text"]:=ComObjActive(PluginsObjRegGUID["huiZz_Text"])
 			anyval:=PluginsObjRegActive["huiZz_Text"]["runany_decrypt"](any,key)
@@ -1537,7 +1536,7 @@ SendStrDecrypt(any,key:=""){
 }
 SendStrEncrypt(any,key:=""){
 	try{
-		if(PluginsObjRegGUID["huiZz_Text"]){
+		if(encryptFalg){
 			key:=(key="") ? SendStrDcKey : key
 			PluginsObjRegActive["huiZz_Text"]:=ComObjActive(PluginsObjRegGUID["huiZz_Text"])
 			anyval:=PluginsObjRegActive["huiZz_Text"]["runany_encrypt"](any,key)
@@ -1715,7 +1714,7 @@ Web_Search:
 return
 Run_Any(any){
 	Menu_Debug_Mode("[运行路径]`n" any "`n")
-	Menu_Run_Tray_Tip("运行路径`n" any "`n")
+	Menu_Run_Tray_Tip(any "`n")
 	Run,%any%
 }
 Run_Zz(program){
@@ -2773,7 +2772,7 @@ EditItemPathChange:
 		}
 		GuiControl, SaveItem:Choose, vItemMode,% getItemMode=60 ? 1 : getItemMode
 	}
-	if(SendStrDcKey!="" && PluginsObjRegGUID["huiZz_Text"] && (getItemMode=2 || getItemMode=3)){
+	if(SendStrDcKey!="" && encryptFalg && (getItemMode=2 || getItemMode=3)){
 		GuiControlShow("SaveItem","vSetSendStrEncrypt")
 	}else{
 		GuiControlHide("SaveItem","vSetSendStrEncrypt")
@@ -4380,8 +4379,8 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+200 yp-3 w200 r1 vvHotStrShowX,%HotStrShowX%
 	Gui,66:Add,Text,xm yp+40 w250,提示相对于鼠标坐标 Y (可为负数)：
 	Gui,66:Add,Edit,xm+200 yp-3 w200 r1 vvHotStrShowY,%HotStrShowY%
-	if(PluginsObjRegGUID["huiZz_Text"]){
-		Gui,66:Add,Text,xm yp+40 w250 GMenu_Config,短语key：
+	if(encryptFalg){
+		Gui,66:Add,Text,xm yp+40 w250 GMenu_Config,短语key（huiZz_Text）：
 		Gui,66:Add,Edit,xm+200 yp-3 Password w200 cWhite r1 vvSendStrEcKey,%SendStrEcKey%
 	}
 	Gui,66:Add,Text,xm yp+50 cBlue,提示文字自动消失后，而且后续输入字符不触发热字符串功能`n需要按Tab/回车/句点/空格等键之后才会再次进行提示
@@ -4394,7 +4393,7 @@ Menu_Set:
 	IL_Add(AdvancedConfigImageListID,"shell32.dll",132)
 	LV_SetImageList(AdvancedConfigImageListID)
 	GuiControl, 66:-Redraw, AdvancedConfigLV
-	LV_Add(JumpSearch ? "Icon1" : "Icon2", JumpSearch,, "跳过显示点击批量搜索时的确认弹窗","JumpSearch")
+	LV_Add(JumpSearch ? "Icon1" : "Icon2", JumpSearch,, "跳过点击批量搜索时的确认弹窗","JumpSearch")
 	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugMode,, "[调试模式] 实时显示菜单运行的信息","DebugMode")
 	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugModeShowTime,"毫秒", "[调试模式] 实时显示菜单运行信息的自动隐藏时间","DebugModeShowTime")
 	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugModeShowTrans,"%", "[调试模式] 实时显示菜单运行信息的透明度","DebugModeShowTrans")
@@ -5460,6 +5459,17 @@ Plugins_Object_Register:
 		{
 			varList:=StrSplit(A_LoopField,"=",,2)
 			PluginsObjRegGUID[(varList[1])]:=varList[2]
+		}
+	}
+	if(PluginsObjRegGUID["huiZz_Text"] && PluginsObjList["huiZz_Text.ahk"]){
+		;#判断huiZz_Text插件是否可以文字翻译
+		if(InStr(PluginsContentList["huiZz_Text.ahk"],"runany_google_translate(getZz,from,to){")){
+			global translateFalg:=true
+		}
+		;#判断huiZz_Text插件是否可以文字加解密
+		if(InStr(PluginsContentList["huiZz_Text.ahk"],"runany_encrypt(text,key){")
+				&& InStr(PluginsContentList["huiZz_Text.ahk"],"runany_decrypt(text,key){")){
+			global encryptFalg:=true
 		}
 	}
 return
