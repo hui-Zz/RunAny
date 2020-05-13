@@ -1274,7 +1274,7 @@ Menu_Show_Show(menuName,itemName){
 }
 Menu_Show_Translate(selectCheck){
 	translate:=""
-	if(translateFalg && (!GetZzTranslateMenu || GetZzTranslateMenu=MENU_NO)){
+	if(translateFalg && GetZzTranslate && (!GetZzTranslateMenu || GetZzTranslateMenu=MENU_NO)){
 		if(GetZzTranslateAuto){
 			if(!RegExMatch(selectCheck,"S)[\p{Han}]+")){
 				GetZzTranslateTarget:="zh-CN"
@@ -1301,7 +1301,7 @@ Menu_Show_Select_Clipboard:
 	Clipboard:=Candy_Select
 return
 Menu_Show_Select_Translate:
-	Run,https://translate.google.cn/#auto/zh-CN/%getZz%
+	Run,https://translate.google.cn/#%GetZzTranslateSource%/%GetZzTranslateTarget%/%getZz%
 return
 ;~;[所有菜单(添加/删除)临时项]
 Menu_Add_Del_Temp(addDel=1,TREE_NO=1,mName="",LabelName="",mIcon="",mIconNum=""){
@@ -4436,11 +4436,13 @@ Menu_Set:
 	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugMode,, "[调试模式] 实时显示菜单运行的信息","DebugMode")
 	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugModeShowTime,"毫秒", "[调试模式] 实时显示菜单运行信息的自动隐藏时间","DebugModeShowTime")
 	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugModeShowTrans,"%", "[调试模式] 实时显示菜单运行信息的透明度","DebugModeShowTrans")
-	LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslate,"", "[选中翻译] 菜单第二行谷歌翻译选中内容","GetZzTranslate")
-	LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateMenu,"菜单", "[选中翻译] 1：仅菜单1显示翻译；2：仅菜单2显示翻译；0：所有菜单均显示","GetZzTranslateMenu")
-	LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateSource,"", "[选中翻译] 翻译源语言，默认auto","GetZzTranslateSource")
-	LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateTarget,"", "[选中翻译] 翻译目标语言，英文：en，中文：zh-CN，具体语言查看谷歌翻译网址","GetZzTranslateTarget")
-	LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateAuto,"", "[选中翻译] 翻译目标语言自动判断切换中英文","GetZzTranslateAuto")
+	if(translateFalg){
+		LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslate,"", "[选中翻译] 菜单第二行谷歌翻译选中内容","GetZzTranslate")
+		LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateMenu,"菜单", "[选中翻译] 1：仅菜单1显示翻译；2：仅菜单2显示翻译；0：所有菜单均显示","GetZzTranslateMenu")
+		LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateSource,"", "[选中翻译] 翻译源语言，默认auto","GetZzTranslateSource")
+		LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateTarget,"", "[选中翻译] 翻译目标语言，英文：en，中文：zh-CN，具体语言查看谷歌翻译网址","GetZzTranslateTarget")
+		LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateAuto,"", "[选中翻译] 翻译目标语言自动判断切换中英文","GetZzTranslateAuto")
+	}
 	LV_Add(ShowGetZzLen ? "Icon1" : "Icon2", ShowGetZzLen,"字", "[选中] 菜单第一行显示选中文字最大截取字数","ShowGetZzLen")
 	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitTime,"秒", "[选中] 获取选中目标到剪贴板等待时间","ClipWaitTime")
 	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitApp,, "[选中] 获取选中目标到剪贴板等待时间生效的应用（多个用,分隔）","ClipWaitApp")
@@ -5516,7 +5518,7 @@ Plugins_Object_Register:
 	}
 	if(PluginsObjRegGUID["huiZz_Text"] && PluginsObjList["huiZz_Text.ahk"]){
 		;#判断huiZz_Text插件是否可以文字翻译
-		if(GetZzTranslate && InStr(PluginsContentList["huiZz_Text.ahk"],"runany_google_translate(getZz,from,to){")){
+		if(InStr(PluginsContentList["huiZz_Text.ahk"],"runany_google_translate(getZz,from,to){")){
 			global translateFalg:=true
 		}
 		;#判断huiZz_Text插件是否可以文字加解密
