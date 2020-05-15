@@ -2,12 +2,15 @@
 ;* 【自定义程序自动中英输入法】*
 ;*                   by hui-Zz *
 ;*******************************
-global RunAny_Plugins_Version:="1.0.0"
+global RunAny_Plugins_Version:="1.0.1"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
 #SingleInstance,Force   ;~运行替换旧实例
 ;~ DetectHiddenWindows,on	;~显示隐藏窗口(匹配负作用)
 ;-----------------------------------------------------------
+
+;[这里是用户自定义部分]
+
 ;[切换中文输入法的程序，复制一行后修改QQ.exe]
 GroupAdd,cnApp,ahk_exe QQ.exe
 
@@ -15,8 +18,23 @@ GroupAdd,cnApp,ahk_exe QQ.exe
 GroupAdd,enApp,ahk_exe cmd.exe
 GroupAdd,enApp,ahk_exe Terminus.exe
 
+;-----------------------------------------------------------
+
+;[以下是代码实现部分]
+
+;点击鼠标左键后判断切换输入法中英文
 ~LButton::
 	Sleep,200
+	Gosub,Ime_En_Or_Cn
+return
+
+;按Alt+Tab键后判断切换输入法中英文
+~Alt & ~Tab::
+	Sleep,500
+	Gosub,Ime_En_Or_Cn
+return
+
+Ime_En_Or_Cn:
 	if(WinActive("ahk_group cnApp")){
 		;切换Win10输入法为中文
 		DllCall("SendMessage",UInt,DllCall("imm32\ImmGetDefaultIMEWnd",Uint,WinExist("A")),UInt,0x0283,Int,0x002,Int,0x01)
