@@ -47,10 +47,7 @@
 </head>
 
 <body class="body--ready">
-  <div id="app">加载中请稍等...
-    <br>
-    如果Github速度慢访问国内网址：<a href="https://hui-zz.gitee.io/runany">https://hui-zz.gitee.io/runany</a>
-  </div>
+  <div id="app">加载中请稍等...</div>
   <script>
     window.$docsify = {
       name: 'RunAny文档示例',    // 文档标题，会显示在侧边栏顶部
@@ -79,6 +76,10 @@
       },
       ga: 'UA-166847498-1'
     };
+    if(window.location.host=='hui-zz.github.io'){
+      window.$docsify.ga="UA-166847498-2";
+      document.getElementById('app').innerHTML = '加载中请稍等...<br>速度慢访问国内网址：<a href="https://hui-zz.gitee.io/runany">https://hui-zz.gitee.io/runany</a>';
+    }
   </script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
