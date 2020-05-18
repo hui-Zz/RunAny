@@ -1659,9 +1659,15 @@ return
 ;~;[菜单最近运行]
 Menu_Recent:
 	recentAny:=any
+	escapeList:=StrSplit("\.*?+[{|()^$")
+	regMenuItem:=A_ThisMenuItem
+	For k, v in escapeList
+	{
+		regMenuItem:=StrReplace(regMenuItem,v,"\" v)
+	}
 	Loop,% MenuCommonList.MaxIndex()
 	{
-		if(RegExMatch(MenuCommonList[A_Index],"S)&\d+\s" A_ThisMenuItem)){
+		if(RegExMatch(MenuCommonList[A_Index],"S)&\d+\s" regMenuItem)){
 			return
 		}
 	}
