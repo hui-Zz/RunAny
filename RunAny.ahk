@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.1 @2020.05.12
+║【RunAny】一劳永逸的快速启动工具 v5.7.1 @2020.05.18
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.7.1"
-global RunAny_update_time:="2020.05.12"
+global RunAny_update_time:="2020.05.18"
 Gosub,Var_Set          ;~参数初始化
 Gosub,Run_Exist        ;~调用判断依赖
 Gosub,Plugins_Read     ;~插件脚本读取
@@ -1054,7 +1054,7 @@ return
 Menu_Show:
 	try{
 		if(!MenuShowFlag && !MenuShowTimeFlag){
-			SetTimer,MenuShowTime,10
+			SetTimer,MenuShowTime,20
 			return
 		}
 		if(!extMenuHideFlag)
@@ -2457,10 +2457,12 @@ PGuiContextMenu:
 return
 GuiSize:
 PGuiSize:
+DGuiSize:
 	if A_EventInfo = 1
 		return
 	GuiControl, Move, RunAnyTV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 	GuiControl, Move, RunAnyLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
+	GuiControl, Move, RunAnyDownLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 return
 GuiClose:
 	if(TVFlag){
@@ -3928,6 +3930,7 @@ LVAdd:
 	gosub,PluginsDownVersion
 	Gui,D:Destroy
 	Gui,D:Default
+	Gui,D:+Resize
 	Gui,D:Font, s10, Microsoft YaHei
 	Gui,D:Add, Listview, xm w620 r15 grid AltSubmit Checked vRunAnyDownLV, 插件文件|状态|版本号|最新版本|插件描述
 	;~;[读取启动项内容写入列表]
@@ -4299,7 +4302,7 @@ Menu_Set:
 	Gui,66:Tab,热键配置,,Exact
 	Gui,66:Add,Link,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%
 		,%RunAnyZz%热键配置列表（双击修改，按F2可手写AHK使用特殊热键，<a href="https://wyagd001.github.io/zh-cn/docs/KeyList.htm">如Space、CapsLock、Tab等</a>）
-	Gui,66:Add,Listview,xm yp+20 w%GROUP_EDIT_WIDTH_66% r11 AltSubmit -ReadOnly vRunAnyHotkeyLV glistviewHotkey, 热键AHK写法|热键说明|热键变量名
+	Gui,66:Add,Listview,xm yp+20 w%GROUP_EDIT_WIDTH_66% r11 AltSubmit -ReadOnly -Multi vRunAnyHotkeyLV glistviewHotkey, 热键AHK写法|热键说明|热键变量名
 	kvLenMax:=0
 	GuiControl, 66:-Redraw, RunAnyHotkeyLV
 	For ki, kv in HotKeyList
@@ -4432,7 +4435,7 @@ Menu_Set:
 
 	Gui,66:Tab,高级配置,,Exact
 	Gui,66:Add,Link,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%,%RunAnyZz%高级配置列表，请不要随意修改（双击或按F2进行修改：1或有值=启用，0或空=停用）
-	Gui,66:Add,Listview,xm yp+20 w%GROUP_EDIT_WIDTH_66% r18 grid AltSubmit -ReadOnly vAdvancedConfigLV glistviewAdvancedConfig, 配置状态值|单位|配置说明|配置名
+	Gui,66:Add,Listview,xm yp+20 w%GROUP_EDIT_WIDTH_66% r18 grid AltSubmit -ReadOnly -Multi vAdvancedConfigLV glistviewAdvancedConfig, 配置状态值|单位|配置说明|配置名
 	AdvancedConfigImageListID:=IL_Create(2)
 	IL_Add(AdvancedConfigImageListID,"shell32.dll",(A_OSVersion="WIN_XP" || A_OSVersion="WIN_7") ? 145 : 297)
 	IL_Add(AdvancedConfigImageListID,"shell32.dll",132)
@@ -5138,7 +5141,7 @@ Var_Set:
 	global SendStrEcKey:=Var_Read("SendStrEcKey")
 	global SendStrDcKey:=Var_Read("SendStrDcKey")
 	;[高级配置]开始
-	global ShowGetZzLen:=Var_Read("ShowGetZzLen",30)
+	global ShowGetZzLen:=Var_Read("ShowGetZzLen",50)
 	global GetZzTranslate:=Var_Read("GetZzTranslate",0)
 	global GetZzTranslateMenu:=Var_Read("GetZzTranslateMenu",0)
 	global GetZzTranslateSource:=Var_Read("GetZzTranslateSource","auto")
@@ -6066,12 +6069,16 @@ everythingCheck(str){
 	ev.Query()
 	while,% !ev.GetTotResults()
 	{
-		if(A_Index>300){
+		if(A_Index>600){
 			MsgBox,16,RunAny无法与Everything通信,Everything启动缓慢或异常导致无法搜索到磁盘文件`n`n
 			(
 【原因1：Everything正在创建索引】
 请手动打开Everything等待可以搜索到文件了请再重启RunAny`n
-【原因2：Everything搜索异常】
+【原因2：Everything数据库在不同磁盘导致读写缓慢】
+查看Everything.exe和文件Everything.db是否不在同一硬盘`n
+在Everything窗口最上面菜单的“工具”——“选项”——找到选中左边的“索引”——
+修改右边的数据库路径到Everything.exe同一硬盘，加快读写速度`n
+【原因3：Everything搜索异常】
 请打开Everything菜单-工具-选项设置 安装Everything服务(S)，再重启Everything待可以搜索文件再重启RunAny
 			)
 			break
