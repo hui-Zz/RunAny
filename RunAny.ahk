@@ -1274,7 +1274,8 @@ Menu_Show_Show(menuName,itemName){
 }
 Menu_Show_Translate(selectCheck){
 	translate:=""
-	if(translateFalg && GetZzTranslate && (!GetZzTranslateMenu || GetZzTranslateMenu=MENU_NO)){
+	if(translateFalg && GetZzTranslate && (!GetZzTranslateMenu || GetZzTranslateMenu=MENU_NO)
+			&& !RegExMatch(selectCheck,"iS)^([\w-]+://?|www[.]).*")){
 		if(GetZzTranslateAuto){
 			if(!RegExMatch(selectCheck,"S)[\p{Han}]+")){
 				GetZzTranslateTarget:="zh-CN"
@@ -4434,7 +4435,7 @@ Menu_Set:
 	Gui,66:Add,Text,xm yp+50 cBlue,提示文字自动消失后，而且后续输入字符不触发热字符串功能`n需要按Tab/回车/句点/空格等键之后才会再次进行提示
 
 	Gui,66:Tab,高级配置,,Exact
-	Gui,66:Add,Link,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%,%RunAnyZz%高级配置列表，请不要随意修改（双击或按F2进行修改：1或有值=启用，0或空=停用）
+	Gui,66:Add,Link,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%,%RunAnyZz%高级配置列表，请理解说明后修改（双击或按F2进行修改：1或有值=启用，0或空=停用）
 	Gui,66:Add,Listview,xm yp+20 w%GROUP_EDIT_WIDTH_66% r18 grid AltSubmit -ReadOnly -Multi vAdvancedConfigLV glistviewAdvancedConfig, 配置状态值|单位|配置说明|配置名
 	AdvancedConfigImageListID:=IL_Create(2)
 	IL_Add(AdvancedConfigImageListID,"shell32.dll",(A_OSVersion="WIN_XP" || A_OSVersion="WIN_7") ? 145 : 297)
