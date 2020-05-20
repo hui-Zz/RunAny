@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.1 @2020.05.18
+║【RunAny】一劳永逸的快速启动工具 v5.7.1 @2020.05.20
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.7.1"
-global RunAny_update_time:="2020.05.18"
+global RunAny_update_time:="2020.05.20"
 Gosub,Var_Set          ;~参数初始化
 Gosub,Run_Exist        ;~调用判断依赖
 Gosub,Plugins_Read     ;~插件脚本读取
@@ -774,9 +774,10 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				appParm:=RegExReplace(Z_LoopField,"iS).*?\.exe($| .*)","$1")	;去掉应用名，取参数
 				Z_LoopField:=RegExReplace(Z_LoopField,"iS)(.*?\.exe)($| .*)","$1")
 				SplitPath,Z_LoopField,fileName,,,nameNotExt
-				MenuObjParam[nameNotExt]:=Z_LoopField . appParm
+				menuAppName:=appParm!="" ? nameNotExt A_Space : nameNotExt
+				MenuObjParam[menuAppName]:=Z_LoopField . appParm
 				if(FileExist(Z_LoopField)){
-					MenuExeArrayPush(menuRootFn[menuLevel],nameNotExt,Z_LoopField,Z_LoopField . appParm,TREE_NO)
+					MenuExeArrayPush(menuRootFn[menuLevel],menuAppName,Z_LoopField,Z_LoopField . appParm,TREE_NO)
 					flagEXE:=true
 				}else{
 					IconFail:=true
@@ -785,9 +786,9 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					flagEXE:=true
 				;~;[添加菜单项]
 				if(flagEXE){
-					Menu,% menuRootFn[menuLevel],add,% nameNotExt,Menu_Run,%MenuBar%
+					Menu,% menuRootFn[menuLevel],add,% menuAppName,Menu_Run,%MenuBar%
 					if(IconFail){
-						Menu_Item_Icon(menuRootFn[menuLevel],nameNotExt,"SHELL32.dll","124")
+						Menu_Item_Icon(menuRootFn[menuLevel],menuAppName,"SHELL32.dll","124")
 					}
 				}
 				MenuBar:=""
@@ -798,19 +799,21 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				appParm:=RegExReplace(Z_LoopField,"iS).*?\.exe($| .*)","$1")	;去掉应用名，取参数
 				Z_LoopField:=RegExReplace(Z_LoopField,"iS)(.*?\.exe)($| .*)","$1")
 				appName:=RegExReplace(Z_LoopField,"iS)\.exe$")
+				menuAppName:=appParm!="" ? appName A_Space A_Space : appName
 				if(MenuObjEv[appName]){
 					flagEXE:=true
-					MenuObjParam[appName]:=MenuObjEv[appName] . appParm
+					MenuObj[menuAppName]:=MenuObjEv[appName]
+					MenuObjParam[menuAppName]:=MenuObjEv[appName] . appParm
 				}else if(FileExist(A_WinDir "\" Z_LoopField) || FileExist(A_WinDir "\system32\" Z_LoopField)){
 					flagEXE:=true
-					MenuObj[appName]:=Z_LoopField
-					MenuObjParam[appName]:=Z_LoopField . appParm
+					MenuObj[menuAppName]:=Z_LoopField
+					MenuObjParam[menuAppName]:=Z_LoopField . appParm
 				}else if(!HideFail){
-					MenuObj[appName]:=Z_LoopField
-					MenuObjParam[appName]:=Z_LoopField . appParm
+					MenuObj[menuAppName]:=Z_LoopField
+					MenuObjParam[menuAppName]:=Z_LoopField . appParm
 				}
 				if(flagEXE){
-					MenuExeArrayPush(menuRootFn[menuLevel],appName,MenuObj[appName],MenuObj[appName] . appParm,TREE_NO)
+					MenuExeArrayPush(menuRootFn[menuLevel],menuAppName,MenuObj[menuAppName],MenuObj[menuAppName] . appParm,TREE_NO)
 				}else{
 					IconFail:=true
 				}
@@ -818,9 +821,9 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					flagEXE:=true
 				;~;[添加菜单项]
 				if(flagEXE){
-					Menu,% menuRootFn[menuLevel],add,% appName,Menu_Run,%MenuBar%
+					Menu,% menuRootFn[menuLevel],add,% menuAppName,Menu_Run,%MenuBar%
 					if(IconFail)
-						Menu_Item_Icon(menuRootFn[menuLevel],appName,"SHELL32.dll","124")
+						Menu_Item_Icon(menuRootFn[menuLevel],menuAppName,"SHELL32.dll","124")
 				}
 			}else{
 				if(!MenuObjEv[Z_LoopField])
