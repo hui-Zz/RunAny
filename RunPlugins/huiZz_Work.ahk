@@ -24,7 +24,7 @@ class RunAnyObj {
 	}
 	;[老板键Win]最小化其他窗口，打开指定程序
 	;保存到RunAny.ini为：老板键Win|huiZz_Work[boss_win](notepad.exe)
-	;老板键Win无路径|huiZz_Work[boss_win](%"winword.exe"%)
+	;老板键Win无路径|huiZz_Work[boss_win](%"你的办公软件.exe"%)
 	boss_win(program){
 		SendInput,#d
 		Sleep,100

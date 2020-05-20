@@ -2,7 +2,7 @@
 ;* 【ObjReg文本操作脚本[文本函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.1.6"
+global RunAny_Plugins_Version:="1.1.7"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
@@ -319,7 +319,7 @@ class RunAnyObj {
 	runany_decrypt(text,key){
 		return RegExReplace(decryptstr(text,key),"`r`n$")
 	}
-	;[翻译]
+	;[文本谷歌翻译]
 	;参数说明：getZz：选中的文本内容
 	;from：需要翻译的文字语言，默认自动
 	;to：翻译结果的语言，默认英文
@@ -327,9 +327,7 @@ class RunAnyObj {
 	;选中翻译为中文|huiZz_Translate[google_translate](%getZz%,auto,zh-CN)
 	google_translate(getZz,from,to){
 		textResult:=GoogleTranslate(getZz,from,to)
-		ToolTip,%textResult%
-		Sleep,5000
-		ToolTip
+		Send_Or_Show(textResult,0,5000)
 	}
 	runany_google_translate(getZz,from,to){
 		return GoogleTranslate(getZz,from,to)
@@ -349,7 +347,7 @@ Send_Str_Zz(strZz){
 	Clipboard:=ClipSaved
 }
 ;~;输出结果还是仅显示保存到剪贴板
-Send_Or_Show(textResult,isSend){
+Send_Or_Show(textResult,isSend,sTime:=3000){
 	textResult:=RegExReplace(textResult,"`r`n$")
 	if(isSend){
 		Send_Str_Zz(textResult)
@@ -357,7 +355,7 @@ Send_Or_Show(textResult,isSend){
 	}
 	Clipboard:=textResult
 	ToolTip,%textResult%
-	Sleep,3000
+	Sleep,%sTime%
 	ToolTip
 }
 
