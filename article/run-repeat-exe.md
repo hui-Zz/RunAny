@@ -6,10 +6,11 @@
 
 那为了避免出现RunAny运行到老版本或不正确的重名exe程序，有以下办法：
 
-### 一、升级RunAny版本到5.6.9版本以上，自动优先最新版本exe程序功能【推荐⭐⭐⭐】
+### 一、搜索结果优先最新版本同名exe全路径功能（升级RunAny版本到5.6.9版本以上）【推荐⭐⭐⭐】
 
-?> 在RunAny 5.6.9版本以上，在RunAny设置的Everything设置中增加了`搜索结果优先最新版本同名exe全路径`的选项  
-所以打开此选项后就完美支持了Scoop这类软件库中的软件，无路径也能自动定位到最新版本的EXE程序
+RunAny设置 —— 搜索Everything —— RunAny调用Everything搜索参数 —— `搜索结果优先最新版本同名exe全路径`
+
+?> 打开此选项后就完美支持了Scoop这类软件库中的软件，无路径也能自动定位到最新版本的EXE程序
 
 ---
 
@@ -51,6 +52,8 @@ code.exe的路径有
 如根据OneDrvie网盘路径运行应用：`PortableApps|%OneDrive%\Start.exe`
 
 相对于RunAny安装路径的应用：`Notepad2|%A_ScriptDir%\..\..\..\Apps\Zz\TotalCMD64\Tools\Notepad2.exe`
+
+> [内置系统环境变量和RunAny变量列表](/article/built-in-variables.md)
 
 ---
 
