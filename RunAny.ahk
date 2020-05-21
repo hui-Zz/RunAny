@@ -4253,27 +4253,31 @@ Variable_Boolean_Reverse(vars*){
 ;~;[设置选项]
 Menu_Set:
 	HotKeyFlag:=MenuVarFlag:=OpenExtFlag:=AdvancedConfigFlag:=false
-	GROUP_WIDTH_66=570
-	GROUP_EDIT_WIDTH_66=550
-	GROUP_CHOOSE_EDIT_WIDTH_66=480
+	GUI_WIDTH_66=640
+	TAB_WIDTH_66=620
+	GROUP_WIDTH_66=590
+	GROUP_LISTVIEW_WIDTH_66=580
+	GROUP_EDIT_WIDTH_66=570
+	GROUP_CHOOSE_EDIT_WIDTH_66=510
+	GROUP_ICON_EDIT_WIDTH_66=480
 	MARGIN_TOP_66=10
 	Gui,66:Destroy
 	Gui,66:Default
 	Gui,66:Margin,30,20
 	Gui,66:Font,,Microsoft YaHei
-	Gui,66:Add,Tab3,x10 y10 w600 h475 +Theme -Background,RunAny设置|热键配置|菜单变量|搜索Everything|一键直达|内部关联|热字符串|图标设置|高级配置
+	Gui,66:Add,Tab3,x10 y10 w%TAB_WIDTH_66% h475 +Theme -Background,RunAny设置|热键配置|菜单变量|搜索Everything|一键直达|内部关联|热字符串|图标设置|高级配置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+%MARGIN_TOP_66% vvAutoRun,开机自动启动
-	Gui,66:Add,Checkbox,Checked%AdminRun% x+148 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
+	Gui,66:Add,Checkbox,Checked%AdminRun% x+168 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
 	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h105,RunAny应用菜单
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
-	Gui,66:Add,Checkbox,Checked%HideSend% x+160 vvHideSend,隐藏短语
+	Gui,66:Add,Checkbox,Checked%HideSend% x+180 vvHideSend,隐藏短语
 	Gui,66:Add,Checkbox,Checked%HideWeb% xm yp+20 vvHideWeb,隐藏带`%s网址
-	Gui,66:Add,Checkbox,Checked%HideGetZz% x+143 vvHideGetZz,隐藏带`%getZz`%插件脚本
+	Gui,66:Add,Checkbox,Checked%HideGetZz% x+163 vvHideGetZz,隐藏带`%getZz`%插件脚本
 	Gui,66:Add,Checkbox,Checked%HideSelectZz% xm yp+20 vvHideSelectZz gSetHideSelectZz,隐藏选中提示信息
-	Gui,66:Add,Checkbox,Checked%HideAddItem% x+124 vvHideAddItem,隐藏【添加到此菜单】
+	Gui,66:Add,Checkbox,Checked%HideAddItem% x+144 vvHideAddItem,隐藏【添加到此菜单】
 	Gui,66:Add,Checkbox,Checked%HideMenuTray% xm yp+20 vvHideMenuTray,隐藏底部“RunAny设置”
-	Gui,66:Add,Edit,x+81 w30 h20 vvRecentMax,%RecentMax%
+	Gui,66:Add,Edit,x+101 w30 h20 vvRecentMax,%RecentMax%
 	Gui,66:Add,Text,x+5 yp+2,最近运行项数量 (0为隐藏)
 	Gui,66:Add,Button,x+5 w50 h20 gSetClearRecentMax,清理
 
@@ -4282,11 +4286,11 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+155 yp+3 w55 vvMenuWinKey gSetMenuWinKey,Win
 
 	If(MENU2FLAG){
-		Gui,66:Add,GroupBox,x+40 yp-23 w225 h55,菜单2热键 %MenuHotKey2%
+		Gui,66:Add,GroupBox,x+60 yp-23 w225 h55,菜单2热键 %MenuHotKey2%
 		Gui,66:Add,Hotkey,xp+10 yp+20 w150 vvMenuKey2,%MenuKey2%
 		Gui,66:Add,Checkbox,Checked%MenuWinKey2% xp+155 yp+3 w55 vvMenuWinKey2 gSetMenuWinKey2,Win
 	}else{
-		Gui,66:Add,Button,x+40 yp-5 w150 GSetMenu2,开启第2个菜单
+		Gui,66:Add,Button,x+60 yp-5 w150 GSetMenu2,开启第2个菜单
 	}
 
 	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h110,RunAny.ini文件设置
@@ -4296,9 +4300,9 @@ Menu_Set:
 	Gui,66:Add,Text,x+5 yp,最多备份数量
 	Gui,66:Add,Edit,x+5 yp-2 w70 h20 vvRunABackupMax,%RunABackupMax%
 	Gui,66:Add,Text,x+5 yp+2,备份文件名格式
-	Gui,66:Add,Edit,x+5 yp-2 w216 h20 vvRunABackupFormat,%RunABackupFormat%
+	Gui,66:Add,Edit,x+5 yp-2 w236 h20 vvRunABackupFormat,%RunABackupFormat%
 	Gui,66:Add,Button,xm yp+25 GSetRunABackupDir,RunAny.ini自动备份目录
-	Gui,66:Add,Edit,x+11 yp+2 w380 r1 vvRunABackupDir,%RunABackupDir%
+	Gui,66:Add,Edit,x+11 yp+2 w400 r1 vvRunABackupDir,%RunABackupDir%
 	
 	Gui,66:Add,GroupBox,xm-10 y+15 w%GROUP_WIDTH_66% h110,屏蔽RunAny程序列表（逗号分隔）
 	Gui,66:Add,Edit,xm yp+25 w%GROUP_EDIT_WIDTH_66% r4 -WantReturn vvDisableApp,%DisableApp%
@@ -4306,7 +4310,7 @@ Menu_Set:
 	Gui,66:Tab,热键配置,,Exact
 	Gui,66:Add,Link,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%
 		,%RunAnyZz%热键配置列表（双击修改，按F2可手写AHK使用特殊热键，<a href="https://wyagd001.github.io/zh-cn/docs/KeyList.htm">如Space、CapsLock、Tab等</a>）
-	Gui,66:Add,Listview,xm yp+20 w%GROUP_EDIT_WIDTH_66% r11 AltSubmit -ReadOnly -Multi vRunAnyHotkeyLV glistviewHotkey, 热键AHK写法|热键说明|热键变量名
+	Gui,66:Add,Listview,xm yp+20 w%GROUP_LISTVIEW_WIDTH_66% r11 AltSubmit -ReadOnly -Multi vRunAnyHotkeyLV glistviewHotkey, 热键AHK写法|热键说明|热键变量名
 	kvLenMax:=0
 	GuiControl, 66:-Redraw, RunAnyHotkeyLV
 	For ki, kv in HotKeyList
@@ -4346,7 +4350,7 @@ Menu_Set:
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuVarEdit, * 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuVarRemove, - 减少
 	Gui,66:Add,Link, x+15 yp-5,使用方法：变量两边加百分号如：<a href="https://hui-zz.gitee.io/runany/#/article/built-in-variables">`%变量名`%`n</a>编辑菜单项的启动路径中 或 RunAny.ini文件中使用
-	Gui,66:Add,Listview,xm yp+40 w%GROUP_EDIT_WIDTH_66% r16 grid AltSubmit vRunAnyMenuVarLV glistviewMenuVar, 菜单变量名|类型|菜单变量值（动态变量不同电脑会自动变化）
+	Gui,66:Add,Listview,xm yp+40 w%GROUP_LISTVIEW_WIDTH_66% r16 grid AltSubmit vRunAnyMenuVarLV glistviewMenuVar, 菜单变量名|类型|菜单变量值（动态变量不同电脑会自动变化）
 	RunAnyMenuVarImageListID:=IL_Create(2)
 	IL_Add(RunAnyMenuVarImageListID,AnyIconS[1],AnyIconS[2])
 	IL_Add(RunAnyMenuVarImageListID,"shell32.dll",71)
@@ -4404,7 +4408,7 @@ Menu_Set:
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtEdit, * 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtRemove, - 减少
 	Gui,66:Add,Text, x+10 yp-5 w320,特殊类型：网址http https www ftp等`n文件夹folder（原来使用TC第三方软件打开文件夹的功能）
-	Gui,66:Add,Listview,xm yp+40 w%GROUP_EDIT_WIDTH_66% r16 grid AltSubmit -Multi vRunAnyOpenExtLV glistviewOpenExt, RunAny菜单内文件后缀(用空格分隔)|打开方式(支持无路径)
+	Gui,66:Add,Listview,xm yp+40 w%GROUP_LISTVIEW_WIDTH_66% r16 grid AltSubmit -Multi vRunAnyOpenExtLV glistviewOpenExt, RunAny菜单内文件后缀(用空格分隔)|打开方式(支持无路径)
 	kvLenMax:=0
 	GuiControl, 66:-Redraw, RunAnyOpenExtLV
 	For mOpenExtName, mOpenExtRun in openExtIniList
@@ -4439,7 +4443,7 @@ Menu_Set:
 
 	Gui,66:Tab,高级配置,,Exact
 	Gui,66:Add,Link,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%,%RunAnyZz%高级配置列表，请理解说明后修改（双击或按F2进行修改：1或有值=启用，0或空=停用）
-	Gui,66:Add,Listview,xm yp+20 w%GROUP_EDIT_WIDTH_66% r18 grid AltSubmit -ReadOnly -Multi vAdvancedConfigLV glistviewAdvancedConfig, 配置状态值|单位|配置说明|配置名
+	Gui,66:Add,Listview,xm yp+20 w%GROUP_LISTVIEW_WIDTH_66% r18 grid AltSubmit -ReadOnly -Multi vAdvancedConfigLV glistviewAdvancedConfig, 配置状态值|单位|配置说明|配置名
 	AdvancedConfigImageListID:=IL_Create(2)
 	IL_Add(AdvancedConfigImageListID,"shell32.dll",(A_OSVersion="WIN_XP" || A_OSVersion="WIN_7") ? 145 : 297)
 	IL_Add(AdvancedConfigImageListID,"shell32.dll",132)
@@ -4457,8 +4461,8 @@ Menu_Set:
 		LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateAuto,"", "[选中翻译] 翻译目标语言自动判断切换中英文","GetZzTranslateAuto")
 	}
 	LV_Add(ShowGetZzLen ? "Icon1" : "Icon2", ShowGetZzLen,"字", "[选中] 菜单第一行显示选中文字最大截取字数","ShowGetZzLen")
-	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitTime,"秒", "[选中] 获取选中目标到剪贴板等待时间","ClipWaitTime")
-	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitApp,, "[选中] 获取选中目标到剪贴板等待时间生效的应用（多个用,分隔）","ClipWaitApp")
+	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitApp,, "[选中] 指定软件解决剪贴板等待时间过短获取不到选中内容（多个用,分隔）","ClipWaitApp")
+	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitTime,"秒", "[选中] 指定软件获取选中目标到剪贴板等待时间，全局其他软件默认0.1秒","ClipWaitTime")
 	LV_Add(ReloadWaitTime ? "Icon1" : "Icon2", ReloadWaitTime,"秒", "RunAny初始化等待时间过久后自动重启，每天最多一次，最小10秒","ReloadWaitTime")
 	LV_Add(DisableExeIcon ? "Icon1" : "Icon2", DisableExeIcon,, "菜单中exe程序不加载本身图标","DisableExeIcon")
 	LV_Add(AutoGetZz ? "Icon1" : "Icon2", AutoGetZz,, "【慎改】菜单程序运行自动带上当前选中文件，关闭后需要手动加%getZz%才可以获取到","AutoGetZz")
@@ -4476,19 +4480,19 @@ Menu_Set:
 	Gui,66:Add,Edit,x+3 yp w30 h20 vvMenuTrayIconSize,%MenuTrayIconSize%
 	Gui,66:Add,GroupBox,xm-10 yp+30 w%GROUP_WIDTH_66% h245,图标自定义设置（图片或图标文件路径 , 序号不填默认1）
 	Gui,66:Add,Button,xm yp+20 w80 GSetAnyIcon,RunAny图标
-	Gui,66:Add,Edit,xm+85 yp+1 w440 r1 vvAnyIcon,%AnyIcon%
+	Gui,66:Add,Edit,xm+85 yp+1 w%GROUP_ICON_EDIT_WIDTH_66% r1 vvAnyIcon,%AnyIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetMenuIcon,准备图标
-	Gui,66:Add,Edit,xm+85 yp+1 w440 r1 vvMenuIcon,%MenuIcon%
+	Gui,66:Add,Edit,xm+85 yp+1 w%GROUP_ICON_EDIT_WIDTH_66% r1 vvMenuIcon,%MenuIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetTreeIcon,分类图标
-	Gui,66:Add,Edit,xm+85 yp+1 w440 r1 vvTreeIcon,%TreeIcon%
+	Gui,66:Add,Edit,xm+85 yp+1 w%GROUP_ICON_EDIT_WIDTH_66% r1 vvTreeIcon,%TreeIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetFolderIcon,文件夹图标
-	Gui,66:Add,Edit,xm+85 yp+1 w440 r1 vvFolderIcon,%FolderIcon%
+	Gui,66:Add,Edit,xm+85 yp+1 w%GROUP_ICON_EDIT_WIDTH_66% r1 vvFolderIcon,%FolderIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetUrlIcon,网址图标
-	Gui,66:Add,Edit,xm+85 yp+1 w440 r1 vvUrlIcon,%UrlIcon%
+	Gui,66:Add,Edit,xm+85 yp+1 w%GROUP_ICON_EDIT_WIDTH_66% r1 vvUrlIcon,%UrlIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetEXEIcon,EXE图标
-	Gui,66:Add,Edit,xm+85 yp+1 w440 r1 vvEXEIcon,%EXEIcon%
+	Gui,66:Add,Edit,xm+85 yp+1 w%GROUP_ICON_EDIT_WIDTH_66% r1 vvEXEIcon,%EXEIcon%
 	Gui,66:Add,Button,xm yp+30 w80 GSetFuncIcon,脚本插件函数
-	Gui,66:Add,Edit,xm+85 yp+1 w440 r1 vvFuncIcon,%FuncIcon%
+	Gui,66:Add,Edit,xm+85 yp+1 w%GROUP_ICON_EDIT_WIDTH_66% r1 vvFuncIcon,%FuncIcon%
 	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h130,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含热字符串和全局热键）
 	Gui,66:Add,Text, xm yp+20 w380,如图标文件名可以为：-常用(&&App).ico、cmd.png、百度(&&B).ico
 	if(ResourcesExtractExist)
@@ -4497,11 +4501,11 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r4 vvIconFolderPath,%IconFolderPath%
 
 	Gui,66:Tab
-	Gui,66:Add,Button,Default xm+120 y+55 w75 GSetOK,确定
+	Gui,66:Add,Button,Default xm+140 y+55 w75 GSetOK,确定
 	Gui,66:Add,Button,x+15 w75 GSetCancel,取消
 	Gui,66:Add,Button,x+15 w75 GSetReSet,重置
 	Gui,66:Add,Text,x+40 yp+5 w75 GMenu_Config,RunAnyConfig.ini
-	Gui,66:Show,w620,%RunAnyZz%设置 %RunAny_update_version% %RunAny_update_time%%AdminMode%
+	Gui,66:Show,w%GUI_WIDTH_66%,%RunAnyZz%设置 %RunAny_update_version% %RunAny_update_time%%AdminMode%
 	k:=v:=mVarName:=mVarVal:=mOpenExtName:=mOpenExtRun:=""
 	SetValueList:=["AdminRun"]
 	;[手写AHK热键情况下不根据Hotkey热键控件保存，避免清空手写热键值]
