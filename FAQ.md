@@ -52,7 +52,7 @@ ClipWaitTime=2
 
 **原因**：因Everything正在索引、或是数据库在不同磁盘导致读写缓慢等原因。（可以开机后马上尝试能不能用Everything来验证）
 
-**解决**：在Everything搜索框中搜索“Everything”，查看`Everything.exe`和文件`Everything.db`是否不在同一硬盘
+**解决**：在Everything搜索框中搜索“Everything”，查看`Everything.exe`和文件`Everything.db`是否不在同一硬盘  
 在Everything窗口最上面菜单的“工具”——“选项”——找到选中左边的“索引”——修改右边的数据库路径到`Everything.exe`同一硬盘，加快读写速度
 
 ?> 若计算机中文件过多导致的Everything创建索引缓慢，则需要尽量减少索引磁盘、文件夹、文件属性等设置
