@@ -3,49 +3,66 @@
 **复制以下需要的功能写入`RunAny.ini`文件保存，然后重启RunAny打开菜单即可使用**
 
 <details>
-<summary>【常用工具】</summary>
+<summary>【常用工具】App</summary>
 
 ```autohotkey
 -常用(&App)
+	微信|WeChat.exe
+	TIM.exe
+	--
 	chrome跨域|chrome.exe -disable-web-security --user-data-dir
 	chrome隐身模式|chrome.exe --incognito
 	IE|%ProgramFiles%\Internet Explorer\iexplore.exe
 	IE(32位)|C:\Program Files (x86)\Internet Explorer\iexplore.exe
+	Firefox.exe
 	--
 	BCompare文件比较工具|BCompare.exe
 	StrokesPlus鼠标手势|StrokesPlus.exe
 	Ditto剪贴板|Ditto.exe
 	天若OCR文字识别.exe
-	规则控制启动工具|RunAnyCtrl.ahk
+	flux护眼|flux.exe
 ```
 
 </details>
 <br>
 <details>
-<summary>【办公软件】</summary>
+<summary>【办公学习】Work Study</summary>
 
 ```autohotkey
--办公(wo&Rk)|doc docx xls xlsx ppt pptx wps et dps
+-办公(wo&Rk)|doc docx xls xlsx ppt pptx wps et dps csv
 	word(&W)|winword.exe
 	Excel(&E)|excel.exe
 	PPT(&T)|powerpnt.exe
 	--WPS(&S)
-		;WPS(&W)|WPS.exe
-		;ET(&E)|et.exe
-		;WPP(&P)|wpp.exe
+		WPS2019|wpsoffice.exe
 		&WPS文字|WPS文字.lnk
 		WP&S表格|WPS表格.lnk
 		W&PS演示|WPS演示.lnk
-	--
-	AxureRP8.exe
-	FeiQ.exe
+		;WPS(&W)|WPS.exe
+		;ET(&E)|et.exe
+		;WPP(&P)|wpp.exe
 	--
 	;远程桌面
 	远程桌面连接|mstsc.exe
 	TeamViewer.exe
 	SunloginClient.exe
 	AnyDesk.exe
+
+-学习(s&Tudy)|pdf
+	;笔记记录
+	为知(&W)|Wiz.exe
+	印象笔记|Evernote.exe
+	有道云笔记|YoudaoNote.exe
+	OneNote.exe
+	--
+	;翻译软件
+	有道词典|YoudaoDict.exe
+	--
+	;查看PDF
+	SumatraPDF.exe
 ```
+
+
 
 </details>
 <br>
@@ -55,9 +72,8 @@
 ```autohotkey
 -图片(im&G)|bmp gif jpeg jpg png
 	;图片查看
-	画图(&T)|mspaint.exe
 	ACDSee.exe
-	XnView|XnViewPortable.exe
+	XnView.exe
 	IrfanView|IrfanViewPortable.exe
 	ComicsViewer.exe
 	MangaMeeya.exe
@@ -78,14 +94,15 @@
 	ga_main.exe
 	--
 	;图片编辑
+	画图(&T)|mspaint.exe
 	IconWorkshop.exe
 	PhotoZoom|PhotoZoomPortable.exe
 	PhotoScape|PhotoScapePortable.exe
-	Photoshop|PhotoshopCCPortable.exe
+	Photoshop.exe
 	--
 	;保存当前桌面壁纸到"我的图片"目录
-	保存壁纸Win10|cmd.exe /c "copy /y %A_AppData%\Microsoft\Windows\Themes\TranscodedWallpaper %A_MyDocuments%\..\Pictures\Wallpaper_%A_YYYY%%A_MM%%A_DD%%A_Hour%%A_Min%%A_Sec%.jpg"
-	保存壁纸Win7|cmd.exe /c "copy /y %A_AppData%\Microsoft\Windows\Themes\TranscodedWallpaper.jpg %A_MyDocuments%\..\Pictures\Wallpaper_%A_YYYY%%A_MM%%A_DD%%A_Hour%%A_Min%%A_Sec%.jpg"
+	保存壁纸Win10|%ComSpec% /c "copy /y %A_AppData%\Microsoft\Windows\Themes\TranscodedWallpaper %A_MyDocuments%\..\Pictures\Wallpaper_%A_YYYY%%A_MM%%A_DD%%A_Hour%%A_Min%%A_Sec%.jpg"
+	保存壁纸Win7|%ComSpec% /c "copy /y %A_AppData%\Microsoft\Windows\Themes\TranscodedWallpaper.jpg %A_MyDocuments%\..\Pictures\Wallpaper_%A_YYYY%%A_MM%%A_DD%%A_Hour%%A_Min%%A_Sec%.jpg"
 	
 ```
 
@@ -101,10 +118,34 @@
 	--
 	QQPlayer.exe
 	XMP.exe
-	PotPlayer.exe
+	PotPlayer|PotPlayerMini64.exe
 	Windows Media Player|wmplayer.exe
 	--
 	FormatFactory.exe
+	小丸工具箱|xiaowan.exe
+```
+
+</details>
+<br>
+<details>
+<summary>【网络下载】</summary>
+
+```autohotkey
+-Down
+	文件Hash校验|Hash.exe
+	百度网盘|BaiduNetdisk.exe
+	百度网盘补全打开|https://pan.baidu.com/s/%getZz%
+	--
+	IDM(&D)|IDMan.exe
+	迅雷|Thunder.exe
+	冰点文库下载|iDocDown.exe
+	uTorrent.exe
+	MiPony.exe
+	--
+	;软件工具箱
+	盘姬工具箱|Sunshine.exe
+	在线工具包|Cencrack在线工具包5.25.exe
+	黑科技工具箱V1.2.exe
 ```
 
 </details>
@@ -119,8 +160,8 @@
 	写字板|write.exe
 	Notepad&2_:88|Notepad2.exe /C
 	&Sublime_:88|sublime_text.exe
-	gVim|gVimPortable.exe
-	EditPlus_:88|EditPlusPortable.exe
+	gvim.exe
+	EditPlus_:88|EditPlus.exe
 	SciTE_:88|SciTE.exe
 	--
 	Typora.exe
@@ -130,17 +171,18 @@
 -Code|java
 	idea_:95|idea64.exe
 	eclipse.exe
-	vscode|C:\Users\%A_UserName%\scoop\apps\vscode\current\Code.exe
+	vscode|%scoop%\apps\vscode\current\Code.exe
 	GitHubDesktop.exe
 	--
-	Xshell|XshellPortable.exe
-	X&ftp|XftpPortable.exe
+	Xshell.exe
+	X&ftp|Xftp.exe
+	Terminus.exe
 	--
 	nginx|nginx.exe -c conf/nginx.conf
 	nginxReload|nginx.exe -s reload
-	KillNginx|cmd.exe /c "taskkill /f /im nginx.exe"
-	KillJava|cmd.exe /c "taskkill /f /t /im java.exe & ping -n 2 127.1>nul"
-	RabbitMQ|cmd.exe /c "net stop RabbitMQ && net start RabbitMQ & ping -n 2 127.1>nul"
+	KillNginx|%ComSpec% /c "taskkill /f /im nginx.exe"
+	KillJava|%ComSpec% /c "taskkill /f /t /im java.exe & ping -n 2 127.1>nul"
+	RabbitMQ|%ComSpec% /c "net stop RabbitMQ && net start RabbitMQ & ping -n 2 127.1>nul"
 ```
 
 </details>
@@ -163,10 +205,10 @@
 	--
 	;文件压缩
 	WinRAR.exe
-	7-&Zip|7-ZipPortable.exe
+	7-&Zip|7zFM.exe
 	MiniWinMount.exe
 	isocmdGUI.exe
-	UltraISO|UltraISOPortable.exe
+	UltraISO.exe
 	--
 	FastCopy.exe
 	Unlocker.exe
@@ -202,16 +244,19 @@
 	回收站|explorer.exe ::{645FF040-5081-101B-9F08-00AA002F954E}
 	网上邻居|explorer.exe ::{208D2C60-3AEA-1069-A2D7-08002B30309D}
 	--
-	命令行提示符|cmd.exe
+	;%ComSpec% = C:\WINDOWS\system32\cmd.exe
+	命令行提示符|%ComSpec%
 	PowerShell|%A_WinDir%\system32\WindowsPowerShell\v1.0\powershell.exe
 	计算器|calc.exe
 	--
 	Win10UWP应用|explorer.exe shell:::{4234d49b-0245-4df3-b780-3893943456e1}
-	ping百度|cmd.exe /c "ping baidu.com -t"
-	打开多个网址|cmd.exe /c "start www.baidu.com & start www.github.com"
-	hosts文件|notepad.exe C:\Windows\System32\drivers\etc\hosts
-	清空回收站|cmd.exe /c "rd /s C:\$Recycle.Bin D:\$Recycle.Bin"
-	执行选中命令行|cmd.exe /c "%getZz%"
+	ping百度|%ComSpec% /c "ping baidu.com -t"
+	打开多个网址|%ComSpec% /c "start www.baidu.com & start www.github.com"
+	hosts文件|notepad.exe %A_WinDir%\System32\drivers\etc\hosts
+	清空回收站(C盘D盘)|%ComSpec% /c "rd /s C:\$Recycle.Bin D:\$Recycle.Bin"
+	复制选中文件到D盘|%ComSpec% /c "xcopy /h /y "%getZz%" "D:\""
+	执行选中命令行|%ComSpec% /c "%getZz%"
+	ping选中地址|%ComSpec% /c "ping %getZz% -t"
 	--
 	重启资源管理器|taskkill /f /im explorer.exe && start explorer.exe
 	关闭显示器|%A_WinDir%\system32\scrnsave.scr /s
@@ -280,12 +325,11 @@
 -命令
 	scoop clean|scoop cache rm *`nscoop cleanup *`n;;
 	端口:*X:netstat|netstat -ano | findstr ;
+	--
 	adb连接:*X:adbc|adb connect ;;
 	adb设备:*X:adbd|adb devices`n;;
-	adb DPI|adb shell wm density ;
+	--
 	:*X:scrcpy;|scrcpy -S`n;;
-	:*X:jekyll;|bundle exec jekyll serve`n;;
-	:*X:docs;|docsify serve;
 	:*X:aria2;|aria2c --enable-rpc --rpc-allow-origin-all`n;;
 
 -Linux
