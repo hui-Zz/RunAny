@@ -67,7 +67,7 @@
 </details>
 <br>
 <details>
-<summary>【图片处理】</summary>
+<summary>【图片处理】Img</summary>
 
 ```autohotkey
 -图片(im&G)|bmp gif jpeg jpg png
@@ -109,7 +109,7 @@
 </details>
 <br>
 <details>
-<summary>【影像音乐】</summary>
+<summary>【影像音乐】Video</summary>
 
 ```autohotkey
 -影音(&Video)|avi mkv mp4 rm rmvb flv wmv swf mp3
@@ -128,10 +128,10 @@
 </details>
 <br>
 <details>
-<summary>【网络下载】</summary>
+<summary>【网络下载】Down</summary>
 
 ```autohotkey
--Down
+-下载(&Down)
 	文件Hash校验|Hash.exe
 	百度网盘|BaiduNetdisk.exe
 	百度网盘补全打开|https://pan.baidu.com/s/%getZz%
@@ -151,11 +151,11 @@
 </details>
 <br>
 <details>
-<summary>【编辑编程】</summary>
+<summary>【编辑编程】Edit Code</summary>
 
-```autohotkey
+```batch
 ;编辑器打开透明度88%，在文本文件上RunAny直接显示Edit菜单
--Edit|txt ini cmd bat md ahk html js sql
+-编辑(&Edit)|txt ini cmd bat md ahk html js sql
 	记事本(&N)_:88|notepad.exe
 	写字板|write.exe
 	Notepad&2_:88|Notepad2.exe /C
@@ -168,10 +168,10 @@
 	XMind.exe
 
 ;编程
--Code|java
+-编程(&Code)|java
 	idea_:95|idea64.exe
 	eclipse.exe
-	vscode|%scoop%\apps\vscode\current\Code.exe
+	vscode|%Scoop%\apps\vscode\current\Code.exe
 	GitHubDesktop.exe
 	--
 	Xshell.exe
@@ -188,9 +188,9 @@
 </details>
 <br>
 <details>
-<summary>【文件管理】</summary>
+<summary>【文件管理】File</summary>
 
-```autohotkey
+```batch
 -文件(&File)
     ;文件搜索
 	Everything文件秒搜|Everything.exe
@@ -224,10 +224,10 @@
 </details>
 <br>
 <details>
-<summary>【系统工具】</summary>
+<summary>【系统工具】Sys</summary>
 
 ```autohotkey
--Sys
+-系统(&Sys)
 	activehotkeys.exe
 	AntiFreeze.exe
 	SpaceSniffer.exe
@@ -238,8 +238,8 @@
 	Sandboxie.exe
 	VMware(&V)|VMware.exe
 	VirtualBox.exe
-
--系统命令
+	--
+	;系统命令
 	我的电脑(&Z)|explorer.exe
 	回收站|explorer.exe ::{645FF040-5081-101B-9F08-00AA002F954E}
 	网上邻居|explorer.exe ::{208D2C60-3AEA-1069-A2D7-08002B30309D}
@@ -307,7 +307,7 @@
 </details>
 <br>
 <details>
-<summary>【短语输入】</summary>
+<summary>【短语输入】Input</summary>
 
 ```autohotkey
 -输入(inpu&T)
