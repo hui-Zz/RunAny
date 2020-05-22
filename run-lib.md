@@ -226,16 +226,15 @@
 <details>
 <summary>【系统工具】Sys</summary>
 
+?> 使用 `%ComSpec%` 代替原来的 `cmd.exe` 可以准确定位 `C:\WINDOWS\system32\cmd.exe`，避免有多个cmd.exe定位错误的情况
+
 ```autohotkey
 -系统(&Sys)
-	activehotkeys.exe
-	AntiFreeze.exe
-	SpaceSniffer.exe
-	ProcessExplorer.exe
-	ProcessMonitor.exe
-	WinspectorU.exe
+	磁盘大文件占用分析|SpaceSniffer.exe
+	系统进程查看专业软件|ProcessExplorer.exe
+	文件注册表写入监控专业软件|ProcessMonitor.exe
 	--
-	Sandboxie.exe
+	Sandboxie沙盘|Sandboxie.exe
 	VMware(&V)|VMware.exe
 	VirtualBox.exe
 	--
@@ -258,7 +257,9 @@
 	执行选中命令行|%ComSpec% /c "%getZz%"
 	ping选中地址|%ComSpec% /c "ping %getZz% -t"
 	--
-	重启资源管理器|taskkill /f /im explorer.exe && start explorer.exe
+	;结束桌面后有几率重启失败，可以手动执行上面的 `我的电脑` 或运行 explorer.exe
+	;或使用另一种方式的插件脚本：重启桌面|huiZz_System[system_explorer_zz]()
+	重启资源管理器|%ComSpec% /c "taskkill /f /im explorer.exe & start explorer.exe"
 	关闭显示器|%A_WinDir%\system32\scrnsave.scr /s
 	系统锁屏|rundll32.exe user32.dll LockWorkStation
 	系统睡眠|rundll32.exe powrprof.dll,SetSuspendState 0,1,0
