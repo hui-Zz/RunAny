@@ -6,6 +6,7 @@ global RunAny_Plugins_Version:="1.0.1"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
 #SingleInstance,Force   ;~运行替换旧实例
+SetTitleMatchMode,2     ;~窗口标题模糊匹配
 ;~ DetectHiddenWindows,on	;~显示隐藏窗口(匹配负作用)
 ;-----------------------------------------------------------
 
