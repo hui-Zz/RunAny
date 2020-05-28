@@ -329,6 +329,15 @@ class RunAnyObj {
 		textResult:=GoogleTranslate(getZz,from,to)
 		Send_Or_Show(textResult,0,5000)
 	}
+	google_translate_auto(getZz,from:="auto",to:="zh-CN"){
+		if(!RegExMatch(selectCheck,"S)[\p{Han}]+")){
+			to:="zh-CN"
+		}else if(!RegExMatch(selectCheck,"S)[a-zA-Z]+")){
+			to:="en"
+		}
+		textResult:=GoogleTranslate(getZz,from,to)
+		Send_Or_Show(textResult,0,5000)
+	}
 	runany_google_translate(getZz,from,to){
 		return GoogleTranslate(getZz,from,to)
 	}
