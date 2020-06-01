@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.1 @2020.05.20
+║【RunAny】一劳永逸的快速启动工具 v5.7.1 @2020.06.01
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.7.1"
-global RunAny_update_time:="2020.05.20"
+global RunAny_update_time:="2020.06.01"
 Gosub,Var_Set          ;~参数初始化
 Gosub,Run_Exist        ;~调用判断依赖
 Gosub,Plugins_Read     ;~插件脚本读取
@@ -150,7 +150,7 @@ if(!EvNo){
 				EvPathRun:=Get_Transform_Val(EvPath)
 				if(EvPathRun && FileExist(EvPathRun)){
 					Run,%EvPathRun% -startup
-					Sleep,300
+					Sleep,1000
 					break
 				}else if(FileExist(A_ScriptDir "\Everything\Everything.exe")){
 					Run,%A_ScriptDir%\Everything\Everything.exe -startup
@@ -1589,9 +1589,9 @@ SendStrEncrypt(any,key:=""){
 	return any
 }
 Menu_Run_Plugins_ObjReg:
-	appPlugins:=RegExReplace(any,"iS)(.+?)\[.+?\]%?\(.*?\)","$1")	;取插件名
-	appFunc:=RegExReplace(any,"iS).+?\[(.+?)\]%?\(.*?\)","$1")	;取函数名
-	appParmStr:=RegExReplace(any,"iS).+?\[.+?\]%?\((.*?)\)","$1")	;取函数参数
+	appPlugins:=RegExReplace(any,"iS)(.+?)\[.+?\]%?\(.*?\)$","$1")	;取插件名
+	appFunc:=RegExReplace(any,"iS).+?\[(.+?)\]%?\(.*?\)$","$1")	;取函数名
+	appParmStr:=RegExReplace(any,"iS).+?\[.+?\]%?\((.*?)\)$","$1")	;取函数参数
 	appParmErrorStr:=(appParmStr="") ? "空" : appParmStr
 	if(!PluginsObjRegGUID[appPlugins]){
 		ToolTip,脚本插件：%appPlugins%`n脚本函数：%appFunc%`n函数参数：%appParmErrorStr%`n插件%appPlugins%没有找到！`n【请检查修改后重启RunAny重试】
