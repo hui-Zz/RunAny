@@ -40,7 +40,7 @@ RunAny5.6版本后自带两套图标主题`MenuIcon`和`MenuIcon2`
 
 ## 内部关联程序打开RunAny菜单内的文件
 
-**打开RunAny设置 —— “自定义打开后缀”**
+**打开RunAny设置 —— “内部关联”**
 
 - 使用Notepad.exe打开RunAny菜单的文件
 
@@ -55,7 +55,7 @@ RunAny5.6版本后自带两套图标主题`MenuIcon`和`MenuIcon2`
 
   - > 特殊后缀类型：文件夹folder 网址http https www ftp
 
-## 加快RunAny第一次运行图标加载速度
+## 加快RunAny开机运行后图标加载速度
 
 **打开RunAny设置 —— “图标设置”**
 
