@@ -92,7 +92,7 @@ class RunAnyObj {
 		}
 		textResult:=RegExReplace(textResult,"`n$")
 		Send_Str_Zz(textResult)
-		if(surround){
+		if(surround && !InStr(getZz,"`n")){
 			getZzLen:=StrLen(getZz)
 			surroundKeyNum:=StrLen(StrReplace(textResult,getZz)) / 2
 			SendInput,{Left %surroundKeyNum%}

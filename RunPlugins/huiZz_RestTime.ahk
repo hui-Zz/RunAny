@@ -37,6 +37,10 @@ AskTime(ask){
 }
 ;~;[使用系统自带语音播报提醒文字]
 Speak(say){
-	spovice:=ComObjCreate("sapi.spvoice")
-	spovice.Speak(say)
+	try{
+		spovice:=ComObjCreate("sapi.spvoice")
+		spovice.Speak(say)
+	} catch e {
+		TrayTip,,% "出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,3,1
+	}
 }

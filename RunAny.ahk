@@ -5018,7 +5018,7 @@ SetMenuVarVal:
 			GuiControl,, vmenuVarType, %menuVarType%
 			GuiControl,Disable, vmenuVarVal
 		}else{
-			menuVarType:="用户自定义变量"
+			menuVarType:="用户变量(固定值)"
 			GuiControl,, vmenuVarType, %menuVarType%
 			GuiControl,Enable, vmenuVarVal
 		}
