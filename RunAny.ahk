@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.1 @2020.06.01
+║【RunAny】一劳永逸的快速启动工具 v5.7.1 @2020.06.13
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.7.1"
-global RunAny_update_time:="2020.06.01"
+global RunAny_update_time:="2020.06.13"
 Gosub,Var_Set          ;~参数初始化
 Gosub,Run_Exist        ;~调用判断依赖
 Gosub,Plugins_Read     ;~插件脚本读取
@@ -1062,7 +1062,6 @@ Menu_Show:
 		}
 		if(!extMenuHideFlag)
 			getZz:=Get_Zz()
-		gosub,RunAny_Menu
 		selectCheck:=Trim(getZz," `t`n`r")
 		if(selectCheck=""){
 			;#无选中内容
@@ -1234,7 +1233,6 @@ return
 Menu_Key_Show:
 	getZz:=Get_Zz()
 	try {
-		gosub,RunAny_Menu
 		Menu_Show_Show(menuTreekey[(A_ThisHotkey)],getZz)
 	}catch{}
 return
@@ -1242,12 +1240,6 @@ Menu_All_Show:
 	extMenuHideFlag:=true
 	gosub,Menu_Show1
 	extMenuHideFlag:=false
-return
-RunAny_Menu:
-	RunAnyMenu:=PluginsPathList["RunAny_Menu.ahk"]
-	if(A_AhkPath && FileExist(RunAnyMenu) && PluginsObjList["RunAny_Menu.ahk"]){
-		Run,%A_AhkPath%%A_Space%"%RunAnyMenu%"
-	}
 return
 Menu_Show_Show(menuName,itemName){
 	selectCheck:=Trim(itemName," `t`n`r")
