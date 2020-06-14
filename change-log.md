@@ -2,6 +2,31 @@
 
 #### 📢 关注RunAny一劳永逸微信公众号，分享【一劳永逸】的效率软件和解决方案！
 ![RunAny公众号-白色版](/assets/images/RunAny公众号-白色版.jpg)
+
+## 【RunAny】v5.7.2
++ 新增RunAny高级配置，归纳以往及以后的特殊配置选项
+  + 新增 一键谷歌翻译选中文字的功能，在高级配置中打开开关（需要插件huiZz_Text 1.1.6以上）
+  + 新增 无Everything模式
++ 新增修改菜单项界面：
+  + 新增 界面最大化编辑功能
+  + 新增 短语类型的菜单项在编辑时加密解密功能按钮，加密短语为末尾`$;`或`$;;`（需要插件huiZz_Text 1.1.3以上）
+  + 新增 剪贴板变量的按钮
++ 新增 鼠标悬停在托盘图标上时显示运行信息
++ 新增 插件功能：
+  + huiZz_Text.ahk 1.1.7：
+    ```
+    选中翻译为英文|huiZz_Text[google_translate](%getZz%,auto,en)
+    选中翻译为中文|huiZz_Text[google_translate](%getZz%,auto,zh-CN)
+    ---
+    选中文本加密|huiZz_Text[encrypt](%getZz%,youkey1)
+    选中加密到剪贴板|huiZz_Text[encrypt](%getZz%,youkey1,0)
+    选中文本解密|huiZz_Text[decrypt](%getZz%,youkey1)
+    选中解密到剪贴板|huiZz_Text[decrypt](%getZz%,youkey1,0)
+    ```
+  + RunAny_Menu.ahk 2.0.0：
+    + 新增右键菜单点击功能
+    + 支持完全透明化RunAny菜单和桌面右键菜单
+
 ## 【RunAny】v5.7.1 2020-04-14
 【新增】：
 1. RunAny菜单支持双列多列显示（如下面图片展示效果）  
