@@ -4,16 +4,39 @@
 global RunAny_Plugins_Version:="2.0.0"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
+#Persistent             ;~让脚本持久运行
 #SingleInstance,Force   ;~运行替换旧实例
-SetBatchLines,-1        ;~脚本全速执行(默认10ms)
+ListLines,Off           ;~不显示最近执行的脚本行
 DetectHiddenWindows, On
 
+;[RunAny菜单透明化]
 GroupAdd,menuApp,ahk_exe RunAny.exe
+;[桌面右键菜单透明化]
+GroupAdd,menuApp,ahk_exe explorer.exe
+
 ;GroupAdd,menuApp,ahk_exe AutoHotkey.exe
+
+;（0-255）[0全透明-255完全不透明程度]
+透明度:=225
+
+;[想要关闭菜单透明化，可以注释掉下面这行定时器]
+SetTimer,Transparent_Show,10
+
+return
+
+;循环等待菜单显示
+Transparent_Show:
+	if(WinActive("ahk_group menuApp") && A_TimeIdle<1000){
+		WinSet,Transparent,%透明度%,ahk_class #32768
+		Sleep,10
+	}
+return
 
 #If WinActive("ahk_group menuApp")
 
 ~RButton Up::
+	if(!WinActive("ahk_exe RunAny.exe"))
+		return
 	WinWait ahk_class #32768,, 1
 	if ErrorLevel
 		return
