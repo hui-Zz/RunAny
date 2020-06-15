@@ -1,7 +1,7 @@
 ﻿/*
 【RunAny菜单辅助插件】
 */
-global RunAny_Plugins_Version:="2.0.0"
+global RunAny_Plugins_Version:="2.0.1"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
@@ -26,9 +26,8 @@ return
 
 ;循环等待菜单显示
 Transparent_Show:
-	if(WinActive("ahk_group menuApp") && A_TimeIdle<1000){
+	if(WinActive("ahk_group menuApp") && A_TimeIdle<1000 && WinExist("ahk_class #32768")){
 		WinSet,Transparent,%透明度%,ahk_class #32768
-		Sleep,10
 	}
 return
 
@@ -37,7 +36,7 @@ return
 ~RButton Up::
 	if(!WinActive("ahk_exe RunAny.exe"))
 		return
-	WinWait ahk_class #32768,, 1
+	WinWait,ahk_class #32768,, 1
 	if ErrorLevel
 		return
 	;判断如果RunAny菜单已显示，点击右键 = 模拟按住Shift键点击：快捷修改菜单项
@@ -47,7 +46,7 @@ return
 return
 
 ~Space Up::
-	WinWait ahk_class #32768,, 1
+	WinWait,ahk_class #32768,, 1
 	if ErrorLevel
 		return
 	;判断如果RunAny菜单已显示，按空格键 = 模拟方向键下按2次后按回车：快捷运行
