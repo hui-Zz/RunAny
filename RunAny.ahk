@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.2 @2020.06.13
+║【RunAny】一劳永逸的快速启动工具 v5.7.2 @2020.06.15
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.7.2"
-global RunAny_update_time:="2020.06.13"
+global RunAny_update_time:="2020.06.15"
 Gosub,Var_Set          ;~参数初始化
 Gosub,Run_Exist        ;~调用判断依赖
 Gosub,Plugins_Read     ;~插件脚本读取
@@ -651,7 +651,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 			
 			itemMode:=GetMenuItemMode(Z_LoopField,true)
 			if(TREE_TYPE="" && itemMode=60 && RegExMatch(Z_LoopField,"iS).*?%s[^%]*$")){
-				MsgBox,48,请修改菜单项 `%s不能识别,% "菜单项：" Get_Obj_Name(Z_LoopField) 
+				MsgBox,48,请修改菜单项 `%s不能识别,% "菜单项：" Get_Obj_Transform_Name(Z_LoopField) 
 					. "`n里面的`%s 仅支持在纯网址模式，`n在参数中请替换使用%getZz%表示选中文字"
 			}
 			;短语、网址、脚本插件函数除外的菜单项直接转换%%为系统变量值
@@ -1082,7 +1082,7 @@ Menu_Show:
 				if(MENU_NO=1 && extMenuName && !extMenuHideFlag){
 					if(MenuObjTree%MENU_NO%[extMenuName].MaxIndex()=1){
 						itemContent:=MenuObjTree%MENU_NO%[extMenuName][1]
-						MenuShowMenuRun:=Get_Obj_Name(itemContent)
+						MenuShowMenuRun:=Get_Obj_Transform_Name(itemContent)
 						gosub,Menu_Run
 					}else{
 						Menu,%extMenuName%,Insert, ,-【显示菜单全部】,Menu_All_Show
@@ -1956,12 +1956,15 @@ Get_Tree_Name(z_item,show_key=true){
 	return RegExReplace(z_item,"S)^-+")
 }
 ;~;[获取应用名称]
+Get_Obj_Transform_Name(z_item){
+	return Get_Obj_Name(Get_Transform_Val(z_item))
+}
 Get_Obj_Name(z_item){
 	if(InStr(z_item,"|")){
 		menuDiy:=StrSplit(z_item,"|",,2)
 		return menuDiy[1]
 	}else if(RegExMatch(z_item,"iS)^(\\\\|.:\\).*?\.exe$")){
-		SplitPath,itemContent,fileName,,,menuItem
+		SplitPath,z_item,fileName,,,menuItem
 		return menuItem
 	}else{
 		return RegExReplace(z_item,"iS)\.exe$")
@@ -2227,7 +2230,7 @@ Menu_Add_File_Item:
 	if(Z_ThisMenuItem="0【添加到此菜单】"){
 		X_ThisMenuItem:=Z_ThisMenuItem
 		itemContent:=MenuObjTree%TREE_NO%[Z_ThisMenu][(MenuObjTree%TREE_NO%[Z_ThisMenu].MaxIndex())]
-		Z_ThisMenuItem:=Get_Obj_Name(itemContent)
+		Z_ThisMenuItem:=Get_Obj_Transform_Name(itemContent)
 	}
 	if(!Z_ThisMenu)
 		return
@@ -2298,7 +2301,7 @@ SetSaveItem:
 			menuFlag:=true
 		}
 		if(menuFlag){
-			menuItem:=Get_Obj_Name(itemContent)
+			menuItem:=Get_Obj_Transform_Name(itemContent)
 			if(menuItem=Z_ThisMenuItem){
 				if(X_ThisMenuItem!="0【添加到此菜单】"){
 					saveText.=tabText . vitemName . itemGlobalKeyStr . splitStr . vitemPath . "`n"
@@ -2401,7 +2404,7 @@ Menu_Edit:
 			if not ItemID
 				break
 			TV_GetText(ItemText, ItemID)
-			ItemName:=Get_Obj_Name(ItemText)
+			ItemName:=Get_Obj_Transform_Name(ItemText)
 			if(ItemName=ItemEdit){
 				TV_Modify(ItemID, "Expand Select")
 				selIDTVEdit:=ItemID
