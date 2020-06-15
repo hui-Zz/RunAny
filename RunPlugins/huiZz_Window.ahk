@@ -2,7 +2,7 @@
 ;* 【ObjReg窗口操作脚本[窗口函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.6"
+global RunAny_Plugins_Version:="1.0.7"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
@@ -152,6 +152,11 @@ class RunAnyObj {
 	win_kill_zz(){
 		WinGet,name,ProcessName,A
 		Process,Close,%name%
+	}
+	;[当前窗口进程pid结束] v1.0.7
+	win_kill_pid_zz(){
+		WinGet,pid,PID,A
+		Process,Close,%pid%
 	}
 	;[打开当前窗口进程所在目录] v1.0.6
 	;openFolder：填写第三方文件管理器全路径打开文件夹，可选填，特殊写法：%"无路径软件"%
