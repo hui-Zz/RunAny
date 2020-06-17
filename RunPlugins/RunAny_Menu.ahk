@@ -1,7 +1,7 @@
 ﻿/*
 【RunAny菜单辅助插件】
 */
-global RunAny_Plugins_Version:="2.0.1"
+global RunAny_Plugins_Version:="2.0.2"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
@@ -49,8 +49,8 @@ return
 	WinWait,ahk_class #32768,, 1
 	if ErrorLevel
 		return
-	;判断如果RunAny菜单已显示，按空格键 = 模拟方向键下按2次后按回车：快捷运行
-	SendInput,{Down 2}
+	;判断如果RunAny菜单已显示，按空格键 = 模拟回车键(打开注释可以先方向键下按2次后回车)：快捷运行
+	;SendInput,{Down 2}
 	SendInput,{Enter}
 return
 
