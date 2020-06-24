@@ -138,6 +138,8 @@ MenuShowFlag:=true
 ;~;[判断如果有无路径应用则需要使用Everything]
 EvPath:=Var_Read("EvPath")
 if(!EvNo){
+	global EvQueryFlag:=false  ;~Everything是否可以搜索到结果
+	EvCheckNum:=0
 	EvCommandStr:=EvDemandSearch ? everythingCommandStr() : ""
 	if(!EvDemandSearch || (EvDemandSearch && EvCommandStr!="")){
 		;~;[获取everything路径]
@@ -171,8 +173,12 @@ if(!EvNo){
 		;~;[使用everything补全无路径exe的全路径]
 		global MenuObjEv:=Object()  ;~Everything搜索结果程序全径
 		If(evExist){
-			if(everythingCheck("explorer.exe"))
+			gosub,everythingCheck
+			if(EvQueryFlag){
 				everythingQuery(EvCommandStr)
+			}else{
+				SetTimer,everythingCheck,100
+			}
 			for k,v in MenuObjEv
 			{
 				MenuObj:=MenuObjEv.Clone()
@@ -4467,7 +4473,6 @@ Menu_Set:
 	LV_Add(ShowGetZzLen ? "Icon1" : "Icon2", ShowGetZzLen,"字", "[选中] 菜单第一行显示选中文字最大截取字数","ShowGetZzLen")
 	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitApp,, "[选中] 指定软件解决剪贴板等待时间过短获取不到选中内容（多个用,分隔）","ClipWaitApp")
 	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitTime,"秒", "[选中] 指定软件获取选中目标到剪贴板等待时间，全局其他软件默认0.1秒","ClipWaitTime")
-	LV_Add(ReloadWaitTime ? "Icon1" : "Icon2", ReloadWaitTime,"秒", "RunAny初始化等待时间过久后自动重启，每天最多一次，最小10秒","ReloadWaitTime")
 	LV_Add(DisableExeIcon ? "Icon1" : "Icon2", DisableExeIcon,, "菜单中exe程序不加载本身图标","DisableExeIcon")
 	LV_Add(AutoGetZz ? "Icon1" : "Icon2", AutoGetZz,, "【慎改】菜单程序运行自动带上当前选中文件，关闭后需要手动加%getZz%才可以获取到","AutoGetZz")
 	LV_Add(EvNo ? "Icon1" : "Icon2", EvNo,, "【慎改】不使用Everything模式，所有无路径配置都会失效！","EvNo")
@@ -5168,8 +5173,6 @@ Var_Set:
 	global JumpSearch:=Var_Read("JumpSearch",0)
 	global AutoGetZz:=Var_Read("AutoGetZz",1)
 	global DisableExeIcon:=Var_Read("DisableExeIcon",0)
-	global ReloadWaitTime:=Var_Read("ReloadWaitTime",20)
-	global ReloadWaitTimeOut:=ReloadWaitTime<10 ? 10000 : ReloadWaitTime*1000
 	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)
 	global ClipWaitApp:=Var_Read("ClipWaitApp","")
 	Loop,parse,ClipWaitApp,`,
@@ -6006,9 +6009,31 @@ URLDownloadToFile(URL, FilePath, Options:="", RequestHeaders:="")
 ;══════════════════════════════════════════════════════════════════
 ;~;[使用everything搜索所有exe程序]
 ;══════════════════════════════════════════════════════════════════
+;~;[校验everything是否可正常返回搜索结果]
+everythingCheck:
+	if(EvQueryFlag){
+		SetTimer,everythingCheck,Off
+		gosub,Menu_Reload
+	}
+	EvCheckNum++
+	EvQueryFlag:=exeQuery("explorer.exe","")
+	ToolTip,%EvCheckNum% "+" %EvQueryFlag%
+	if(EvCheckNum>600){
+		MsgBox,16,RunAny无法与Everything通信,Everything启动缓慢或异常导致无法搜索到磁盘文件`n`n
+		(
+【原因1：Everything正在创建索引】
+请手动打开Everything等待可以搜索到文件了请再重启RunAny`n
+【原因2：Everything数据库在不同磁盘导致读写缓慢】
+查看Everything.exe和文件Everything.db是否不在同一硬盘`n
+在Everything窗口最上面菜单的“工具”——“选项”——找到选中左边的“索引”——
+修改右边的数据库路径到Everything.exe同一硬盘，加快读写速度`n
+【原因3：Everything搜索异常】
+请打开Everything菜单-工具-选项设置 安装Everything服务(S)，再重启Everything待可以搜索文件再重启RunAny
+		)
+		SetTimer,everythingCheck,Off
+	}
+return
 everythingQuery(EvCommandStr){
-	if(ReloadWaitTime)
-		SetTimer,everythingWaitTime,1000
 	ev := new everything
 	if(EvCommandStr!=""){
 		ev.SetMatchWholeWord(true)
@@ -6035,19 +6060,7 @@ everythingQuery(EvCommandStr){
 			MenuObjEv[objFileNameNoExeExt]:=objFullPathName
 		}
 	}
-	SetTimer,everythingWaitTime,Off
 }
-everythingWaitTime:
-	if(A_TickCount-StartTick>ReloadWaitTimeOut){
-		RegRead, ReloadLongTime, HKEY_CURRENT_USER, Software\RunAny, ReloadLongTime
-		if(ReloadLongTime!=A_MM . A_DD){
-			RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny,ReloadLongTime,%A_MM%%A_DD%
-			gosub,Menu_Reload
-		}else{
-			SetTimer,everythingWaitTime,Off
-		}
-	}
-return
 everythingCommandStr(){
 	Loop,%MenuCount%
 	{
@@ -6072,33 +6085,6 @@ everythingCommandStr(){
 	}
 	EvCommandStr:=RegExReplace(EvCommandStr,"\|$")
 	return EvCommandStr
-}
-;~;[校验everything是否可正常返回搜索结果]
-everythingCheck(str){
-	ev := new everything
-	ev.SetMatchWholeWord(true)
-	ev.SetSearch(str)
-	ev.Query()
-	while,% !ev.GetTotResults()
-	{
-		if(A_Index>600){
-			MsgBox,16,RunAny无法与Everything通信,Everything启动缓慢或异常导致无法搜索到磁盘文件`n`n
-			(
-【原因1：Everything正在创建索引】
-请手动打开Everything等待可以搜索到文件了请再重启RunAny`n
-【原因2：Everything数据库在不同磁盘导致读写缓慢】
-查看Everything.exe和文件Everything.db是否不在同一硬盘`n
-在Everything窗口最上面菜单的“工具”——“选项”——找到选中左边的“索引”——
-修改右边的数据库路径到Everything.exe同一硬盘，加快读写速度`n
-【原因3：Everything搜索异常】
-请打开Everything菜单-工具-选项设置 安装Everything服务(S)，再重启Everything待可以搜索文件再重启RunAny
-			)
-			break
-		}
-		Sleep, 100
-		ev.Query()
-	}
-	return ev.GetResultFullPathName(0)
 }
 ;~;[使用everything搜索单个exe程序]
 exeQuery(exeName,noSystemExe:=" !C:\Windows*"){
