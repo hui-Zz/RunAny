@@ -670,6 +670,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 			;~添加到分类目录程序全数据
 			MenuObjTree%TREE_NO%[(menuRootFn[menuLevel])].Push(Z_LoopField)
 			flagEXE:=false			;~添加exe菜单项目
+			flagSys:=false			;~添加系统项目文件
 			IconFail:=false		;~是否显示无效项图标
 			if(InStr(Z_LoopField,"|")){
 				;~;[生成有前缀备注的应用]
@@ -697,10 +698,16 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 						item:=RegExReplace(item,"iS)(.*?\.(exe|lnk|bat|cmd|vbs|ps1|ahk)) .*","$1")	;只去参数
 					SplitPath, item,,, FileExt  ; 获取文件扩展名.
 					;~;如果是有效全路径或系统程序则保留显示
-					if(RegExMatch(item,"iS)^(\\\\|.:\\).*?\.(exe|lnk|bat|cmd|vbs|ps1|ahk)$") && FileExist(item))
+					if(RegExMatch(item,"iS)^(\\\\|.:\\).*?\.(exe|lnk|bat|cmd|vbs|ps1|ahk)$") && FileExist(item)){
 						flagEXE:=true
-					else if(FileExist(A_WinDir "\" item) || FileExist(A_WinDir "\system32\" item))
+					}else if(FileExist(A_WinDir "\" item) || FileExist(A_WinDir "\system32\" item)){
 						flagEXE:=true
+						if(FileExt!="exe"){
+							flagSys:=true
+							flagSysPath:=FileExist(A_WinDir "\" item) ? A_WinDir "\" item : ""
+							flagSysPath:=FileExist(A_WinDir "\system32\" item) ? A_WinDir "\system32\" item : ""
+						}
+					}
 					;~;如果是有效程序、不隐藏失效、不是exe程序则添加该菜单项功能
 					if(FileExt!="exe"){
 						MenuObj[menuDiy[1]]:=menuDiy[2]
@@ -725,6 +732,8 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				}else if FileExt in lnk,bat,cmd,vbs,ps1,ahk
 				{
 					Menu_Add(menuRootFn[menuLevel],menuDiy[1],item,itemMode,TREE_NO)
+				}else if(flagSys){
+					Menu_Add(menuRootFn[menuLevel],menuDiy[1],flagSysPath="" ? item : flagSysPath,itemMode,TREE_NO)
 				}else{
 					Menu_Add(menuRootFn[menuLevel],menuDiy[1],itemParam,itemMode,TREE_NO)
 				}
