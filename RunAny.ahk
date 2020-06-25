@@ -173,11 +173,16 @@ if(!EvNo){
 		;~;[使用everything补全无路径exe的全路径]
 		global MenuObjEv:=Object()  ;~Everything搜索结果程序全径
 		If(evExist){
-			gosub,everythingCheck
-			if(EvQueryFlag){
+			if(EvCheckFlag){
+				RegWrite,REG_SZ,HKEY_CURRENT_USER,SOFTWARE\RunAny,EvTotResults,0
+				gosub,everythingCheck
+			}
+			RegRead,EvTotResults,HKEY_CURRENT_USER,SOFTWARE\RunAny,EvTotResults
+			if(EvTotResults>0){
 				everythingQuery(EvCommandStr)
+				EvQueryFlag:=true
 			}else{
-				SetTimer,everythingCheck,100
+				SetTimer,everythingCheckResults,100
 			}
 			for k,v in MenuObjEv
 			{
@@ -318,7 +323,8 @@ For k, v in MenuExeArray
 }
 ;-------------------------------------------------------------------------------------------
 ;#菜单已经加载完毕，托盘图标变化
-try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
+if(EvNo || EvQueryFlag)
+	try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 t6:=A_TickCount-StartTick
 Menu_Tray_Tip("菜单中exe加载图标：" Round((t6-t5)/1000,3) "s`n","总加载时间：" Round(t6/1000,3) "s")
 MenuIconFlag:=true
@@ -5464,6 +5470,12 @@ Run_Exist:
 				gosub,Menu_Reload
 			}
 		}
+		global EvCheckFlag:=false  ;~是否启动Everything搜索检查
+		RegRead,RunAnyTickCount,HKEY_CURRENT_USER,SOFTWARE\RunAny,RunAnyTickCount
+		RegWrite,REG_SZ,HKEY_CURRENT_USER,SOFTWARE\RunAny,RunAnyTickCount,%A_TickCount%
+		if(!RunAnyTickCount || A_TickCount<RunAnyTickCount){
+			EvCheckFlag:=true
+		}
 	}
 return
 ;~;[AHK插件脚本读取]
@@ -6011,26 +6023,72 @@ URLDownloadToFile(URL, FilePath, Options:="", RequestHeaders:="")
 ;══════════════════════════════════════════════════════════════════
 ;~;[校验everything是否可正常返回搜索结果]
 everythingCheck:
-	if(EvQueryFlag){
-		SetTimer,everythingCheck,Off
-		gosub,Menu_Reload
-	}
-	EvCheckNum++
-	EvQueryFlag:=exeQuery("explorer.exe","")
-	ToolTip,%EvCheckNum% "+" %EvQueryFlag%
-	if(EvCheckNum>600){
-		MsgBox,16,RunAny无法与Everything通信,Everything启动缓慢或异常导致无法搜索到磁盘文件`n`n
-		(
+FileDelete,%A_Temp%\RunAnyEv.ahk
+FileAppend,
+(
+#NoTrayIcon
+global everyDLL:="%A_ScriptDir%\%everyDLL%"
+ev:=new everything
+ev.SetMatchWholeWord(true)
+ev.SetSearch("explorer.exe")
+ev.Query()
+while,`% !ev.GetTotResults()
+{
+	if(A_Index>1000){
+		MsgBox,16,RunAny无法与Everything通信,Everything启动缓慢或异常导致无法搜索到磁盘文件``n``n
+		`(
 【原因1：Everything正在创建索引】
-请手动打开Everything等待可以搜索到文件了请再重启RunAny`n
+请手动打开Everything等待可以搜索到文件了请再重启RunAny``n
 【原因2：Everything数据库在不同磁盘导致读写缓慢】
-查看Everything.exe和文件Everything.db是否不在同一硬盘`n
+查看Everything.exe和文件Everything.db是否不在同一硬盘``n
 在Everything窗口最上面菜单的“工具”——“选项”——找到选中左边的“索引”——
-修改右边的数据库路径到Everything.exe同一硬盘，加快读写速度`n
+修改右边的数据库路径到Everything.exe同一硬盘，加快读写速度``n
 【原因3：Everything搜索异常】
 请打开Everything菜单-工具-选项设置 安装Everything服务(S)，再重启Everything待可以搜索文件再重启RunAny
-		)
-		SetTimer,everythingCheck,Off
+		`)
+		break
+	}
+	Sleep, 100
+	ev.Query()
+}
+val:=ev.GetTotResults(0)
+RegWrite,REG_SZ,HKEY_CURRENT_USER,SOFTWARE\RunAny,EvTotResults,`%val`%
+return
+class everything
+{
+	__New(){
+		this.hModule := DllCall("LoadLibrary",str,everyDLL)
+	}
+	SetSearch(aValue)
+	{
+		this.eSearch := aValue
+		dllcall(everyDLL "\Everything_SetSearch",str,aValue)
+		return
+	}
+	SetMatchWholeWord(aValue)
+	{
+		this.eMatchWholeWord := aValue
+		dllcall(everyDLL "\Everything_SetMatchWholeWord",int,aValue)
+		return
+	}
+	Query(aValue=1)
+	{
+		dllcall(everyDLL "\Everything_Query",int,aValue)
+		return
+	}
+	GetTotResults()
+	{
+		return dllcall(everyDLL "\Everything_GetTotResults")
+	}
+}
+),%A_Temp%\RunAnyEv.ahk
+Run,%A_AhkPath%%A_Space%"%A_Temp%\RunAnyEv.ahk"
+return
+everythingCheckResults:
+	RegRead,EvTotResults,HKEY_CURRENT_USER,SOFTWARE\RunAny,EvTotResults
+	if(EvTotResults>0){
+		SetTimer,everythingCheckResults,Off
+		gosub,Menu_Reload
 	}
 return
 everythingQuery(EvCommandStr){
