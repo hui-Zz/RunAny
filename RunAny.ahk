@@ -322,7 +322,7 @@ For k, v in MenuExeArray
 }
 ;-------------------------------------------------------------------------------------------
 ;#菜单已经加载完毕，托盘图标变化
-if(EvNo || EvQueryFlag)
+if(EvNo || EvQueryFlag || EvCommandStr="")
 	try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 t6:=A_TickCount-StartTick
 Menu_Tray_Tip("菜单中exe加载图标：" Round((t6-t5)/1000,3) "s`n","总加载时间：" Round(t6/1000,3) "s")
