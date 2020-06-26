@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.2 @2020.06.15
+║【RunAny】一劳永逸的快速启动工具 v5.7.2 @2020.06.26
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.7.2"
-global RunAny_update_time:="2020.06.15"
+global RunAny_update_time:="2020.06.26"
 Gosub,Var_Set          ;~参数初始化
 Gosub,Run_Exist        ;~调用判断依赖
 Gosub,Plugins_Read     ;~插件脚本读取
@@ -139,7 +139,6 @@ MenuShowFlag:=true
 EvPath:=Var_Read("EvPath")
 if(!EvNo){
 	global EvQueryFlag:=false  ;~Everything是否可以搜索到结果
-	EvCheckNum:=0
 	EvCommandStr:=EvDemandSearch ? everythingCommandStr() : ""
 	if(!EvDemandSearch || (EvDemandSearch && EvCommandStr!="")){
 		;~;[获取everything路径]
@@ -191,7 +190,7 @@ if(!EvNo){
 			}
 		}
 		;~;[如果需要自动关闭everything]
-		if(EvAutoClose && EvPath){
+		if(EvAutoClose && EvPath && EvQueryFlag){
 			EvPathRun:=Get_Transform_Val(EvPath)
 			Run,%EvPathRun% -exit
 		}
@@ -717,7 +716,8 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 						if(FileExt!="exe"){
 							flagSys:=true
 							flagSysPath:=FileExist(A_WinDir "\" item) ? A_WinDir "\" item : ""
-							flagSysPath:=FileExist(A_WinDir "\system32\" item) ? A_WinDir "\system32\" item : ""
+							if(flagSysPath="" && FileExist(A_WinDir "\system32\" item))
+								flagSysPath:=A_WinDir "\system32\" item
 						}
 					}
 					;~;如果是有效程序、不隐藏失效、不是exe程序则添加该菜单项功能
@@ -5471,9 +5471,10 @@ Run_Exist:
 			}
 		}
 		global EvCheckFlag:=false  ;~是否启动Everything搜索检查
+		RegRead,EvTotResults,HKEY_CURRENT_USER,SOFTWARE\RunAny,EvTotResults
 		RegRead,RunAnyTickCount,HKEY_CURRENT_USER,SOFTWARE\RunAny,RunAnyTickCount
 		RegWrite,REG_SZ,HKEY_CURRENT_USER,SOFTWARE\RunAny,RunAnyTickCount,%A_TickCount%
-		if(!RunAnyTickCount || A_TickCount<RunAnyTickCount){
+		if(!RunAnyTickCount || A_TickCount<RunAnyTickCount || !EvTotResults){
 			EvCheckFlag:=true
 		}
 	}
