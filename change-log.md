@@ -1,7 +1,6 @@
-# RunAny已更新最新版本！感谢你的使用和支持！[![HitCount](http://hits.dwyl.io/hui-Zz/RunAny.svg)](http://hits.dwyl.io/hui-Zz/RunAny)
-
+# RunAny已更新最新版本！感谢使用和支持！[![HitCount](http://hits.dwyl.io/hui-Zz/RunAny.svg)](http://hits.dwyl.io/hui-Zz/RunAny)
 #### 📢 关注RunAny一劳永逸微信公众号，分享【一劳永逸】的效率软件和解决方案！
-![RunAny公众号-白色版](/assets/images/RunAny公众号-白色版.jpg)
+![RunAny公众号-白色版](/assets/images/RunAny公众号-白色版.jpg ':size=550x200')
 
 ## 【RunAny】v5.7.3
 + 开机后首次运行RunAny，最快速度可使用菜单中除无路径应用以外的所有功能，不再像以前需要等待Everything可用
