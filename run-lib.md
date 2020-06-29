@@ -283,24 +283,24 @@
 	控制面板(&C)|control.exe
 	辅助功能选项(&E)|control.exe access.cpl
 	添加或删除程序(&A)|control.exe appwiz.cpl
-	显示 属性(&D)|control.exe desk.cpl
-	Windows 防火墙(&F)|control.exe firewall.cpl
+	显示属性(&D)|control.exe desk.cpl
+	Windows防火墙(&F)|control.exe firewall.cpl
 	添加硬件向导(&H)|control.exe hdwwiz.cpl
-	Internet 属性(&I)|control.exe inetcpl.cpl
+	Internet属性(&I)|control.exe inetcpl.cpl
 	区域和语言选项(&L)|control.exe intl.cpl
 	游戏控制器(&J)|control.exe joy.cpl
-	Java 控制面板(&Z)|control.exe jpicpl32.cpl
+	Java控制面板(&Z)|control.exe jpicpl32.cpl
 	鼠标属性(&M)|control.exe main.cpl
-	声音和音频设备 属性(&X)|control.exe mmsys.cpl
+	声音和音频设备属性(&X)|control.exe mmsys.cpl
 	网络连接(&N)|control.exe ncpa.cpl
 	网络安装向导(&Q)|control.exe netsetup.cpl
 	用户帐户(&U)|control.exe lusrmgr.cpl
-	ODBC 数据源管理器(&O)|control.exe odbccp32.cpl
-	电源选项 属性(&P)|control.exe powercfg.cpl
+	ODBC数据源管理器(&O)|control.exe odbccp32.cpl
+	电源选项属性(&P)|control.exe powercfg.cpl
 	系统属性(&S)|control.exe sysdm.cpl
 	电话和调制解调器选项(&R)|control.exe telephon.cpl
 	日期和时间属性(&T)|control.exe timedate.cpl
-	Windows 安全中心(&W)|control.exe wscui.cpl
+	Windows安全中心(&W)|control.exe wscui.cpl
 	自动更新(&G)|control.exe wuaucpl.cpl
 
 ```
