@@ -292,6 +292,8 @@ class RunAnyObj {
 		if(isShow){
 			ToolTip,%textResult%
 			Sleep,3000
+			if(A_TimeIdle>1000)
+				Sleep,3000
 			ToolTip
 		}
 	}
