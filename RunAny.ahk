@@ -4392,9 +4392,10 @@ Menu_Set:
 	Gui,66:Add,GroupBox,xm-10 y+15 w%GROUP_WIDTH_66% h80,Everything安装路径（支持内置变量和相对路径..\为RunAny相对上级目录）
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r2 -WantReturn vvEvPath,%EvPath%
-	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h250,RunAny调用Everything搜索参数（搜索结果可在RunAny无路径运行，Everything异常请尝试重建索引）
-	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+30 vvEvExeVerNew gSetEvExeVerNew,搜索结果优先最新版本同名exe全路径
-	Gui,66:Add,Checkbox,Checked%EvDemandSearch% x+10 vvEvDemandSearch gSetEvDemandSearch,按需搜索模式（只搜索RunAny菜单的无路径文件）
+	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h255,RunAny调用Everything搜索参数（搜索结果可在RunAny无路径运行，Everything异常请尝试重建索引）
+	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+25 vvEvDemandSearch gSetEvDemandSearch,按需搜索模式（只搜索RunAny菜单的无路径文件，非全磁盘搜索后再匹配）
+	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+20 vvEvExeVerNew gSetEvExeVerNew,搜索结果优先最新版本的同名exe
+	Gui,66:Add,Checkbox,Checked%EvDemandSearch% x+10 vvEvExeMTimeNew gSetEvExeVerNew,搜索结果优先最新修改时间的同名文件
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvCommand,修改
 	Gui,66:Add,Text,xm+60 yp,!C:\*Windows*为排除系统缓存和系统程序，注意空格间隔
 	Gui,66:Add,Text,xm+60 yp+15,file:*.exe|*.lnk|后面类推增加想要的后缀
@@ -4656,7 +4657,7 @@ SetOK:
 		vSendStrEcKey:=SendStrEncrypt(SendStrDcKey,RunAnyZz vConfigDate)
 	}
 	SetValueList.Push("ConfigDate","AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupFormat","RunABackupDir","DisableApp")
-	SetValueList.Push("EvPath","EvCommand","EvAutoClose","EvShowExt","EvShowFolder","EvExeVerNew","EvDemandSearch")
+	SetValueList.Push("EvPath","EvCommand","EvAutoClose","EvShowExt","EvShowFolder","EvExeVerNew","EvExeMTimeNew","EvDemandSearch")
 	SetValueList.Push("HideFail","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideSelectZz","RecentMax")
 	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu","BrowserPath","IconFolderPath")
 	SetValueList.Push("HideMenuTrayIcon","MenuIconSize","MenuTrayIconSize","MenuIcon","AnyIcon","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon")
@@ -4763,11 +4764,11 @@ return
 SetEvExeVerNew:
 	Gui,66:Submit, NoHide
 	if(vEvExeVerNew){
-		MsgBox,64,Everything搜索结果优先最新版本同名exe全路径, %RunAnyZz%会比较电脑上所有同名exe的版本号`n
+		MsgBox,64,Everything搜索结果优先最新版本或修改时间的同名exe全路径, %RunAnyZz%会比较电脑上所有同名exe的版本号、修改时间`n
 		(
 如果电脑同名程序过多会延长开机后%RunAnyZz%初始化速度`n
-建议同时开启右边“按需搜索模式”（只搜索%RunAnyZz%菜单的无路径文件）
-只比较%RunAnyZz%菜单中的同名程序版本号，大大加快速度
+建议同时开启上边“按需搜索模式”（只搜索%RunAnyZz%菜单的无路径文件）
+只比较%RunAnyZz%菜单中的同名程序版本号、修改时间，大大加快速度
 		)
 	}
 return
@@ -5148,6 +5149,7 @@ Var_Set:
 	global EvShowFolder:=Var_Read("EvShowFolder",1)
 	global EvAutoClose:=Var_Read("EvAutoClose",0)
 	global EvExeVerNew:=Var_Read("EvExeVerNew",0)
+	global EvExeMTimeNew:=Var_Read("EvExeMTimeNew",0)
 	global EvDemandSearch:=Var_Read("EvDemandSearch",1)
 	EvCommandDefault:="!C:\Windows* !?:\$RECYCLE.BIN*"
 	try EnvGet, scoopPath, scoop
@@ -6104,20 +6106,35 @@ everythingQuery(EvCommandStr){
 	ev.Query()
 	Loop,% ev.GetTotResults()
 	{
+		chooseNewFlag:=false
 		Z_Index:=A_Index-1
 		objFileName:=ev.GetResultFileName(Z_Index)
 		objFullPathName:=ev.GetResultFullPathName(Z_Index)
 		objFileNameNoExeExt:=RegExReplace(objFileName,"iS)\.exe$","")
+		if(EvExeMTimeNew && MenuObjEv[objFileNameNoExeExt]){
+			;优先选择最新修改时间的同名文件全路径
+			FileGetTime,objFullPathNameUpdateTimeOld,% MenuObjEv[objFileNameNoExeExt], M
+			FileGetTime,objFullPathNameUpdateTimeNew,% objFullPathName, M
+			if(objFullPathNameUpdateTimeOld<objFullPathNameUpdateTimeNew){
+				chooseNewFlag:=true
+			}
+		}
 		if(EvExeVerNew && RegExMatch(objFileName,"iS).*?\.exe$") && MenuObjEv[objFileNameNoExeExt]){
 			;优先选择最新版本的同名exe全路径
 			FileGetVersion,objFullPathNameVersionOld,% MenuObjEv[objFileNameNoExeExt]
 			FileGetVersion,objFullPathNameVersionNew,% objFullPathName
 			if(objFullPathNameVersionOld<objFullPathNameVersionNew){
 				MenuObjEv[objFileNameNoExeExt]:=objFullPathName
+			}else if(chooseNewFlag && objFullPathNameVersionOld=objFullPathNameVersionNew){
+				MenuObjEv[objFileNameNoExeExt]:=objFullPathName
 			}
-		}else{
-			MenuObjEv[objFileNameNoExeExt]:=objFullPathName
+			continue
 		}
+		;版本相同则取最新修改时间，时间相同或小于则不改变
+		if(EvExeMTimeNew && MenuObjEv[objFileNameNoExeExt] && !chooseNewFlag){
+			continue
+		}
+		MenuObjEv[objFileNameNoExeExt]:=objFullPathName
 	}
 }
 everythingCommandStr(){
