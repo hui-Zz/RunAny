@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.3 @2020.06.26
+║【RunAny】一劳永逸的快速启动工具 v5.7.3 @2020.07.30
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -887,17 +887,18 @@ MenuExeArrayPush(menuName,menuItem,itemFile,itemAny,TREE_NO){
 Menu_HotStr_Hint_Read(hotstr,hotStrName,itemParam){
 	menuHotStrShow:=RegExReplace(hotstr,"^:[^:]*?X[^:]*?:")
 	menuHotStrLen:=StrLen(menuHotStrShow)
+	HotStrHintLenVal:=HotStrHintLen>1 ? HotStrHintLen : 1
 	if(menuHotStrLen=0)
 		return
 	if(menuHotStrLen=1){
 		menuHotStrHint:=menuHotStrShow
-	}else if(menuHotStrLen<4){ ;总长度小于4在减1长度时提示
+	}else if(menuHotStrLen<=HotStrHintLenVal){ ;总长度小于4在减1长度时提示
 		menuHotStrHint:=SubStr(menuHotStrShow, 1, menuHotStrLen-1)
 	}else{
-		loop, % menuHotStrLen - 3
+		loop, % menuHotStrLen - HotStrHintLenVal
 		{
 			MenuObjHotStr:=Object()	;热字符对象
-			menuHotStrHint:=SubStr(menuHotStrShow, 1, A_Index + 2)
+			menuHotStrHint:=SubStr(menuHotStrShow, 1, A_Index + HotStrHintLenVal-1)
 			MenuObjHotStr["hotStrAny"]:=itemParam
 			MenuObjHotStr["hotStrHint"]:=menuHotStrHint
 			MenuObjHotStr["hotStrShow"]:=menuHotStrShow
@@ -4440,8 +4441,10 @@ Menu_Set:
 	GuiControl, 66:+Redraw, RunAnyOpenExtLV
 	
 	Gui,66:Tab,热字符串,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h350,热字符串设置
+	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h400,热字符串设置
 	Gui,66:Add,Checkbox,Checked%HideHotStr% xm yp+30 vvHideHotStr,隐藏热字符串提示
+	Gui,66:Add,Text,xm yp+40 w250,按几个字符出现提示 (默认3个字符)
+	Gui,66:Add,Edit,xm+200 yp-3 w200 r1 vvHotStrHintLen,%HotStrHintLen%
 	Gui,66:Add,Text,xm yp+40 w250,提示启动路径最长字数 (0为隐藏)
 	Gui,66:Add,Edit,xm+200 yp-3 w200 r1 vvHotStrShowLen,%HotStrShowLen%
 	Gui,66:Add,Text,xm yp+40 w250,提示显示时长 (毫秒)
@@ -4661,7 +4664,7 @@ SetOK:
 	SetValueList.Push("HideFail","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideSelectZz","RecentMax")
 	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu","BrowserPath","IconFolderPath")
 	SetValueList.Push("HideMenuTrayIcon","MenuIconSize","MenuTrayIconSize","MenuIcon","AnyIcon","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon")
-	SetValueList.Push("HideHotStr","HotStrShowLen","HotStrShowTime","HotStrShowTransparent","HotStrShowX","HotStrShowY","SendStrEcKey")
+	SetValueList.Push("HideHotStr","HotStrHintLen","HotStrShowLen","HotStrShowTime","HotStrShowTransparent","HotStrShowX","HotStrShowY","SendStrEcKey")
 	SetValueList.Push("MenuDoubleCtrlKey", "MenuDoubleAltKey", "MenuDoubleLWinKey", "MenuDoubleRWinKey")
 	SetValueList.Push("MenuCtrlRightKey", "MenuShiftRightKey", "MenuXButton1Key", "MenuXButton2Key", "MenuMButtonKey")
 	;[回车转换成竖杠保存到ini配置文件]
@@ -5158,6 +5161,7 @@ Var_Set:
 	global EvCommand:=Var_Read("EvCommand",EvDemandSearch ? EvCommandDefault : EvCommandDefault " file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
 	;[热字符串]
 	global HideHotStr:=Var_Read("HideHotStr",0)
+	global HotStrHintLen:=Var_Read("HotStrHintLen",3)
 	global HotStrShowLen:=Var_Read("HotStrShowLen",30)
 	global HotStrShowTime:=Var_Read("HotStrShowTime",3000)
 	global HotStrShowTransparent:=Var_Read("HotStrShowTransparent",80)
