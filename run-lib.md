@@ -193,8 +193,6 @@
 ```batch
 -文件(&File)
     ;文件搜索
-	Everything文件秒搜|Everything.exe
-	Everything搜索选中内容|Everything.exe -search "%getZz%"
 	Listary.exe
 	FileLocatorPro.exe
 	--
@@ -213,6 +211,17 @@
 	FastCopy.exe
 	Unlocker.exe
 	Viewer.exe
+	--Everything搜索
+		Ev文件秒搜|Everything.exe
+		Ev索引强制重建|Everything.exe -reindex
+		---
+		Ev搜索选中内容|Everything.exe -search "%getZz%"
+		Ev搜索剪贴板|Everything.exe -search "%Clipboard%"
+		Ev搜索JSON|Everything.exe -search "*.json %getZz%"
+		Ev搜索当天文件|Everything.exe -search "dm:today"
+		Ev搜索昨天文件|Everything.exe -search "dm:yesterday"
+		Ev搜索明天文件|Everything.exe -search "dm:tomorrow"
+		Ev搜索压缩包|Everything.exe -search "ext:7z;ace;arj;bz2;cab;gz;gzip;r00;r01;r02;r03;rar;tar;tgz;z;zip %getZz%"
 	--文件删除恢复
 		EasyRecovery.exe
 		Piriform Recuva.exe
