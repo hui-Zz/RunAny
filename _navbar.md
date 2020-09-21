@@ -7,6 +7,7 @@
   * [关于开发RunAny的想法](/article/关于开发RunAny的想法.md)
   * [内置系统环境变量和RunAny变量列表](/article/built-in-variables.md)
   * [如何实现软件环境一劳永逸](/article/如何实现软件环境一劳永逸.md)
+  * [快捷启动UWP应用的三种方式](/article/快捷启动UWP应用的三种方式.md)
 * 链接
   * [Scoop软件列表](https://github.com/rasa/scoop-directory/blob/master/by-score.md)
   * [PortableApps软件目录](https://portableapps.com/apps)
