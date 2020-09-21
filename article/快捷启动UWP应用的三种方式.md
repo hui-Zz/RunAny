@@ -96,6 +96,11 @@ explorer.exe shell:AppsFolder\Microsoft.WindowsTerminal_8wekyb3d8bbwe!App
 | Windows 家长控制               | ms-wpc:                   |
 | Microsoft Solitaire Collection | xboxliveapp-1297287741:   |
 
+
+
+---
+
 ![RunAnyMp](../assets/images/RunAnyMp.png ':size=200x200') 
 
-**微信搜索：RunAny**
+**微信搜索公众号：RunAny**
+

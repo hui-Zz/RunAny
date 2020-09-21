@@ -47,3 +47,11 @@
 
 
 所以我从多个痛点出发，现实现了快速启动工具**RunAny**
+
+
+
+---
+
+![RunAnyMp](../assets/images/RunAnyMp.png ':size=200x200') 
+
+**微信搜索公众号：RunAny**
