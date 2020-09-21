@@ -220,7 +220,6 @@
 		Ev搜索JSON|Everything.exe -search "*.json %getZz%"
 		Ev搜索当天文件|Everything.exe -search "dm:today"
 		Ev搜索昨天文件|Everything.exe -search "dm:yesterday"
-		Ev搜索明天文件|Everything.exe -search "dm:tomorrow"
 		Ev搜索压缩包|Everything.exe -search "ext:7z;ace;arj;bz2;cab;gz;gzip;r00;r01;r02;r03;rar;tar;tgz;z;zip %getZz%"
 	--文件删除恢复
 		EasyRecovery.exe
