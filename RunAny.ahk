@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.3 @2020.07.30
+║【RunAny】一劳永逸的快速启动工具 v5.7.3 @2020.09.24
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.7.3"
-global RunAny_update_time:="2020.06.26"
+global RunAny_update_time:="2020.09.24"
 Gosub,Var_Set          ;~参数初始化
 Gosub,Run_Exist        ;~调用判断依赖
 Gosub,Plugins_Read     ;~插件脚本读取
@@ -1088,10 +1088,11 @@ Menu_Show:
 		if(selectCheck=""){
 			;#无选中内容
 			;加载顺序：无Everything菜单 -> 无图标菜单 -> 有图标无路径识别菜单
-			if(MenuIconFlag && MenuShowFlag)
+			if(MenuIconFlag && MenuShowFlag){
 				Menu,% menuDefaultRoot%MENU_NO%[1],Show
-			else
+			}else{
 				Menu,% menuRoot%MENU_NO%[1],Show
+			}
 			return
 		}
 		if(Candy_isFile){
@@ -4484,6 +4485,7 @@ Menu_Set:
 	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitApp,, "[选中] 指定软件解决剪贴板等待时间过短获取不到选中内容（多个用,分隔）","ClipWaitApp")
 	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitTime,"秒", "[选中] 指定软件获取选中目标到剪贴板等待时间，全局其他软件默认0.1秒","ClipWaitTime")
 	LV_Add(DisableExeIcon ? "Icon1" : "Icon2", DisableExeIcon,, "菜单中exe程序不加载本身图标","DisableExeIcon")
+	LV_Add(RunAEncoding ? "Icon1" : "Icon2", RunAEncoding,, "使用指定编码读取RunAny.ini（默认ANSI）","RunAEncoding")
 	LV_Add(AutoGetZz ? "Icon1" : "Icon2", AutoGetZz,, "【慎改】菜单程序运行自动带上当前选中文件，关闭后需要手动加%getZz%才可以获取到","AutoGetZz")
 	LV_Add(EvNo ? "Icon1" : "Icon2", EvNo,, "【慎改】不使用Everything模式，所有无路径配置都会失效！","EvNo")
 	LV_ModifyCol(2,"Auto Center")
@@ -4809,8 +4811,12 @@ SetMenuWinKey2:
 return
 SetHideMenuTrayIcon:
 	Gui,66:Submit, NoHide
-	If(vHideMenuTray && vHideMenuTrayIcon)
-		MsgBox, 48, 警告！, 已经隐藏菜单中的“RunAny设置”，如果再隐藏任务栏托盘图标后`n`n只能通过快捷键来再次打开RunAny设置界面，如果忘记热键的话`n`n需要手动修改 RunAnyConfig.ini 文件取消隐藏图标： HideMenuTrayIcon=0
+	If(vHideMenuTray && vHideMenuTrayIcon){
+		MsgBox, 48, 警告！, 已经隐藏菜单中的“RunAny设置”，如果再隐藏任务栏托盘图标后`n
+		(
+只能通过快捷键来再次打开RunAny设置界面，如果忘记热键的话`n`n需要手动修改 RunAnyConfig.ini 文件取消隐藏图标： HideMenuTrayIcon=0
+		)
+	}
 return
 Reg_Set(vGui, var, sz){
 	StringCaseSense, On
@@ -5185,6 +5191,7 @@ Var_Set:
 	global JumpSearch:=Var_Read("JumpSearch",0)
 	global AutoGetZz:=Var_Read("AutoGetZz",1)
 	global DisableExeIcon:=Var_Read("DisableExeIcon",0)
+	global RunAEncoding:=Var_Read("RunAEncoding")
 	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)
 	global ClipWaitApp:=Var_Read("ClipWaitApp","")
 	Loop,parse,ClipWaitApp,`,
@@ -5443,6 +5450,14 @@ Run_Exist:
 		TrayTip,,RunAny初始化中...,2,1
 		gosub,First_Run
 	}
+	if(RunAEncoding){
+		try{
+			FileEncoding,%RunAEncoding%
+		}catch e{
+			MsgBox,16,文件编码出错,% "请设置正确的编码读取RunAny.ini!`n参考：https://wyagd001.github.io/zh-cn/docs/commands/FileEncoding.htm"
+			. "`n`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+		}
+	}
 	FileRead, iniVar1, %iniPath%
 	;#判断第2菜单ini#
 	global MENU2FLAG:=false
@@ -5454,6 +5469,7 @@ Run_Exist:
 		IfNotExist %RunABackupDirPath%\%RunAnyZz%2.ini
 			FileCreateDir,%RunABackupDirPath%\%RunAnyZz%2.ini
 	}
+	FileEncoding,
 	;#判断配置文件
 	if(!FileExist(RunAnyConfig)){
 		IniWrite,%IniConfig%,%RunAnyConfig%,Config,IniConfig
