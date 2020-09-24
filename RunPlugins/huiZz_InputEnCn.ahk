@@ -17,7 +17,7 @@ GroupAdd,cnApp,ahk_exe QQ.exe
 
 ;[切换英文输入法的程序，复制一行后修改cmd.exe]
 GroupAdd,enApp,ahk_exe cmd.exe
-GroupAdd,enApp,ahk_exe Terminus.exe
+GroupAdd,enApp,ahk_exe WindowsTerminal.exe
 
 ;-----------------------------------------------------------
 
