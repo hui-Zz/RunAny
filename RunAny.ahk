@@ -32,12 +32,13 @@ Gosub,Plugins_Read     ;~插件脚本读取
 HotKeyList:=["MenuHotKey","MenuHotKey2","EvHotKey","OneHotKey"]
 RunHotKeyList:=HotKeyList.Clone()
 HotKeyList.Push("TreeHotKey1","TreeHotKey2","TreeIniHotKey1","TreeIniHotKey2")
-HotKeyList.Push("RunATrayHotKey","RunASetHotKey","RunAReloadHotKey","RunASuspendHotKey","RunAExitHotKey","PluginsManageHotKey","PluginsAloneCloseHotKey")
+HotKeyList.Push("RunATrayHotKey","RunASetHotKey","RunAReloadHotKey","RunASuspendHotKey","RunAExitHotKey")
+HotKeyList.Push("PluginsManageHotKey","PluginsAlonePauseHotKey","PluginsAloneSuspendHotKey","PluginsAloneCloseHotKey")
 HotKeyTextList:=["RunAny菜单显示热键","RunAny菜单2热键","一键Everything热键","一键搜索热键"]
 HotKeyTextList.Push("修改菜单管理(1)","修改菜单管理(2)","修改菜单文件(1)","修改菜单文件(2)")
-HotKeyTextList.Push("RunAny托盘菜单","设置RunAny","重启RunAny","停用RunAny","退出RunAny","插件管理","独立插件脚本一键关闭")
+HotKeyTextList.Push("RunAny托盘菜单","设置RunAny","重启RunAny","停用RunAny","退出RunAny","插件管理","独立插件脚本一键暂停","独立插件脚本挂起热键","独立插件脚本一键关闭")
 RunList:=["Menu_Show1","Menu_Show2","Ev_Show","One_Show","Menu_Edit1","Menu_Edit2","Menu_Ini","Menu_Ini2"]
-RunList.Push("Menu_Tray","Menu_Set","Menu_Reload","Menu_Suspend","Menu_Exit","Plugins_Manage","Plugins_Alone_Close")
+RunList.Push("Menu_Tray","Menu_Set","Menu_Reload","Menu_Suspend","Menu_Exit","Plugins_Manage","Plugins_Alone_Pause","Plugins_Alone_Suspend","Plugins_Alone_Close")
 Hotkey, IfWinNotActive, ahk_group DisableGUI
 For ki, kv in HotKeyList
 {
@@ -4188,7 +4189,16 @@ Plugins_LV_Icon_Set:
 	IL_Add(PluginsImageListID, FuncIconS[1], FuncIconS[2])
 return
 ;[插件管理独立脚本一键关闭]
+Plugins_Alone_Pause:
+	Plugins_Alone("暂停")
+return
+Plugins_Alone_Suspend:
+	Plugins_Alone("挂起")
+return
 Plugins_Alone_Close:
+	Plugins_Alone("关闭")
+return
+Plugins_Alone(r){
 	DetectHiddenWindows,On      ;~显示隐藏窗口
 	For runn, runv in PluginsPathList
 	{
@@ -4196,10 +4206,17 @@ Plugins_Alone_Close:
 		if(PluginsObjRegGUID[pname_no_ext]){
 			continue
 		}
-		PostMessage, 0x111, 65405,,, %runv% ahk_class AutoHotkey
+		if(r="暂停"){
+			PostMessage, 0x111, 65403,,, %runv% ahk_class AutoHotkey
+		}else if(r="挂起"){
+			PostMessage, 0x111, 65404,,, %runv% ahk_class AutoHotkey
+		}else if(r="关闭"){
+			PostMessage, 0x111, 65405,,, %runv% ahk_class AutoHotkey
+		}
 	}
 	DetectHiddenWindows,Off
-return
+}
+
 LVPluginsIcon(pname){
 	pname_no_ext:=RegExReplace(pname,"iS)\.ahk$")
 	PluginsFile:=RegExReplace(PluginsPathList[pname],"iS)\.ahk$")
