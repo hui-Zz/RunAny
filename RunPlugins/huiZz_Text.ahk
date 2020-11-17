@@ -358,7 +358,7 @@ Send_Str_Zz(strZz){
 	Clipboard:=ClipSaved
 }
 ;~;输出结果还是仅显示保存到剪贴板
-Send_Or_Show(textResult,isSend,sTime:=3000){
+Send_Or_Show(textResult,isSend:=0,sTime:=3000){
 	textResult:=RegExReplace(textResult,"`r`n$")
 	if(isSend){
 		Send_Str_Zz(textResult)
