@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.3 @2020.09.24
+║【RunAny】一劳永逸的快速启动工具 v5.7.3 @2020.11.17
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.7.3"
-global RunAny_update_time:="2020.09.24"
+global RunAny_update_time:="2020.11.17"
 Gosub,Var_Set          ;~参数初始化
 Gosub,Run_Exist        ;~调用判断依赖
 Gosub,Plugins_Read     ;~插件脚本读取
@@ -1293,7 +1293,7 @@ Menu_Show_Show(menuName,itemName){
 }
 Menu_Show_Translate(selectCheck){
 	translate:=""
-	if(translateFalg && GetZzTranslate && (!GetZzTranslateMenu || GetZzTranslateMenu=MENU_NO)
+	if(translateFlag && GetZzTranslate && (!GetZzTranslateMenu || GetZzTranslateMenu=MENU_NO)
 			&& !RegExMatch(selectCheck,"iS)^([\w-]+://?|www[.]).*")){
 		if(GetZzTranslateAuto){
 			if(!RegExMatch(selectCheck,"S)[\p{Han}]+")){
@@ -1350,38 +1350,62 @@ Menu_Run:
 	}
 	MenuRunDebugModeShow()
 	fullPath:=Get_Obj_Path(any)
-	SplitPath, fullPath, , dir, ext
+	SplitPath, fullPath, name, dir, ext, name_no_ext
 	if(dir && FileExist(dir))
 		SetWorkingDir,%dir%
 	try {
 		global TVEditItem
-		;[按住Shift编辑菜单项]
-		if(!GetKeyState("Alt") && !GetKeyState("LWin") && !GetKeyState("Ctrl") && GetKeyState("Shift")){
+		menuholdkey:=MenuRunHoldKey()
+		;[编辑菜单项]
+		if(menuholdkey=HoldKeyRun3){
 			TVEditItem:=A_ThisMenuItem
 			TVEditItem:=RegExReplace(TVEditItem,"重名$")
 			gosub,Menu_Edit%MENU_NO%
 			TVEditItem:=""
 			return
 		}
+		;[复制或输出菜单项内容]
+		if(menuholdkey=HoldKeyRun31){
+			Send_Or_Show(fullPath)
+			return
+		}else if(menuholdkey=HoldKeyRun32){
+			Send_Or_Show(fullPath,true)
+			return
+		}else if(menuholdkey=HoldKeyRun33){
+			Send_Or_Show(name_no_ext)
+			return
+		}else if(menuholdkey=HoldKeyRun34){
+			Send_Or_Show(name_no_ext,true)
+			return
+		}else if(menuholdkey=HoldKeyRun35){
+			Send_Or_Show(name)
+			return
+		}else if(menuholdkey=HoldKeyRun36){
+			Send_Or_Show(name,true)
+			return
+		}
+		;[获取菜单项启动模式]
 		itemMode:=GetMenuItemMode(any)
-		
+		;[结束软件进程]
+		if(menuholdkey=HoldKeyRun4 && (itemMode=1 || itemMode=60)){
+			Process,Close,%name%
+			return
+		}
 		if(RecentMax>0 && !RegExMatch(A_ThisMenuItem,"S)^&\d+"))
 			gosub,Menu_Recent
-
 		;[根据菜单项模式运行]
 		returnFlag:=false
 		gosub,Menu_Run_Mode_Label
 		if(returnFlag)
 			return
-		
 		;[解析选中变量%getZz%]
 		getZzFlag:=InStr(any,"%getZz%") ? true : false
 		any:=Get_Transform_Val(any)
 		any:=RTrim(any," `t`n`r")
 		anyRun:=""
-		if(getZz="" && !Candy_isFile && !GetKeyState("Alt") && !GetKeyState("LWin") && !GetKeyState("Shift")){
-			;[按住Ctrl键打开应用所在目录，只有目录则直接打开]
-			if(GetKeyState("Ctrl") || InStr(FileExist(any), "D")){
+		if(getZz="" && !Candy_isFile){
+			;[打开应用所在目录，只有目录则直接打开]
+			if(menuholdkey=HoldKeyRun2 || InStr(FileExist(any), "D")){
 				if(OpenFolderPathRun){
 					anyRun=%anyRun%%OpenFolderPathRun%%A_Space%"%any%"
 				}else if(InStr(FileExist(any), "D")){
@@ -1393,9 +1417,19 @@ Menu_Run:
 				return
 			}
 		}
-		;[按住Ctrl+Shift管理员身份运行]
-		if(GetKeyState("Ctrl") && GetKeyState("Shift")){
+		;[管理员身份运行]
+		if(menuholdkey=HoldKeyRun11){
 			anyRun.="*RunAs "
+		}
+		;[最小化、最大化、隐藏运行模式]
+		if(menuholdkey=HoldKeyRun12){
+			mode:="Min"
+		}else if(menuholdkey=HoldKeyRun12){
+			mode:="Max"
+		}else if(menuholdkey=HoldKeyRun13){
+			mode:="Hide"
+		}else{
+			mode:=""
 		}
 		if(getZz!="" && (getZzFlag || AutoGetZz)){
 			firstFile:=RegExReplace(getZz,"(.*)(\n|\r).*","$1")  ;取第一行
@@ -1413,9 +1447,9 @@ Menu_Run:
 					return
 				}
 				if(getZzFlag || InStr(FileExist(any), "D")){
-					Run_Any(any)
+					Run_Any(any,mode)
 				}else{
-					Run_Any(any . A_Space . getZzStr)
+					Run_Any(any . A_Space . getZzStr,mode)
 				}
 				return
 			}
@@ -1424,18 +1458,18 @@ Menu_Run:
 			}else{
 				anyRun=%anyRun%%any%%A_Space%%getZz%
 			}
-			Run_Any(anyRun)
+			Run_Any(anyRun,mode)
 			return
 		}
 		menuKeys:=StrSplit(A_ThisMenuItem,"`t")
 		thisMenuName:=menuKeys[1]
 		if(ext && openExtRunList[ext]){
-			Run_Any(openExtRunList[ext] . A_Space . """" any """")
+			Run_Any(openExtRunList[ext] . A_Space . """" any """",mode)
 		}else if(thisMenuName && RegExMatch(thisMenuName,"S).*?_:(\d{1,2})$")){
 			menuTrNum:=RegExReplace(thisMenuName,"S).*?_:(\d{1,2})$","$1")
 			Run_Tr(any,menuTrNum,true)
 		}else{
-			Run_Any(anyRun . any)
+			Run_Any(anyRun . any,mode)
 		}
 	} catch e {
 		MsgBox,16,%A_ThisMenuItem%运行出错,% "运行路径：" any "`n出错命令：" e.What 
@@ -1444,6 +1478,27 @@ Menu_Run:
 		SetWorkingDir,%A_ScriptDir%
 	}
 return
+;判断运行软件时按住的键
+MenuRunHoldKey(){
+	holdKey:=0
+	if(GetKeyState("Enter"))
+		holdKey:=1
+	if(GetKeyState("Ctrl"))
+		holdKey:=2
+	if(GetKeyState("Shift")){
+		holdKey:=holdKey=2 ? 4 : 3
+	}
+	if(GetKeyState("LWin") || GetKeyState("RWin")){
+		if(holdKey=2){
+			holdKey:=5
+		}else if(holdKey=3){
+			holdKey:=6
+		}else if(holdKey=4){
+			holdKey:=7
+		}
+	}
+	return holdKey
+}
 ;══════════════════════════════════════════════════════════════════
 ;~;[菜单热键运行]
 ;══════════════════════════════════════════════════════════════════
@@ -1584,7 +1639,7 @@ MenuRunDebugModeShow(key:=0){
 ;调用huiZz_Text插件函数
 SendStrDecrypt(any,key:=""){
 	try{
-		if(encryptFalg){
+		if(encryptFlag){
 			key:=(key="") ? SendStrDcKey : key
 			PluginsObjRegActive["huiZz_Text"]:=ComObjActive(PluginsObjRegGUID["huiZz_Text"])
 			anyval:=PluginsObjRegActive["huiZz_Text"]["runany_decrypt"](any,key)
@@ -1595,7 +1650,7 @@ SendStrDecrypt(any,key:=""){
 }
 SendStrEncrypt(any,key:=""){
 	try{
-		if(encryptFalg){
+		if(encryptFlag){
 			key:=(key="") ? SendStrDcKey : key
 			PluginsObjRegActive["huiZz_Text"]:=ComObjActive(PluginsObjRegGUID["huiZz_Text"])
 			anyval:=PluginsObjRegActive["huiZz_Text"]["runany_encrypt"](any,key)
@@ -1777,10 +1832,14 @@ Web_Search:
 		}
 	}
 return
-Run_Any(any){
+Run_Any(any,mode:=""){
 	Menu_Debug_Mode("[运行路径]`n" any "`n")
 	Menu_Run_Tray_Tip(any "`n")
-	Run,%any%
+	if(mode!=""){
+		Run,%any%,,%mode%
+	}else{
+		Run,%any%
+	}
 }
 Run_Zz(program){
 	fullPath:=Get_Obj_Path(program)
@@ -1893,6 +1952,20 @@ Ext_Check(name,len,ext){
 	len_ext:=StrLen(ext)
 	site:=InStr(name,ext,,0,1)
 	return site!=0 && site=len-len_ext+1
+}
+;~;[输出结果还是仅显示保存到剪贴板]
+Send_Or_Show(textResult,isSend:=false,sTime:=3000){
+	textResult:=RegExReplace(textResult,"`r`n$")
+	if(isSend){
+		Send_Str_Zz(textResult)
+		return
+	}
+	Clipboard:=textResult
+	ToolTip,%textResult%
+	Sleep,%sTime%
+	if(A_TimeIdle>1000)
+		Sleep,%sTime%
+	ToolTip
 }
 ;~;[粘贴输出短语]
 Send_Str_Zz(strZz,tf=false){
@@ -2842,7 +2915,7 @@ EditItemPathChange:
 		}
 		GuiControl, SaveItem:Choose, vItemMode,% getItemMode=60 ? 1 : getItemMode
 	}
-	if(SendStrDcKey!="" && encryptFalg && (getItemMode=2 || getItemMode=3)){
+	if(SendStrDcKey!="" && encryptFlag && (getItemMode=2 || getItemMode=3)){
 		GuiControlShow("SaveItem","vSetSendStrEncrypt")
 	}else{
 		GuiControlHide("SaveItem","vSetSendStrEncrypt")
@@ -4485,7 +4558,7 @@ Menu_Set:
 	Gui,66:Add,Edit,xm+200 yp-3 w200 r1 vvHotStrShowX,%HotStrShowX%
 	Gui,66:Add,Text,xm yp+50 w250,提示相对于鼠标坐标 Y (可为负数)：
 	Gui,66:Add,Edit,xm+200 yp-3 w200 r1 vvHotStrShowY,%HotStrShowY%
-	if(encryptFalg){
+	if(encryptFlag){
 		Gui,66:Add,Text,xm yp+50 w250 GMenu_Config,短语key（huiZz_Text）：
 		Gui,66:Add,Edit,xm+200 yp-3 Password w200 cWhite r1 vvSendStrEcKey,%SendStrEcKey%
 	}
@@ -4521,39 +4594,59 @@ Menu_Set:
 
 	Gui,66:Tab,高级配置,,Exact
 	Gui,66:Add,Link,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%,%RunAnyZz%高级配置列表，请理解说明后修改（双击或按F2进行修改：1或有值=启用，0或空=停用）
-	Gui,66:Add,Listview,xm yp+20 r18 grid AltSubmit -ReadOnly -Multi vAdvancedConfigLV glistviewAdvancedConfig, 配置状态值|单位|配置说明|配置名
+	Gui,66:Add,Listview,xm yp+20 r18 grid AltSubmit -ReadOnly -Multi vAdvancedConfigLV glistviewAdvancedConfig, 配置状态值|单位|配置说明|配置脚本|配置项名
 	AdvancedConfigImageListID:=IL_Create(2)
 	IL_Add(AdvancedConfigImageListID,"shell32.dll",(A_OSVersion="WIN_XP" || A_OSVersion="WIN_7") ? 145 : 297)
 	IL_Add(AdvancedConfigImageListID,"shell32.dll",132)
 	LV_SetImageList(AdvancedConfigImageListID)
 	GuiControl, 66:-Redraw, AdvancedConfigLV
-	LV_Add(JumpSearch ? "Icon1" : "Icon2", JumpSearch,, "跳过点击批量搜索时的确认弹窗","JumpSearch")
-	LV_Add(ShowGetZzLen ? "Icon1" : "Icon2", ShowGetZzLen,"字", "[选中] 菜单第一行显示选中文字最大截取字数","ShowGetZzLen")
-	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitApp,, "[选中] 指定软件解决剪贴板等待时间过短获取不到选中内容（多个用,分隔）","ClipWaitApp")
-	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitTime,"秒", "[选中] 指定软件获取选中目标到剪贴板等待时间，全局其他软件默认0.1秒","ClipWaitTime")
-	if(translateFalg){
-		LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslate,"", "[选中翻译] 菜单第二行谷歌翻译选中内容","GetZzTranslate")
-		LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateMenu,"菜单", "[选中翻译] 1：仅菜单1显示翻译；2：仅菜单2显示翻译；0：所有菜单均显示","GetZzTranslateMenu")
-		LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateSource,"", "[选中翻译] 翻译源语言，默认auto","GetZzTranslateSource")
-		LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateTarget,"", "[选中翻译] 翻译目标语言，英文：en，中文：zh-CN，具体语言查看谷歌翻译网址","GetZzTranslateTarget")
-		LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateAuto,"", "[选中翻译] 翻译目标语言自动判断切换中英文","GetZzTranslateAuto")
+	LV_Add(JumpSearch ? "Icon1" : "Icon2", JumpSearch,, "跳过点击批量搜索时的确认弹窗","","JumpSearch")
+	LV_Add(ShowGetZzLen ? "Icon1" : "Icon2", ShowGetZzLen,"字", "[选中] 菜单第一行显示选中文字最大截取字数","","ShowGetZzLen")
+	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitApp,, "[选中] 指定软件解决剪贴板等待时间过短获取不到选中内容（多个用,分隔）","","ClipWaitApp")
+	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitTime,"秒", "[选中] 指定软件获取选中目标到剪贴板等待时间，全局其他软件默认0.1秒","","ClipWaitTime")
+	if(translateFlag){
+		LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslate,"", "[选中翻译] 菜单第二行谷歌翻译选中内容","huiZz_Text.ahk","GetZzTranslate")
+		LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateMenu,"菜单", "[选中翻译] 1：仅菜单1显示翻译；2：仅菜单2显示翻译；0：所有菜单均显示","huiZz_Text.ahk","GetZzTranslateMenu")
+		LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateSource,"", "[选中翻译] 翻译源语言，默认auto","huiZz_Text.ahk","GetZzTranslateSource")
+		LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateTarget,"", "[选中翻译] 翻译目标语言，英文：en，中文：zh-CN，具体语言查看谷歌翻译网址","huiZz_Text.ahk","GetZzTranslateTarget")
+		LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateAuto,"", "[选中翻译] 翻译目标语言自动判断切换中英文","huiZz_Text.ahk","GetZzTranslateAuto")
 	}
-	LV_Add(HoldCtrlRun ? "Icon1" : "Icon2", HoldCtrlRun,"", "[按住Ctrl键]运行菜单项 1:打开该软件所在目录 2:编辑该菜单项 3:以管理员权限运行 4:最小化运行 5:最大化运行 6:隐藏运行(部分有效) 7:复制该软件路径 8:复制该软件名 9:强制结束该软件单个进程","HoldCtrlRun")
-	LV_Add(HoldShiftRun ? "Icon1" : "Icon2", HoldShiftRun,"", "[按住Shift键]运行菜单项 选项同上","HoldShiftRun")
-	LV_Add(HoldCtrlShiftRun ? "Icon1" : "Icon2", HoldCtrlShiftRun,"", "[按住Ctrl+Shift键]运行菜单项 选项同上","HoldCtrlShiftRun")
-	LV_Add(HoldCtrlWinRun ? "Icon1" : "Icon2", HoldCtrlWinRun,"", "[按住Ctrl+Win键]运行菜单项 选项同上","HoldCtrlWinRun")
-	LV_Add(HoldShiftWinRun ? "Icon1" : "Icon2", HoldShiftWinRun,"", "[按住Shift+Win键]运行菜单项 选项同上","HoldShiftWinRun")
-	LV_Add(HoldCtrlShiftWinRun ? "Icon1" : "Icon2", HoldCtrlShiftWinRun,"", "[按住Ctrl+Shift+Win键]运行菜单项 选项同上","HoldCtrlShiftWinRun")
-	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugMode,, "[调试模式] 实时显示菜单运行的信息","DebugMode")
-	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugModeShowTime,"毫秒", "[调试模式] 实时显示菜单运行信息的自动隐藏时间","DebugModeShowTime")
-	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugModeShowTrans,"%", "[调试模式] 实时显示菜单运行信息的透明度","DebugModeShowTrans")
-	LV_Add(DisableExeIcon ? "Icon1" : "Icon2", DisableExeIcon,, "菜单中exe程序不加载本身图标","DisableExeIcon")
-	LV_Add(RunAEncoding ? "Icon1" : "Icon2", RunAEncoding,, "使用指定编码读取RunAny.ini（默认ANSI）","RunAEncoding")
-	LV_Add(AutoGetZz ? "Icon1" : "Icon2", AutoGetZz,, "【慎改】菜单程序运行自动带上当前选中文件，关闭后需要手动加%getZz%才可以获取到","AutoGetZz")
-	LV_Add(EvNo ? "Icon1" : "Icon2", EvNo,, "【慎改】不使用Everything模式，所有无路径配置都会失效！","EvNo")
+	LV_Add(HoldEnterRun ? "Icon1" : "Icon2", HoldEnterRun,"", "[按回车键] 运行菜单项（选项通用）1:运行软件 11:以管理员权限运行 12:最小化运行 13:最大化运行 14:隐藏运行(部分有效)","","HoldEnterRun")
+	LV_Add(HoldCtrlRun ? "Icon1" : "Icon2", HoldCtrlRun,"", "[按住Ctrl键] 运行菜单项（选项通用）2:打开该软件所在目录","","HoldCtrlRun")
+	LV_Add(HoldShiftRun ? "Icon1" : "Icon2", HoldShiftRun,"", "[按住Shift键] 运行菜单项（选项通用） 3:编辑该菜单项 31:复制运行路径 32:输出运行路径 33:复制软件名 34:输出软件名 35:复制软件名+后缀 36:输出软件名+后缀","","HoldShiftRun")
+	LV_Add(HoldCtrlShiftRun ? "Icon1" : "Icon2", HoldCtrlShiftRun,"", "[按住Ctrl+Shift键] 运行菜单项（选项通用）","","HoldCtrlShiftRun")
+	LV_Add(HoldCtrlWinRun ? "Icon1" : "Icon2", HoldCtrlWinRun,"", "[按住Ctrl+Win键] 运行菜单项（选项通用）","","HoldCtrlWinRun")
+	LV_Add(HoldShiftWinRun ? "Icon1" : "Icon2", HoldShiftWinRun,"", "[按住Shift+Win键] 运行菜单项（选项通用）","","HoldShiftWinRun")
+	LV_Add(HoldCtrlShiftWinRun ? "Icon1" : "Icon2", HoldCtrlShiftWinRun,"", "[按住Ctrl+Shift+Win键] 运行菜单项（选项通用） 4:强制结束该软件单个进程","","HoldCtrlShiftWinRun")
+	if(RunAnyMenuSpaceFlag){
+		LV_Add(RunAnyMenuSpaceRun ? "Icon1" : "Icon2", RunAnyMenuSpaceRun,"", "[按空格键] 运行菜单项（只能复制上面除回车外已有的选项）","RunAny_Menu.ahk","RunAnyMenuSpaceRun")
+	}
+	if(RunAnyMenuRButtonFlag){
+		LV_Add(RunAnyMenuRButtonRun ? "Icon1" : "Icon2", RunAnyMenuRButtonRun,"", "[按右键] 运行菜单项（只能复制上面除回车外已有的选项）","RunAny_Menu.ahk","RunAnyMenuRButtonRun")
+	}
+	if(RunAnyMenuMButtonFlag){
+		LV_Add(RunAnyMenuMButtonRun ? "Icon1" : "Icon2", RunAnyMenuMButtonRun,"", "[按中键] 运行菜单项（只能复制上面除回车外已有的选项）","RunAny_Menu.ahk","RunAnyMenuMButtonRun")
+	}
+	if(RunAnyMenuXButton1Flag){
+		LV_Add(RunAnyMenuXButton1Run ? "Icon1" : "Icon2", RunAnyMenuXButton1Run,"", "[按XButton1键] 运行菜单项（只能复制上面除回车外已有的选项）","RunAny_Menu.ahk","RunAnyMenuXButton1Run")
+	}
+	if(RunAnyMenuXButton2Flag){
+		LV_Add(RunAnyMenuXButton2Run ? "Icon1" : "Icon2", RunAnyMenuXButton2Run,"", "[按XButton2键] 运行菜单项（只能复制上面除回车外已有的选项）","RunAny_Menu.ahk","RunAnyMenuXButton2Run")
+	}
+	if(RunAnyMenuTransparentFlag){
+		LV_Add(RunAnyMenuTransparent ? "Icon1" : "Icon2", RunAnyMenuTransparent,"", "RunAny菜单和右键菜单透明度数值（0全透明-255不透明）","RunAny_Menu.ahk","RunAnyMenuTransparent")
+	}
+	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugMode,, "[调试模式] 实时显示菜单运行的信息","","DebugMode")
+	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugModeShowTime,"毫秒", "[调试模式] 实时显示菜单运行信息的自动隐藏时间","","DebugModeShowTime")
+	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugModeShowTrans,"%", "[调试模式] 实时显示菜单运行信息的透明度","","DebugModeShowTrans")
+	LV_Add(DisableExeIcon ? "Icon1" : "Icon2", DisableExeIcon,, "菜单中exe程序不加载本身图标","","DisableExeIcon")
+	LV_Add(RunAEncoding ? "Icon1" : "Icon2", RunAEncoding,, "使用指定编码读取RunAny.ini（默认ANSI）","","RunAEncoding")
+	LV_Add(AutoGetZz ? "Icon1" : "Icon2", AutoGetZz,, "【慎改】菜单程序运行自动带上当前选中文件，关闭后需要手动加%getZz%才可以获取到","","AutoGetZz")
+	LV_Add(EvNo ? "Icon1" : "Icon2", EvNo,, "【慎改】不使用Everything模式，所有无路径配置都会失效！","","EvNo")
 	LV_ModifyCol(2,"Auto Center")
 	LV_ModifyCol(3,"Auto")
 	LV_ModifyCol(4,"Auto")
+	LV_ModifyCol(5,"Auto")
 	GuiControl, 66:+Redraw, AdvancedConfigLV
 
 	Gui,66:Tab
@@ -4757,7 +4850,7 @@ SetOK:
 		Loop % LV_GetCount()
 		{
 			LV_GetText(AdvancedConfigVal, A_Index, 1)
-			LV_GetText(AdvancedConfigName, A_Index, 4)
+			LV_GetText(AdvancedConfigName, A_Index, 5)
 			Reg_Set(AdvancedConfigVal,%AdvancedConfigName%,AdvancedConfigName)
 		}
 	}
@@ -5249,9 +5342,34 @@ Var_Set:
 	global RunAEncoding:=Var_Read("RunAEncoding")
 	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)
 	global ClipWaitApp:=Var_Read("ClipWaitApp","")
+	global RunAnyMenuTransparent:=Var_Read("RunAnyMenuTransparent",225)
+	global RunAnyMenuSpaceRun:=Var_Read("RunAnyMenuSpaceRun",2)
+	global RunAnyMenuRButtonRun:=Var_Read("RunAnyMenuRButtonRun",3)
+	global RunAnyMenuMButtonRun:=Var_Read("RunAnyMenuMButtonRun",0)
+	global RunAnyMenuXButton1Run:=Var_Read("RunAnyMenuXButton1Run",0)
+	global RunAnyMenuXButton2Run:=Var_Read("RunAnyMenuXButton2Run",0)
 	Loop,parse,ClipWaitApp,`,
 	{
 		GroupAdd,ClipWaitGUI,ahk_exe %A_LoopField%
+	}
+	global HoldKeyList:={"HoldEnterRun":1,"HoldCtrlRun":2,"HoldShiftRun":3,"HoldCtrlShiftRun":4,"HoldCtrlWinRun":5,"HoldShiftWinRun":6,"HoldCtrlShiftWinRun":7}
+	for k, v in HoldKeyList
+	{
+		if(v<=3){
+			%k%:=Var_Read(k,v)
+		}else if (k="HoldCtrlShiftRun"){
+			%k%:=Var_Read(k,11)
+		}else if (k="HoldCtrlWinRun"){
+			%k%:=Var_Read(k,12)
+		}else if (k="HoldShiftWinRun"){
+			%k%:=Var_Read(k,31)
+		}else if (k="HoldCtrlShiftWinRun"){
+			%k%:=Var_Read(k,4)
+		}
+		j:=%k%
+		if(j){
+			HoldKeyRun%j%:=v
+		}
 	}
 	;[高级配置]结束
 	DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe,SunloginClient.exe,War3.exe,dota2.exe,League of Legends.exe")
@@ -5633,12 +5751,33 @@ Plugins_Object_Register:
 	if(PluginsObjRegGUID["huiZz_Text"] && PluginsObjList["huiZz_Text.ahk"]){
 		;#判断huiZz_Text插件是否可以文字翻译
 		if(InStr(PluginsContentList["huiZz_Text.ahk"],"runany_google_translate(getZz,from,to){")){
-			global translateFalg:=true
+			global translateFlag:=true
 		}
 		;#判断huiZz_Text插件是否可以文字加解密
 		if(InStr(PluginsContentList["huiZz_Text.ahk"],"runany_encrypt(text,key){")
 				&& InStr(PluginsContentList["huiZz_Text.ahk"],"runany_decrypt(text,key){")){
-			global encryptFalg:=true
+			global encryptFlag:=true
+		}
+	}
+	;#判断RunAny_Menu插件是否启用
+	if(PluginsObjList["RunAny_Menu.ahk"]){
+		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"SetTimer,Transparent_Show")){
+			global RunAnyMenuTransparentFlag:=true
+		}
+		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~Space Up::")){
+			global RunAnyMenuSpaceFlag:=true
+		}
+		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~RButton Up::")){
+			global RunAnyMenuRButtonFlag:=true
+		}
+		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~MButton Up::")){
+			global RunAnyMenuMButtonFlag:=true
+		}
+		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~XButton1 Up::")){
+			global RunAnyMenuXButton1Flag:=true
+		}
+		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~XButton2 Up::")){
+			global RunAnyMenuXButton2Flag:=true
 		}
 	}
 return
