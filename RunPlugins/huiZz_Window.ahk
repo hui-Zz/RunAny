@@ -2,7 +2,7 @@
 ;* 【ObjReg窗口操作脚本[窗口函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.7"
+global RunAny_Plugins_Version:="1.0.8"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
@@ -143,6 +143,12 @@ class RunAnyObj {
 			WinSet,Style,-0xC00000,ahk_id %wh%
 		}
 		return
+	}
+	;[多屏窗口最大化]
+	win_max_max(){
+		SysGet, VirtualWidth, 78
+		SysGet, VirtualHeight, 79
+		WinMove,A,,0,0,%VirtualWidth%,%VirtualHeight%
 	}
 	;[当前窗口关闭] v1.0.4
 	win_close_zz(){
