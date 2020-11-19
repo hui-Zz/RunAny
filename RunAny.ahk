@@ -29,15 +29,15 @@ Gosub,Run_Exist        ;~调用判断依赖
 Gosub,Plugins_Read     ;~插件脚本读取
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化菜单显示热键]
-HotKeyList:=["MenuHotKey","MenuHotKey2","EvHotKey","OneHotKey"]
+HotKeyList:=["MenuHotKey","MenuHotKey2","MenuNoGetHotKey","EvHotKey","OneHotKey"]
 RunHotKeyList:=HotKeyList.Clone()
 HotKeyList.Push("TreeHotKey1","TreeHotKey2","TreeIniHotKey1","TreeIniHotKey2")
 HotKeyList.Push("RunATrayHotKey","RunASetHotKey","RunAReloadHotKey","RunASuspendHotKey","RunAExitHotKey")
 HotKeyList.Push("PluginsManageHotKey","PluginsAlonePauseHotKey","PluginsAloneSuspendHotKey","PluginsAloneCloseHotKey")
-HotKeyTextList:=["RunAny菜单显示热键","RunAny菜单2热键","一键Everything热键","一键搜索热键"]
+HotKeyTextList:=["RunAny菜单显示热键","RunAny菜单2热键","RunAny菜单热键(不获取选中内容)","一键Everything热键","一键搜索热键"]
 HotKeyTextList.Push("修改菜单管理(1)","修改菜单管理(2)","修改菜单文件(1)","修改菜单文件(2)")
 HotKeyTextList.Push("RunAny托盘菜单","设置RunAny","重启RunAny","停用RunAny","退出RunAny","插件管理","独立插件脚本一键暂停","独立插件脚本挂起热键","独立插件脚本一键关闭")
-RunList:=["Menu_Show1","Menu_Show2","Ev_Show","One_Show","Menu_Edit1","Menu_Edit2","Menu_Ini","Menu_Ini2"]
+RunList:=["Menu_Show1","Menu_Show2","Menu_NoGet_Show","Ev_Show","One_Show","Menu_Edit1","Menu_Edit2","Menu_Ini","Menu_Ini2"]
 RunList.Push("Menu_Tray","Menu_Set","Menu_Reload","Menu_Suspend","Menu_Exit","Plugins_Manage","Plugins_Alone_Pause","Plugins_Alone_Suspend","Plugins_Alone_Close")
 Hotkey, IfWinNotActive, ahk_group DisableGUI
 For ki, kv in HotKeyList
@@ -70,7 +70,6 @@ For ki, kv in HotKeyList
 		}
 	}
 }
-global MenuShowNum:=0
 Gosub,MenuTray	;~托盘菜单
 if(errorKeyStr){
 	gosub,Menu_Set
@@ -1037,36 +1036,21 @@ Menu_Item_Icon(menuName,menuItem,iconPath,iconNo=0,treeLevel=""){
 Menu_Show1:
 	MENU_NO:=1
 	iniFileShow:=iniPath
-	MenuShowNum++
-	if(MenuKeyTime<=0){
-		gosub,Menu_Show
-	}else{
-		;按两次菜单热键之间不超过这个时间
-		SetTimer,Menu_Show_Extend,%MenuKeyTime%
-	}
+	gosub,Menu_Show
 return
 Menu_Show2:
 	MENU_NO:=2
 	iniFileShow:=iniPath2
 	gosub,Menu_Show
 return
-Menu_Show_Extend:
-	if MenuShowNum>=1 ;大于或等于1时关闭计时器
-		SetTimer,Menu_Show_Extend,Off
-	if MenuShowNum=1 ;只按一次时执行
-		gosub,Menu_Show
-	if MenuShowNum=2 ;按两次
-		;~ A_ThisMenu:="画图(&T)"
-		gosub,Menu_Show2
-	if MenuShowNum=3 ;按3次
-		Edit
-	if MenuShowNum>3 ;长按住不放
-	{
-		Menu, Tray, Show,
-		sleep 4000  ;需要延时4秒防止长按键被多次触发
-	}
-	MenuShowNum:= 0 ;最后把记录的变量设置为0,于下次记录.
-Return
+Menu_NoGet_Show:
+	MENU_NO:=1
+	iniFileShow:=iniPath
+	noGetZz:=true
+	getZz:=""
+	gosub,Menu_Show
+	noGetZz:=false
+return
 MenuShowTime:
 	MenuShowTimeFlag:=true
 	if(MenuShowFlag){
@@ -1083,7 +1067,7 @@ Menu_Show:
 			SetTimer,MenuShowTime,20
 			return
 		}
-		if(!extMenuHideFlag)
+		if(!extMenuHideFlag && !noGetZz)
 			getZz:=Get_Zz()
 		selectCheck:=Trim(getZz," `t`n`r")
 		if(selectCheck=""){
@@ -1366,22 +1350,22 @@ Menu_Run:
 		}
 		;[复制或输出菜单项内容]
 		if(menuholdkey=HoldKeyRun31){
-			Send_Or_Show(fullPath)
+			Send_Or_Show(fullPath,false,1000,3000)
 			return
 		}else if(menuholdkey=HoldKeyRun32){
-			Send_Or_Show(fullPath,true)
+			Send_Or_Show(fullPath,true,1000,3000)
 			return
 		}else if(menuholdkey=HoldKeyRun33){
-			Send_Or_Show(name_no_ext)
+			Send_Or_Show(name_no_ext,false,1000,3000)
 			return
 		}else if(menuholdkey=HoldKeyRun34){
-			Send_Or_Show(name_no_ext,true)
+			Send_Or_Show(name_no_ext,true,1000,3000)
 			return
 		}else if(menuholdkey=HoldKeyRun35){
-			Send_Or_Show(name)
+			Send_Or_Show(name,false,1000,3000)
 			return
 		}else if(menuholdkey=HoldKeyRun36){
-			Send_Or_Show(name,true)
+			Send_Or_Show(name,true,1000,3000)
 			return
 		}
 		;[获取菜单项启动模式]
@@ -1954,7 +1938,7 @@ Ext_Check(name,len,ext){
 	return site!=0 && site=len-len_ext+1
 }
 ;~;[输出结果还是仅显示保存到剪贴板]
-Send_Or_Show(textResult,isSend:=false,sTime:=3000){
+Send_Or_Show(textResult,isSend:=false,sTime:=1000,wTime:=0){
 	textResult:=RegExReplace(textResult,"`r`n$")
 	if(isSend){
 		Send_Str_Zz(textResult)
@@ -1963,8 +1947,9 @@ Send_Or_Show(textResult,isSend:=false,sTime:=3000){
 	Clipboard:=textResult
 	ToolTip,%textResult%
 	Sleep,%sTime%
-	if(A_TimeIdle>1000)
-		Sleep,%sTime%
+	if(A_TimeIdle>500){
+		Sleep,% wTime ? wTime : sTime
+	}
 	ToolTip
 }
 ;~;[粘贴输出短语]
@@ -5282,7 +5267,6 @@ Var_Set:
 	global HideSelectZz:=Var_Read("HideSelectZz",0)
 	global RecentMax:=Var_Read("RecentMax",3)
 	;[热键配置]
-	global MenuKeyTime:=Var_Read("MenuKeyTime",0)
 	global MenuDoubleCtrlKey:=Var_Read("MenuDoubleCtrlKey",0)
 	global MenuDoubleAltKey:=Var_Read("MenuDoubleAltKey",0)
 	global MenuDoubleLWinKey:=Var_Read("MenuDoubleLWinKey",0)
