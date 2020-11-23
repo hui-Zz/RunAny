@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.3 @2020.11.17
+║【RunAny】一劳永逸的快速启动工具 v5.7.3 @2020.11.19
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.7.3"
-global RunAny_update_time:="2020.11.17"
+global RunAny_update_time:="2020.11.19"
 Gosub,Var_Set          ;~参数初始化
 Gosub,Run_Exist        ;~调用判断依赖
 Gosub,Plugins_Read     ;~插件脚本读取
@@ -1350,22 +1350,22 @@ Menu_Run:
 		}
 		;[复制或输出菜单项内容]
 		if(menuholdkey=HoldKeyRun31){
-			Send_Or_Show(fullPath,false,1000,3000)
+			Send_Or_Show(fullPath,false,HoldKeyShowTime,3000)
 			return
 		}else if(menuholdkey=HoldKeyRun32){
-			Send_Or_Show(fullPath,true,1000,3000)
+			Send_Or_Show(fullPath,true,HoldKeyShowTime,3000)
 			return
 		}else if(menuholdkey=HoldKeyRun33){
-			Send_Or_Show(name_no_ext,false,1000,3000)
+			Send_Or_Show(name_no_ext,false,HoldKeyShowTime,3000)
 			return
 		}else if(menuholdkey=HoldKeyRun34){
-			Send_Or_Show(name_no_ext,true,1000,3000)
+			Send_Or_Show(name_no_ext,true,HoldKeyShowTime,3000)
 			return
 		}else if(menuholdkey=HoldKeyRun35){
-			Send_Or_Show(name,false,1000,3000)
+			Send_Or_Show(name,false,HoldKeyShowTime,3000)
 			return
 		}else if(menuholdkey=HoldKeyRun36){
-			Send_Or_Show(name,true,1000,3000)
+			Send_Or_Show(name,true,HoldKeyShowTime,3000)
 			return
 		}
 		;[获取菜单项启动模式]
@@ -2304,7 +2304,7 @@ Menu_Add_File_Item:
 	}
 	;初始化要添加的内容
 	itemGlobalWinKey:=0
-	hotStrOption:=hotStrShow:=itemGlobalHotKey:=itemGlobalKey:=X_ThisMenuItem:=""
+	hotStrOption:=hotStrShow:=itemGlobalHotKey:=itemGlobalKey:=X_ThisMenuItem:=ItemText:=""
 	itemPath:=Get_Item_Run_Path(getZz)
 	SplitPath, itemPath, fName,, fExt, itemName
 	Z_ThisMenu:=RTrim(A_ThisMenu)
@@ -2713,7 +2713,8 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add, Text, xm+10 y+20 y20 w60, %itemNameText%：
 	Gui,SaveItem:Add, Edit, x+5 yp-3 w350 vvitemName GEditItemPathChange, %itemName%
 	Gui,SaveItem:Add, Picture, x+50 yp+3 w64 h-1 vvPictureIconAdd gSetItemIconPath, %itemIconFile%
-	Gui,SaveItem:Add, Text, xp yp+8 w72 cGreen vvTextIconAdd gSetItemIconPath BackgroundTrans, 点击添加图标
+	Gui,SaveItem:Add, Text,yp+8 w72 cGreen vvTextIconAdd gSetItemIconPath BackgroundTrans, 点击添加图标
+	Gui,SaveItem:Add, Text,yp w72 cGreen vvTextIconDown gSetItemIconDown BackgroundTrans, 下载网站图标
 	if(!InStr(itemName,"-")){
 		Gui,SaveItem:Add, Text, xm+10 y+4 w60 vvTextHotStr, 热字符串：
 		Gui,SaveItem:Font,,Consolas
@@ -2730,7 +2731,7 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add,Text, x+5 yp cBlue w200 BackgroundTrans, %itemGlobalHotKey%
 	Gui,SaveItem:Add,Text, xm+10 y+15 w100, 分 隔 符 ：  |
 	Gui,SaveItem:Add,Text, xm+90 yp w355 cRed vvExtPrompt GSetSaveItemFullPath, 注意：RunAny不支持当前后缀无路径运行，%PromptStr%使用全路径
-	Gui,SaveItem:Add, DropDownList,x+30 yp-5 w110 AltSubmit vvItemMode GChooseItemMode Choose%setItemMode%,启动路径|短语模式|模拟打字短语|热键映射|AHK热键映射|网址|文件夹|插件脚本函数
+	Gui,SaveItem:Add, DropDownList,x+30 yp-5 w120 AltSubmit vvItemMode GChooseItemMode Choose%setItemMode%,启动路径|短语模式|模拟打字短语|热键映射|AHK热键映射|网址|文件夹|插件脚本函数
 	
 	Gui,SaveItem:Add,Text, xm+10 yp w60 vvSetFileSuffix,文件后缀：
 	Gui,SaveItem:Add,Button, xm+6 y+%treeYNum% w60 vvSetItemPath GSetItemPath,启动路径
@@ -2753,8 +2754,12 @@ Menu_Item_Edit:
 	GuiControl,SaveItem:Hide, vExtPrompt
 	if(fExt!="lnk")
 		GuiControl,SaveItem:Hide, vSetShortcut
-	if(itemIconFile)
-		GuiControl,SaveItem:Hide, vTextIconAdd
+	if(itemIconFile || setItemMode!=6){
+		GuiControl,SaveItem:Hide, vTextIconDown
+		if(itemIconFile){
+			GuiControl,SaveItem:Hide, vTextIconAdd
+		}
+	}
 	if(hotStrShow=""){
 		GuiControl,SaveItem:Hide, vhotStrOption
 		GuiControl,SaveItem:Move, vhotStrShow, x95 y47
@@ -3049,6 +3054,29 @@ SetItemIconPath:
 		gosub,SetSaveItemGui
 	}
 return
+SetItemIconDown:
+	try {
+		Gui,SaveItem:Submit, NoHide
+		if(!vitemName && !vitemPath){
+			MsgBox, 48, ,菜单项名和启动路径不能同时为空时设置图标
+			return
+		}
+		if(RegExMatch(vitemPath,"iS)^([\w-]+://?|www[.]).*")){
+			website:=RegExReplace(vitemPath,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
+			webIcon:=WebIconDir "\" menuItemIconFileName(vitemName) ".ico"
+			InputBox, webSiteInput, 下载网站图标,确认或修改下面的默认地址并下载图标ico文件`n`n如果下载错误或界面变空要重新下载图标`n`n请打开【修改菜单】界面选中后点“网站图标”按钮,,,,,,,,http://%website%/favicon.ico
+			if !ErrorLevel
+			{
+				URLDownloadToFile(webSiteInput,webIcon)
+				MsgBox,65,,图标下载成功，是否要重新打开RunAny生效？
+				IfMsgBox Ok
+					gosub,Menu_Reload
+			}
+		}
+	} catch e {
+		WebsiteIconError(webSiteInput)
+	}
+return
 SetSaveItemFullPath:
 	if(getZz && !menuGuiFlag){
 		GuiControl, SaveItem:, vitemPath, %getZz%
@@ -3076,13 +3104,14 @@ return
 SaveItemGuiSize:
 	if A_EventInfo = 1
 		return
-	GuiControl,SaveItem:Move, vitemName, % "W" . (A_GuiWidth-360)
-	GuiControl,SaveItem:Move, vitemPath, % "H" . (A_GuiHeight-230) . " W" . (A_GuiWidth - 120)
-	GuiControl,SaveItem:Move, vPictureIconAdd,% "x" . (A_GuiWidth-130)
-	GuiControl,SaveItem:Move, vTextIconAdd,% "x" . (A_GuiWidth-130)
-	GuiControl,SaveItem:Move, vSaveItemSaveBtn,% "x" . (A_GuiWidth / 2 - 100) . " y" . (A_GuiHeight-60)
-	GuiControl,SaveItem:Move, vSaveItemCancelBtn,% "x" . (A_GuiWidth / 2 + 10) . " y" . (A_GuiHeight-60)
-	GuiControl,SaveItem:Move, vStatusBar,% "x30" . " y" . (A_GuiHeight-30)
+	GuiControl,SaveItem:MoveDraw, vitemName, % "W" . (A_GuiWidth-360)
+	GuiControl,SaveItem:MoveDraw, vitemPath, % "H" . (A_GuiHeight-230) . " W" . (A_GuiWidth - 120)
+	GuiControl,SaveItem:MoveDraw, vPictureIconAdd,% "x" . (A_GuiWidth-130)
+	GuiControl,SaveItem:MoveDraw, vTextIconAdd,% "x" . (A_GuiWidth-200)
+	GuiControl,SaveItem:MoveDraw, vTextIconDown,% "x" . (A_GuiWidth-100)
+	GuiControl,SaveItem:MoveDraw, vSaveItemSaveBtn,% "x" . (A_GuiWidth / 2 - 100) . " y" . (A_GuiHeight-60)
+	GuiControl,SaveItem:MoveDraw, vSaveItemCancelBtn,% "x" . (A_GuiWidth / 2 + 10) . " y" . (A_GuiHeight-60)
+	GuiControl,SaveItem:MoveDraw, vStatusBar,% "x30" . " y" . (A_GuiHeight-30)
 return
 GuiDropFiles:  ; 对拖放提供支持.
 SaveItemGuiDropFiles:
@@ -4513,7 +4542,7 @@ Menu_Set:
 	Gui,66:Add,Button, xm yp+30 w50 GLVOpenExtAdd, + 增加
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtEdit, * 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtRemove, - 减少
-	Gui,66:Add,Text, x+10 yp-5 w320,特殊类型：网址http https www ftp等`n文件夹folder（原来使用TC第三方软件打开文件夹的功能）
+	Gui,66:Add,Text, x+10 yp-5 w320,特殊类型：网址http https www ftp等`n文件夹folder（原来使用TC、DO第三方软件打开文件夹的功能）
 	Gui,66:Add,Listview,xm yp+40 r16 grid AltSubmit -Multi vRunAnyOpenExtLV glistviewOpenExt, RunAny菜单内文件后缀(用空格分隔)|打开方式(支持无路径)
 	kvLenMax:=0
 	GuiControl, 66:-Redraw, RunAnyOpenExtLV
@@ -4618,6 +4647,7 @@ Menu_Set:
 	if(RunAnyMenuXButton2Flag){
 		LV_Add(RunAnyMenuXButton2Run ? "Icon1" : "Icon2", RunAnyMenuXButton2Run,"", "[按XButton2键] 运行菜单项（只能复制上面除回车外已有的选项）","RunAny_Menu.ahk","RunAnyMenuXButton2Run")
 	}
+	LV_Add(HoldKeyShowTime ? "Icon1" : "Icon2", HoldKeyShowTime,"毫秒", "按键运行菜单项复制运行路径、软件名等提示信息的显示时间","","HoldKeyShowTime")
 	if(RunAnyMenuTransparentFlag){
 		LV_Add(RunAnyMenuTransparent ? "Icon1" : "Icon2", RunAnyMenuTransparent,"", "RunAny菜单和右键菜单透明度数值（0全透明-255不透明）","RunAny_Menu.ahk","RunAnyMenuTransparent")
 	}
@@ -5326,6 +5356,7 @@ Var_Set:
 	global RunAEncoding:=Var_Read("RunAEncoding")
 	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)
 	global ClipWaitApp:=Var_Read("ClipWaitApp","")
+	global HoldKeyShowTime:=Var_Read("HoldKeyShowTime",1000)
 	global RunAnyMenuTransparent:=Var_Read("RunAnyMenuTransparent",225)
 	global RunAnyMenuSpaceRun:=Var_Read("RunAnyMenuSpaceRun",2)
 	global RunAnyMenuRButtonRun:=Var_Read("RunAnyMenuRButtonRun",3)
