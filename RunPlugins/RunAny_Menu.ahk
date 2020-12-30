@@ -2,6 +2,7 @@
 【RunAny菜单辅助插件】
 */
 global RunAny_Plugins_Version:="2.0.3"
+global RunAny_Plugins_Version:="2.0.4"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
@@ -33,6 +34,7 @@ Transparent_Show:
 return
 
 #If WinActive("ahk_exe RunAny.exe")
+#If WinActive("ahk_exe RunAny.exe") || WinActive("ahk_exe AutoHotkey.exe")  ;如果使用AHK运行RunAny 打开此注释
 
 ~RButton Up::
 	WinWait,ahk_class #32768,, 1

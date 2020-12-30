@@ -1327,7 +1327,8 @@ Menu_Add_Del_Temp(addDel=1,TREE_NO=1,mName="",LabelName="",mIcon="",mIconNum="")
 ;~;[菜单运行]
 ;══════════════════════════════════════════════════════════════════
 Menu_Run:
-	any:=MenuObj[(A_ThisMenuItem)]
+	Z_ThisMenuItem:=A_ThisMenuItem
+	any:=MenuObj[(Z_ThisMenuItem)]
 	if(MenuShowMenuRun){
 		any:=MenuObj[(MenuShowMenuRun)]
 		MenuShowMenuRun:=""
@@ -1340,42 +1341,55 @@ Menu_Run:
 	try {
 		global TVEditItem
 		menuholdkey:=MenuRunHoldKey()
+		M_ThisMenuItem:=""
+		R_ThisMenuItem:=RegExReplace(Z_ThisMenuItem,"&\d+ ","")
+		menuRunNameStr.=",运行(&R) " name_no_ext
+		if R_ThisMenuItem in %menuRunNameStr%
+		{
+			M_ThisMenuItem:=R_ThisMenuItem
+		}
+		;[显示功能菜单]
+		if(menuholdkey=HoldKeyRun5){
+			gosub,MenuRunMultifunctionMenu
+			if(M_ThisMenuItem="")
+				return
+		}
 		;[编辑菜单项]
-		if(menuholdkey=HoldKeyRun3){
-			TVEditItem:=A_ThisMenuItem
+		if(menuholdkey=HoldKeyRun3 || M_ThisMenuItem="编辑(&E)"){
+			TVEditItem:=Z_ThisMenuItem
 			TVEditItem:=RegExReplace(TVEditItem,"重名$")
 			gosub,Menu_Edit%MENU_NO%
 			TVEditItem:=""
 			return
 		}
 		;[复制或输出菜单项内容]
-		if(menuholdkey=HoldKeyRun31){
+		if(menuholdkey=HoldKeyRun31 || M_ThisMenuItem="复制运行路径(&C)"){
 			Send_Or_Show(fullPath,false,HoldKeyShowTime,3000)
 			return
-		}else if(menuholdkey=HoldKeyRun32){
+		}else if(menuholdkey=HoldKeyRun32 || M_ThisMenuItem="输出运行路径(&V)"){
 			Send_Or_Show(fullPath,true,HoldKeyShowTime,3000)
 			return
-		}else if(menuholdkey=HoldKeyRun33){
+		}else if(menuholdkey=HoldKeyRun33 || M_ThisMenuItem="复制软件名"){
 			Send_Or_Show(name_no_ext,false,HoldKeyShowTime,3000)
 			return
-		}else if(menuholdkey=HoldKeyRun34){
+		}else if(menuholdkey=HoldKeyRun34 || M_ThisMenuItem="输出软件名"){
 			Send_Or_Show(name_no_ext,true,HoldKeyShowTime,3000)
 			return
-		}else if(menuholdkey=HoldKeyRun35){
+		}else if(menuholdkey=HoldKeyRun35 || M_ThisMenuItem="复制软件名+后缀"){
 			Send_Or_Show(name,false,HoldKeyShowTime,3000)
 			return
-		}else if(menuholdkey=HoldKeyRun36){
+		}else if(menuholdkey=HoldKeyRun36 || M_ThisMenuItem="输出软件名+后缀"){
 			Send_Or_Show(name,true,HoldKeyShowTime,3000)
 			return
 		}
 		;[获取菜单项启动模式]
 		itemMode:=GetMenuItemMode(any)
 		;[结束软件进程]
-		if(menuholdkey=HoldKeyRun4 && (itemMode=1 || itemMode=60)){
+		if((menuholdkey=HoldKeyRun4 || M_ThisMenuItem="结束软件进程(&X)") && (itemMode=1 || itemMode=60)){
 			Process,Close,%name%
 			return
 		}
-		if(RecentMax>0 && !RegExMatch(A_ThisMenuItem,"S)^&\d+"))
+		if(RecentMax>0 && !RegExMatch(Z_ThisMenuItem,"S)^&\d+"))
 			gosub,Menu_Recent
 		;[根据菜单项模式运行]
 		returnFlag:=false
@@ -1389,7 +1403,7 @@ Menu_Run:
 		anyRun:=""
 		if(getZz="" && !Candy_isFile){
 			;[打开应用所在目录，只有目录则直接打开]
-			if(menuholdkey=HoldKeyRun2 || InStr(FileExist(any), "D")){
+			if(menuholdkey=HoldKeyRun2 || M_ThisMenuItem="软件目录(&D)" || InStr(FileExist(any), "D")){
 				if(OpenFolderPathRun){
 					anyRun=%anyRun%%OpenFolderPathRun%%A_Space%"%any%"
 				}else if(InStr(FileExist(any), "D")){
@@ -1402,15 +1416,15 @@ Menu_Run:
 			}
 		}
 		;[管理员身份运行]
-		if(menuholdkey=HoldKeyRun11){
+		if(menuholdkey=HoldKeyRun11 || M_ThisMenuItem="管理员权限运行(&A)"){
 			anyRun.="*RunAs "
 		}
 		;[最小化、最大化、隐藏运行模式]
-		if(menuholdkey=HoldKeyRun12){
+		if(menuholdkey=HoldKeyRun12 || M_ThisMenuItem="最小化运行(&I)"){
 			mode:="Min"
-		}else if(menuholdkey=HoldKeyRun12){
+		}else if(menuholdkey=HoldKeyRun13 || M_ThisMenuItem="最大化运行(&P)"){
 			mode:="Max"
-		}else if(menuholdkey=HoldKeyRun13){
+		}else if(menuholdkey=HoldKeyRun14 || M_ThisMenuItem="隐藏运行(&H)"){
 			mode:="Hide"
 		}else{
 			mode:=""
@@ -1445,7 +1459,7 @@ Menu_Run:
 			Run_Any(anyRun,mode)
 			return
 		}
-		menuKeys:=StrSplit(A_ThisMenuItem,"`t")
+		menuKeys:=StrSplit(Z_ThisMenuItem,"`t")
 		thisMenuName:=menuKeys[1]
 		if(ext && openExtRunList[ext]){
 			Run_Any(openExtRunList[ext] . A_Space . """" any """",mode)
@@ -1456,7 +1470,7 @@ Menu_Run:
 			Run_Any(anyRun . any,mode)
 		}
 	} catch e {
-		MsgBox,16,%A_ThisMenuItem%运行出错,% "运行路径：" any "`n出错命令：" e.What 
+		MsgBox,16,%Z_ThisMenuItem%运行出错,% "运行路径：" any "`n出错命令：" e.What 
 			. "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 	}finally{
 		SetWorkingDir,%A_ScriptDir%
@@ -1483,6 +1497,36 @@ MenuRunHoldKey(){
 	}
 	return holdKey
 }
+;右键菜单项显示多功能菜单
+MenuRunMultifunctionMenu:
+	Menu,menuRun,Add,运行(&R) %name_no_ext%,MultifunctionMenu
+	Menu,menuRun,Add,编辑(&E),MultifunctionMenu
+	
+	Menu,menuRun,Add,同名软件(&S),MultifunctionMenu
+	Menu,menuRun,Add,软件目录(&D),MultifunctionMenu
+	Menu,menuRun,Add
+	Menu,menuRun,Add,管理员权限运行(&A),MultifunctionMenu
+	Menu,menuRun,Add,最小化运行(&I),MultifunctionMenu
+	Menu,menuRun,Add,最大化运行(&P),MultifunctionMenu
+	Menu,menuRun,Add,隐藏运行(&H),MultifunctionMenu
+	Menu,menuRun,Add,结束软件进程(&X),MultifunctionMenu
+	Menu,menuRun,Add
+	Menu,menuRun,Add,复制运行路径(&C),MultifunctionMenu
+	Menu,menuRun,Add,输出运行路径(&V),MultifunctionMenu
+	Menu,menuRun,Add,复制软件名,MultifunctionMenu
+	Menu,menuRun,Add,输出软件名,MultifunctionMenu
+	Menu,menuRun,Add,复制软件名+后缀,MultifunctionMenu
+	Menu,menuRun,Add,输出软件名+后缀,MultifunctionMenu
+	Loop, Parse, menuRunNameStr, `,
+	{
+		Menu_Item_Icon("menuRun",A_LoopField,fullPath)
+	}
+	Menu,menuRun,Show
+	Menu,menuRun,DeleteAll
+return
+MultifunctionMenu:
+	M_ThisMenuItem:=A_ThisMenuItem
+return
 ;══════════════════════════════════════════════════════════════════
 ;~;[菜单热键运行]
 ;══════════════════════════════════════════════════════════════════
@@ -4542,7 +4586,7 @@ Menu_Set:
 	Gui,66:Add,Button, xm yp+30 w50 GLVOpenExtAdd, + 增加
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtEdit, * 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtRemove, - 减少
-	Gui,66:Add,Text, x+10 yp-5 w320,特殊类型：网址http https www ftp等`n文件夹folder（原来使用TC、DO第三方软件打开文件夹的功能）
+	Gui,66:Add,Text, x+10 yp-5 w360,特殊类型：网址http https www ftp等`n文件夹folder（原来使用TC、DO第三方软件打开文件夹的功能）
 	Gui,66:Add,Listview,xm yp+40 r16 grid AltSubmit -Multi vRunAnyOpenExtLV glistviewOpenExt, RunAny菜单内文件后缀(用空格分隔)|打开方式(支持无路径)
 	kvLenMax:=0
 	GuiControl, 66:-Redraw, RunAnyOpenExtLV
@@ -4629,7 +4673,7 @@ Menu_Set:
 	LV_Add(HoldCtrlRun ? "Icon1" : "Icon2", HoldCtrlRun,"", "[按住Ctrl键] 运行菜单项（选项通用）2:打开该软件所在目录","","HoldCtrlRun")
 	LV_Add(HoldShiftRun ? "Icon1" : "Icon2", HoldShiftRun,"", "[按住Shift键] 运行菜单项（选项通用） 3:编辑该菜单项 31:复制运行路径 32:输出运行路径 33:复制软件名 34:输出软件名 35:复制软件名+后缀 36:输出软件名+后缀","","HoldShiftRun")
 	LV_Add(HoldCtrlShiftRun ? "Icon1" : "Icon2", HoldCtrlShiftRun,"", "[按住Ctrl+Shift键] 运行菜单项（选项通用）","","HoldCtrlShiftRun")
-	LV_Add(HoldCtrlWinRun ? "Icon1" : "Icon2", HoldCtrlWinRun,"", "[按住Ctrl+Win键] 运行菜单项（选项通用）","","HoldCtrlWinRun")
+	LV_Add(HoldCtrlWinRun ? "Icon1" : "Icon2", HoldCtrlWinRun,"", "[按住Ctrl+Win键] 运行菜单项（选项通用） 5:打开功能菜单","","HoldCtrlWinRun")
 	LV_Add(HoldShiftWinRun ? "Icon1" : "Icon2", HoldShiftWinRun,"", "[按住Shift+Win键] 运行菜单项（选项通用）","","HoldShiftWinRun")
 	LV_Add(HoldCtrlShiftWinRun ? "Icon1" : "Icon2", HoldCtrlShiftWinRun,"", "[按住Ctrl+Shift+Win键] 运行菜单项（选项通用） 4:强制结束该软件单个进程","","HoldCtrlShiftWinRun")
 	if(RunAnyMenuSpaceFlag){
@@ -4647,7 +4691,7 @@ Menu_Set:
 	if(RunAnyMenuXButton2Flag){
 		LV_Add(RunAnyMenuXButton2Run ? "Icon1" : "Icon2", RunAnyMenuXButton2Run,"", "[按XButton2键] 运行菜单项（只能复制上面除回车外已有的选项）","RunAny_Menu.ahk","RunAnyMenuXButton2Run")
 	}
-	LV_Add(HoldKeyShowTime ? "Icon1" : "Icon2", HoldKeyShowTime,"毫秒", "按键运行菜单项复制运行路径、软件名等提示信息的显示时间","","HoldKeyShowTime")
+	LV_Add(HoldKeyShowTime ? "Icon1" : "Icon2", HoldKeyShowTime,"毫秒", "按键运行菜单项复制运行路径、软件名等提示信息的显示时间","RunAny_Menu.ahk","HoldKeyShowTime")
 	if(RunAnyMenuTransparentFlag){
 		LV_Add(RunAnyMenuTransparent ? "Icon1" : "Icon2", RunAnyMenuTransparent,"", "RunAny菜单和右键菜单透明度数值（0全透明-255不透明）","RunAny_Menu.ahk","RunAnyMenuTransparent")
 	}
@@ -5375,7 +5419,7 @@ Var_Set:
 		}else if (k="HoldCtrlShiftRun"){
 			%k%:=Var_Read(k,11)
 		}else if (k="HoldCtrlWinRun"){
-			%k%:=Var_Read(k,12)
+			%k%:=Var_Read(k,5)
 		}else if (k="HoldShiftWinRun"){
 			%k%:=Var_Read(k,31)
 		}else if (k="HoldCtrlShiftWinRun"){
@@ -5397,6 +5441,8 @@ Var_Set:
 	
 	gosub,Menu_Var_Set
 	gosub,Icon_Set
+	global menuRunNameStr:="编辑(&E),同名软件(&S),软件目录(&D),管理员权限运行(&A),最小化运行(&I),最大化运行(&P),隐藏运行(&H),结束软件进程(&X)"
+	menuRunNameStr.=",复制运行路径(&C),输出运行路径(&V),复制软件名,输出软件名,复制软件名+后缀,输出软件名+后缀"
 	;~[最近运行项]
 	if(RecentMax>0){
 		global MenuCommonList:={}
@@ -5404,7 +5450,11 @@ Var_Set:
 		if(MenuCommonListReg){
 			Loop, parse, MenuCommonListReg, |
 			{
-				MenuCommonList.Push(A_LoopField)
+				R_ThisMenuItem:=RegExReplace(A_LoopField,"&\d+ ","")
+				if R_ThisMenuItem not in %menuRunNameStr%
+				{
+					MenuCommonList.Push(A_LoopField)
+				}
 			}
 		}
 	}
