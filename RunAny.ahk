@@ -1553,7 +1553,7 @@ return
 Menu_Key_Run_Run:
 	any:=menuObjkey[(A_ThisHotkey)]
 	thisMenuName:=MenuObjKeyName[(A_ThisHotkey)]
-	SplitPath, any, , dir
+	SplitPath, any, , dir, ext
 	if(dir && FileExist(dir))
 		SetWorkingDir,%dir%
 	try {
@@ -1588,7 +1588,9 @@ Menu_Key_Run_Run:
 				Run_Zz(any)
 			}
 		}else{
-			if(thisMenuName && RegExMatch(thisMenuName,"S).*?_:(\d{1,2})$")){
+			if(ext && openExtRunList[ext]){
+				Run_Any(openExtRunList[ext] . A_Space . """" any """")
+			}else if(thisMenuName && RegExMatch(thisMenuName,"S).*?_:(\d{1,2})$")){
 				menuTrNum:=RegExReplace(thisMenuName,"S).*?_:(\d{1,2})$","$1")
 				Run_Tr(any,menuTrNum)
 			}else if(RegExMatch(any,"iS).*?\.[a-zA-Z0-9]+$")){
