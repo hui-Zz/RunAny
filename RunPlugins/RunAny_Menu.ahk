@@ -1,7 +1,6 @@
 ﻿/*
 【RunAny菜单辅助插件】
 */
-global RunAny_Plugins_Version:="2.0.3"
 global RunAny_Plugins_Version:="2.0.4"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
@@ -16,7 +15,7 @@ GroupAdd,menuApp,ahk_exe RunAny.exe
 GroupAdd,menuApp,ahk_exe explorer.exe
 GroupAdd,menuApp,ahk_exe DesktopMgr64.exe
 
-;GroupAdd,menuApp,ahk_exe AutoHotkey.exe
+;GroupAdd,menuApp,ahk_exe AutoHotkey.exe  ;如果使用AHK运行RunAny 打开此注释
 
 ;（0-255）[0全透明-255完全不透明程度]
 透明度:=Var_Read("RunAnyMenuTransparent",225)
@@ -33,8 +32,7 @@ Transparent_Show:
 	}
 return
 
-#If WinActive("ahk_exe RunAny.exe")
-#If WinActive("ahk_exe RunAny.exe") || WinActive("ahk_exe AutoHotkey.exe")  ;如果使用AHK运行RunAny 打开此注释
+#If WinActive("ahk_exe RunAny.exe") ;|| WinActive("ahk_exe AutoHotkey.exe")  ;如果使用AHK运行RunAny 打开此注释
 
 ~RButton Up::
 	WinWait,ahk_class #32768,, 1
@@ -82,7 +80,7 @@ MenuClick(buttonRun){
 		}else if (k="HoldCtrlShiftRun"){
 			j:=Var_Read(k,11)
 		}else if (k="HoldCtrlWinRun"){
-			j:=Var_Read(k,12)
+			j:=Var_Read(k,5)
 		}else if (k="HoldShiftWinRun"){
 			j:=Var_Read(k,31)
 		}else if (k="HoldCtrlShiftWinRun"){
