@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.3 @2020.11.19
+║【RunAny】一劳永逸的快速启动工具 v5.7.3 @2020.12.31
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.7.3"
-global RunAny_update_time:="2020.11.19"
+global RunAny_update_time:="2020.12.31"
 Gosub,Var_Set          ;~参数初始化
 Gosub,Run_Exist        ;~调用判断依赖
 Gosub,Plugins_Read     ;~插件脚本读取
@@ -170,7 +170,8 @@ if(!EvNo){
 			}
 		}
 		;~;[使用everything补全无路径exe的全路径]
-		global MenuObjEv:=Object()  ;~Everything搜索结果程序全径
+		global MenuObjEv:=Object()    ;~Everything搜索结果程序全径
+		global MenuObjSame:=Object()  ;~Everything搜索结果重名程序全径
 		If(evExist){
 			if(EvCheckFlag){
 				RegWrite,REG_SZ,HKEY_CURRENT_USER,SOFTWARE\RunAny,EvTotResults,0
@@ -1501,8 +1502,19 @@ MenuRunHoldKey(){
 MenuRunMultifunctionMenu:
 	Menu,menuRun,Add,运行(&R) %name_no_ext%,MultifunctionMenu
 	Menu,menuRun,Add,编辑(&E),MultifunctionMenu
-	
-	Menu,menuRun,Add,同名软件(&S),MultifunctionMenu
+	menuRunSubFlag:=false
+	for k, v in MenuObjSame
+	{
+		SplitPath, v, v_name
+		vName:=RegExReplace(v_name,"iS)\.exe$")
+		if(vName=Z_ThisMenuItem && v!=fullPath){
+			Menu,menuRunSub,Add, %k%, Menu_Run
+			Menu_Item_Icon("menuRunSub",k,v)
+			menuRunSubFlag:=true
+		}
+	}
+	if(menuRunSubFlag)
+		Menu,menuRun,Add,同名软件(&S), :menuRunSub
 	Menu,menuRun,Add,软件目录(&D),MultifunctionMenu
 	Menu,menuRun,Add
 	Menu,menuRun,Add,管理员权限运行(&A),MultifunctionMenu
@@ -6390,28 +6402,33 @@ everythingQuery(EvCommandStr){
 		objFileName:=ev.GetResultFileName(Z_Index)
 		objFullPathName:=ev.GetResultFullPathName(Z_Index)
 		objFileNameNoExeExt:=RegExReplace(objFileName,"iS)\.exe$","")
-		if(EvExeMTimeNew && MenuObjEv[objFileNameNoExeExt]){
-			;优先选择最新修改时间的同名文件全路径
-			FileGetTime,objFullPathNameUpdateTimeOld,% MenuObjEv[objFileNameNoExeExt], M
-			FileGetTime,objFullPathNameUpdateTimeNew,% objFullPathName, M
-			if(objFullPathNameUpdateTimeOld<objFullPathNameUpdateTimeNew){
-				chooseNewFlag:=true
+		if(MenuObjEv[objFileNameNoExeExt]){
+			MenuObjEv[objFullPathName]:=objFullPathName
+			MenuObjSame[(MenuObjEv[objFileNameNoExeExt])]:=MenuObjEv[objFileNameNoExeExt]
+			MenuObjSame[objFullPathName]:=objFullPathName
+			if(EvExeMTimeNew){
+				;优先选择最新修改时间的同名文件全路径
+				FileGetTime,objFullPathNameUpdateTimeOld,% MenuObjEv[objFileNameNoExeExt], M
+				FileGetTime,objFullPathNameUpdateTimeNew,% objFullPathName, M
+				if(objFullPathNameUpdateTimeOld<objFullPathNameUpdateTimeNew){
+					chooseNewFlag:=true
+				}
 			}
-		}
-		if(EvExeVerNew && RegExMatch(objFileName,"iS).*?\.exe$") && MenuObjEv[objFileNameNoExeExt]){
-			;优先选择最新版本的同名exe全路径
-			FileGetVersion,objFullPathNameVersionOld,% MenuObjEv[objFileNameNoExeExt]
-			FileGetVersion,objFullPathNameVersionNew,% objFullPathName
-			if(objFullPathNameVersionOld<objFullPathNameVersionNew){
-				MenuObjEv[objFileNameNoExeExt]:=objFullPathName
-			}else if(chooseNewFlag && objFullPathNameVersionOld=objFullPathNameVersionNew){
-				MenuObjEv[objFileNameNoExeExt]:=objFullPathName
+			if(EvExeVerNew && RegExMatch(objFileName,"iS).*?\.exe$")){
+				;优先选择最新版本的同名exe全路径
+				FileGetVersion,objFullPathNameVersionOld,% MenuObjEv[objFileNameNoExeExt]
+				FileGetVersion,objFullPathNameVersionNew,% objFullPathName
+				if(objFullPathNameVersionOld<objFullPathNameVersionNew){
+					MenuObjEv[objFileNameNoExeExt]:=objFullPathName
+				}else if(chooseNewFlag && objFullPathNameVersionOld=objFullPathNameVersionNew){
+					MenuObjEv[objFileNameNoExeExt]:=objFullPathName
+				}
+				continue
 			}
-			continue
-		}
-		;版本相同则取最新修改时间，时间相同或小于则不改变
-		if(EvExeMTimeNew && MenuObjEv[objFileNameNoExeExt] && !chooseNewFlag){
-			continue
+			;版本相同则取最新修改时间，时间相同或小于则不改变
+			if(EvExeMTimeNew && !chooseNewFlag){
+				continue
+			}
 		}
 		MenuObjEv[objFileNameNoExeExt]:=objFullPathName
 	}
