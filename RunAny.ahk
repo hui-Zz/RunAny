@@ -5542,7 +5542,8 @@ Open_Ext_Set:
 		openExtIniList[itemList[1]]:=itemList[2]
 		Loop, parse,% itemList[2], %A_Space%
 		{
-			openExtRunList[A_LoopField]:=Get_Obj_Path_Transform(itemList[1])
+			extLoopField:=RegExReplace(A_LoopField,"^\.","")
+			openExtRunList[extLoopField]:=Get_Obj_Path_Transform(itemList[1])
 		}
 	}
 	if(!openExtRunList["folder"]){
@@ -6205,13 +6206,13 @@ Menu_Tray:
 	Menu,Tray,Show
 return
 Menu_Ini:
-	Run,%iniPath%
+	Ini_Run(iniPath)
 return
 Menu_Ini2:
-	Run,%iniPath2%
+	Ini_Run(iniPath2)
 return
 Menu_Config:
-	Run,%RunAnyConfig%
+	Ini_Run(RunAnyConfig)
 return
 Menu_Reload:
 	Reload
@@ -6241,6 +6242,16 @@ ExitSub:
 	gosub,AutoClose_Effect
 	ExitApp
 return
+Ini_Run(ini){
+	try{
+		if(!FileExist(ini)){
+			MsgBox,16,%ini%,没有找到配置文件：%ini%
+		}
+		Run,"%ini%"
+	}catch{
+		Run,notepad.exe "%ini%"
+	}
+}
 ;══════════════════════════════════════════════════════════════════
 ;~;[改进版URLDownloadToFile，来源于：http://ahkcn.net/thread-5658.html]
 URLDownloadToFile(URL, FilePath, Options:="", RequestHeaders:="")
