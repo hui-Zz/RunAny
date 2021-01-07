@@ -8,7 +8,6 @@ global RunAny_Plugins_Version:="2.0.5"
 #SingleInstance,Force   ;~运行替换旧实例
 ListLines,Off           ;~不显示最近执行的脚本行
 SendMode,Input          ;~使用更速度和可靠方式发送键鼠点击
-SetBatchLines,-1        ;~脚本全速执行(默认10ms)
 DetectHiddenWindows, On
 
 ;[RunAny菜单透明化]
