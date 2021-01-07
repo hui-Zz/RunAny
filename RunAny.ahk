@@ -4760,7 +4760,7 @@ Menu_Set:
 Menu_About:
 	Gui,99:Destroy
 	Gui,99:Color,FFFFFF
-	Gui,99:Add, ActiveX, x0 y0 w550 h375 voWB, shell explorer
+	Gui,99:Add, ActiveX, x0 y0 w550 h395 voWB, shell explorer
 	oWB.Navigate("about:blank")
 vHtml = 
 (
@@ -4776,15 +4776,17 @@ vHtml =
 <font size="2">官网版本：</font>
 <img alt="GitHub release" src="https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat-square&logo=github"/>
 </h2>
-默认启动菜单热键为<kbd>``</kbd>（Esc键下方的重音符键~`` ）
+默认启动菜单热键为 <b><kbd>``</kbd></b>（Esc键下方的重音符键~`` ）
 <br>
-（按<kbd>Win</kbd>+<kbd>``</kbd>输出<kbd>``</kbd>）
+（注意：想打字打出<kbd>``</kbd>的时候，按<kbd>Win</kbd>+<kbd>``</kbd>）
 <br><br>
 按住<kbd>Ctrl</kbd>键打开软件会打开软件所在的目录
 <br>
 按住<kbd>Shift</kbd>键打开软件快速直接跳转到编辑该菜单项
 <br>
 按住<kbd>Ctrl</kbd>+<kbd>Shift</kbd>键打开软件会以管理员身份来运行
+<br>
+<b>鼠标右键软件菜单项，使用更多新功能</b>
 <br><br>【右键任务栏RunAny图标进行配置】<br><br>
 作者：hui-Zz 建议：hui0.0713@gmail.com
 </body>
