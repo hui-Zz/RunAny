@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.3 @2020.12.31
+║【RunAny】一劳永逸的快速启动工具 v5.7.4 @2021.01.07
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -22,8 +22,8 @@ StartTick:=A_TickCount  ;评估RunAny初始化时间
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
-global RunAny_update_version:="5.7.3"
-global RunAny_update_time:="2020.12.31"
+global RunAny_update_version:="5.7.4"
+global RunAny_update_time:="2021.01.07"
 Gosub,Var_Set          ;~参数初始化
 Gosub,Run_Exist        ;~调用判断依赖
 Gosub,Plugins_Read     ;~插件脚本读取
@@ -3909,7 +3909,7 @@ LVMenu("LVMenu")
 LVMenu("ahkGuiMenu")
 Gui,P: Menu, ahkGuiMenu
 LVModifyCol(65,ColumnStatus,ColumnAutoRun)
-Gui,P:Show, , %RunAnyZz% 插件管理 %RunAny_update_version% %RunAny_update_time%%AdminMode%
+Gui,P:Show, , %RunAnyZz% 插件管理 - 支持拖放 %RunAny_update_version% %RunAny_update_time%%AdminMode%
 DetectHiddenWindows,Off
 return
 
@@ -4069,7 +4069,7 @@ Plugins_Edit(FilePath){
 		Run,notepad.exe "%FilePath%"
 	}
 }
-#If WinActive(RunAnyZz " 插件管理 " RunAny_update_version A_Space RunAny_update_time)
+#If WinActive(RunAnyZz " 插件管理 - 支持拖放 " RunAny_update_version A_Space RunAny_update_time)
 	F1::gosub,LVRun
 	F2::gosub,LVEdit
 	F3::gosub,LVEnable
@@ -4088,6 +4088,17 @@ listview:
 		menuItem:="启动"
 		gosub,LVApply
     }
+return
+PGuiDropFiles:  ; 对拖放提供支持.
+	MsgBox,33,RunAny新增插件,是否复制脚本文件到插件目录？`n%A_ScriptDir%\%PluginsDir%
+	IfMsgBox Ok
+	{
+		Loop, Parse, A_GuiEvent, `n
+		{
+			FileCopy, %A_LoopField%, %A_ScriptDir%\%PluginsDir%
+		}
+		gosub,Plugins_Manage
+	}
 return
 PGuiEscape:
 	Gui,P:Destroy
