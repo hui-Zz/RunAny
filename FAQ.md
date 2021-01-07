@@ -30,12 +30,13 @@
 
 **原因**：因某些不明配置原因，导致在TC、DO中按<kbd>Ctrl</kbd>+<kbd>C</kbd>复制文件速度变慢，没在短时间给RunAny文件信息误判断为无选中文件
 
-**解决**：手动修改RunAny配置`RunAnyConfig.ini`，使用隐藏配置延长等待复制时间：
+**解决**：手动修改RunAny配置`RunAnyConfig.ini`，使用隐藏配置延长等待复制时间： 
+**（RunAny5.7.2版本后可以在设置-高级配置中进行配置，另外在电脑为固态硬盘时可有效减少此情况的发生）**
 
 ```ini
 [Config]
 ClipWaitApp=TotalCMD64.exe
-ClipWaitTime=2
+ClipWaitTime=1.5
 ```
 
 > 在[Config]下添加 <br>
@@ -52,9 +53,12 @@ ClipWaitTime=2
 
 **原因**：因Everything正在索引、或是数据库在不同磁盘导致读写缓慢等原因。（可以开机后马上尝试能不能用Everything来验证）
 
-**解决**：在Everything搜索框中搜索“Everything”，查看`Everything.exe`和文件`Everything.db`是否不在同一硬盘  
+**解决**：
+- 在Everything搜索框中搜索“Everything”，查看`Everything.exe`和文件`Everything.db`是否不在同一硬盘  
 在Everything窗口最上面菜单的“工具”——“选项”——找到选中左边的“索引”——修改右边的数据库路径到`Everything.exe`同一硬盘，加快读写速度
 
-?> 若计算机中文件过多导致的Everything创建索引缓慢，则需要尽量减少索引磁盘、文件夹、文件属性等设置
+- 若计算机中文件过多导致的Everything创建索引缓慢，则需要尽量减少Everything设置中的 索引磁盘、文件夹、文件属性等
+
+- **觉得上面方法比较麻烦，可以把Windows系统和Everything安装在固态硬盘上即可解决**
 
 ---
