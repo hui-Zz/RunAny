@@ -1508,6 +1508,7 @@ MenuRunMultifunctionMenu:
 		SplitPath, v, v_name
 		vName:=RegExReplace(v_name,"iS)\.exe$")
 		if(vName=Z_ThisMenuItem && v!=fullPath){
+			MenuObj[v]:=v
 			Menu,menuRunSub,Add, %k%, Menu_Run
 			Menu_Item_Icon("menuRunSub",k,v)
 			menuRunSubFlag:=true
@@ -6429,7 +6430,6 @@ everythingQuery(EvCommandStr){
 		objFullPathName:=ev.GetResultFullPathName(Z_Index)
 		objFileNameNoExeExt:=RegExReplace(objFileName,"iS)\.exe$","")
 		if(MenuObjEv[objFileNameNoExeExt]){
-			MenuObjEv[objFullPathName]:=objFullPathName
 			MenuObjSame[(MenuObjEv[objFileNameNoExeExt])]:=MenuObjEv[objFileNameNoExeExt]
 			MenuObjSame[objFullPathName]:=objFullPathName
 			if(EvExeMTimeNew){
