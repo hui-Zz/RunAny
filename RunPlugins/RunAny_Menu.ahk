@@ -1,12 +1,14 @@
 ﻿/*
-【RunAny菜单辅助插件】
+【RunAny菜单辅助插件（建议自启）】
 */
-global RunAny_Plugins_Version:="2.0.4"
+global RunAny_Plugins_Version:="2.0.5"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
 #SingleInstance,Force   ;~运行替换旧实例
 ListLines,Off           ;~不显示最近执行的脚本行
+SendMode,Input          ;~使用更速度和可靠方式发送键鼠点击
+SetBatchLines,-1        ;~脚本全速执行(默认10ms)
 DetectHiddenWindows, On
 
 ;[RunAny菜单透明化]
