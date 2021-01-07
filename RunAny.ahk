@@ -242,8 +242,8 @@ Loop,%MenuCount%
 	{
 		if(!RegExMatch(mn,"S)[^\s]+\s$")){
 			Menu,%mn%,add
-			Menu,%mn%,add,&1批量搜索%mn%,Web_Run
-			Menu,%mn%,Icon,&1批量搜索%mn%,% UrlIconS[1],% UrlIconS[2],%MenuIconSize%
+			Menu,%mn%,add,%RUNANY_SELF_MENU_ITEM1%%mn%,Web_Run
+			Menu,%mn%,Icon,%RUNANY_SELF_MENU_ITEM1%%mn%,% UrlIconS[1],% UrlIconS[2],%MenuIconSize%
 		}
 	}
 	;设置后缀公共菜单
@@ -865,8 +865,8 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 		MenuObj[key]:=value
 	}
 	if(!HideMenuTray){
-		Menu,% menuRootFn[1],add,RunAny设置,:Tray,%MenuBar%
-		Menu,% menuRootFn[1],Icon,RunAny设置,% AnyIconS[1],% AnyIconS[2],%MenuIconSize%
+		Menu,% menuRootFn[1],add,%RUNANY_SELF_MENU_ITEM2%,:Tray,%MenuBar%
+		Menu,% menuRootFn[1],Icon,%RUNANY_SELF_MENU_ITEM2%,% AnyIconS[1],% AnyIconS[2],%MenuIconSize%
 	}
 }
 ;~;[统一集合菜单中软件运行项]
@@ -1094,12 +1094,12 @@ Menu_Show:
 						MenuShowMenuRun:=Get_Obj_Transform_Name(itemContent)
 						gosub,Menu_Run
 					}else{
-						Menu,%extMenuName%,Insert, ,-【显示菜单全部】,Menu_All_Show
-						Menu,%extMenuName%,Icon,-【显示菜单全部】,SHELL32.dll,40,%MenuIconSize%
+						Menu,%extMenuName%,Insert, ,%RUNANY_SELF_MENU_ITEM4%,Menu_All_Show
+						Menu,%extMenuName%,Icon,%RUNANY_SELF_MENU_ITEM4%,SHELL32.dll,40,%MenuIconSize%
 						if(!HideAddItem){
-							Menu,%extMenuName%,Insert, ,0【添加到此菜单】,Menu_Add_File_Item
-							Menu,%extMenuName%,Default,0【添加到此菜单】
-							Menu,%extMenuName%,Icon,0【添加到此菜单】,SHELL32.dll,166,%MenuIconSize%
+							Menu,%extMenuName%,Insert, ,%RUNANY_SELF_MENU_ITEM3%,Menu_Add_File_Item
+							Menu,%extMenuName%,Default,%RUNANY_SELF_MENU_ITEM3%
+							Menu,%extMenuName%,Icon,%RUNANY_SELF_MENU_ITEM3%,SHELL32.dll,166,%MenuIconSize%
 						}
 						;添加后缀公共菜单
 						publicMenuMaxNum:=MenuObjExt["public"].MaxIndex()
@@ -1125,21 +1125,21 @@ Menu_Show:
 								Menu,%extMenuName%,Delete,%vn%
 							}
 						}
-						Menu,%extMenuName%,Delete,-【显示菜单全部】
+						Menu,%extMenuName%,Delete,%RUNANY_SELF_MENU_ITEM4%
 						if(!HideAddItem)
-							Menu,%extMenuName%,Delete,0【添加到此菜单】
+							Menu,%extMenuName%,Delete,%RUNANY_SELF_MENU_ITEM3%
 					}
 				}else{
 					if(!HideAddItem){
-						Menu,% menuFileRoot%MENU_NO%[1],Insert, ,0【添加到此菜单】,Menu_Add_File_Item
-						Menu,% menuFileRoot%MENU_NO%[1],Default,0【添加到此菜单】
-						Menu,% menuFileRoot%MENU_NO%[1],Icon,0【添加到此菜单】,SHELL32.dll,166,%MenuIconSize%
-						Menu_Add_Del_Temp(1,MENU_NO,"0【添加到此菜单】","Menu_Add_File_Item","SHELL32.dll","166")
+						Menu,% menuFileRoot%MENU_NO%[1],Insert, ,%RUNANY_SELF_MENU_ITEM3%,Menu_Add_File_Item
+						Menu,% menuFileRoot%MENU_NO%[1],Default,%RUNANY_SELF_MENU_ITEM3%
+						Menu,% menuFileRoot%MENU_NO%[1],Icon,%RUNANY_SELF_MENU_ITEM3%,SHELL32.dll,166,%MenuIconSize%
+						Menu_Add_Del_Temp(1,MENU_NO,RUNANY_SELF_MENU_ITEM3,"Menu_Add_File_Item","SHELL32.dll","166")
 					}
 					Menu_Show_Show(menuFileRoot%MENU_NO%[1],FileName)
 					if(!HideAddItem){
-						Menu,% menuFileRoot%MENU_NO%[1],Delete,0【添加到此菜单】
-						Menu_Add_Del_Temp(0,MENU_NO,"0【添加到此菜单】")
+						Menu,% menuFileRoot%MENU_NO%[1],Delete,%RUNANY_SELF_MENU_ITEM3%
+						Menu_Add_Del_Temp(0,MENU_NO,RUNANY_SELF_MENU_ITEM3)
 					}
 				}
 			}catch{
@@ -1370,13 +1370,13 @@ Menu_Run:
 		}else if(menuholdkey=HoldKeyRun32 || M_ThisMenuItem="输出运行路径(&V)"){
 			Send_Or_Show(fullPath,true,HoldKeyShowTime,3000)
 			return
-		}else if(menuholdkey=HoldKeyRun33 || M_ThisMenuItem="复制软件名"){
+		}else if(menuholdkey=HoldKeyRun33 || M_ThisMenuItem="复制软件名(&N)"){
 			Send_Or_Show(name_no_ext,false,HoldKeyShowTime,3000)
 			return
 		}else if(menuholdkey=HoldKeyRun34 || M_ThisMenuItem="输出软件名"){
 			Send_Or_Show(name_no_ext,true,HoldKeyShowTime,3000)
 			return
-		}else if(menuholdkey=HoldKeyRun35 || M_ThisMenuItem="复制软件名+后缀"){
+		}else if(menuholdkey=HoldKeyRun35 || M_ThisMenuItem="复制软件名+后缀(&E)"){
 			Send_Or_Show(name,false,HoldKeyShowTime,3000)
 			return
 		}else if(menuholdkey=HoldKeyRun36 || M_ThisMenuItem="输出软件名+后缀"){
@@ -1526,9 +1526,9 @@ MenuRunMultifunctionMenu:
 	Menu,menuRun,Add
 	Menu,menuRun,Add,复制运行路径(&C),MultifunctionMenu
 	Menu,menuRun,Add,输出运行路径(&V),MultifunctionMenu
-	Menu,menuRun,Add,复制软件名,MultifunctionMenu
+	Menu,menuRun,Add,复制软件名(&N),MultifunctionMenu
 	Menu,menuRun,Add,输出软件名,MultifunctionMenu
-	Menu,menuRun,Add,复制软件名+后缀,MultifunctionMenu
+	Menu,menuRun,Add,复制软件名+后缀(&E),MultifunctionMenu
 	Menu,menuRun,Add,输出软件名+后缀,MultifunctionMenu
 	Loop, Parse, menuRunNameStr, `,
 	{
@@ -1850,7 +1850,7 @@ Menu_Recent:
 return
 ;~;[执行批量搜索]
 Web_Run:
-	webName:=RegExReplace(A_ThisMenuItem,"iS)^&1批量搜索")
+	webName:=RegExReplace(A_ThisMenuItem,"iS)^" RUNANY_SELF_MENU_ITEM1)
 	if(webName){
 		webList:=(A_ThisHotkey=MenuHotKey2) ? menuWebList2[(webName)] : menuWebList1[(webName)]
 	}else{
@@ -2368,7 +2368,7 @@ Menu_Add_File_Item:
 	SplitPath, itemPath, fName,, fExt, itemName
 	Z_ThisMenu:=RTrim(A_ThisMenu)
 	Z_ThisMenuItem:=A_ThisMenuItem
-	if(Z_ThisMenuItem="0【添加到此菜单】"){
+	if(Z_ThisMenuItem=RUNANY_SELF_MENU_ITEM3){
 		X_ThisMenuItem:=Z_ThisMenuItem
 		itemContent:=MenuObjTree%TREE_NO%[Z_ThisMenu][(MenuObjTree%TREE_NO%[Z_ThisMenu].MaxIndex())]
 		Z_ThisMenuItem:=Get_Obj_Transform_Name(itemContent)
@@ -2377,7 +2377,7 @@ Menu_Add_File_Item:
 		return
 	menuGuiFlag:=false
 	menuGuiEditFlag:=false
-	thisMenuItemStr:=X_ThisMenuItem="0【添加到此菜单】" ? "" : "菜单项（" Z_ThisMenuItem "）的上面"
+	thisMenuItemStr:=X_ThisMenuItem=RUNANY_SELF_MENU_ITEM3 ? "" : "菜单项（" Z_ThisMenuItem "）的上面"
 	thisMenuStr:=Z_ThisMenu=RunAnyZz . "File" . TREE_NO 
 		? "新增项会在『根目录』分类下（如果没有用“-”回归1级会添加在最末的菜单内）" 
 		: "新增项会在『" Z_ThisMenu "』分类下"
@@ -2444,14 +2444,14 @@ SetSaveItem:
 		if(menuFlag){
 			menuItem:=Get_Obj_Transform_Name(itemContent)
 			if(menuItem=Z_ThisMenuItem){
-				if(X_ThisMenuItem!="0【添加到此菜单】"){
+				if(X_ThisMenuItem!=RUNANY_SELF_MENU_ITEM3){
 					saveText.=tabText . vitemName . itemGlobalKeyStr . splitStr . vitemPath . "`n"
 					inputFlag:=true
 				}else{
 					endFind:=true
 				}
 				menuFlag:=false
-			}else if (Z_ThisMenuItem="" && (X_ThisMenuItem="" || X_ThisMenuItem="0【添加到此菜单】")){
+			}else if (Z_ThisMenuItem="" && (X_ThisMenuItem="" || X_ThisMenuItem=RUNANY_SELF_MENU_ITEM3)){
 				endFind:=true
 				menuFlag:=false
 			}
@@ -4721,6 +4721,10 @@ Menu_Set:
 	if(RunAnyMenuTransparentFlag){
 		LV_Add(RunAnyMenuTransparent ? "Icon1" : "Icon2", RunAnyMenuTransparent,"", "RunAny菜单和右键菜单透明度数值（0全透明-255不透明）","RunAny_Menu.ahk","RunAnyMenuTransparent")
 	}
+	LV_Add(RUNANY_SELF_MENU_ITEM1 ? "Icon1" : "Icon2", RUNANY_SELF_MENU_ITEM1,, "RunAny自带功能的菜单项名称修改1：&1批量搜索","","RUNANY_SELF_MENU_ITEM1")
+	LV_Add(RUNANY_SELF_MENU_ITEM2 ? "Icon1" : "Icon2", RUNANY_SELF_MENU_ITEM2,, "RunAny自带功能的菜单项名称修改2：RunAny设置","","RUNANY_SELF_MENU_ITEM2")
+	LV_Add(RUNANY_SELF_MENU_ITEM3 ? "Icon1" : "Icon2", RUNANY_SELF_MENU_ITEM3,, "RunAny自带功能的菜单项名称修改3：0【添加到此菜单】","","RUNANY_SELF_MENU_ITEM3")
+	LV_Add(RUNANY_SELF_MENU_ITEM4 ? "Icon1" : "Icon2", RUNANY_SELF_MENU_ITEM4,, "RunAny自带功能的菜单项名称修改4：-【显示菜单全部】","","RUNANY_SELF_MENU_ITEM4")
 	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugMode,, "[调试模式] 实时显示菜单运行的信息","","DebugMode")
 	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugModeShowTime,"毫秒", "[调试模式] 实时显示菜单运行信息的自动隐藏时间","","DebugModeShowTime")
 	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugModeShowTrans,"%", "[调试模式] 实时显示菜单运行信息的透明度","","DebugModeShowTrans")
@@ -5429,6 +5433,10 @@ Var_Set:
 	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)
 	global ClipWaitApp:=Var_Read("ClipWaitApp","")
 	global HoldKeyShowTime:=Var_Read("HoldKeyShowTime",1000)
+	global RUNANY_SELF_MENU_ITEM1:=Var_Read("RUNANY_SELF_MENU_ITEM1","&1批量搜索")
+	global RUNANY_SELF_MENU_ITEM2:=Var_Read("RUNANY_SELF_MENU_ITEM2","RunAny设置")
+	global RUNANY_SELF_MENU_ITEM3:=Var_Read("RUNANY_SELF_MENU_ITEM3","0【添加到此菜单】")
+	global RUNANY_SELF_MENU_ITEM4:=Var_Read("RUNANY_SELF_MENU_ITEM4","-【显示菜单全部】")
 	global RunAnyMenuTransparent:=Var_Read("RunAnyMenuTransparent",225)
 	global RunAnyMenuSpaceRun:=Var_Read("RunAnyMenuSpaceRun",2)
 	global RunAnyMenuRButtonRun:=Var_Read("RunAnyMenuRButtonRun",3)
@@ -5470,7 +5478,7 @@ Var_Set:
 	gosub,Menu_Var_Set
 	gosub,Icon_Set
 	global menuRunNameStr:="编辑(&E),同名软件(&S),软件目录(&D),管理员权限运行(&A),最小化运行(&I),最大化运行(&P),隐藏运行(&H),结束软件进程(&X)"
-	menuRunNameStr.=",复制运行路径(&C),输出运行路径(&V),复制软件名,输出软件名,复制软件名+后缀,输出软件名+后缀"
+	menuRunNameStr.=",复制运行路径(&C),输出运行路径(&V),复制软件名(&N),输出软件名,复制软件名+后缀(&E),输出软件名+后缀"
 	;~[最近运行项]
 	if(RecentMax>0){
 		global MenuCommonList:={}
