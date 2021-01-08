@@ -1571,6 +1571,15 @@ Menu_Key_Run_Run:
 		getZzFlag:=InStr(any,"%getZz%") ? true : false
 		any:=Get_Transform_Val(any)
 		any:=RTrim(any," `t`n`r")
+		if(itemMode=7 && InStr(FileExist(any), "D")){
+			;[打开文件夹]
+			if(OpenFolderPathRun){
+				Run_Any(OpenFolderPathRun A_Space """" any """")
+			}else{
+				Run_Any(any)
+			}
+			return
+		}
 		if(getZz!="" && (getZzFlag || AutoGetZz)){
 			firstFile:=RegExReplace(getZz,"(.*)(\n|\r).*","$1")  ;取第一行
 			if(getZzFlag){
@@ -2489,7 +2498,7 @@ Menu_Edit:
 	Gui, Destroy
 	Gui, +Resize
 	Gui, Font,s10, Microsoft YaHei
-	Gui, Add, TreeView,vRunAnyTV w505 r30 -Readonly AltSubmit Checked hwndHTV gTVClick ImageList%ImageListID%
+	Gui, Add, TreeView,vRunAnyTV w600 r30 -Readonly AltSubmit Checked hwndHTV gTVClick ImageList%ImageListID%
 	Gui, Add, Progress,vMyProgress w450 cBlue
 	GuiControl, Hide, MyProgress
 	GuiControl, -Redraw, RunAnyTV
@@ -4721,10 +4730,10 @@ Menu_Set:
 	if(RunAnyMenuTransparentFlag){
 		LV_Add(RunAnyMenuTransparent ? "Icon1" : "Icon2", RunAnyMenuTransparent,"", "RunAny菜单和右键菜单透明度数值（0全透明-255不透明）","RunAny_Menu.ahk","RunAnyMenuTransparent")
 	}
-	LV_Add(RUNANY_SELF_MENU_ITEM1 ? "Icon1" : "Icon2", RUNANY_SELF_MENU_ITEM1,, "RunAny自带功能的菜单项名称修改1：&1批量搜索","","RUNANY_SELF_MENU_ITEM1")
-	LV_Add(RUNANY_SELF_MENU_ITEM2 ? "Icon1" : "Icon2", RUNANY_SELF_MENU_ITEM2,, "RunAny自带功能的菜单项名称修改2：RunAny设置","","RUNANY_SELF_MENU_ITEM2")
-	LV_Add(RUNANY_SELF_MENU_ITEM3 ? "Icon1" : "Icon2", RUNANY_SELF_MENU_ITEM3,, "RunAny自带功能的菜单项名称修改3：0【添加到此菜单】","","RUNANY_SELF_MENU_ITEM3")
-	LV_Add(RUNANY_SELF_MENU_ITEM4 ? "Icon1" : "Icon2", RUNANY_SELF_MENU_ITEM4,, "RunAny自带功能的菜单项名称修改4：-【显示菜单全部】","","RUNANY_SELF_MENU_ITEM4")
+	LV_Add(RUNANY_SELF_MENU_ITEM1 ? "Icon1" : "Icon2", RUNANY_SELF_MENU_ITEM1,, "RunAny自身功能的菜单项名称修改1：&1批量搜索","","RUNANY_SELF_MENU_ITEM1")
+	LV_Add(RUNANY_SELF_MENU_ITEM2 ? "Icon1" : "Icon2", RUNANY_SELF_MENU_ITEM2,, "RunAny自身功能的菜单项名称修改2：RunAny设置","","RUNANY_SELF_MENU_ITEM2")
+	LV_Add(RUNANY_SELF_MENU_ITEM3 ? "Icon1" : "Icon2", RUNANY_SELF_MENU_ITEM3,, "RunAny自身功能的菜单项名称修改3：0【添加到此菜单】","","RUNANY_SELF_MENU_ITEM3")
+	LV_Add(RUNANY_SELF_MENU_ITEM4 ? "Icon1" : "Icon2", RUNANY_SELF_MENU_ITEM4,, "RunAny自身功能的菜单项名称修改4：-【显示菜单全部】","","RUNANY_SELF_MENU_ITEM4")
 	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugMode,, "[调试模式] 实时显示菜单运行的信息","","DebugMode")
 	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugModeShowTime,"毫秒", "[调试模式] 实时显示菜单运行信息的自动隐藏时间","","DebugModeShowTime")
 	LV_Add(DebugMode ? "Icon1" : "Icon2", DebugModeShowTrans,"%", "[调试模式] 实时显示菜单运行信息的透明度","","DebugModeShowTrans")
