@@ -280,7 +280,7 @@ Loop,%MenuCount%
 		{
 			if(A_Index>RecentMax)
 				break
-			obj:=RegExReplace(mcItem,"&" mci A_Space)
+			obj:=RegExReplace(mcItem,"&\d+ ")
 			MenuObj[mcItem]:=MenuObj[obj]
 			Menu,% menuDefaultRoot%M_Index%[1],Add,%mcItem%,Menu_Run
 			Menu,% menuWebRoot%M_Index%[1],Add,%mcItem%,Menu_Run
