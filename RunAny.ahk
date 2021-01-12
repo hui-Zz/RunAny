@@ -105,6 +105,8 @@ global MenuObjKeyName:=Object()        ;~程序热键关联菜单项名称
 global MenuObjExt:=Object()            ;~后缀对应的菜单
 global MenuHotStrList:=Object()        ;~热字符串对象数组
 global MenuTreeKey:=Object()           ;~菜单树分类热键
+global MenuItemIconList:=Object()      ;~菜单项对应图标对象
+global MenuItemIconNoList:=Object()    ;~菜单项对应图标位置对象
 ;~;
 global MenuExeArray:=Object()			;~EXE程序对象数组
 global MenuExeIconArray:=Object()		;~EXE程序优先加载图标对象数组
@@ -1028,8 +1030,12 @@ Menu_Item_Icon(menuName,menuItem,iconPath,iconNo=0,treeLevel=""){
 		menuItemSet:=menuItemIconFileName(menuItemSet)
 		if(IconFolderList[menuItemSet]){
 			Menu,%menuName%,Icon,%menuItem%,% IconFolderList[menuItemSet],0,%MenuIconSize%
+			MenuItemIconList[menuItem]:=IconFolderList[menuItemSet]
+			MenuItemIconNoList[menuItem]:=0
 		}else{
 			Menu,%menuName%,Icon,%menuItem%,%iconPath%,%iconNo%,%MenuIconSize%
+			MenuItemIconList[menuItem]:=iconPath
+			MenuItemIconNoList[menuItem]:=iconNo
 		}
 		MenuObjName[menuItemSet]:=1
 	}catch{}
@@ -1341,10 +1347,14 @@ Menu_Run:
 		SetWorkingDir,%dir%
 	try {
 		global TVEditItem
+		;[判断运行软件时按住的键]
 		menuholdkey:=MenuRunHoldKey()
+		;[获取菜单项启动模式]
+		itemMode:=GetMenuItemMode(any)
 		M_ThisMenuItem:=""
 		R_ThisMenuItem:=RegExReplace(Z_ThisMenuItem,"&\d+ ","")
-		menuRunNameStr.=",运行(&R) " name_no_ext
+		menuRunNameStr:="运行(&R) " Z_ThisMenuItem "," MENU_RUN_NAME_STR
+		menuRunNameNoFileStr:="运行(&R) " Z_ThisMenuItem "," MENU_RUN_NAME_NOFILE_STR
 		if R_ThisMenuItem in %menuRunNameStr%
 		{
 			M_ThisMenuItem:=R_ThisMenuItem
@@ -1376,15 +1386,13 @@ Menu_Run:
 		}else if(menuholdkey=HoldKeyRun34 || M_ThisMenuItem="输出软件名"){
 			Send_Or_Show(name_no_ext,true,HoldKeyShowTime,3000)
 			return
-		}else if(menuholdkey=HoldKeyRun35 || M_ThisMenuItem="复制软件名+后缀(&E)"){
+		}else if(menuholdkey=HoldKeyRun35 || M_ThisMenuItem="复制软件名+后缀(&F)"){
 			Send_Or_Show(name,false,HoldKeyShowTime,3000)
 			return
 		}else if(menuholdkey=HoldKeyRun36 || M_ThisMenuItem="输出软件名+后缀"){
 			Send_Or_Show(name,true,HoldKeyShowTime,3000)
 			return
 		}
-		;[获取菜单项启动模式]
-		itemMode:=GetMenuItemMode(any)
 		;[结束软件进程]
 		if((menuholdkey=HoldKeyRun4 || M_ThisMenuItem="结束软件进程(&X)") && (itemMode=1 || itemMode=60)){
 			Process,Close,%name%
@@ -1500,39 +1508,47 @@ MenuRunHoldKey(){
 }
 ;右键菜单项显示多功能菜单
 MenuRunMultifunctionMenu:
-	Menu,menuRun,Add,运行(&R) %name_no_ext%,MultifunctionMenu
-	Menu,menuRun,Add,编辑(&E),MultifunctionMenu
 	menuRunSubFlag:=false
-	for k, v in MenuObjSame
+	Menu,menuRun,Add,运行(&R) %Z_ThisMenuItem%,MultifunctionMenu
+	Menu,menuRun,Add,编辑(&E),MultifunctionMenu
+	if itemMode not in 2,3,4,5,6,7,8
 	{
-		SplitPath, v, v_name
-		vName:=RegExReplace(v_name,"iS)\.exe$")
-		if(vName=Z_ThisMenuItem && v!=fullPath){
-			MenuObj[v]:=v
-			Menu,menuRunSub,Add, %k%, Menu_Run
-			Menu_Item_Icon("menuRunSub",k,v)
-			menuRunSubFlag:=true
+		menuRunMultifunctionMenuStr:=menuRunNameStr
+		for k, v in MenuObjSame
+		{
+			SplitPath, v, v_name
+			vName:=RegExReplace(v_name,"iS)\.exe$")
+			if(vName=Z_ThisMenuItem && v!=fullPath){
+				MenuObj[v]:=v
+				Menu,menuRunSub,Add, %k%, Menu_Run
+				Menu_Item_Icon("menuRunSub",k,v)
+				menuRunSubFlag:=true
+			}
 		}
+		if(menuRunSubFlag)
+			Menu,menuRun,Add,同名软件(&S), :menuRunSub
+		Menu,menuRun,Add,软件目录(&D),MultifunctionMenu
+		Menu,menuRun,Add
+		Menu,menuRun,Add,管理员权限运行(&A),MultifunctionMenu
+		Menu,menuRun,Add,最小化运行(&I),MultifunctionMenu
+		Menu,menuRun,Add,最大化运行(&P),MultifunctionMenu
+		Menu,menuRun,Add,隐藏运行(&H),MultifunctionMenu
+		Menu,menuRun,Add,结束软件进程(&X),MultifunctionMenu
+	}else{
+		menuRunMultifunctionMenuStr:=menuRunNameNoFileStr
 	}
-	if(menuRunSubFlag)
-		Menu,menuRun,Add,同名软件(&S), :menuRunSub
-	Menu,menuRun,Add,软件目录(&D),MultifunctionMenu
-	Menu,menuRun,Add
-	Menu,menuRun,Add,管理员权限运行(&A),MultifunctionMenu
-	Menu,menuRun,Add,最小化运行(&I),MultifunctionMenu
-	Menu,menuRun,Add,最大化运行(&P),MultifunctionMenu
-	Menu,menuRun,Add,隐藏运行(&H),MultifunctionMenu
-	Menu,menuRun,Add,结束软件进程(&X),MultifunctionMenu
 	Menu,menuRun,Add
 	Menu,menuRun,Add,复制运行路径(&C),MultifunctionMenu
 	Menu,menuRun,Add,输出运行路径(&V),MultifunctionMenu
 	Menu,menuRun,Add,复制软件名(&N),MultifunctionMenu
 	Menu,menuRun,Add,输出软件名,MultifunctionMenu
-	Menu,menuRun,Add,复制软件名+后缀(&E),MultifunctionMenu
+	Menu,menuRun,Add,复制软件名+后缀(&F),MultifunctionMenu
 	Menu,menuRun,Add,输出软件名+后缀,MultifunctionMenu
-	Loop, Parse, menuRunNameStr, `,
+	Loop, Parse, menuRunMultifunctionMenuStr, `,
 	{
-		Menu_Item_Icon("menuRun",A_LoopField,fullPath)
+		if(A_LoopField="同名软件(&S)" && !menuRunSubFlag)
+			continue
+		Menu_Item_Icon("menuRun",A_LoopField,MenuItemIconList[Z_ThisMenuItem],MenuItemIconNoList[Z_ThisMenuItem])
 	}
 	Menu,menuRun,Show
 	Menu,menuRun,DeleteAll
@@ -1810,11 +1826,11 @@ Menu_Recent:
 			}
 		}catch{}
 	}
-	
+	regMenuItem:=RegExReplace(A_ThisMenuItem,"iS)^运行\(&R\) ")
 	;插入到最近运行第一条
-	MenuCommonList.InsertAt(1,"&1" A_Space A_ThisMenuItem)
+	MenuCommonList.InsertAt(1,"&1" A_Space regMenuItem)
 	MenuCommonNewList:=[]
-	MenuCommonNewList.InsertAt(1,"&1" A_Space A_ThisMenuItem)
+	MenuCommonNewList.InsertAt(1,"&1" A_Space regMenuItem)
 	
 	Loop,% MenuCommonList.MaxIndex()
 	{
@@ -5486,8 +5502,10 @@ Var_Set:
 	
 	gosub,Menu_Var_Set
 	gosub,Icon_Set
-	global menuRunNameStr:="编辑(&E),同名软件(&S),软件目录(&D),管理员权限运行(&A),最小化运行(&I),最大化运行(&P),隐藏运行(&H),结束软件进程(&X)"
-	menuRunNameStr.=",复制运行路径(&C),输出运行路径(&V),复制软件名(&N),输出软件名,复制软件名+后缀(&E),输出软件名+后缀"
+	global MENU_RUN_NAME_STR:="编辑(&E),同名软件(&S),软件目录(&D),管理员权限运行(&A),最小化运行(&I),最大化运行(&P),隐藏运行(&H),结束软件进程(&X)"
+	global MENU_RUN_NAME_NOFILE_STR:="复制运行路径(&C),输出运行路径(&V),复制软件名(&N),输出软件名,复制软件名+后缀(&F),输出软件名+后缀"
+	MENU_RUN_NAME_STR.="," MENU_RUN_NAME_NOFILE_STR
+	MENU_RUN_NAME_NOFILE_STR:="编辑(&E)," MENU_RUN_NAME_NOFILE_STR
 	;~[最近运行项]
 	if(RecentMax>0){
 		global MenuCommonList:={}
@@ -5496,7 +5514,7 @@ Var_Set:
 			Loop, parse, MenuCommonListReg, |
 			{
 				R_ThisMenuItem:=RegExReplace(A_LoopField,"&\d+ ","")
-				if R_ThisMenuItem not in %menuRunNameStr%
+				if R_ThisMenuItem not in %MENU_RUN_NAME_STR%
 				{
 					MenuCommonList.Push(A_LoopField)
 				}
