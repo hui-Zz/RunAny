@@ -1351,6 +1351,7 @@ Menu_Run:
 		menuholdkey:=MenuRunHoldKey()
 		;[获取菜单项启动模式]
 		itemMode:=GetMenuItemMode(any)
+		;[从最近运行项中记录的右键多功能项]
 		M_ThisMenuItem:=""
 		R_ThisMenuItem:=RegExReplace(Z_ThisMenuItem,"&\d+ ","")
 		menuRunNameStr:="运行(&R) " Z_ThisMenuItem "," MENU_RUN_NAME_STR
@@ -1424,6 +1425,8 @@ Menu_Run:
 				return
 			}
 		}
+		menuKeys:=StrSplit(Z_ThisMenuItem,"`t")
+		thisMenuName:=menuKeys[1]
 		;[管理员身份运行]
 		if(menuholdkey=HoldKeyRun11 || M_ThisMenuItem="管理员权限运行(&A)"){
 			anyRun.="*RunAs "
@@ -1437,6 +1440,13 @@ Menu_Run:
 			mode:="Hide"
 		}else{
 			mode:=""
+		}
+		;[透明运行模式]
+		menuTransNum:=100
+		if(thisMenuName && RegExMatch(thisMenuName,"S).*?_:(\d{1,2})$")){
+			menuTransNum:=RegExReplace(thisMenuName,"S).*?_:(\d{1,2})$","$1")
+		}else if(RegExMatch(M_ThisMenuItem,"S)^透明运行:&\d{1,2}%")){
+			menuTransNum:=RegExReplace(M_ThisMenuItem,"S)^透明运行:&(\d{1,2})%$","$1")
 		}
 		;[带选中内容运行]
 		if(getZz!="" && (getZzFlag || AutoGetZz)){
@@ -1459,6 +1469,9 @@ Menu_Run:
 				}else{
 					Run_Any(any . A_Space . getZzStr,mode)
 				}
+				if(menuTransNum>0 && menuTransNum<100){
+					Run_Wait(any,menuTransNum)
+				}
 				return
 			}
 			if(getZzFlag){
@@ -1467,17 +1480,19 @@ Menu_Run:
 				anyRun=%anyRun%%any%%A_Space%%getZz%
 			}
 			Run_Any(anyRun,mode)
+			if(menuTransNum>0 && menuTransNum<100){
+				Run_Wait(any,menuTransNum)
+			}
 			return
 		}
-		menuKeys:=StrSplit(Z_ThisMenuItem,"`t")
-		thisMenuName:=menuKeys[1]
+		
 		if(ext && openExtRunList[ext]){
 			Run_Any(openExtRunList[ext] . A_Space . """" any """",mode)
-		}else if(thisMenuName && RegExMatch(thisMenuName,"S).*?_:(\d{1,2})$")){
-			menuTrNum:=RegExReplace(thisMenuName,"S).*?_:(\d{1,2})$","$1")
-			Run_Tr(any,menuTrNum,true)
 		}else{
 			Run_Any(anyRun . any,mode)
+		}
+		if(menuTransNum>0 && menuTransNum<100){
+			Run_Wait(any,menuTransNum)
 		}
 	} catch e {
 		MsgBox,16,%Z_ThisMenuItem%运行出错,% "运行路径：" any "`n出错命令：" e.What 
@@ -1530,6 +1545,13 @@ MenuRunMultifunctionMenu:
 			Menu,menuRun,Add,同名软件(&S), :menuRunSameSub
 		Menu,menuRun,Add,软件目录(&D),MultifunctionMenu
 		Menu,menuRun,Add
+		Loop, 9
+		{
+			menuRunTransSubItem:="透明运行:&" A_Index*10 "%"
+			Menu,menuRunTransSub,Add,%menuRunTransSubItem%, MultifunctionMenu
+			Menu_Item_Icon("menuRunTransSub",menuRunTransSubItem,MenuItemIconList[Z_ThisMenuItem],MenuItemIconNoList[Z_ThisMenuItem])
+		}
+		Menu,menuRun,Add,透明运行(&T), :menuRunTransSub
 		Menu,menuRun,Add,管理员权限运行(&A),MultifunctionMenu
 		Menu,menuRun,Add,最小化运行(&I),MultifunctionMenu
 		Menu,menuRun,Add,最大化运行(&P),MultifunctionMenu
@@ -1597,6 +1619,11 @@ Menu_Key_Run_Run:
 			}
 			return
 		}
+		;[透明运行模式]
+		menuTransNum:=100
+		if(thisMenuName && RegExMatch(thisMenuName,"S).*?_:(\d{1,2})$")){
+			menuTransNum:=RegExReplace(thisMenuName,"S).*?_:(\d{1,2})$","$1")
+		}
 		if(getZz!="" && (getZzFlag || AutoGetZz)){
 			firstFile:=RegExReplace(getZz,"(.*)(\n|\r).*","$1")  ;取第一行
 			if(getZzFlag){
@@ -1617,14 +1644,14 @@ Menu_Key_Run_Run:
 		}else{
 			if(ext && openExtRunList[ext]){
 				Run_Any(openExtRunList[ext] . A_Space . """" any """")
-			}else if(thisMenuName && RegExMatch(thisMenuName,"S).*?_:(\d{1,2})$")){
-				menuTrNum:=RegExReplace(thisMenuName,"S).*?_:(\d{1,2})$","$1")
-				Run_Tr(any,menuTrNum)
 			}else if(RegExMatch(any,"iS).*?\.[a-zA-Z0-9]+$")){
 				Run_Zz(any)
 			}else{
 				Run_Any(any)
 			}
+		}
+		if(menuTransNum>0 && menuTransNum<100){
+			Run_Wait(any,menuTransNum)
 		}
 	} catch e {
 		MsgBox,16,%thisMenuName%热键运行出错,% "运行路径：" any "`n出错命令：" e.What 
@@ -1718,9 +1745,10 @@ Run_Zz(program){
 	fullPath:=Get_Obj_Path(program)
 	exePath:=fullPath ? fullPath : program
 	DetectHiddenWindows, Off
-	If !WinExist("ahk_exe" . exePath)
+	If(!WinExist("ahk_exe" . exePath)){
 		Run_Any(program)
-	else
+		return true
+	}else{
 		WinGet,l,List,ahk_exe %exePath%
 		if l=1
 			If WinActive("ahk_exe" . exePath)
@@ -1729,7 +1757,27 @@ Run_Zz(program){
 				WinActivate
 		else
 			WinActivateBottom,ahk_exe %exePath%
-	return
+		return false
+	}
+}
+Run_Wait(program,transRatio=100,winSizeRatio=100,winSize=0){
+	fullPath:=Get_Obj_Path(program)
+	exePath:=fullPath ? fullPath : program
+	transRatio:=transRatio<0 ? 0 : transRatio
+	SplitPath, exePath, fName,, fExt  ; 获取扩展名
+	DetectHiddenWindows, Off
+	if(fExt="lnk"){
+		FileGetShortcut,%exePath%,lnkexePath
+		SplitPath, lnkexePath, fName,, fExt  ; 获取扩展名
+		if(fExt="exe")
+			exePath:=lnkexePath
+	}
+	WinWait,ahk_exe %exePath%,,10
+	if ErrorLevel
+		return
+	if(transRatio<100){
+		try WinSet,Transparent,% transRatio/100*255,ahk_exe %exePath%
+	}
 }
 Run_Search(any,getZz="",browser=""){
 	if(browser){
@@ -5478,10 +5526,14 @@ Var_Set:
 	
 	gosub,Menu_Var_Set
 	gosub,Icon_Set
-	global MENU_RUN_NAME_STR:="编辑(&E),同名软件(&S),软件目录(&D),管理员权限运行(&A),最小化运行(&I),最大化运行(&P),隐藏运行(&H),结束软件进程(&X)"
+	global MENU_RUN_NAME_STR:="编辑(&E),同名软件(&S),软件目录(&D),透明运行(&T),固定大小运行(&W),管理员权限运行(&A),最小化运行(&I),最大化运行(&P),隐藏运行(&H),结束软件进程(&X)"
 	global MENU_RUN_NAME_NOFILE_STR:="复制运行路径(&C),输出运行路径(&V),复制软件名(&N),输出软件名(&M),复制软件名+后缀(&F),输出软件名+后缀(&G)"
 	MENU_RUN_NAME_STR.="," MENU_RUN_NAME_NOFILE_STR
 	MENU_RUN_NAME_NOFILE_STR:="编辑(&E)," MENU_RUN_NAME_NOFILE_STR
+	Loop, 9
+	{
+		MENU_RUN_NAME_STR.=",透明运行:&" A_Index*10 "%"
+	}
 	;~[最近运行项]
 	if(RecentMax>0){
 		global MenuCommonList:={}
