@@ -1383,13 +1383,13 @@ Menu_Run:
 		}else if(menuholdkey=HoldKeyRun33 || M_ThisMenuItem="复制软件名(&N)"){
 			Send_Or_Show(name_no_ext,false,HoldKeyShowTime,3000)
 			return
-		}else if(menuholdkey=HoldKeyRun34 || M_ThisMenuItem="输出软件名"){
+		}else if(menuholdkey=HoldKeyRun34 || M_ThisMenuItem="输出软件名(&M)"){
 			Send_Or_Show(name_no_ext,true,HoldKeyShowTime,3000)
 			return
 		}else if(menuholdkey=HoldKeyRun35 || M_ThisMenuItem="复制软件名+后缀(&F)"){
 			Send_Or_Show(name,false,HoldKeyShowTime,3000)
 			return
-		}else if(menuholdkey=HoldKeyRun36 || M_ThisMenuItem="输出软件名+后缀"){
+		}else if(menuholdkey=HoldKeyRun36 || M_ThisMenuItem="输出软件名+后缀(&G)"){
 			Send_Or_Show(name,true,HoldKeyShowTime,3000)
 			return
 		}
@@ -1438,6 +1438,7 @@ Menu_Run:
 		}else{
 			mode:=""
 		}
+		;[带选中内容运行]
 		if(getZz!="" && (getZzFlag || AutoGetZz)){
 			firstFile:=RegExReplace(getZz,"(.*)(\n|\r).*","$1")  ;取第一行
 			if(Candy_isFile=1 || FileExist(getZz) || FileExist(firstFile)){
@@ -1508,7 +1509,7 @@ MenuRunHoldKey(){
 }
 ;右键菜单项显示多功能菜单
 MenuRunMultifunctionMenu:
-	menuRunSubFlag:=false
+	menuRunSameSubFlag:=false
 	Menu,menuRun,Add,运行(&R) %Z_ThisMenuItem%,MultifunctionMenu
 	Menu,menuRun,Add,编辑(&E),MultifunctionMenu
 	if itemMode not in 2,3,4,5,6,7,8
@@ -1520,13 +1521,13 @@ MenuRunMultifunctionMenu:
 			vName:=RegExReplace(v_name,"iS)\.exe$")
 			if(vName=Z_ThisMenuItem && v!=fullPath){
 				MenuObj[v]:=v
-				Menu,menuRunSub,Add, %k%, Menu_Run
-				Menu_Item_Icon("menuRunSub",k,v)
-				menuRunSubFlag:=true
+				Menu,menuRunSameSub,Add, %k%, Menu_Run
+				Menu_Item_Icon("menuRunSameSub",k,v)
+				menuRunSameSubFlag:=true
 			}
 		}
-		if(menuRunSubFlag)
-			Menu,menuRun,Add,同名软件(&S), :menuRunSub
+		if(menuRunSameSubFlag)
+			Menu,menuRun,Add,同名软件(&S), :menuRunSameSub
 		Menu,menuRun,Add,软件目录(&D),MultifunctionMenu
 		Menu,menuRun,Add
 		Menu,menuRun,Add,管理员权限运行(&A),MultifunctionMenu
@@ -1541,12 +1542,12 @@ MenuRunMultifunctionMenu:
 	Menu,menuRun,Add,复制运行路径(&C),MultifunctionMenu
 	Menu,menuRun,Add,输出运行路径(&V),MultifunctionMenu
 	Menu,menuRun,Add,复制软件名(&N),MultifunctionMenu
-	Menu,menuRun,Add,输出软件名,MultifunctionMenu
+	Menu,menuRun,Add,输出软件名(&M),MultifunctionMenu
 	Menu,menuRun,Add,复制软件名+后缀(&F),MultifunctionMenu
-	Menu,menuRun,Add,输出软件名+后缀,MultifunctionMenu
+	Menu,menuRun,Add,输出软件名+后缀(&G),MultifunctionMenu
 	Loop, Parse, menuRunMultifunctionMenuStr, `,
 	{
-		if(A_LoopField="同名软件(&S)" && !menuRunSubFlag)
+		if(A_LoopField="同名软件(&S)" && !menuRunSameSubFlag)
 			continue
 		Menu_Item_Icon("menuRun",A_LoopField,MenuItemIconList[Z_ThisMenuItem],MenuItemIconNoList[Z_ThisMenuItem])
 	}
@@ -1704,6 +1705,86 @@ MenuRunDebugModeShow(key:=0){
 		}
 	}
 }
+Run_Any(any,mode:=""){
+	Menu_Debug_Mode("[运行路径]`n" any "`n")
+	Menu_Run_Tray_Tip(any "`n")
+	if(mode!=""){
+		Run,%any%,,%mode%
+	}else{
+		Run,%any%
+	}
+}
+Run_Zz(program){
+	fullPath:=Get_Obj_Path(program)
+	exePath:=fullPath ? fullPath : program
+	DetectHiddenWindows, Off
+	If !WinExist("ahk_exe" . exePath)
+		Run_Any(program)
+	else
+		WinGet,l,List,ahk_exe %exePath%
+		if l=1
+			If WinActive("ahk_exe" . exePath)
+				WinMinimize
+			else
+				WinActivate
+		else
+			WinActivateBottom,ahk_exe %exePath%
+	return
+}
+Run_Search(any,getZz="",browser=""){
+	if(browser){
+		browserRun:=browser A_Space
+	}else if(RegExMatch(any,"iS)(www[.]).*") && openExtRunList["www"]){
+		browserRun:=openExtRunList["www"] A_Space
+	}else{
+		HyperList:=["http","https","ftp"]
+		For i, v in HyperList
+		{
+			if(RegExMatch(any,"iS)(" v "://?).*") && openExtRunList[v]){
+				browserRun:=openExtRunList[v] A_Space
+				break
+			}
+		}
+	}
+	if(InStr(any,"%getZz%")){
+		Run,% browserRun """" StrReplace(any,"%getZz%",getZz) """"
+	}else if(InStr(any,"%Clipboard%")){
+		Run,% browserRun """" StrReplace(any,"%Clipboard%",Clipboard) """"
+	}else if(InStr(any,"%s",true)){
+		Run,% browserRun """" StrReplace(any,"%s",getZz) """"
+	}else if(InStr(any,"%S",true)){
+		Run,% browserRun """" StrReplace(any,"%S",SkSub_UrlEncode(getZz)) """"
+	}else{
+		Run,%browserRun%"%any%%getZz%"
+	}
+}
+;~;[执行批量搜索]
+Web_Run:
+	webName:=RegExReplace(A_ThisMenuItem,"iS)^" RUNANY_SELF_MENU_ITEM1)
+	if(webName){
+		webList:=(A_ThisHotkey=MenuHotKey2) ? menuWebList2[(webName)] : menuWebList1[(webName)]
+	}else{
+		webList:=(A_ThisHotkey=MenuHotKey2) ? menuWebList2[(menuRoot2[1])] : menuWebList1[(menuRoot1[1])]
+	}
+	if(JumpSearch){
+		gosub,Web_Search
+	}else{
+		MsgBox,33,开始批量搜索%webName%,确定用【%getZz%】批量搜索以下网站：`n%webList%
+		IfMsgBox Ok
+		{
+			gosub,Web_Search
+		}
+	}
+return
+Web_Search:
+	Loop,parse,webList,`n
+	{
+		if(A_LoopField){
+			any:=MenuObj[(A_LoopField)]
+			Run_Search(any,getZz,BrowserPathRun)
+		}
+	}
+return
 ;调用huiZz_Text插件函数
 SendStrDecrypt(any,key:=""){
 	try{
@@ -1873,111 +1954,6 @@ Menu_Recent:
 	}
 	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, MenuCommonList, %commonStr%
 return
-;~;[执行批量搜索]
-Web_Run:
-	webName:=RegExReplace(A_ThisMenuItem,"iS)^" RUNANY_SELF_MENU_ITEM1)
-	if(webName){
-		webList:=(A_ThisHotkey=MenuHotKey2) ? menuWebList2[(webName)] : menuWebList1[(webName)]
-	}else{
-		webList:=(A_ThisHotkey=MenuHotKey2) ? menuWebList2[(menuRoot2[1])] : menuWebList1[(menuRoot1[1])]
-	}
-	if(JumpSearch){
-		gosub,Web_Search
-	}else{
-		MsgBox,33,开始批量搜索%webName%,确定用【%getZz%】批量搜索以下网站：`n%webList%
-		IfMsgBox Ok
-		{
-			gosub,Web_Search
-		}
-	}
-return
-Web_Search:
-	Loop,parse,webList,`n
-	{
-		if(A_LoopField){
-			any:=MenuObj[(A_LoopField)]
-			Run_Search(any,getZz,BrowserPathRun)
-		}
-	}
-return
-Run_Any(any,mode:=""){
-	Menu_Debug_Mode("[运行路径]`n" any "`n")
-	Menu_Run_Tray_Tip(any "`n")
-	if(mode!=""){
-		Run,%any%,,%mode%
-	}else{
-		Run,%any%
-	}
-}
-Run_Zz(program){
-	fullPath:=Get_Obj_Path(program)
-	exePath:=fullPath ? fullPath : program
-	DetectHiddenWindows, Off
-	If !WinExist("ahk_exe" . exePath)
-		Run_Any(program)
-	else
-		WinGet,l,List,ahk_exe %exePath%
-		if l=1
-			If WinActive("ahk_exe" . exePath)
-				WinMinimize
-			else
-				WinActivate
-		else
-			WinActivateBottom,ahk_exe %exePath%
-	return
-}
-Run_Tr(program,trNum,newOpen=false){
-	fullPath:=Get_Obj_Path(program)
-	exePath:=fullPath ? fullPath : program
-	DetectHiddenWindows, Off
-	If(newOpen || !WinExist("ahk_exe" . exePath)){
-		Run_Any(program)
-		SplitPath, exePath, fName,, fExt  ; 获取扩展名
-		if(fExt="lnk"){
-			FileGetShortcut,%exePath%,lnkexePath
-			SplitPath, lnkexePath, fName,, fExt  ; 获取扩展名
-			if(fExt="exe")
-				exePath:=lnkexePath
-			WinWait,ahk_exe %exePath%,,2
-		}else{
-			WinWait,ahk_exe %exePath%,,10
-		}
-		if ErrorLevel
-			return
-		;~ WinSet,Style,-0xC00000,
-		try WinSet,Style,-0x40000,ahk_exe %exePath%
-		WinSet,Transparent,% trNum/100*255,ahk_exe %exePath%
-	}else
-		Run_Zz(program)
-	return
-}
-Run_Search(any,getZz="",browser=""){
-	if(browser){
-		browserRun:=browser A_Space
-	}else if(RegExMatch(any,"iS)(www[.]).*") && openExtRunList["www"]){
-		browserRun:=openExtRunList["www"] A_Space
-	}else{
-		HyperList:=["http","https","ftp"]
-		For i, v in HyperList
-		{
-			if(RegExMatch(any,"iS)(" v "://?).*") && openExtRunList[v]){
-				browserRun:=openExtRunList[v] A_Space
-				break
-			}
-		}
-	}
-	if(InStr(any,"%getZz%")){
-		Run,% browserRun """" StrReplace(any,"%getZz%",getZz) """"
-	}else if(InStr(any,"%Clipboard%")){
-		Run,% browserRun """" StrReplace(any,"%Clipboard%",Clipboard) """"
-	}else if(InStr(any,"%s",true)){
-		Run,% browserRun """" StrReplace(any,"%s",getZz) """"
-	}else if(InStr(any,"%S",true)){
-		Run,% browserRun """" StrReplace(any,"%S",SkSub_UrlEncode(getZz)) """"
-	}else{
-		Run,%browserRun%"%any%%getZz%"
-	}
-}
 ;══════════════════════════════════════════════════════════════════
 ;~;[一键Everything][搜索选中文字][激活][隐藏]
 Ev_Show:
@@ -5503,7 +5479,7 @@ Var_Set:
 	gosub,Menu_Var_Set
 	gosub,Icon_Set
 	global MENU_RUN_NAME_STR:="编辑(&E),同名软件(&S),软件目录(&D),管理员权限运行(&A),最小化运行(&I),最大化运行(&P),隐藏运行(&H),结束软件进程(&X)"
-	global MENU_RUN_NAME_NOFILE_STR:="复制运行路径(&C),输出运行路径(&V),复制软件名(&N),输出软件名,复制软件名+后缀(&F),输出软件名+后缀"
+	global MENU_RUN_NAME_NOFILE_STR:="复制运行路径(&C),输出运行路径(&V),复制软件名(&N),输出软件名(&M),复制软件名+后缀(&F),输出软件名+后缀(&G)"
 	MENU_RUN_NAME_STR.="," MENU_RUN_NAME_NOFILE_STR
 	MENU_RUN_NAME_NOFILE_STR:="编辑(&E)," MENU_RUN_NAME_NOFILE_STR
 	;~[最近运行项]
