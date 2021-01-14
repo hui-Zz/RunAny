@@ -39,7 +39,7 @@ return
 	WinWait,ahk_class #32768,, 1
 	if ErrorLevel
 		return
-	MenuClick(Var_Read("RunAnyMenuRButtonRun",3))
+	MenuClick(Var_Read("RunAnyMenuRButtonRun",5))
 return
 
 ~Space Up::
@@ -73,39 +73,28 @@ return
 #If
 
 MenuClick(buttonRun){
-	HoldKeyList:={"HoldEnterRun":1,"HoldCtrlRun":2,"HoldShiftRun":3,"HoldCtrlShiftRun":4,"HoldCtrlWinRun":5,"HoldShiftWinRun":6,"HoldCtrlShiftWinRun":7}
+	HoldKeyList:={"HoldCtrlRun":2,"HoldCtrlShiftRun":3,"HoldCtrlWinRun":4,"HoldShiftRun":5,"HoldShiftWinRun":6,"HoldCtrlShiftWinRun":7}
+	HoldKeyValList:={"HoldCtrlRun":2,"HoldCtrlShiftRun":3,"HoldCtrlWinRun":11,"HoldShiftRun":5,"HoldShiftWinRun":31,"HoldCtrlShiftWinRun":4}
 	for k, v in HoldKeyList
 	{
-		if(v<=3){
-			j:=Var_Read(k,v)
-		}else if (k="HoldCtrlShiftRun"){
-			j:=Var_Read(k,11)
-		}else if (k="HoldCtrlWinRun"){
-			j:=Var_Read(k,5)
-		}else if (k="HoldShiftWinRun"){
-			j:=Var_Read(k,31)
-		}else if (k="HoldCtrlShiftWinRun"){
-			j:=Var_Read(k,4)
-		}
+		j:=Var_Read(k,HoldKeyValList[k])
 		if(j=buttonRun){
-			if(v=1){
-				Click
-			}else if(v=2){
+			if(v=2){
 				SendInput,{Ctrl Down}
 				Click
 				SendInput,{Ctrl Up}
 			}else if(v=3){
-				SendInput,{Shift Down}
-				Click
-				SendInput,{Shift Up}
-			}else if(v=4){
 				SendInput,{Ctrl Down}{Shift Down}
 				Click
 				SendInput,{Ctrl Up}{Shift Up}
-			}else if(v=5){
+			}else if(v=4){
 				SendInput,{Ctrl Down}{LWin Down}
 				Click
 				SendInput,{Ctrl Up}{LWin Up}
+			}else if(v=5){
+				SendInput,{Shift Down}
+				Click
+				SendInput,{Shift Up}
 			}else if(v=6){
 				SendInput,{Shift Down}{LWin Down}
 				Click

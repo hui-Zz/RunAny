@@ -1512,14 +1512,14 @@ MenuRunHoldKey(){
 	if(GetKeyState("Ctrl"))
 		holdKey:=2
 	if(GetKeyState("Shift")){
-		holdKey:=holdKey=2 ? 4 : 3
+		holdKey:=holdKey=2 ? 3 : 5
 	}
 	if(GetKeyState("LWin") || GetKeyState("RWin")){
 		if(holdKey=2){
-			holdKey:=5
-		}else if(holdKey=3){
+			holdKey:=4
+		}else if(holdKey=5){
 			holdKey:=6
-		}else if(holdKey=4){
+		}else if(holdKey=3){
 			holdKey:=7
 		}
 	}
@@ -4845,13 +4845,13 @@ vHtml =
 <br>
 （注意：想打字打出<kbd>``</kbd>的时候，按<kbd>Win</kbd>+<kbd>``</kbd>）
 <br><br>
-按住<kbd>Ctrl</kbd>+回车键或+鼠标左键打开会打开软件所在的目录
+按住<kbd>Shift</kbd>+回车键或+鼠标左键打开 <b>多功能菜单运行方式</b>
 <br>
-按住<kbd>Shift</kbd>+回车键或+鼠标左键打开 <b>多功能菜单运行</b>
+按住<kbd>Ctrl</kbd>+回车键或+鼠标左键打开 软件所在的目录
 <br>
-按住<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+回车键或+鼠标左键打开会以管理员身份来运行
+按住<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+回车键或+鼠标左键打开 快速跳转到编辑该菜单项
 <br>
-按住<kbd>Ctrl</kbd>+<kbd>Win</kbd>+回车键或+鼠标左键打开快速跳转到编辑该菜单项
+按住<kbd>Ctrl</kbd>+<kbd>Win</kbd>+鼠标左键打开 以管理员身份来运行
 <br><br>【右键任务栏RunAny图标进行配置】<br><br>
 作者：hui-Zz 建议：hui0.0713@gmail.com
 </body>
@@ -5507,20 +5507,11 @@ Var_Set:
 	{
 		GroupAdd,ClipWaitGUI,ahk_exe %A_LoopField%
 	}
-	global HoldKeyList:={"HoldEnterRun":1,"HoldCtrlRun":2,"HoldShiftRun":3,"HoldCtrlShiftRun":4,"HoldCtrlWinRun":5,"HoldShiftWinRun":6,"HoldCtrlShiftWinRun":7}
+	global HoldKeyList:={"HoldCtrlRun":2,"HoldCtrlShiftRun":3,"HoldCtrlWinRun":4,"HoldShiftRun":5,"HoldShiftWinRun":6,"HoldCtrlShiftWinRun":7}
+	global HoldKeyValList:={"HoldCtrlRun":2,"HoldCtrlShiftRun":3,"HoldCtrlWinRun":11,"HoldShiftRun":5,"HoldShiftWinRun":31,"HoldCtrlShiftWinRun":4}
 	for k, v in HoldKeyList
 	{
-		if(v<=3){
-			%k%:=Var_Read(k,v)
-		}else if (k="HoldCtrlShiftRun"){
-			%k%:=Var_Read(k,11)
-		}else if (k="HoldCtrlWinRun"){
-			%k%:=Var_Read(k,5)
-		}else if (k="HoldShiftWinRun"){
-			%k%:=Var_Read(k,31)
-		}else if (k="HoldCtrlShiftWinRun"){
-			%k%:=Var_Read(k,4)
-		}
+		%k%:=Var_Read(k,HoldKeyValList[k])
 		j:=%k%
 		if(j){
 			HoldKeyRun%j%:=v
