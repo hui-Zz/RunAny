@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.4 @2021.01.07
+║【RunAny】一劳永逸的快速启动工具 v5.7.4 @2021.01.14
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.7.4"
-global RunAny_update_time:="2021.01.07"
+global RunAny_update_time:="2021.01.14"
 Gosub,Var_Set          ;~参数初始化
 Gosub,Run_Exist        ;~调用判断依赖
 Gosub,Plugins_Read     ;~插件脚本读取
@@ -1448,6 +1448,11 @@ Menu_Run:
 		}else if(RegExMatch(M_ThisMenuItem,"S)^透明运行:&\d{1,2}%")){
 			menuTransNum:=RegExReplace(M_ThisMenuItem,"S)^透明运行:&(\d{1,2})%$","$1")
 		}
+		;[置顶运行模式]
+		topFlag:=false
+		if(M_ThisMenuItem="置顶运行(&T)"){
+			topFlag:=true
+		}
 		;[带选中内容运行]
 		if(getZz!="" && (getZzFlag || AutoGetZz)){
 			firstFile:=RegExReplace(getZz,"(.*)(\n|\r).*","$1")  ;取第一行
@@ -1469,8 +1474,8 @@ Menu_Run:
 				}else{
 					Run_Any(any . A_Space . getZzStr,mode)
 				}
-				if(menuTransNum>0 && menuTransNum<100){
-					Run_Wait(any,menuTransNum)
+				if(topFlag || menuTransNum<100){
+					Run_Wait(any,false,menuTransNum)
 				}
 				return
 			}
@@ -1480,8 +1485,8 @@ Menu_Run:
 				anyRun=%anyRun%%any%%A_Space%%getZz%
 			}
 			Run_Any(anyRun,mode)
-			if(menuTransNum>0 && menuTransNum<100){
-				Run_Wait(any,menuTransNum)
+			if(topFlag || menuTransNum<100){
+				Run_Wait(any,false,menuTransNum)
 			}
 			return
 		}
@@ -1491,8 +1496,8 @@ Menu_Run:
 		}else{
 			Run_Any(anyRun . any,mode)
 		}
-		if(menuTransNum>0 && menuTransNum<100){
-			Run_Wait(any,menuTransNum)
+		if(topFlag || menuTransNum<100){
+			Run_Wait(any,false,menuTransNum)
 		}
 	} catch e {
 		MsgBox,16,%Z_ThisMenuItem%运行出错,% "运行路径：" any "`n出错命令：" e.What 
@@ -1551,7 +1556,9 @@ MenuRunMultifunctionMenu:
 			Menu,menuRunTransSub,Add,%menuRunTransSubItem%, MultifunctionMenu
 			Menu_Item_Icon("menuRunTransSub",menuRunTransSubItem,MenuItemIconList[Z_ThisMenuItem],MenuItemIconNoList[Z_ThisMenuItem])
 		}
-		Menu,menuRun,Add,透明运行(&T), :menuRunTransSub
+		Menu,menuRun,Add,透明运行(&Q), :menuRunTransSub
+		Menu,menuRun,Add,置顶运行(&T),MultifunctionMenu
+		;~ Menu,menuRun,Add,改变大小运行(&W), :menuRunWinSizeSub
 		Menu,menuRun,Add,管理员权限运行(&A),MultifunctionMenu
 		Menu,menuRun,Add,最小化运行(&I),MultifunctionMenu
 		Menu,menuRun,Add,最大化运行(&P),MultifunctionMenu
@@ -1650,8 +1657,8 @@ Menu_Key_Run_Run:
 				Run_Any(any)
 			}
 		}
-		if(menuTransNum>0 && menuTransNum<100){
-			Run_Wait(any,menuTransNum)
+		if(menuTransNum<100){
+			Run_Wait(any,false,menuTransNum)
 		}
 	} catch e {
 		MsgBox,16,%thisMenuName%热键运行出错,% "运行路径：" any "`n出错命令：" e.What 
@@ -1760,7 +1767,7 @@ Run_Zz(program){
 		return false
 	}
 }
-Run_Wait(program,transRatio=100,winSizeRatio=100,winSize=0){
+Run_Wait(program,topFlag:=false,transRatio=100,winSizeRatio=100,winSize=0){
 	fullPath:=Get_Obj_Path(program)
 	exePath:=fullPath ? fullPath : program
 	transRatio:=transRatio<0 ? 0 : transRatio
@@ -1775,6 +1782,13 @@ Run_Wait(program,transRatio=100,winSizeRatio=100,winSize=0){
 	WinWait,ahk_exe %exePath%,,10
 	if ErrorLevel
 		return
+	if(topFlag){
+		if(WinActive("ahk_class CabinetWClass")){
+			WinSet,AlwaysOnTop,On,ahk_class CabinetWClass
+		}else{
+			WinSet,AlwaysOnTop,On,ahk_exe %exePath%
+		}
+	}
 	if(transRatio<100){
 		try WinSet,Transparent,% transRatio/100*255,ahk_exe %exePath%
 	}
@@ -5526,7 +5540,7 @@ Var_Set:
 	
 	gosub,Menu_Var_Set
 	gosub,Icon_Set
-	global MENU_RUN_NAME_STR:="编辑(&E),同名软件(&S),软件目录(&D),透明运行(&T),固定大小运行(&W),管理员权限运行(&A),最小化运行(&I),最大化运行(&P),隐藏运行(&H),结束软件进程(&X)"
+	global MENU_RUN_NAME_STR:="编辑(&E),同名软件(&S),软件目录(&D),透明运行(&Q),置顶运行(&T),改变大小运行(&W),管理员权限运行(&A),最小化运行(&I),最大化运行(&P),隐藏运行(&H),结束软件进程(&X)"
 	global MENU_RUN_NAME_NOFILE_STR:="复制运行路径(&C),输出运行路径(&V),复制软件名(&N),输出软件名(&M),复制软件名+后缀(&F),输出软件名+后缀(&G)"
 	MENU_RUN_NAME_STR.="," MENU_RUN_NAME_NOFILE_STR
 	MENU_RUN_NAME_NOFILE_STR:="编辑(&E)," MENU_RUN_NAME_NOFILE_STR
