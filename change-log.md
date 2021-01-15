@@ -23,13 +23,13 @@
 
 + `新增` <u>RunAny菜单显示后，鼠标右键菜单项：显示多功能菜单</u>
 
-  - 单独鼠标右键 或 按住<kbd>Shift</kbd>+<kbd>Enter</kbd> 或 <kbd>Shift</kbd>+鼠标左键打开 <b>多功能菜单运行方式</b>
+  - `单独鼠标右键` 或 按住<kbd>Shift</kbd>+<kbd>Enter</kbd> 或 <kbd>Shift</kbd>+鼠标左键打开 <b>多功能菜单运行方式</b>
+    - **单独鼠标右键菜单项 需要更新并自启插件：RunAny_Menu.ahk v2.0.5**
   - 按住<kbd>Ctrl</kbd>+<kbd>Enter</kbd> 或 <kbd>Ctrl</kbd>+鼠标左键打开 软件所在的目录
   - 按住<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Enter</kbd> 或 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+鼠标左键打开 快速跳转到编辑该菜单项
   - 按住<kbd>Shift</kbd>+<kbd>Win</kbd>+<kbd>Enter</kbd> 或 <kbd>Shift</kbd>+<kbd>Win</kbd>+鼠标左键打开 显示并复制软件运行路径
   - 按住<kbd>Ctrl</kbd>+<kbd>Win</kbd>+鼠标左键打开 以管理员身份来运行
 
-  + **需要更新并自启插件：RunAny_Menu.ahk v2.0.5**
   + 编辑菜单项、打开软件目录
   + 同名软件列表、各个不同透明度运行
   + 置顶运行、管理员权限运行、最小化运行、最大化运行、隐藏运行、结束软件进程（后续更新：居中运行、屏幕边角运行、改变窗口大小运行等……）
