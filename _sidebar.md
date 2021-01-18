@@ -1,7 +1,7 @@
 - [**快速开始**](README.md)
 - [**配置说明**](CONFIG.md)
 - [**插件列表**](plugins-list.md)
-- [**插件使用**](plugins-help.md)
+- [**插件库**](plugins-help.md)
 - [**其他功能**](other-features.md)
 - [**常见问题**](FAQ.md)
 - [**版本历史**](change-log.md)

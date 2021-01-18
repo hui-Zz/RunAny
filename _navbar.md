@@ -11,3 +11,4 @@
 * 链接
   * [Scoop软件列表](https://github.com/rasa/scoop-directory/blob/master/by-score.md)
   * [PortableApps软件目录](https://portableapps.com/apps)
+  * [AutoHotkey中文帮助文档](https://wyagd001.github.io/zh-cn/docs/AutoHotkey.htm)

@@ -1,11 +1,14 @@
 
 ## RunAny快捷操作菜单项
 
-按<kbd>`</kbd>打开RunAny菜单后：
-1. 按住<kbd>Ctrl</kbd>打开软件会打开软件所在的目录
-2. 按住<kbd>Shift</kbd>键打开软件快速直接跳转到编辑该菜单项
-3. 按住<kbd>Ctrl</kbd>+<kbd>Shift</kbd>键打开软件会以管理员身份来运行
-4. **鼠标右键软件菜单项，使用更多新功能** (RunAny5.7.4)
+按<kbd>`</kbd>打开RunAny菜单后（v5.7.4以上）：
+
+  - 按<kbd>Shift</kbd>+<kbd>Enter</kbd>键运行 <br/>或 按住<kbd>Shift</kbd>+鼠标左键运行 <br/>或 `单独鼠标右键`运行 <b>会显示多功能菜单</b>
+    - **单独鼠标右键 生效需要更新并自启插件：RunAny_Menu.ahk v2.0.5**
+  - 按住<kbd>Ctrl</kbd>+<kbd>Enter</kbd> 或 <kbd>Ctrl</kbd>+鼠标左键运行：软件所在的目录
+  - 按住<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Enter</kbd> 或 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+鼠标左键运行：快速跳转到编辑该菜单项
+  - 按住<kbd>Shift</kbd>+<kbd>Win</kbd>+<kbd>Enter</kbd> 或 <kbd>Shift</kbd>+<kbd>Win</kbd>+鼠标左键运行：显示并复制软件运行路径
+  - 按住<kbd>Ctrl</kbd>+<kbd>Win</kbd>+鼠标左键运行：以管理员身份来运行
 
 ## 注意：打字打出字符 \` 
 
