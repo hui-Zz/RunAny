@@ -6526,12 +6526,12 @@ everythingCommandStr(){
 	{
 		Loop, parse, iniVar%A_Index%, `n, `r, %A_Space%%A_Tab%
 		{
-			if(InStr(A_LoopField,";")=1 || A_LoopField=""){
+			if(A_LoopField="" || InStr(A_LoopField,";")=1 || InStr(A_LoopField,"-")=1){
 				continue
 			}
 			itemVars:=StrSplit(A_LoopField,"|",,2)
 			itemVar:=itemVars[2] ? itemVars[2] : itemVars[1]
-			RegExMatch(itemVar,"S)^[^|]+?\.[\._a-zA-Z0-9]+",outVar)
+			outVar:=RegExReplace(itemVar,"iS)^([^|]+?\.[^ ]+)($| .*)","$1")	;去掉参数
 			if(!RegExMatch(outVar,"S)\\|\/|\:|\*|\?|\""|\<|\>|\|") 
 					&& !InStr(EvCommandStr,"|" outVar "|") && GetMenuItemMode(A_LoopField)=1
 					&& !FileExist(A_WinDir "\" outVar) && !FileExist(A_WinDir "\system32\" outVar)){
