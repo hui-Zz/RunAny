@@ -2,7 +2,7 @@
 ;* 【ObjReg窗口操作脚本[窗口函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.8"
+global RunAny_Plugins_Version:="1.0.9"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
@@ -22,7 +22,7 @@ class RunAnyObj {
 	;[窗口居中]
 	win_center_zz(){
 		WinGetActiveStats,zTitle,var_width,var_height,var_x,var_y
-		WinMove,%zTitle%,,(A_ScreenWidth-var_width)/2,(A_ScreenHeight-var_height)/2+15,var_width,var_height
+		WinMove,%zTitle%,,(A_ScreenWidth-var_width)/2,(A_ScreenHeight-var_height)/2+15
 	}
 	;[窗口移动]
 	win_move_zz(var_x,var_y){
@@ -47,21 +47,23 @@ class RunAnyObj {
 			WinSet,AlwaysOnTop,Off,A
 		}
 	}
-	;[窗口移至边角置顶观影]
+	;[窗口改变大小移至边角置顶观影]
 	;参数说明：
 	;mode：1-左上,2-右上,3-左下,4-右下
 	;x：正数向左偏移像素，负数向右偏移像素
 	;y：正数向下偏移像素，负数向上偏移像素
 	;title：0-显示标题栏，1-隐藏标题栏
-	win_movie_zz(mode=1,x=0,y=0,title=0){
-		MouseGetPos,,,zId
-		WinGetTitle,zTitle,ahk_id %zId%
-		WinSet,AlwaysOnTop,on,ahk_id %zId%
+	;w：改变窗口宽度
+	;h：改变窗口高度
+	win_movie_zz(mode=1,x=0,y=0,title=0,w=0,h=0){
+		WinGetActiveStats,zTitle,var_width,var_height,var_x,var_y
+		WinSet,AlwaysOnTop,on,A  ;开启置顶
 		if(title)
-			WinSet,Style,-0xC00000,ahk_id %zId%
+			WinSet,Style,-0xC00000,A
 		else
-			WinSet,Style,+0xC00000,ahk_id %zId%
-		WinGetPos,var_x,var_y,var_width,var_height,ahk_id %zId%
+			WinSet,Style,+0xC00000,A
+		var_width:=w=0 ? var_width : w
+		var_height:=h=0 ? var_height : h
 		if(mode=1){
 			var_x:=0
 			var_y:=0
@@ -75,7 +77,7 @@ class RunAnyObj {
 			var_x:=A_ScreenWidth-var_width
 			var_y:=A_ScreenHeight-var_height
 		}
-		WinMove,%zTitle%,,% var_x + x,% var_y + y
+		WinMove,%zTitle%,,% var_x + x,% var_y + y,%var_width%,%var_height%
 	}
 	;[窗口透明度]
 	win_transparency_zz(flag = 1,amount = 10)
