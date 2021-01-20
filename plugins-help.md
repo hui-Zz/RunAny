@@ -28,53 +28,108 @@
 3. 复制以下执行项写入`RunAny.ini`文件保存，然后重启RunAny后打开菜单即可使用  
 
 <details>
-<summary>【点击展开】复制需要的功能写入RunAny.ini文件</summary>
-
-<PRE>
-;使用左Win键搭配鼠标右键或滚轮的使用方式
-窗口居中&#9LWin & RButton|huiZz_Window[win_center_zz]()
-窗口透明化&#9LWin & WheelDown|huiZz_Window[win_transparency_zz](1,30)
-窗口不透明&#9LWin & WheelUp|huiZz_Window[win_transparency_zz](0,30)
-</PRE>
+<summary>【点击展开窗口函数】复制需要的功能写入RunAny.ini文件</summary>
 
 ```autohotkey
--窗口函数
+-窗口操作函数
 	;外接ahk脚本名[函数名](函数传参数，可以无参)
-	窗口居中|huiZz_Window[win_center_zz]()
 	窗口置顶|huiZz_Window[win_top_zz](1)
 	窗口取消置顶|huiZz_Window[win_top_zz](0)
 	窗口置顶时透明|huiZz_Window[win_transparent_top_zz]()
 	--
-	窗口透明化|huiZz_Window[win_transparency_zz](1,20)
-	窗口不透明|huiZz_Window[win_transparency_zz](0,20)
-	窗口最大化显示|huiZz_Window[win_max_zz]()
+```
+<PRE>
+	;使用左Win键搭配鼠标右键或滚轮的使用方式
+	窗口透明化&#9LWin & WheelDown|huiZz_Window[win_transparency_zz](1,20)
+	窗口不透明&#9LWin & WheelUp|huiZz_Window[win_transparency_zz](0,20)
 	--
-	窗口改变大小并移动|huiZz_Window[win_move_size_zz](0,0,800,600)
-	;外接函数参数明确数值的情况(速度最快，推荐)
-	窗口340x200|huiZz_Window[win_size_zz](340,200)
-	窗口650x384|huiZz_Window[win_size_zz](650,384)
-	窗口800x600|huiZz_Window[win_size_zz](800,600)
-	窗口1024x768|huiZz_Window[win_size_zz](1024,768)
-	;外接函数参数需要用到系统环境变量(适用不同电脑情况，速度快)
-	窗口竖半屏|huiZz_Window[win_size_zz](960,%A_ScreenHeight%)
-	;外接函数参数为动态表达式计算值(适用复杂函数情况，在()前加%区分，速度慢)
-	窗口占比0.5x0.5|huiZz_Window[win_size_zz]%(A_ScreenWidth*0.5,A_ScreenHeight*0.5)
-	窗口占比0.8x0.8|huiZz_Window[win_size_zz]%(A_ScreenWidth*0.8,A_ScreenHeight*0.8)
-	窗口占比0.8x0.9|huiZz_Window[win_size_zz]%(A_ScreenWidth*0.8,A_ScreenHeight*0.9)
-	--
+</PRE>
+```autohotkey
+	当前窗口目录|huiZz_Window[win_folder_zz](%"Totalcmd64.exe"%, /O /S)
+	当前窗口关闭|huiZz_Window[win_close_zz]()
+	当前窗口进程结束|huiZz_Window[win_kill_zz]()
+	当前窗口进程PID结束|huiZz_Window[win_kill_pid_zz]()
+	||
+```
+<PRE>
+	窗口屏幕居中&#9LWin & RButton|huiZz_Window[win_center_zz]()
+</PRE>
+```autohotkey
 	;窗口移至边角置顶观影[win_movie_zz](mode=1,x=0,y=0,title=0)
 	;参数说明：
 	;mode：1-左上,2-右上,3-左下,4-右下
 	;x：正数向左偏移像素，负数向右偏移像素
 	;y：正数向下偏移像素，负数向上偏移像素
 	;title：0-显示标题栏，1-隐藏标题栏
-	屏幕左上角|huiZz_Window[win_movie_zz](1,-10)
-	屏幕右上角|huiZz_Window[win_movie_zz](2,10)
-	屏幕左下角|huiZz_Window[win_movie_zz](3,-10,10)
-	屏幕右下角|huiZz_Window[win_movie_zz](4,10,10)
+	;w：改变窗口宽度
+	;h：改变窗口高度
+	窗口屏幕左上角|huiZz_Window[win_movie_zz](1,-10)
+	窗口屏幕右上角|huiZz_Window[win_movie_zz](2,10)
+	窗口屏幕左下角|huiZz_Window[win_movie_zz](3,-10,10)
+	窗口屏幕右下角|huiZz_Window[win_movie_zz](4,10,10)
 	--
-	当前窗口关闭|huiZz_Window[win_close_zz]()
-	当前窗口进程结束|huiZz_Window[win_kill_zz]()
+	窗口屏幕左上角30%|huiZz_Window[win_movie_zz]%(1,-10,0,0,A_ScreenWidth*0.33,A_ScreenHeight*0.33)
+	窗口屏幕右上角30%|huiZz_Window[win_movie_zz]%(2,10,0,0,A_ScreenWidth*0.33,A_ScreenHeight*0.33)
+	窗口屏幕左下角30%|huiZz_Window[win_movie_zz]%(3,-10,10,0,A_ScreenWidth*0.33,A_ScreenHeight*0.33)
+	窗口屏幕右下角30%|huiZz_Window[win_movie_zz]%(4,10,10,0,A_ScreenWidth*0.33,A_ScreenHeight*0.33)
+-窗口大小函数
+	窗口占比0.5x0.5|huiZz_Window[win_size_zz]%(A_ScreenWidth*0.5,A_ScreenHeight*0.5)
+	窗口占比0.7x0.7|huiZz_Window[win_size_zz]%(A_ScreenWidth*0.7,A_ScreenHeight*0.7)
+	窗口占比0.8x0.8|huiZz_Window[win_size_zz]%(A_ScreenWidth*0.8,A_ScreenHeight*0.8)
+	窗口占比0.8x0.9|huiZz_Window[win_size_zz]%(A_ScreenWidth*0.8,A_ScreenHeight*0.95)
+	--
+	窗口上半屏|huiZz_Window[win_move_size_zz](0,0,%A_ScreenWidth%,540)
+	窗口下半屏|huiZz_Window[win_move_size_zz](0,540,%A_ScreenWidth%,540)
+	窗口竖半屏|huiZz_Window[win_size_zz](960,%A_ScreenHeight%)
+	窗口最大化去标题栏|huiZz_Window[win_max_zz]()
+	窗口最大化多显示器|huiZz_Window[win_max_max]()
+	--
+	窗口自定义大小和坐标|huiZz_Window[win_move_size_zz](0,0,960,540)
+	||
+	;宽屏分辨率比例：16:9
+	窗口320x180|huiZz_Window[win_size_zz](320,180)
+	窗口640x360|huiZz_Window[win_size_zz](640,360)
+	窗口960x540|huiZz_Window[win_size_zz](960,540)
+	窗口1280x720|huiZz_Window[win_size_zz](1280,720)
+	窗口1366x768|huiZz_Window[win_size_zz](1366,768)
+	窗口1600x900|huiZz_Window[win_size_zz](1600,900)
+	窗口1920x1080|huiZz_Window[win_size_zz](1920,1080)
+	窗口2240x1260|huiZz_Window[win_size_zz](2240,1260)
+	窗口2560x1440|huiZz_Window[win_size_zz](2560,1440)
+	窗口2880x1620|huiZz_Window[win_size_zz](2880,1620)
+	窗口3200x1800|huiZz_Window[win_size_zz](3200,1800)
+	窗口3520x1980|huiZz_Window[win_size_zz](3520,1980)
+	窗口3840x2160|huiZz_Window[win_size_zz](3840,2160)
+	||
+	;大宽屏分辨率比例：16:10
+	窗口320x200|huiZz_Window[win_size_zz](320,200)
+	窗口640x400|huiZz_Window[win_size_zz](640,400)
+	窗口720x450|huiZz_Window[win_size_zz](720,450)
+	窗口960x600|huiZz_Window[win_size_zz](960,600)
+	窗口1280x800|huiZz_Window[win_size_zz](1280,800)
+	窗口1440x900|huiZz_Window[win_size_zz](1440,900)
+	窗口1680x1050|huiZz_Window[win_size_zz](1680,1050)
+	窗口1920x1200|huiZz_Window[win_size_zz](1920,1200)
+	窗口2240x1400|huiZz_Window[win_size_zz](2240,1400)
+	窗口2560x1600|huiZz_Window[win_size_zz](2560,1600)
+	窗口3200x2000|huiZz_Window[win_size_zz](3200,2000)
+	--
+	;带鱼屏分辨率比例：21:9
+	窗口2560x1080|huiZz_Window[win_size_zz](2560,1080)
+	窗口3440x1440|huiZz_Window[win_size_zz](3440,1440)
+	||
+	;分辨率比例：4:3
+	窗口320x240|huiZz_Window[win_size_zz](320,240)
+	窗口640x480|huiZz_Window[win_size_zz](640,480)
+	窗口800x600|huiZz_Window[win_size_zz](800,600)
+	窗口960x720|huiZz_Window[win_size_zz](960,720)
+	窗口1024x768|huiZz_Window[win_size_zz](1024,768)
+	窗口1280x960|huiZz_Window[win_size_zz](1280,960)
+	窗口1400x1050|huiZz_Window[win_size_zz](1400,1050)
+	窗口1600x1200|huiZz_Window[win_size_zz](1600,1200)
+	窗口1920x1440|huiZz_Window[win_size_zz](1920,1440)
+	窗口2048x1536|huiZz_Window[win_size_zz](2048,1536)
+	窗口3200x2400|huiZz_Window[win_size_zz](3200,2400)
 ```
 
 </details>
