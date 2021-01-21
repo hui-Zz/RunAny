@@ -2,7 +2,7 @@
 ;* 【ObjReg系统操作脚本[系统函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.6"
+global RunAny_Plugins_Version:="1.0.7"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
 #WinActivateForce       ;~强制激活窗口
@@ -98,14 +98,21 @@ class RunAnyObj {
 		;~ WinWaitClose,ahk_exe explorer.exe
 		;~ Run,explorer.exe
 	}
-	;[复制选中文件路径]
+	;[复制选中文件路径] v1.0.7
 	;复制文件说明：path路径, name名称, dir目录, ext后缀, nameNoExt无后缀名称, drive盘符
 	;复制快捷方式说明：lnkTarget指向路径, lnkDir指向目录, lnkArgs参数, lnkDesc注释, lnkIcon图标文件名, lnkIconNum图标编号, lnkRunState初始运行方式
 	system_file_path_zz(path:="",copy:=""){
-		SplitPath, path, name, dir, ext, nameNoExt, drive
-		if(ext="lnk")
-			FileGetShortcut, %path%, lnkTarget, lnkDir, lnkArgs, lnkDesc, lnkIcon, lnkIconNum, lnkRunState
-		Clipboard:=%copy%
+		textResult:=""
+		Loop, parse, path, `n, `r, %A_Space%%A_Tab%
+		{
+			if(!A_LoopField)
+				continue
+			SplitPath, A_LoopField, name, dir, ext, nameNoExt, drive
+			if(ext="lnk")
+				FileGetShortcut, %A_LoopField%, lnkTarget, lnkDir, lnkArgs, lnkDesc, lnkIcon, lnkIconNum, lnkRunState
+			textResult.=%copy% "`n"
+		}
+		Clipboard:=Trim(textResult, ",`n ")
 	}
 	;[创建目标快捷方式]
 	;参数说明：getZz：选中的文件路径
