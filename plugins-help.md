@@ -27,8 +27,9 @@
 2. 下载后在插件管理点击“自启”按钮设置huizz_Window.ahk为自动启动  
 3. 复制以下执行项写入`RunAny.ini`文件保存，然后重启RunAny后打开菜单即可使用  
 
+↓ 点击下面展开，复制需要的功能写入RunAny.ini文件
 <details>
-<summary>【点击展开窗口函数】复制需要的功能写入RunAny.ini文件</summary>
+<summary>【窗口操作函数】</summary>
 
 ```autohotkey
 -窗口操作函数
@@ -39,7 +40,7 @@
 	--
 ```
 <PRE>
-	;使用左Win键搭配鼠标右键或滚轮的使用方式
+	;使用左Win键搭配鼠标滚轮的使用方式
 	窗口透明化&#9LWin & WheelDown|huiZz_Window[win_transparency_zz](1,20)
 	窗口不透明&#9LWin & WheelUp|huiZz_Window[win_transparency_zz](0,20)
 	--
@@ -52,6 +53,7 @@
 	||
 ```
 <PRE>
+	;使用左Win键搭配鼠标右键
 	窗口屏幕居中&#9LWin & RButton|huiZz_Window[win_center_zz]()
 </PRE>
 ```autohotkey
@@ -72,6 +74,14 @@
 	窗口屏幕右上角30%|huiZz_Window[win_movie_zz]%(2,10,0,0,A_ScreenWidth*0.33,A_ScreenHeight*0.33)
 	窗口屏幕左下角30%|huiZz_Window[win_movie_zz]%(3,-10,10,0,A_ScreenWidth*0.33,A_ScreenHeight*0.33)
 	窗口屏幕右下角30%|huiZz_Window[win_movie_zz]%(4,10,10,0,A_ScreenWidth*0.33,A_ScreenHeight*0.33)
+```
+
+</details>
+
+<details>
+<summary>【窗口大小函数】</summary>
+
+```autohotkey
 -窗口大小函数
 	窗口占比0.5x0.5|huiZz_Window[win_size_zz]%(A_ScreenWidth*0.5,A_ScreenHeight*0.5)
 	窗口占比0.7x0.7|huiZz_Window[win_size_zz]%(A_ScreenWidth*0.7,A_ScreenHeight*0.7)
