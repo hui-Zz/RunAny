@@ -89,8 +89,8 @@ t1:=A_TickCount-StartTick
 Menu_Tray_Tip("初始化时间：" Round(t1/1000,3) "s`n","开始运行插件脚本...")
 if(!iniFlag){
 	;~;[运行插件脚本]
-	Gosub,AutoClose_Effect
-	Gosub,AutoRun_Effect
+	Gosub,AutoClose_Plugins
+	Gosub,AutoRun_Plugins
 	;~;[插件对象注册]
 	Gosub,Plugins_Object_Register
 }
@@ -1341,6 +1341,8 @@ Menu_Run:
 		MenuShowMenuRun:=""
 	}
 	MenuRunDebugModeShow()
+	if(any="")
+		return
 	fullPath:=Get_Obj_Path(any)
 	SplitPath, fullPath, name, dir, ext, name_no_ext
 	if(dir && FileExist(dir))
@@ -6104,8 +6106,8 @@ menuItemIconFileName(menuItem){
 	}
 	return menuItem
 }
-;~;[自动启动生效]
-AutoRun_Effect:
+;~;[自动启动插件]
+AutoRun_Plugins:
 	try {
 		if(A_AhkPath){
 			For runn, runv in PluginsPathList	;循环启动项
@@ -6126,14 +6128,14 @@ AutoRun_Effect:
 			}
 		}
 	} catch e {
-		MsgBox,16,自动启动出错,% "启动项名：" runn "`n启动项路径：" runv 
+		MsgBox,16,自动启动插件出错,% "启动项名：" runn "`n启动项路径：" runv 
 			. "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 	} finally {
 		SetWorkingDir,%A_ScriptDir%
 	}
 return
-;~;[随RunAny自动关闭]
-AutoClose_Effect:
+;~;[随RunAny自动关闭插件]
+AutoClose_Plugins:
 	DetectHiddenWindows,On
 	For runn, runv in PluginsPathList
 	{
@@ -6302,7 +6304,7 @@ Menu_Suspend:
 	Suspend
 return
 Menu_Exit:
-	gosub,AutoClose_Effect
+	gosub,AutoClose_Plugins
 	ExitApp
 return
 RemoveToolTip:
@@ -6316,7 +6318,7 @@ RemoveDebugModeToolTip:
 	ToolTip
 return
 ExitSub:
-	gosub,AutoClose_Effect
+	gosub,AutoClose_Plugins
 	ExitApp
 return
 Ini_Run(ini){
