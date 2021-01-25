@@ -4125,12 +4125,19 @@ LVApply:
 return
 ;[插件脚本编辑操作]
 Plugins_Edit(FilePath){
-	;~ PostMessage, 0x111, 65401,,, %FilePath% ahk_class AutoHotkey
-	RegRead, AhkSetup, HKEY_LOCAL_MACHINE\SOFTWARE\Classes\AutoHotkeyScript
-	if(AhkSetup){
-		Run,edit "%FilePath%"
-	}else{
-		Run,notepad.exe "%FilePath%"
+	try{
+		PostMessage, 0x111, 65401,,, %FilePath% ahk_class AutoHotkey
+	}catch{
+		try{
+			RegRead, AhkSetup, HKEY_LOCAL_MACHINE\SOFTWARE\Classes\AutoHotkeyScript
+			if(AhkSetup){
+				Run,edit "%FilePath%"
+			}else{
+				Run,notepad.exe "%FilePath%"
+			}
+		}catch{
+			Run,notepad.exe "%FilePath%"
+		}
 	}
 }
 #If WinActive(RunAnyZz " 插件管理 - 支持拖放 " RunAny_update_version A_Space RunAny_update_time)
