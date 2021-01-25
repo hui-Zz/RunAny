@@ -5495,7 +5495,7 @@ Var_Set:
 	global JumpSearch:=Var_Read("JumpSearch",0)
 	global AutoGetZz:=Var_Read("AutoGetZz",1)
 	global DisableExeIcon:=Var_Read("DisableExeIcon",0)
-	global RunAEncoding:=Var_Read("RunAEncoding")
+	global RunAEncoding:=Var_Read("RunAEncoding",A_Language!=0804 ? "UTF-8" : "")
 	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)
 	global ClipWaitApp:=Var_Read("ClipWaitApp","")
 	global HoldKeyShowTime:=Var_Read("HoldKeyShowTime",1000)
@@ -5784,11 +5784,6 @@ Run_Exist:
 		FileCreateDir,%RunABackupDirPath%\%RunAnyConfig%
 	IfNotExist,%A_ScriptDir%\%PluginsDir%
 		FileCreateDir, %A_ScriptDir%\%PluginsDir%
-	FileGetSize,iniFileSize,%iniFile%
-	If(!FileExist(iniFile) || iniFileSize=0){
-		TrayTip,,RunAny初始化中...,2,1
-		gosub,First_Run
-	}
 	if(RunAEncoding){
 		try{
 			FileEncoding,%RunAEncoding%
@@ -5796,6 +5791,11 @@ Run_Exist:
 			MsgBox,16,文件编码出错,% "请设置正确的编码读取RunAny.ini!`n参考：https://wyagd001.github.io/zh-cn/docs/commands/FileEncoding.htm"
 			. "`n`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 		}
+	}
+	FileGetSize,iniFileSize,%iniFile%
+	If(!FileExist(iniFile) || iniFileSize=0){
+		TrayTip,,RunAny初始化中...,2,1
+		gosub,First_Run
 	}
 	FileRead, iniVar1, %iniPath%
 	;#判断第2菜单ini#
@@ -5808,7 +5808,6 @@ Run_Exist:
 		IfNotExist %RunABackupDirPath%\%RunAnyZz%2.ini
 			FileCreateDir,%RunABackupDirPath%\%RunAnyZz%2.ini
 	}
-	FileEncoding,
 	;#判断配置文件
 	if(!FileExist(RunAnyConfig)){
 		IniWrite,%IniConfig%,%RunAnyConfig%,Config,IniConfig
