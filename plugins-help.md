@@ -78,6 +78,8 @@
 
 </details>
 
+<br>
+
 <details>
 <summary>【窗口大小函数】</summary>
 
@@ -198,7 +200,7 @@
 <summary>【复制路径】</summary>
 
 ```autohotkey
--文件操作|file
+-文件操作
 	管理员运行|huiZz_System[system_runas_zz](%getZz%)
 	批量运行|huiZz_BatchRun[batch_run](%getZz%)
 	多软件打开|huiZz_BatchRun[multi_open](%getZz%,"notepad.exe","wordpad.exe")
