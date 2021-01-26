@@ -4834,14 +4834,15 @@ Menu_Set:
 Menu_About:
 	Gui,99:Destroy
 	Gui,99:Color,FFFFFF
-	Gui,99:Add, ActiveX, x0 y0 w550 h395 voWB, shell explorer
+	Gui,99:Add, ActiveX, x0 y0 w570 h470 voWB, shell explorer
 	oWB.Navigate("about:blank")
 vHtml = 
 (
 <html>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <title>name</title>
-<body style="font-family:Microsoft YaHei;margin:30px;">
+<body style="font-family:Microsoft YaHei;margin:30px;background:url(https://hui-zz.gitee.io/runany/assets/images/RunAnyMp_120x120.png) no-repeat center top;">
+<br><br><br>
 <h2>
 【%RunAnyZz%】一劳永逸的快速启动工具 v%RunAny_update_version% @%RunAny_update_time% 
 <img alt="GitHub stars" src="https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=social"/> 
