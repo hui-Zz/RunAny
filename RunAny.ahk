@@ -302,6 +302,7 @@ Loop,%MenuCount%
 		}
 	}
 }
+
 ;~;[内部关联后缀打开方式]
 Gosub,Open_Ext_Set
 
@@ -1816,8 +1817,10 @@ Run_Search(any,getZz="",browser=""){
 		Run,% browserRun """" StrReplace(any,"%s",getZz) """"
 	}else if(InStr(any,"%S",true)){
 		Run,% browserRun """" StrReplace(any,"%S",SkSub_UrlEncode(getZz)) """"
-	}else{
+	}else if(AutoGetZz){
 		Run,%browserRun%"%any%%getZz%"
+	}else{
+		Run,%browserRun%"%any%"
 	}
 }
 ;~;[执行批量搜索]
@@ -6301,7 +6304,7 @@ Menu_Config:
 	Ini_Run(RunAnyConfig)
 return
 Menu_Reload:
-	Reload
+	try Reload
 	Sleep,1000
 	Run,%A_AhkPath%%A_Space%"%A_ScriptFullPath%"
 	ExitApp
