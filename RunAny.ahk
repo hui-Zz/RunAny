@@ -4142,7 +4142,11 @@ return
 ;[插件脚本编辑操作]
 Plugins_Edit(FilePath){
 	try{
-		PostMessage, 0x111, 65401,,, %FilePath% ahk_class AutoHotkey
+		if(Trim(PluginsEditor," `t`n`r")!=""){
+			Run,% Get_Obj_Path_Transform(PluginsEditor) " " FilePath
+		}else{
+			PostMessage, 0x111, 65401,,, %FilePath% ahk_class AutoHotkey
+		}
 	}catch{
 		try{
 			RegRead, AhkSetup, HKEY_LOCAL_MACHINE\SOFTWARE\Classes\AutoHotkeyScript
@@ -4276,31 +4280,40 @@ LVPluginsLib:
 	Gui,PluginsLib:+OwnerP
 	Gui,PluginsLib:Margin,20,20
 	Gui,PluginsLib:Font,,Microsoft YaHei
-	Gui,PluginsLib:Add, GroupBox,xm y+10 w400 h170
+	Gui,PluginsLib:Add, GroupBox,xm y+10 w460 h220
 	Gui,PluginsLib:Add, Text, xm+5 y+35 y35 w80,%A_Space%默认插件库：
 	Gui,PluginsLib:Add, Text, x+5 yp,%A_ScriptDir%\RunPlugins
-	Gui,PluginsLib:Add, Button, xm+5 y+15 w80 gSetPluginsDirPath,其他插件库：`n支持多行`n支持变量
-	Gui,PluginsLib:Add, Edit, x+5 yp w300 r5 vvPluginsDirPath, %PluginsDirPath%
+	Gui,PluginsLib:Add, Button, xm+10 y+15 w80 gSetPluginsDirPath,其他插件库：`n支持多行`n支持变量
+	Gui,PluginsLib:Add, Edit, x+5 yp w350 r5 vvPluginsDirPath, %PluginsDirPath%
+	Gui,PluginsLib:Add, Button, xm+10 y+10 w80 gSetPluginsEditor,插件编辑器：`n支持无路径%A_Tab%
+	Gui,PluginsLib:Add, Edit, x+5 yp w350 r2 vvPluginsEditor, %PluginsEditor%
 	Gui,PluginsLib:Font
-	Gui,PluginsLib:Add,Button,Default xm+100 y+25 w75 GSavePluginsLib,保存(&S)
+	Gui,PluginsLib:Add,Button,Default xm+130 y+35 w75 GSavePluginsLib,保存(&S)
 	Gui,PluginsLib:Add,Button,x+20 w75 GSetCancel,取消(&C)
 	Gui,PluginsLib:Show,,%RunAnyZz% - 插件脚本库 %RunAny_update_version% %RunAny_update_time%
 return
 SetPluginsDirPath:
 	Gui,PluginsLib:Submit, NoHide
-	FileSelectFolder, PluginsLibFolder, , 0
-	if(PluginsLibFolder){
+	FileSelectFolder, pluginsLibFolder, , 0
+	if(pluginsLibFolder){
 		if(vPluginsDirPath){
-			GuiControl,, vPluginsDirPath, %vPluginsDirPath%`n%PluginsLibFolder%
+			GuiControl,, vPluginsDirPath, %vPluginsDirPath%`n%pluginsLibFolder%
 		}else{
-			GuiControl,, vPluginsDirPath, %PluginsLibFolder%
+			GuiControl,, vPluginsDirPath, %pluginsLibFolder%
 		}
+	}
+return
+SetPluginsEditor:
+	FileSelectFile, pluginsLibFile, , , 插件编辑器路径
+	if(pluginsLibFile){
+		GuiControl,, vPluginsEditor, %pluginsLibFile%
 	}
 return
 SavePluginsLib:
 	Gui,PluginsLib:Submit, NoHide
 	vPluginsDirPath:=RegExReplace(vPluginsDirPath,"S)[\n]+","|")
 	IniWrite,%vPluginsDirPath%,%RunAnyConfig%,Config,PluginsDirPath
+	IniWrite,%vPluginsEditor%,%RunAnyConfig%,Config,PluginsEditor
 	Gui,PluginsLib:Destroy
 	Gui,P:Destroy
 	gosub,Plugins_Manage
@@ -5856,6 +5869,7 @@ Plugins_Read:
 	global PluginsObjNum:=0
 	global PluginsDir:="RunPlugins"	;~插件目录
 	global PluginsDirList:=[]
+	global PluginsEditor:=Var_Read("PluginsEditor")
 	global PluginsDirPath:=Var_Read("PluginsDirPath")
 	global PluginsDirPathList:="%A_ScriptDir%\RunPlugins|" PluginsDirPath
 	Loop, parse, PluginsDirPathList, |
