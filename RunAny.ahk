@@ -143,22 +143,33 @@ if(!EvNo){
 	global EvQueryFlag:=false  ;~Everything是否可以搜索到结果
 	EvCommandStr:=EvDemandSearch ? everythingCommandStr() : ""
 	if(!EvDemandSearch || (EvDemandSearch && EvCommandStr!="")){
+		evAdminRun:=AdminRun ? "-admin" : ""
 		;~;[获取everything路径]
 		evExist:=true
 		DetectHiddenWindows,On
+		if(WinExist("ahk_exe Everything.exe")){
+			WinGet, EvPathRun, ProcessPath, ahk_exe Everything.exe
+			ev := new everything
+			;~;[RunAny管理员权限运行后发现Everything非管理员权限则重新以管理员权限运行]
+			if(!ev.GetIsAdmin() && AdminRun && EvPathRun){
+				Run,%EvPathRun% -exit
+				Run,%EvPathRun% -startup %evAdminRun%
+				Sleep,500
+				gosub,Menu_Reload
+			}
+		}
 		while !WinExist("ahk_exe Everything.exe")
 		{
-			Sleep,100
 			if(A_Index>10){
 				EvPathRun:=Get_Transform_Val(EvPath)
 				if(EvPathRun && FileExist(EvPathRun)){
-					Run,%EvPathRun% -startup
-					Sleep,1000
+					Run,%EvPathRun% -startup %evAdminRun%
+					Sleep,500
 					break
 				}else if(FileExist(A_ScriptDir "\Everything\Everything.exe")){
-					Run,%A_ScriptDir%\Everything\Everything.exe -startup
+					Run,%A_ScriptDir%\Everything\Everything.exe -startup %evAdminRun%
 					EvPath=%A_ScriptDir%\Everything\Everything.exe
-					Sleep,1000
+					Sleep,500
 					break
 				}else{
 					TrayTip,,RunAny需要Everything快速识别无路径程序`n
@@ -170,6 +181,11 @@ if(!EvNo){
 					break
 				}
 			}
+			Sleep,100
+		}
+		if(Trim(EvPath," `t`n`r")=""){
+			;>>发现Everything已运行则取到路径
+			WinGet, EvPath, ProcessPath, ahk_exe Everything.exe
 		}
 		;~;[使用everything补全无路径exe的全路径]
 		global MenuObjEv:=Object()    ;~Everything搜索结果程序全径
@@ -199,10 +215,6 @@ if(!EvNo){
 		}
 		DetectHiddenWindows,Off
 	}
-}
-if(!EvPath){
-	;>>发现Everything已运行则取到路径
-	WinGet, EvPath, ProcessPath, ahk_exe Everything.exe
 }
 ;══════════════════════════════════════════════════════════════════
 t3:=A_TickCount-StartTick
@@ -302,7 +314,6 @@ Loop,%MenuCount%
 		}
 	}
 }
-
 ;~;[内部关联后缀打开方式]
 Gosub,Open_Ext_Set
 
@@ -2032,6 +2043,7 @@ Ev_Show:
 		getZz:=EvShowExt ? fileName : name_no_ext
 	}
 	EvPathRun:=Get_Transform_Val(EvPath)
+	DetectHiddenWindows,On
 	IfWinExist ahk_class EVERYTHING
 		if getZz
 			Run % EvPathRun " -search """ getZz """"
@@ -2042,6 +2054,7 @@ Ev_Show:
 				WinMinimize
 	else
 		Run % EvPathRun (getZz ? " -search """ getZz """" : "")
+	DetectHiddenWindows,Off
 return
 ;~;[一键搜索]
 One_Show:
@@ -4538,6 +4551,7 @@ Menu_Set:
 	GROUP_CHOOSE_EDIT_WIDTH_66=510
 	GROUP_ICON_EDIT_WIDTH_66=480
 	MARGIN_TOP_66=15
+	ev := new everything
 	Gui,66:Destroy
 	Gui,66:Default
 	Gui,66:+Resize
@@ -4546,7 +4560,7 @@ Menu_Set:
 	Gui,66:Add,Tab3,x10 y10 w%TAB_WIDTH_66% h475 vConfigTab +Theme -Background,RunAny设置|热键配置|菜单变量|搜索Everything|一键直达|内部关联|热字符串|图标设置|高级配置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+%MARGIN_TOP_66% vvAutoRun,开机自动启动
-	Gui,66:Add,Checkbox,Checked%AdminRun% x+168 vvAdminRun gSetAdminRun,管理员权限运行所有软件和插件
+	Gui,66:Add,Checkbox,Checked%AdminRun% x+168 vvAdminRun,管理员权限运行所有软件和插件
 	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h105,RunAny应用菜单
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
 	Gui,66:Add,Checkbox,Checked%HideSend% x+180 vvHideSend,隐藏短语
@@ -4645,13 +4659,17 @@ Menu_Set:
 	GuiControl, 66:+Redraw, RunAnyMenuVarLV
 	
 	Gui,66:Tab,搜索Everything,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h70,一键Everything [搜索选中文字、激活、隐藏] %EvHotKey%
+	EvIsAdmin:=ev.GetIsAdmin()
+	EvIsAdminStatus:=EvIsAdmin ? "管理员权限" : "非管理员"
+	Gui,66:Add,Text,xm y+%MARGIN_TOP_66%,Everything当前权限：【%EvIsAdminStatus%】
+	Gui,66:Add,Checkbox,Checked%EvAutoClose% x+20 yp vvEvAutoClose,Everything自动关闭(不常驻后台)
+	Gui,66:Add,Button,x+10 w80 h20 gSetEvReindex,重建索引
+	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h55,一键Everything [搜索选中文字、激活、隐藏] %EvHotKey%
 	Gui,66:Add,Hotkey,xm+10 yp+20 w130 vvEvKey,%EvKey%
 	Gui,66:Add,Checkbox,Checked%EvWinKey% xm+150 yp+3 vvEvWinKey,Win
 	Gui,66:Add,Checkbox,Checked%EvShowExt% x+23 vvEvShowExt,搜索带文件后缀
 	Gui,66:Add,Checkbox,Checked%EvShowFolder% x+5 vvEvShowFolder,搜索选中文件夹内部
-	Gui,66:Add,Checkbox,Checked%EvAutoClose% xm+220 yp+25 vvEvAutoClose,Everything自动关闭(不常驻后台)
-	Gui,66:Add,GroupBox,xm-10 y+15 w%GROUP_WIDTH_66% h80,Everything安装路径（支持内置变量和相对路径..\为RunAny相对上级目录）
+	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h80,Everything安装路径（支持菜单变量和相对路径 \..\代表上一级目录）
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r2 -WantReturn vvEvPath,%EvPath%
 	Gui,66:Add,GroupBox,xm-10 y+20 vvEvCommandGroup,RunAny调用Everything搜索参数（搜索结果可在RunAny无路径运行，Everything异常请尝试重建索引）
@@ -5027,6 +5045,10 @@ return
 SetClearRecentMax:
 	RegDelete, HKEY_CURRENT_USER, SOFTWARE\RunAny, MenuCommonList
 return
+SetEvReindex:
+	Gui,66:Submit, NoHide
+	Run,% Get_Transform_Val(vEvPath) " -reindex"
+return
 SetReSet:
 	MsgBox,49,重置RunAny配置,此操作会删除RunAny所有注册表配置，以及删除本地配置文件%RunAnyConfig%，确认删除重置吗？
 	IfMsgBox Ok
@@ -5035,24 +5057,6 @@ SetReSet:
 		RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		FileDelete, %RunAnyConfig%
 		gosub,Menu_Reload
-	}
-return
-SetAdminRun:
-	Gui,66:Submit, NoHide
-	if(vAdminRun){
-		MsgBox, 51, %RunAnyZz%管理员权限运行所有软件和插件, 【注意！】`n
-		(
-如果系统UAC未关闭，需要同时设置Everything管理员权限
-（Everything菜单-工具-选项-勾选"以管理员身份运行"）
-否则%RunAnyZz%启动后可能会长时间停留在红色图标状态`n
-【是否已经设置好Everything管理员身份运行权限？】
-		)
-		IfMsgBox Yes
-		{
-			GuiControl,, vAdminRun, 1
-		}else{
-			GuiControl,, vAdminRun, 0
-		}
 	}
 return
 SetEvExeVerNew:
@@ -6603,10 +6607,20 @@ class everything
 		dllcall(everyDLL "\Everything_Query",int,aValue)
 		return
 	}
+	;返回管理员权限状态
+	GetIsAdmin()
+	{
+		return dllcall(everyDLL "\Everything_IsAdmin")
+	}
 	;返回匹配总数
 	GetTotResults()
 	{
 		return dllcall(everyDLL "\Everything_GetTotResults")
+	}
+	;返回可见文件结果的数量
+	GetNumFileResults()
+	{
+		return dllcall(everyDLL "\Everything_GetNumFileResults")
 	}
 	;返回文件名
 	GetResultFileName(aValue)
