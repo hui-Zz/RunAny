@@ -4741,9 +4741,9 @@ Menu_Set:
 	
 	Gui,66:Tab,图标设置,,Exact
 	Gui,66:Add,Checkbox,Checked%HideMenuTrayIcon% xm-5 y+%MARGIN_TOP_66% vvHideMenuTrayIcon gSetHideMenuTrayIcon,隐藏任务栏托盘图标
-	Gui,66:Add,Text,x+10 yp,RunAny菜单项图标大小(像素)
+	Gui,66:Add,Text,x+10 yp,RunAny菜单图标大小(像素)
 	Gui,66:Add,Edit,x+3 yp w30 h20 vvMenuIconSize,%MenuIconSize%
-	Gui,66:Add,Text,x+15 yp,托盘右键菜单图标大小(像素)
+	Gui,66:Add,Text,x+15 yp,任务栏托盘右键图标大小(像素)
 	Gui,66:Add,Edit,x+3 yp w30 h20 vvMenuTrayIconSize,%MenuTrayIconSize%
 	Gui,66:Add,GroupBox,xm-10 yp+30 w%GROUP_WIDTH_66% h275,图标自定义设置（图片或图标文件路径 , 序号不填默认1）
 	Gui,66:Add,Button,xm yp+20 w80 GSetAnyIcon,RunAny图标
@@ -5436,7 +5436,7 @@ Var_Set:
 	global ConfigDate:=Var_Read("ConfigDate")
 	global RunABackupDir:=Var_Read("RunABackupDir","`%A_ScriptDir`%\RunBackup")
 	global RunABackupRule:=Var_Read("RunABackupRule",1)
-	global RunABackupMax:=Var_Read("RunABackupMax",5)
+	global RunABackupMax:=Var_Read("RunABackupMax",15)
 	global RunABackupFormat:=Var_Read("RunABackupFormat",".`%A_Now`%.bak")
 	global HideFail:=Var_Read("HideFail",1)
 	global HideWeb:=Var_Read("HideWeb",0)
@@ -5706,7 +5706,7 @@ Icon_Set:
 		UpIcon:="ZzIcon.dll,5"
 		DownIcon:="ZzIcon.dll,6"
 	}
-	global MenuIconSize:=Var_Read("MenuIconSize")
+	global MenuIconSize:=Var_Read("MenuIconSize",A_ScreenHeight>=1080 ? 24 : "")
 	global MenuTrayIconSize:=Var_Read("MenuTrayIconSize")
 	global AnyIcon:=Var_Read("AnyIcon",iconAny)
 	global AnyIconS:=StrSplit(Get_Transform_Val(AnyIcon),",")
