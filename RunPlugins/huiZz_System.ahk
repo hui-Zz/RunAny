@@ -2,7 +2,7 @@
 ;* 【ObjReg系统操作脚本[系统函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.7"
+global RunAny_Plugins_Version:="1.0.8"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
 #WinActivateForce       ;~强制激活窗口
@@ -110,7 +110,7 @@ class RunAnyObj {
 			SplitPath, A_LoopField, name, dir, ext, nameNoExt, drive
 			if(ext="lnk")
 				FileGetShortcut, %A_LoopField%, lnkTarget, lnkDir, lnkArgs, lnkDesc, lnkIcon, lnkIconNum, lnkRunState
-			textResult.=%copy% "`n"
+			textResult.=(copy="path") ? A_LoopField "`n" : %copy% "`n"
 		}
 		Clipboard:=Trim(textResult, ",`n ")
 	}
