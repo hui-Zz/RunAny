@@ -2034,26 +2034,35 @@ return
 ;~;[一键Everything][搜索选中文字][激活][隐藏]
 Ev_Show:
 	getZz:=Get_Zz()
-	if(EvShowFolder && (InStr(FileExist(getZz), "D") || RegExMatch(getZz,"S).*\\$"))){
-		if(InStr(getZz,A_Space)){
-			getZz="""%getZz%"""
+	evSearch:=""
+	if(Trim(getZz," `t`n`r")!=""){
+		Loop, parse, getZz, `n, `r
+		{
+			S_LoopField=%A_LoopField%
+			if(EvShowFolder && (InStr(FileExist(S_LoopField), "D") || RegExMatch(S_LoopField,"S).*\\$"))){
+			}else if(RegExMatch(S_LoopField,"S)^(\\\\|.:\\).*?$")){
+				SplitPath,S_LoopField,fileName,,,name_no_ext
+				S_LoopField:=EvShowExt ? fileName : name_no_ext
+			}
+			if(InStr(S_LoopField,A_Space)){
+				S_LoopField="""%S_LoopField%"""
+			}
+			evSearch.=S_LoopField "|"
 		}
-	}else if(RegExMatch(getZz,"S)^(\\\\|.:\\).*?$")){
-		SplitPath,getZz,fileName,,,name_no_ext
-		getZz:=EvShowExt ? fileName : name_no_ext
+		evSearch:=RegExReplace(evSearch,"\|$")
 	}
 	EvPathRun:=Get_Transform_Val(EvPath)
 	DetectHiddenWindows,On
 	IfWinExist ahk_class EVERYTHING
-		if getZz
-			Run % EvPathRun " -search """ getZz """"
+		if evSearch
+			Run % EvPathRun " -search """ evSearch """"
 		else
 			IfWinNotActive
 				WinActivate
 			else
 				WinMinimize
 	else
-		Run % EvPathRun (getZz ? " -search """ getZz """" : "")
+		Run % EvPathRun (evSearch ? " -search """ evSearch """" : "")
 	DetectHiddenWindows,Off
 return
 ;~;[一键搜索]
