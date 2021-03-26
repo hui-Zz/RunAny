@@ -5728,7 +5728,17 @@ Icon_Set:
 		UpIcon:="ZzIcon.dll,5"
 		DownIcon:="ZzIcon.dll,6"
 	}
-	global MenuIconSize:=Var_Read("MenuIconSize",A_ScreenHeight>=1080 ? 24 : "")
+	MonitorHeight:=true
+	SysGet, MonitorCount, MonitorCount
+	Loop, %MonitorCount%
+	{
+		SysGet, Monitor, Monitor, %A_Index%
+		if(MonitorBottom<1080){
+			MonitorHeight:=false
+		}
+	}
+	;如果所有显示器分辨率都大于等于1080高度则菜单图标默认24像素大小
+	global MenuIconSize:=Var_Read("MenuIconSize",MonitorHeight ? 24 : "")
 	global MenuTrayIconSize:=Var_Read("MenuTrayIconSize")
 	global AnyIcon:=Var_Read("AnyIcon",iconAny)
 	global AnyIconS:=StrSplit(Get_Transform_Val(AnyIcon),",")
