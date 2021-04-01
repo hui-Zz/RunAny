@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.4 @2021.03.25
+║【RunAny】一劳永逸的快速启动工具 v5.7.4 @2021.03.31
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.7.4"
-global RunAny_update_time:="2021.03.25"
+global RunAny_update_time:="2021.03.31"
 Gosub,Var_Set          ;~参数初始化
 Gosub,Run_Exist        ;~调用判断依赖
 Gosub,Plugins_Read     ;~插件脚本读取
@@ -143,7 +143,7 @@ if(!EvNo){
 	global EvQueryFlag:=false  ;~Everything是否可以搜索到结果
 	EvCommandStr:=EvDemandSearch ? everythingCommandStr() : ""
 	if(!EvDemandSearch || (EvDemandSearch && EvCommandStr!="")){
-		evAdminRun:=AdminRun ? "-admin" : ""
+		evAdminRun:=A_IsAdmin ? "-admin" : ""
 		;~;[获取everything路径]
 		evExist:=true
 		DetectHiddenWindows,On
@@ -151,7 +151,7 @@ if(!EvNo){
 			WinGet, EvPathRun, ProcessPath, ahk_exe Everything.exe
 			ev := new everything
 			;~;[RunAny管理员权限运行后发现Everything非管理员权限则重新以管理员权限运行]
-			if(!ev.GetIsAdmin() && AdminRun && EvPathRun){
+			if(!ev.GetIsAdmin() && A_IsAdmin && EvPathRun){
 				Run,%EvPathRun% -exit
 				Run,%EvPathRun% -startup %evAdminRun%
 				Sleep,500
@@ -2381,6 +2381,21 @@ escapeString(string){
 	string:=RegExReplace(string, "\R", "\n")
 	return string
 }
+/*
+【隐藏运行cmd命令并将结果存入剪贴板后取回 @hui-Zz】
+*/
+cmdClipReturn(command){
+	cmdInfo:=""
+	Clip_Saved:=ClipboardAll
+	try{
+		Clipboard:=""
+		Run,% ComSpec " /C " command " | CLIP", , Hide
+		ClipWait,2
+		cmdInfo:=Clipboard
+	}catch{}
+	Clipboard:=Clip_Saved
+	return cmdInfo
+}
 ;~;[动态执行脚本注册对象]
 DynaExpr_ObjRegisterActive(GUID,appFunc,appParms:="",getZz:="")
 {
@@ -4582,7 +4597,8 @@ Menu_Set:
 	Gui,66:Add,Tab3,x10 y10 w%TAB_WIDTH_66% h475 vConfigTab +Theme -Background,RunAny设置|热键配置|菜单变量|搜索Everything|一键直达|内部关联|热字符串|图标设置|高级配置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+%MARGIN_TOP_66% vvAutoRun,开机自动启动
-	Gui,66:Add,Checkbox,Checked%AdminRun% x+168 vvAdminRun,管理员权限运行所有软件和插件
+	Gui,66:Add,Checkbox,Checked%AdminRun% x+25 vvAdminRun,管理员权限运行所有软件和插件
+	Gui,66:Add,Button,x+20 w245 h20 gSetScheduledTasks,系统任务计划方式：开机管理员启动%RunAnyZz%
 	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h105,RunAny应用菜单
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
 	Gui,66:Add,Checkbox,Checked%HideSend% x+180 vvHideSend,隐藏短语
@@ -4686,7 +4702,7 @@ Menu_Set:
 	Gui,66:Add,Text,xm y+%MARGIN_TOP_66%,Everything当前权限：【%EvIsAdminStatus%】
 	Gui,66:Add,Checkbox,Checked%EvAutoClose% x+20 yp vvEvAutoClose,Everything自动关闭(不常驻后台)
 	Gui,66:Add,Button,x+10 w80 h20 gSetEvReindex,重建索引
-	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h55,一键Everything [搜索选中文字、激活、隐藏] %EvHotKey%
+	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h55,一键Everything [搜索选中文字，支持多选文件、再按为隐藏/激活] %EvHotKey%
 	Gui,66:Add,Hotkey,xm+10 yp+20 w130 vvEvKey,%EvKey%
 	Gui,66:Add,Checkbox,Checked%EvWinKey% xm+150 yp+3 vvEvWinKey,Win
 	Gui,66:Add,Checkbox,Checked%EvShowExt% x+23 vvEvShowExt,搜索带文件后缀
@@ -5063,6 +5079,22 @@ return
 SetHideSelectZz:
 	GuiControlGet, outPutVar, , vHideSelectZz
 	GuiControl,, vHideSelectZz2, %outPutVar%
+return
+SetScheduledTasks:
+	cmdClipReturn("""schtasks /create /tn """ RunAnyZz "启动"" /tr " A_AhkPath " /sc onlogon /rl HIGHEST""")
+	Run,taskschd.msc
+	chassisTypes:=cmdClipReturn("wmic PATH Win32_SystemEnclosure get ChassisTypes /value | findstr ""ChassisTypes=""")
+	chassisTypes:=RegExReplace(chassisTypes,"i)ChassisTypes=\{(\d+)\}.*","$1")
+	chassisTypes:=Format("{:d}",chassisTypes)
+	if(chassisTypes>=8){
+		Sleep,1000
+		MsgBox, 64, 任务计划%RunAnyZz%创建完成, 在每次系统登录时会以管理员权限启动%RunAnyZz%`n`n
+		(
+【注意】`n当前电脑是笔记本，如果需要笔记本使用电池开机也会自动启动%RunAnyZz%
+`n请找到任务计划程序库-%RunAnyZz%启动-右键属性-“条件”里面-
+取消勾选“只有在计算机使用交流电源时才启动此任务”
+		)
+	}
 return
 SetClearRecentMax:
 	RegDelete, HKEY_CURRENT_USER, SOFTWARE\RunAny, MenuCommonList
