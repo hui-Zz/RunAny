@@ -790,7 +790,10 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 						MenuObjKey[hotstr]:=itemParam
 						MenuObjKeyName[hotstr]:=menuKeys[1]
 						if(RegExMatch(hotstr,"S):[^:]*?X[^:]*?:[^:]*")){
+							;热字符串运行不带%getZz%的函数、不带%getZz%或%s的网址不传递选中内容
 							if(!InStr(menuDiy[2],"%getZz%") && RegExMatch(menuDiy[2],"iS).+?\[.+?\]%?\(.*?\)")){
+								Hotstring(hotstr,"Menu_Key_NoGet_Run","On")
+							}else if(RegExMatch(menuDiy[2],"iS)([\w-]+://?|www[.]).*") && !InStr(menuDiy[2],"%getZz%") && !InStr(menuDiy[2],"%s")){
 								Hotstring(hotstr,"Menu_Key_NoGet_Run","On")
 							}else{
 								Hotstring(hotstr,"Menu_Key_Run","On")
