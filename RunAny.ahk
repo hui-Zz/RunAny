@@ -24,9 +24,11 @@ global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.7.4"
 global RunAny_update_time:="2021.03.31"
-Gosub,Var_Set          ;~参数初始化
-Gosub,Run_Exist        ;~调用判断依赖
-Gosub,Plugins_Read     ;~插件脚本读取
+gosub,Var_Set          ;~参数初始化
+gosub,Menu_Var_Set     ;~自定义变量
+gosub,Icon_Set         ;~图标初始化
+gosub,Run_Exist        ;~调用判断依赖
+gosub,Plugins_Read     ;~插件脚本读取
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化菜单显示热键]
 HotKeyList:=["MenuHotKey","MenuHotKey2","MenuNoGetHotKey","EvHotKey","OneHotKey"]
@@ -5596,9 +5598,6 @@ Var_Set:
 	}
 	EvCommandVar:=RegExReplace(EvCommand,"i).*file:(\*\.[^\s]*).*","$1")
 	global EvCommandExtList:=StrSplit(EvCommandVar,"|")
-	
-	gosub,Menu_Var_Set
-	gosub,Icon_Set
 	global MENU_RUN_NAME_STR:="编辑(&E),同名软件(&S),软件目录(&D),透明运行(&Q),置顶运行(&T),改变大小运行(&W),管理员权限运行(&A),最小化运行(&I),最大化运行(&P),隐藏运行(&H),结束软件进程(&X)"
 	global MENU_RUN_NAME_NOFILE_STR:="复制运行路径(&C),输出运行路径(&V),复制软件名(&N),输出软件名(&M),复制软件名+后缀(&F),输出软件名+后缀(&G)"
 	MENU_RUN_NAME_STR.="," MENU_RUN_NAME_NOFILE_STR
@@ -6002,24 +6001,18 @@ Plugins_Object_Register:
 	}
 	;#判断RunAny_Menu插件是否启用
 	if(PluginsObjList["RunAny_Menu.ahk"]){
-		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"SetTimer,Transparent_Show")){
+		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"SetTimer,Transparent_Show"))
 			global RunAnyMenuTransparentFlag:=true
-		}
-		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~Space Up::")){
+		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~Space Up::"))
 			global RunAnyMenuSpaceFlag:=true
-		}
-		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~RButton Up::")){
+		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~RButton Up::"))
 			global RunAnyMenuRButtonFlag:=true
-		}
-		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~MButton Up::")){
+		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~MButton Up::"))
 			global RunAnyMenuMButtonFlag:=true
-		}
-		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~XButton1 Up::")){
+		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~XButton1 Up::"))
 			global RunAnyMenuXButton1Flag:=true
-		}
-		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~XButton2 Up::")){
+		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~XButton2 Up::"))
 			global RunAnyMenuXButton2Flag:=true
-		}
 	}
 return
 Plugins_Read_Title(filePath){
@@ -6569,7 +6562,7 @@ everythingQuery(EvCommandStr){
 	ev.SetSearch(EvCommandStr ? EvCommand " " EvCommandStr : EvCommand)
 	;执行搜索
 	ev.Query()
-	Loop,% ev.GetTotResults()
+	Loop,% ev.GetNumFileResults()
 	{
 		chooseNewFlag:=false
 		Z_Index:=A_Index-1
