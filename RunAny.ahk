@@ -899,7 +899,7 @@ MenuExeArrayPush(menuName,menuItem,itemFile,itemAny,TREE_NO){
 		MenuExeArray.Push(MenuObjEXE)
 	}else{
 		MenuExeIconArray.Push(MenuObjEXE)
-		if(!RegExMatch(itemAny,"iS).*?\.[a-zA-Z0-9]+ .*"))
+		if(!InStr(itemAny,"%getZz%"))
 			MenuExeList%TREE_NO%[menuName].=menuItem "`n"
 	}
 }
