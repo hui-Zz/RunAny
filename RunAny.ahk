@@ -118,6 +118,22 @@ global MenuShowFlag:=false				;~菜单功能是否可以显示
 global MenuIconFlag:=false				;~菜单图标是否加载完成
 global MenuObjName:=Object()			;~程序菜单项名称
 global MenuBar:=""						;~菜单分列标记
+global MenuObj:=Object()                    ;~程序全路径
+global MenuObjKey:=Object()                 ;~程序热键
+global MenuObjKeyName:=Object()             ;~程序热键关联菜单项名称
+global MenuObjExt:=Object()                 ;~后缀对应的菜单
+global MenuHotStrList:=Object()             ;~热字符串对象数组
+global MenuTreeKey:=Object()                ;~菜单树分类热键
+global MenuItemIconList:=Object()           ;~菜单项对应图标对象
+global MenuItemIconNoList:=Object()         ;~菜单项对应图标位置对象
+global MenuExeArray:=Object()               ;~EXE程序对象数组
+global MenuExeIconArray:=Object()           ;~EXE程序优先加载图标对象数组
+global MenuObjTreeLevel:=Object()           ;~菜单对应级别
+global MenuObjPublic:=[]                    ;~后缀公共菜单
+global MenuShowFlag:=false                  ;~菜单功能是否可以显示
+global MenuIconFlag:=false                  ;~菜单图标是否加载完成
+global MenuObjName:=Object()                ;~程序菜单项名称
+global MenuBar:=""                          ;~菜单分列标记
 global MenuCount:=MENU2FLAG ? 2 : 1
 MenuObj.SetCapacity(10240)
 MenuExeArray.SetCapacity(1024)
@@ -125,14 +141,14 @@ MenuExeIconArray.SetCapacity(3072)
 Loop,%MenuCount%
 {
 	M%A_Index%:=RunAnyZz . A_Index
-	MenuSendStrList%A_Index%:=Object()	;菜单中短语项列表
-	MenuWebList%A_Index%:=Object()		;菜单中网址%s搜索项列表
-	MenuGetZzList%A_Index%:=Object()	;菜单中GetZz搜索项列表
-	MenuExeList%A_Index%:=Object()		;菜单中的exe列表
-	MenuObjList%A_Index%:=Object()   	;菜单分类运行项列表
-	MenuObjText%A_Index%:=[]			;选中文字菜单
-	MenuObjFile%A_Index%:=[]			;选中文件菜单
-	MenuObjTree%A_Index%:=Object()   	;分类目录程序全数据
+	MenuSendStrList%A_Index%:=Object()      ;菜单中短语项列表
+	MenuWebList%A_Index%:=Object()          ;菜单中网址%s搜索项列表
+	MenuGetZzList%A_Index%:=Object()        ;菜单中GetZz搜索项列表
+	MenuExeList%A_Index%:=Object()          ;菜单中的exe列表
+	MenuObjList%A_Index%:=Object()          ;菜单分类运行项列表
+	MenuObjText%A_Index%:=[]                ;选中文字菜单
+	MenuObjFile%A_Index%:=[]                ;选中文件菜单
+	MenuObjTree%A_Index%:=Object()          ;分类目录程序全数据
 	MenuObjTree%A_Index%[M%A_Index%]:=Object()
 	;菜单级别：初始为根菜单RunAny
 	menuRoot%A_Index%:=[M%A_Index%]
@@ -237,6 +253,12 @@ if(MENU2FLAG){
 if(SendStrEcKey!="")
 	SendStrDcKey:=SendStrDecrypt(SendStrEcKey,RunAnyZz ConfigDate)
 try Menu,Tray,Icon,% ZzIconS[1],% ZzIconS[2]
+
+if(MenuObjEv["totalcmd"] || MenuObjEv["TotalCMD64"]){
+	ClipWaitTime:=Var_Read("ClipWaitTime",1)
+	ClipWaitApp:=Var_Read("ClipWaitApp","totalcmd.exe,totalcmd64.exe")
+}
+
 ;~[对菜单内容项进行过滤调整]
 Loop,%MenuCount%
 {
