@@ -101,23 +101,6 @@ Gosub,Icon_FileExt_Set
 ;══════════════════════════════════════════════════════════════════
 t2:=A_TickCount-StartTick
 Menu_Tray_Tip("运行插件脚本：" Round((t2-t1)/1000,3) "s`n","开始创建无图标菜单...")
-global MenuObj:=Object()               ;~程序全路径
-global MenuObjKey:=Object()            ;~程序热键
-global MenuObjKeyName:=Object()        ;~程序热键关联菜单项名称
-global MenuObjExt:=Object()            ;~后缀对应的菜单
-global MenuHotStrList:=Object()        ;~热字符串对象数组
-global MenuTreeKey:=Object()           ;~菜单树分类热键
-global MenuItemIconList:=Object()      ;~菜单项对应图标对象
-global MenuItemIconNoList:=Object()    ;~菜单项对应图标位置对象
-;~;
-global MenuExeArray:=Object()			;~EXE程序对象数组
-global MenuExeIconArray:=Object()		;~EXE程序优先加载图标对象数组
-global MenuObjTreeLevel:=Object()		;~菜单对应级别
-global MenuObjPublic:=[]				;~后缀公共菜单
-global MenuShowFlag:=false				;~菜单功能是否可以显示
-global MenuIconFlag:=false				;~菜单图标是否加载完成
-global MenuObjName:=Object()			;~程序菜单项名称
-global MenuBar:=""						;~菜单分列标记
 global MenuObj:=Object()                    ;~程序全路径
 global MenuObjKey:=Object()                 ;~程序热键
 global MenuObjKeyName:=Object()             ;~程序热键关联菜单项名称
