@@ -2,7 +2,7 @@
 ;* 【ObjReg系统操作脚本[系统函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.8"
+global RunAny_Plugins_Version:="1.0.9"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
 #WinActivateForce       ;~强制激活窗口
@@ -43,16 +43,10 @@ class RunAnyObj {
 	;参数说明：getZz：选中的文本内容
 	system_regedit_zz(getZz:=""){
 		if(WinExist("ahk_exe regedit.exe")){
-			ToolTip,注册表已打开`n要关闭情况下才能进行定位
-			Sleep,3000
-			ToolTip
-			return
+			Process,Close,regedit.exe
 		}
-		getZz:=StrReplace(getZz,"HKCU","HKEY_CURRENT_USER")
-		getZz:=StrReplace(getZz,"HKLM","HKEY_LOCAL_MACHINE")
 		shell:=ComObjCreate("WScript.Shell")
-		strRegAddress:="计算机\" getZz
-		shell.RegWrite("HKCU\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit\LastKey",strRegAddress)
+		shell.RegWrite("HKCU\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit\LastKey","计算机\" RTrim(getZz,"\"))
 		shell.Run("RegEdit.exe")
 	}
 	;[获取本地IP]

@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.4 @2021.03.31
+║【RunAny】一劳永逸的快速启动工具 v5.7.4 @2021.04.21
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.7.4"
-global RunAny_update_time:="2021.03.31"
+global RunAny_update_time:="2021.04.21"
 gosub,Var_Set          ;~参数初始化
 gosub,Menu_Var_Set     ;~自定义变量
 gosub,Icon_Set         ;~图标初始化
@@ -238,7 +238,7 @@ if(SendStrEcKey!="")
 try Menu,Tray,Icon,% ZzIconS[1],% ZzIconS[2]
 
 if(MenuObjEv["totalcmd"] || MenuObjEv["TotalCMD64"]){
-	ClipWaitTime:=Var_Read("ClipWaitTime",1)
+	ClipWaitTime:=Var_Read("ClipWaitTime",1.2)
 	ClipWaitApp:=Var_Read("ClipWaitApp","totalcmd.exe,totalcmd64.exe")
 }
 
@@ -1241,6 +1241,19 @@ Menu_Show:
 						openFlag:=true
 						continue
 					}
+				}
+				;一键注册表路径
+				regKeyName:="HKEY_CLASSES_ROOT|HKEY_CURRENT_USER|HKEY_LOCAL_MACHINE|HKEY_USERS|HKEY_CURRENT_CONFIG|"
+				regKeyName.="HKCR\\|HKCU\\|HKLM\\|HKU\\|HKCC\\"
+				if(OneKeyRegedit && RegExMatch(S_LoopField,"i)^(" regKeyName ").*")){
+					if(WinExist("ahk_exe regedit.exe")){
+						Process,Close,regedit.exe
+					}
+					shell:=ComObjCreate("WScript.Shell")
+					shell.RegWrite("HKCU\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit\LastKey","计算机\" RTrim(S_LoopField,"\"))
+					shell.Run("RegEdit.exe")
+					openFlag:=true
+					continue
 				}
 			}
 			if(calcResult){
@@ -4736,6 +4749,7 @@ Menu_Set:
 	Gui,66:Add,Checkbox,Checked%OneKeyFile% x+10 yp vvOneKeyFile,文件路径
 	Gui,66:Add,Checkbox,Checked%OneKeyFolder% x+10 yp vvOneKeyFolder,文件夹路径
 	Gui,66:Add,Checkbox,Checked%OneKeyMagnet% x+10 yp vvOneKeyMagnet,磁力链接
+	Gui,66:Add,Checkbox,Checked%OneKeyRegedit% x+10 yp vvOneKeyRegedit,注册表路径
 	Gui,66:Add,GroupBox,xm-10 y+20 h320 vvOneKeyUrlGroup,一键搜索选中文字 %OneHotKey%
 	Gui,66:Add,Hotkey,xm yp+30 w150 vvOneKey,%OneKey%
 	Gui,66:Add,Checkbox,Checked%OneWinKey% xm+155 yp+3 vvOneWinKey,Win
@@ -5019,7 +5033,7 @@ SetOK:
 	SetValueList.Push("ConfigDate","AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupFormat","RunABackupDir","DisableApp")
 	SetValueList.Push("EvPath","EvCommand","EvAutoClose","EvShowExt","EvShowFolder","EvExeVerNew","EvExeMTimeNew","EvDemandSearch")
 	SetValueList.Push("HideFail","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideSelectZz","RecentMax")
-	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyFile","OneKeyMenu","BrowserPath","IconFolderPath")
+	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyRegedit","OneKeyFile","OneKeyMenu","BrowserPath","IconFolderPath")
 	SetValueList.Push("HideMenuTrayIcon","MenuIconSize","MenuTrayIconSize","MenuIcon","AnyIcon","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon")
 	SetValueList.Push("HideHotStr","HotStrHintLen","HotStrShowLen","HotStrShowTime","HotStrShowTransparent","HotStrShowX","HotStrShowY","SendStrEcKey")
 	SetValueList.Push("MenuDoubleCtrlKey", "MenuDoubleAltKey", "MenuDoubleLWinKey", "MenuDoubleRWinKey")
@@ -5525,6 +5539,7 @@ Var_Set:
 	global OneKeyWeb:=Var_Read("OneKeyWeb",1)
 	global OneKeyFolder:=Var_Read("OneKeyFolder",1)
 	global OneKeyMagnet:=Var_Read("OneKeyMagnet",1)
+	global OneKeyRegedit:=Var_Read("OneKeyRegedit",1)
 	global OneKeyFile:=Var_Read("OneKeyFile",1)
 	global OneKeyMenu:=Var_Read("OneKeyMenu",0)
 	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
