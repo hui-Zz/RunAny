@@ -4603,6 +4603,10 @@ Variable_Boolean_Reverse(vars*){
 ;══════════════════════════════════════════════════════════════════
 ;~;[设置选项]
 Menu_Set:
+	if(GetKeyState("Shift")){
+		gosub,Menu_Config
+		return
+	}
 	HotKeyFlag:=MenuVarFlag:=OpenExtFlag:=AdvancedConfigFlag:=false
 	GUI_WIDTH_66=640
 	TAB_WIDTH_66=620
