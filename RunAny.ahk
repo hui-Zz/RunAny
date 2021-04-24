@@ -20,15 +20,15 @@ SetBatchLines,-1        ;~脚本全速执行
 SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
 StartTick:=A_TickCount  ;评估RunAny初始化时间
 global RunAnyZz:="RunAny"   ;名称
-global RunAnyConfig:="RunAnyConfig.ini" ;~配置文件
+global RunAnyConfig:="RunAnyConfig.ini"   ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.7.4"
 global RunAny_update_time:="2021.04.21"
-gosub,Var_Set          ;~参数初始化
-gosub,Menu_Var_Set     ;~自定义变量
-gosub,Icon_Set         ;~图标初始化
-gosub,Run_Exist        ;~调用判断依赖
-gosub,Plugins_Read     ;~插件脚本读取
+gosub,Var_Set           ;~参数初始化
+gosub,Menu_Var_Set      ;~自定义变量
+gosub,Icon_Set          ;~图标初始化
+gosub,Run_Exist         ;~调用判断依赖
+gosub,Plugins_Read      ;~插件脚本读取
 ;══════════════════════════════════════════════════════════════════
 ;~;[初始化菜单显示热键]
 HotKeyList:=["MenuHotKey","MenuHotKey2","MenuNoGetHotKey","EvHotKey","OneHotKey"]
@@ -3995,49 +3995,49 @@ WM_NOTIFY(Param*){
 	}
 }
 ;══════════════════════════════════════════════════════════════════
-;~;[插件管理]
+;~;[插件管理Gui]
 ;══════════════════════════════════════════════════════════════════
 Plugins_Manage:
-gosub,Plugins_Read
-gosub,Plugins_LV_Icon_Set
-;根据网络自动选择对应插件说明网页地址
-pagesPluginsUrl:=RunAnyGiteePages . "/runany/#/plugins-help"
-if(!Check_Network(RunAnyGiteePages)){
-	pagesPluginsUrl:=RunAnyGiteePages . "/RunAny/#/plugins-help"
-}
-pagesHash:=pagesPluginsUrl . "?id="
-global PluginsHelpList:={"huiZz_QRCode.ahk":pagesHash "huizz_qrcode二维码脚本使用方法"}
-PluginsHelpList["huiZz_Window.ahk"]:=pagesHash "huizz_window窗口操作插件使用方法"
-PluginsHelpList["huiZz_System.ahk"]:=pagesHash "huizz_system系统操作插件使用方法"
-PluginsHelpList["huiZz_Text.ahk"]:=pagesHash "huizz_text文本操作插件使用方法"
-global ColumnName:=1
-global ColumnStatus:=2
-global ColumnAutoRun:=3
-global ColumnContent:=5
-DetectHiddenWindows,On
-Gui,P:Destroy
-Gui,P:Default
-Gui,P:+Resize
-Gui,P:Font, s10, Microsoft YaHei
-Gui,P:Add, Listview, xm w710 r22 grid AltSubmit vRunAnyLV glistview, 插件文件|运行状态|自动启动|插件描述|插件说明地址
-LV_SetImageList(PluginsImageListID)
-;~;[读取启动项内容写入列表]
-GuiControl,P: -Redraw, RunAnyLV
-For runn, runv in PluginsObjList
-{
-	runStatus:=Check_IsRun(PluginsPathList[runn]) ? "启动" : ""
-	pluginsConfig:=runv ? "自启" : ""
-	if(!PluginsPathList[runn])
-		pluginsConfig:="未找到"
-	LV_Add(LVPluginsIcon(runn), runn, runStatus, pluginsConfig, PluginsTitleList[runn], PluginsHelpList[runn])
-}
-GuiControl,P: +Redraw, RunAnyLV
-LVMenu("LVMenu")
-LVMenu("ahkGuiMenu")
-Gui,P: Menu, ahkGuiMenu
-LVModifyCol(65,ColumnStatus,ColumnAutoRun)
-Gui,P:Show, , %RunAnyZz% 插件管理 - 支持拖放 %RunAny_update_version% %RunAny_update_time%%AdminMode%
-DetectHiddenWindows,Off
+	gosub,Plugins_Read
+	gosub,Plugins_LV_Icon_Set
+	;根据网络自动选择对应插件说明网页地址
+	pagesPluginsUrl:=RunAnyGiteePages . "/runany/#/plugins-help"
+	if(!Check_Network(RunAnyGiteePages)){
+		pagesPluginsUrl:=RunAnyGiteePages . "/RunAny/#/plugins-help"
+	}
+	pagesHash:=pagesPluginsUrl . "?id="
+	global PluginsHelpList:={"huiZz_QRCode.ahk":pagesHash "huizz_qrcode二维码脚本使用方法"}
+	PluginsHelpList["huiZz_Window.ahk"]:=pagesHash "huizz_window窗口操作插件使用方法"
+	PluginsHelpList["huiZz_System.ahk"]:=pagesHash "huizz_system系统操作插件使用方法"
+	PluginsHelpList["huiZz_Text.ahk"]:=pagesHash "huizz_text文本操作插件使用方法"
+	global ColumnName:=1
+	global ColumnStatus:=2
+	global ColumnAutoRun:=3
+	global ColumnContent:=5
+	DetectHiddenWindows,On
+	Gui,P:Destroy
+	Gui,P:Default
+	Gui,P:+Resize
+	Gui,P:Font, s10, Microsoft YaHei
+	Gui,P:Add, Listview, xm w710 r22 grid AltSubmit vRunAnyLV glistview, 插件文件|运行状态|自动启动|插件描述|插件说明地址
+	LV_SetImageList(PluginsImageListID)
+	;~;[读取启动项内容写入列表]
+	GuiControl,P: -Redraw, RunAnyLV
+	For runn, runv in PluginsObjList
+	{
+		runStatus:=Check_IsRun(PluginsPathList[runn]) ? "启动" : ""
+		pluginsConfig:=runv ? "自启" : ""
+		if(!PluginsPathList[runn])
+			pluginsConfig:="未找到"
+		LV_Add(LVPluginsIcon(runn), runn, runStatus, pluginsConfig, PluginsTitleList[runn], PluginsHelpList[runn])
+	}
+	GuiControl,P: +Redraw, RunAnyLV
+	LVMenu("LVMenu")
+	LVMenu("ahkGuiMenu")
+	Gui,P: Menu, ahkGuiMenu
+	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
+	Gui,P:Show, , %RunAnyZz% 插件管理 - 支持拖放 %RunAny_update_version% %RunAny_update_time%%AdminMode%
+	DetectHiddenWindows,Off
 return
 
 LVMenu(addMenu){
@@ -4523,7 +4523,7 @@ Plugins_Alone(r){
 LVPluginsIcon(pname){
 	pname_no_ext:=RegExReplace(pname,"iS)\.ahk$")
 	PluginsFile:=RegExReplace(PluginsPathList[pname],"iS)\.ahk$")
-	Loop, Parse, IconFileSuffix, `;
+	Loop, Parse,% IconFileSuffix "*.exe;", `;
 	{
 		suffix:=StrReplace(A_LoopField, "*")
 		if(FileExist(PluginsFile suffix)){
@@ -5747,8 +5747,7 @@ Icon_Set:
 		IfNotExist %RunIconDir%\%A_LoopField%
 			FileCreateDir,%RunIconDir%\%A_LoopField%
 	}
-	global IconFileSuffix:="*.ico;*.exe"
-		. ";*.bmp;*.png;*.gif;*.jpg;*.jpeg;*.jpe;*.jfif;*.dib;*.tif;*.tiff;*.heic"
+	global IconFileSuffix:="*.ico;*.bmp;*.png;*.gif;*.jpg;*.jpeg;*.jpe;*.jfif;*.dib;*.tif;*.tiff;*.heic"
 		. ";*.cur;*.ani,*.cpl,*.scr"
 	global ResourcesExtractExist:=false
 	global ResourcesExtractDir:=A_ScriptDir "\ResourcesExtract"
