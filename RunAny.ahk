@@ -274,15 +274,15 @@ Loop,%MenuCount%
 		;[选中文本菜单过滤分类]
 		Menu_Tree_List_Filter(A_Index,"MenuObjText",2)
 		rootName:=menuWebRoot%A_Index%[1]
-		;[开启选中文字菜单后主菜单下exe不再显示]
-		For mn,items in MenuExeList%A_Index%
+		;[开启选中文字菜单后的主菜单，不带%getZz%或%s的都不再显示]
+		for mn,items in MenuObjTree%A_Index%
 		{
 			if(mn=rootName){
-				Loop, Parse, items, `n
+				for k,v in items
 				{
-					if(A_LoopField="")
-						continue
-					try Menu,%mn%,Delete,%A_LoopField%
+					if(v!="" && !InStr(v,"%getZz%") && !InStr(v,"%s") && GetMenuItemMode(v,true)<10){
+						try Menu,%mn%,Delete,% Get_Obj_Name(v)
+					}
 				}
 			}
 		}
@@ -434,7 +434,7 @@ Menu_Tree_List_Filter(M_Index,MenuTypeList,MenuType){
 		delFlag:=true
 		For k,v in %MenuTypeList%%M_Index%
 		{
-			if(mn=v TREE_TYPE){
+			if(mn=v TREE_TYPE || mn=M%M_Index% TREE_TYPE){
 				delFlag:=false
 				break
 			}
@@ -701,6 +701,8 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 			}
 			itemMode:=GetMenuItemMode(Z_LoopField,true)
 			;~添加到分类目录程序全数据
+			if(!IsObject(MenuObjTree%TREE_NO%[(menuRootFn[menuLevel])]))
+				MenuObjTree%TREE_NO%[(menuRootFn[menuLevel])]:=Object()
 			MenuObjTree%TREE_NO%[(menuRootFn[menuLevel])].Push(Z_LoopField)
 			flagEXE:=false			;~添加exe菜单项目
 			flagSys:=false			;~添加系统项目文件
