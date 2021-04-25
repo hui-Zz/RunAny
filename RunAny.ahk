@@ -270,26 +270,34 @@ Loop,%MenuCount%
 	;设置后缀公共菜单
 	MenuObjExt["public"]:=MenuObjPublic
 	
+	;[选中文本菜单过滤分类]
 	if(MenuObjText%A_Index%.MaxIndex()>0){
-		;[选中文本菜单过滤分类]
 		Menu_Tree_List_Filter(A_Index,"MenuObjText",2)
 		rootName:=menuWebRoot%A_Index%[1]
-		;[开启选中文字菜单后的主菜单，不带%getZz%或%s的都不再显示]
-		for mn,items in MenuObjTree%A_Index%
+		;[开启选中文字菜单后，主菜单里面不带%getZz%或%s的都不再显示]
+		for k,v in MenuObjTree%A_Index%[rootName]
 		{
-			if(mn=rootName){
-				for k,v in items
-				{
-					if(v!="" && !InStr(v,"%getZz%") && !InStr(v,"%s") && GetMenuItemMode(v,true)<10){
-						try Menu,%mn%,Delete,% Get_Obj_Name(v)
-					}
+			if(v!="" && GetMenuItemMode(v,true)<10){
+				if(!InStr(v,"%getZz%") && !InStr(v,"%s")){
+					try Menu,%rootName%,Delete,% Get_Obj_Name(v)
+				}else{
+					global MenuObjTextRootFlag:=true
 				}
 			}
 		}
 	}
+	;[选中文件菜单过滤分类]
 	if(MenuObjFile%A_Index%.MaxIndex()>0){
-		;[选中文件菜单过滤分类]
 		Menu_Tree_List_Filter(A_Index,"MenuObjFile",3)
+		rootName:=menuFileRoot%A_Index%[1]
+		;[开启选中文件菜单后，主菜单里面不带%getZz%或%s的都不再显示]
+		for k,v in MenuObjTree%A_Index%[rootName]
+		{
+			if(v!="" && !InStr(v,"%getZz%") && !InStr(v,"%s") 
+				&& GetMenuItemMode(v,true)!=1 && GetMenuItemMode(v,true)<10){
+				try Menu,%rootName%,Delete,% Get_Obj_Name(v)
+			}
+		}
 	}
 	;~;[最近运行项]
 	if(RecentMax>0){
@@ -1161,10 +1169,8 @@ Menu_Show:
 					}
 				}else{
 					if(!HideAddItem){
-						Menu,% menuFileRoot%MENU_NO%[1],Insert, ,%RUNANY_SELF_MENU_ITEM3%,Menu_Add_File_Item
-						Menu,% menuFileRoot%MENU_NO%[1],Default,%RUNANY_SELF_MENU_ITEM3%
-						Menu,% menuFileRoot%MENU_NO%[1],Icon,%RUNANY_SELF_MENU_ITEM3%,SHELL32.dll,166,%MenuIconSize%
 						Menu_Add_Del_Temp(1,MENU_NO,RUNANY_SELF_MENU_ITEM3,"Menu_Add_File_Item","SHELL32.dll","166")
+						Menu,% menuFileRoot%MENU_NO%[1],Default,%RUNANY_SELF_MENU_ITEM3%
 					}
 					Menu_Show_Show(menuFileRoot%MENU_NO%[1],FileName)
 					if(!HideAddItem){
@@ -1278,7 +1284,12 @@ Menu_Show:
 			}
 		}
 		;#选中文本弹出网址菜单#
-		Menu_Show_Show(menuWebRoot%MENU_NO%[1],getZz)
+		if(MenuObjTextRootFlag && MenuObjText%MENU_NO%.MaxIndex()=1){
+			;如果根目录没有%getZz%或%s且text菜单只有1个，直接显示这个text菜单
+			Menu_Show_Show(MenuObjText%MENU_NO%[1],getZz)
+		}else{
+			Menu_Show_Show(menuWebRoot%MENU_NO%[1],getZz)
+		}
 	}catch{}
 return
 ;~;[菜单热键显示]
