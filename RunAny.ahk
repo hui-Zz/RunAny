@@ -163,7 +163,7 @@ if(!EvNo){
 		{
 			if(A_Index>10){
 				EvPathRun:=Get_Transform_Val(EvPath)
-				if(EvPathRun && FileExist(EvPathRun)){
+				if(EvPathRun && FileExist(EvPathRun) && !InStr(FileExist(EvPathRun), "D")){
 					Run,%EvPathRun% -startup %evAdminRun%
 					Sleep,500
 					break
@@ -4675,7 +4675,9 @@ Menu_Set:
 	Gui,66:Add,Edit,x+11 yp+2 w400 r1 vvRunABackupDir,%RunABackupDir%
 	
 	Gui,66:Add,GroupBox,xm-10 y+15 vvDisableAppGroup,屏蔽RunAny程序列表（逗号分隔）
+	Gui,66:Font,,Consolas
 	Gui,66:Add,Edit,xm yp+25 r4 -WantReturn vvDisableApp,%DisableApp%
+	Gui,66:Font,,Microsoft YaHei
 	
 	Gui,66:Tab,热键配置,,Exact
 	Gui,66:Add,Link,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%
@@ -4757,7 +4759,9 @@ Menu_Set:
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvCommand,修改
 	Gui,66:Add,Text,xm+60 yp,!C:\*Windows*为排除系统缓存和系统程序，注意空格间隔
 	Gui,66:Add,Text,xm+60 yp+15,file:*.exe|*.lnk|后面类推增加想要的后缀
+	Gui,66:Font,,Consolas
 	Gui,66:Add,Edit,ReadOnly xm yp+25 r7 -WantReturn vvEvCommand,%EvCommand%
+	Gui,66:Font,,Microsoft YaHei
 	
 	Gui,66:Tab,一键直达,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h50,一键直达（仅菜单1热键触发，不想触发的菜单项放入菜单2中）
@@ -4930,7 +4934,7 @@ Menu_Set:
 		}
 	}
 	return
-;~;[关于]
+;~;[关于Gui]
 Menu_About:
 	Gui,99:Destroy
 	Gui,99:Color,FFFFFF
@@ -5568,10 +5572,10 @@ Var_Set:
 	global EvExeVerNew:=Var_Read("EvExeVerNew",0)
 	global EvExeMTimeNew:=Var_Read("EvExeMTimeNew",0)
 	global EvDemandSearch:=Var_Read("EvDemandSearch",1)
-	EvCommandDefault:="!C:\Windows* !?:\$RECYCLE.BIN*"
+	EvCommandDefault:="!C:\Windows* !?:\$RECYCLE.BIN* !?:\Users\*\AppData\Local\Temp"
 	try EnvGet, scoopPath, scoop
 	if(scoopPath)
-		EvCommandDefault.=" !C:\Users\" A_UserName "\scoop\shims\*"
+		EvCommandDefault.=" !?:\Users\*\scoop\shims\*"
 	global EvCommand:=Var_Read("EvCommand",EvDemandSearch ? EvCommandDefault : EvCommandDefault " file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
 	;[热字符串]
 	global HideHotStr:=Var_Read("HideHotStr",0)
@@ -6602,8 +6606,11 @@ everythingQuery(EvCommandStr){
 	{
 		chooseNewFlag:=false
 		Z_Index:=A_Index-1
-		objFileName:=ev.GetResultFileName(Z_Index)
 		objFullPathName:=ev.GetResultFullPathName(Z_Index)
+		checkPath:=FileExist(objFullPathName)
+		if(!checkPath || InStr(checkPath, "D"))
+			continue
+		objFileName:=ev.GetResultFileName(Z_Index)
 		objFileNameNoExeExt:=RegExReplace(objFileName,"iS)\.exe$","")
 		if(MenuObjEv[objFileNameNoExeExt]){
 			MenuObjSame[(MenuObjEv[objFileNameNoExeExt])]:=MenuObjEv[objFileNameNoExeExt]
