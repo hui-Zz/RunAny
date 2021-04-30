@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.4 @2021.04.21
+║【RunAny】一劳永逸的快速启动工具 v5.7.5 @2021.04.30
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -22,8 +22,8 @@ StartTick:=A_TickCount  ;评估RunAny初始化时间
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
-global RunAny_update_version:="5.7.4"
-global RunAny_update_time:="2021.04.21"
+global RunAny_update_version:="5.7.5"
+global RunAny_update_time:="2021.04.30"
 gosub,Var_Set           ;~参数初始化
 gosub,Menu_Var_Set      ;~自定义变量
 gosub,Icon_Set          ;~图标初始化
@@ -238,7 +238,7 @@ if(SendStrEcKey!="")
 try Menu,Tray,Icon,% ZzIconS[1],% ZzIconS[2]
 
 if(MenuObjEv["totalcmd"] || MenuObjEv["TotalCMD64"]){
-	ClipWaitTime:=Var_Read("ClipWaitTime",1.2)
+	ClipWaitTime:=Var_Read("ClipWaitTime",1.5)
 	ClipWaitApp:=Var_Read("ClipWaitApp","totalcmd.exe,totalcmd64.exe")
 }
 
@@ -5213,7 +5213,7 @@ return
 66GuiSize:
 	if A_EventInfo = 1
 		return
-	GuiControl, Move, ConfigTab, % "H" . (A_GuiHeight * 0.87) . " W" . (A_GuiWidth - 20)
+	GuiControl, Move, ConfigTab, % "H" . (A_GuiHeight * 0.88) . " W" . (A_GuiWidth - 20)
 	GuiControl, Move, vDisableAppGroup, % "H" . (A_GuiHeight * 0.30) . " W" . (A_GuiWidth - 40)
 	GuiControl, Move, vDisableApp, % "H" . (A_GuiHeight * 0.25) . " W" . (A_GuiWidth - 60)
 	GuiControl, Move, RunAnyHotkeyLV, % " W" . (A_GuiWidth - 60)
@@ -5225,10 +5225,10 @@ return
 	GuiControl, Move, vBrowserPath, % " W" . (A_GuiWidth - 120)
 	GuiControl, Move, RunAnyOpenExtLV, % "H" . (A_GuiHeight * 0.68) . " W" . (A_GuiWidth - 60)
 	GuiControl, Move, AdvancedConfigLV, % "H" . (A_GuiHeight * 0.77) . " W" . (A_GuiWidth - 60)
-	GuiControl, MoveDraw, vSetOK, % " X" . (A_GuiWidth * 0.31) . " Y" . (A_GuiHeight * 0.92)
-	GuiControl, MoveDraw, vSetCancel, % " X" . (A_GuiWidth * 0.31 + 90) . " Y" . (A_GuiHeight * 0.92)
-	GuiControl, MoveDraw, vSetReSet, % " X" . (A_GuiWidth * 0.31 + 180) . " Y" . (A_GuiHeight * 0.92)
-	GuiControl, MoveDraw, vMenu_Config, % " X" . (A_GuiWidth * 0.31 + 300) . " Y" . (A_GuiHeight * 0.925)
+	GuiControl, MoveDraw, vSetOK, % " X" . (A_GuiWidth * 0.30) . " Y" . (A_GuiHeight * 0.92)
+	GuiControl, MoveDraw, vSetCancel, % " X" . (A_GuiWidth * 0.30 + 90) . " Y" . (A_GuiHeight * 0.92)
+	GuiControl, MoveDraw, vSetReSet, % " X" . (A_GuiWidth * 0.30 + 180) . " Y" . (A_GuiHeight * 0.92)
+	GuiControl, MoveDraw, vMenu_Config, % " X" . (A_GuiWidth * 0.30 + 310) . " Y" . (A_GuiHeight * 0.925)
 return
 Reg_Set(vGui, var, sz){
 	StringCaseSense, On
