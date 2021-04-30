@@ -14,11 +14,11 @@
   + **如果所有显示器分辨率都大于等于1080高度则菜单图标默认24像素大小**
   + **优化RunAny在Totalcmd界面下的获取选中文件信息成功率**
   + 热字符串运行不带%getZz%的函数、不带%getZz%或%s的网址不传递选中内容
-  + 如果根目录没有%getZz%或%s且text菜单只有1个，直接显示这个text菜单
+  + 如果根目录没有%getZz%或%s且text菜单只有1个，选中文字会直接显示这个text菜单
   + 优化了RunAny和Everything的管理员权限联动
   + 系统语言非简体中文：自动设置高级选项RunAny.ini编码为UTF-8
   + RunAny.exe 内置新增256x256图标
-  + 按Shift键时点击“设置RunAny”可以直接打开配置RunAnyConfig.ini
+  + 任务栏右键RA图标，按住Shift键点击“设置RunAny”可以直接打开配置RunAnyConfig.ini
 + `新增` 插件功能：
   + huiZz_Windows.ahk 1.0.9：窗口改变大小移至边角置顶观影
   + huiZz_System.ahk 1.0.9：复制选中文件路径 支持多文件
