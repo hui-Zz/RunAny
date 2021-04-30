@@ -48,6 +48,7 @@ RunAny启动软件就跟五笔打字一样高效方便，3键直达（如<kbd>Es
 - 按<kbd>\`</kbd>一键打开选中路径的文件或程序
 - 按<kbd>\`</kbd>一键打开选中路径的文件夹
 - 按<kbd>\`</kbd>一键用默认BT下载工具下载选中磁力链接
+- 按<kbd>\`</kbd>一键打开注册表路径并自动定位到键值 **<font color="red">v5.7.5新功能</font>**
 
 ![RunAny一键直达功能](/assets/images/RunAny一键直达功能.gif)
 

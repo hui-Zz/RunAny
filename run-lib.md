@@ -278,14 +278,25 @@
 
 -系统工具
 	注册表|regedit.exe
-	服务|services.msc
 	磁盘清理|cleanmgr.exe
 	屏幕讲述人|narrator.exe
 	任务管理器|taskmgr.exe
-	设备管理器|devmgmt.msc
-	组策略|gpedit.msc
-	本机用户和组|lusrmgr.msc
 	步骤记录器|psr.exe
+	--
+	计算机管理|compmgmt.msc
+	设备管理器|devmgmt.msc
+	磁盘管理器|diskmgmt.msc
+	组策略|gpedit.msc
+	共享文件夹|fsmgmt.msc
+	服务|services.msc
+	本地安全策略|secpol.msc
+	本机用户和组|lusrmgr.msc
+	任务计划程序|taskschd.msc
+	系统认证证书|certmgr.msc
+	事件查看器|eventvwr.msc
+	性能监视器|perfmon.msc
+	策略的结果集|rsop.msc
+	组件服务|comexp.msc
 
 -控制面板
 	控制面板(&C)|control.exe

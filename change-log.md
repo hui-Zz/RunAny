@@ -2,6 +2,27 @@
 #### 📢 关注RunAny一劳永逸微信公众号，分享【一劳永逸】的效率软件和解决方案！
 ![RunAny公众号-白色版](/assets/images/RunAny公众号-白色版.jpg ':size=70%x70%')
 
+## 【RunAny】v5.7.5 2021-04-30
++ `新增` RunAny设置：
+  + 系统任务计划方式：开机管理员启动RunAny **（可以不弹窗提示用管理员权限，即使有UAC）**
+  + 一键直达：新增 一键打开注册表路径并自动定位到键值
+  + 菜单变量`A_ScriptDrive`：RunAny所在磁盘符号
+  + 搜索Everything：RunAny自带一键Everything 支持多文件选中搜索
+  + 插件管理：添加编辑器设置，支持无路径
++ **优化功能** 
+  + **开启text选中文字菜单后，主菜单中不带%getZz%或%s的都不再显示**
+  + **如果所有显示器分辨率都大于等于1080高度则菜单图标默认24像素大小**
+  + **优化RunAny在Totalcmd界面下的获取选中文件信息成功率**
+  + 热字符串运行不带%getZz%的函数、不带%getZz%或%s的网址不传递选中内容
+  + 如果根目录没有%getZz%或%s且text菜单只有1个，直接显示这个text菜单
+  + 优化了RunAny和Everything的管理员权限联动
+  + 系统语言非简体中文：自动设置高级选项RunAny.ini编码为UTF-8
+  + RunAny.exe 内置新增256x256图标
+  + 按Shift键时点击“设置RunAny”可以直接打开配置RunAnyConfig.ini
++ `新增` 插件功能：
+  + huiZz_Windows.ahk 1.0.9：窗口改变大小移至边角置顶观影
+  + huiZz_System.ahk 1.0.9：复制选中文件路径 支持多文件
+
 ## 【RunAny】v5.7.4 2021-01-14
 + `新增` RunAny设置：
   + 插件管理独立脚本一键暂停、挂起、关闭
