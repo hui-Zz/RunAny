@@ -2080,7 +2080,7 @@ Ev_Show:
 				SplitPath,S_LoopField,fileName,,,name_no_ext
 				S_LoopField:=EvShowExt ? fileName : name_no_ext
 			}
-			if(InStr(S_LoopField,A_Space)){
+			if(InStr(S_LoopField,A_Space) && StrSplit(getZz,"`n").Length()>1){
 				S_LoopField="""%S_LoopField%"""
 			}
 			evSearch.=S_LoopField "|"
