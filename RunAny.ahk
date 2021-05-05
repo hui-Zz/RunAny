@@ -18,7 +18,7 @@ SendMode,Input          ;~使用更速度和可靠方式发送键鼠点击
 CoordMode,Menu          ;~相对于整个屏幕
 SetBatchLines,-1        ;~脚本全速执行
 SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
-StartTick:=A_TickCount  ;评估RunAny初始化时间
+global StartTick:=A_TickCount  ;评估RunAny初始化时间
 global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
@@ -2072,6 +2072,7 @@ Ev_Show:
 	getZz:=Get_Zz()
 	evSearch:=""
 	if(Trim(getZz," `t`n`r")!=""){
+		getZzSize:=StrSplit(getZz,"`n").Length()
 		Loop, parse, getZz, `n, `r
 		{
 			S_LoopField=%A_LoopField%
@@ -2080,7 +2081,7 @@ Ev_Show:
 				SplitPath,S_LoopField,fileName,,,name_no_ext
 				S_LoopField:=EvShowExt ? fileName : name_no_ext
 			}
-			if(InStr(S_LoopField,A_Space) && StrSplit(getZz,"`n").Length()>1){
+			if(InStr(S_LoopField,A_Space) && getZzSize>1){
 				S_LoopField="""%S_LoopField%"""
 			}
 			evSearch.=S_LoopField "|"
@@ -4203,7 +4204,7 @@ return
 Plugins_Edit(FilePath){
 	try{
 		if(Trim(PluginsEditor," `t`n`r")!=""){
-			Run,% Get_Obj_Path_Transform(PluginsEditor) " " FilePath
+			Run,% Get_Obj_Path_Transform(PluginsEditor) A_Space """" FilePath """"
 		}else{
 			PostMessage, 0x111, 65401,,, %FilePath% ahk_class AutoHotkey
 		}
@@ -4753,9 +4754,9 @@ Menu_Set:
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r2 -WantReturn vvEvPath,%EvPath%
 	Gui,66:Add,GroupBox,xm-10 y+20 vvEvCommandGroup,RunAny调用Everything搜索参数（搜索结果可在RunAny无路径运行，Everything异常请尝试重建索引）
-	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+25 vvEvDemandSearch gSetEvDemandSearch,按需搜索模式（只搜索RunAny菜单的无路径文件，非全磁盘搜索后再匹配）
+	Gui,66:Add,Checkbox,Checked%EvDemandSearch% xm yp+25 vvEvDemandSearch gSetEvDemandSearch,按需搜索模式（只搜索RunAny菜单的无路径文件，非全磁盘搜索后再匹配）
 	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+20 vvEvExeVerNew gSetEvExeVerNew,搜索结果优先最新版本的同名exe
-	Gui,66:Add,Checkbox,Checked%EvDemandSearch% x+10 vvEvExeMTimeNew gSetEvExeVerNew,搜索结果优先最新修改时间的同名文件
+	Gui,66:Add,Checkbox,Checked%EvExeMTimeNew% x+10 vvEvExeMTimeNew gSetEvExeVerNew,搜索结果优先最新修改时间的同名文件
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvCommand,修改
 	Gui,66:Add,Text,xm+60 yp,!C:\*Windows*为排除系统缓存和系统程序，注意空格间隔
 	Gui,66:Add,Text,xm+60 yp+15,file:*.exe|*.lnk|后面类推增加想要的后缀
@@ -6598,8 +6599,9 @@ everythingQuery(EvCommandStr){
 		ev.SetMatchWholeWord(true)
 	}
 	Menu_Tray_Tip("","开始调用Everything搜索菜单内应用全路径...")
+	evSearchStr:=EvCommandStr ? EvCommand " " EvCommandStr : EvCommand
 	;查询字串设为everything
-	ev.SetSearch(EvCommandStr ? EvCommand " " EvCommandStr : EvCommand)
+	ev.SetSearch("file: " evSearchStr)
 	;执行搜索
 	ev.Query()
 	Loop,% ev.GetNumFileResults()
@@ -6607,9 +6609,6 @@ everythingQuery(EvCommandStr){
 		chooseNewFlag:=false
 		Z_Index:=A_Index-1
 		objFullPathName:=ev.GetResultFullPathName(Z_Index)
-		checkPath:=FileExist(objFullPathName)
-		if(!checkPath || InStr(checkPath, "D"))
-			continue
 		objFileName:=ev.GetResultFileName(Z_Index)
 		objFileNameNoExeExt:=RegExReplace(objFileName,"iS)\.exe$","")
 		if(MenuObjEv[objFileNameNoExeExt]){
