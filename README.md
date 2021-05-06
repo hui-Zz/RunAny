@@ -44,7 +44,7 @@
 - <kbd>\`</kbd><kbd>w</kbd><kbd>w</kbd>就是启动『work工作』分类下的Word
 - <kbd>\`</kbd><kbd>f</kbd><kbd>w</kbd>就是启动『file文件』分类下的WinRAR
 
-<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/help/RunAny%E6%BC%94%E7%A4%BA.gif" alt="RunAny演示" style="max-width:50%;">
+<img src="https://hui-zz.github.io/RunAny/assets/images/RunAny%E6%BC%94%E7%A4%BA.webp" alt="RunAny演示" style="max-width:50%;">
 
 ---
 
@@ -54,11 +54,11 @@
 
 如果是文件夹目录、文件路径、磁力链接，一样一键打开，**就是这么高效！**
 
-<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/help/RunAny一键直达功能.gif" alt="RunAny一键直达功能">
+<img src="https://hui-zz.github.io/RunAny/assets/images/RunAny一键直达功能.gif" alt="RunAny一键直达功能">
 
 <a name="oneKeyCalc">RunAny一键公式计算</a>
 
-<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/help/RunAny公式计算.gif" alt="RunAny公式计算">
+<img src="https://hui-zz.github.io/RunAny/assets/images/RunAny公式计算.gif" alt="RunAny公式计算">
 
 ---
 
@@ -66,7 +66,7 @@
 
 只要先选中文件，然后再按<kbd>\`</kbd>启动RunAny中的软件，即可用该软件打开选中文件，**就是这么方便！**
 
-<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/help/RunAny%E6%BC%94%E7%A4%BA%E6%89%93%E5%BC%80%E6%96%87%E4%BB%B6.gif" alt="RunAny演示打开文件">
+<img src="https://hui-zz.github.io/RunAny/assets/images/RunAny%E6%BC%94%E7%A4%BA%E6%89%93%E5%BC%80%E6%96%87%E4%BB%B6.gif" alt="RunAny演示打开文件">
 
 ---
 
@@ -76,7 +76,7 @@
 
 详见文档[批量搜索](https://hui-zz.github.io/RunAny/#/batch-search)（内置购物、视频、图片、软件、音乐类等等搜索网站，复制需要的到【RunAny.ini】内使用）
 
-<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/help/RunAny%E6%BC%94%E7%A4%BA%E6%89%B9%E9%87%8F%E6%90%9C%E7%B4%A2.gif" alt="RunAny演示批量搜索">
+<img src="https://hui-zz.github.io/RunAny/assets/images/RunAny%E6%BC%94%E7%A4%BA%E6%89%B9%E9%87%8F%E6%90%9C%E7%B4%A2.gif" alt="RunAny演示批量搜索">
 
 ---
 
@@ -86,19 +86,19 @@ RunAny可以储存邮箱、手机号，想用时就快捷输出，更支持AHK�
 
 **有了RunAny左键右鼠不是梦，左边有大量未使用快捷组合键，利用好这些键，左手再也不用移到键盘的右边😁**
 
-<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/help/RunAny短语和热键映射功能.gif" alt="RunAny短语和热键映射功能">
+<img src="https://hui-zz.github.io/RunAny/assets/images/RunAny短语和热键映射功能.gif" alt="RunAny短语和热键映射功能">
 
 ---
 
 ## RunAny的菜单不止一种用法
 
-<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/help/RunAny菜单多种使用方式.gif" alt="RunAny菜单多种使用方式">
+<img src="https://hui-zz.github.io/RunAny/assets/images/RunAny菜单多种使用方式.gif" alt="RunAny菜单多种使用方式">
 
 ---
 
 ## <a name="runPlugins">RunAny插件脚本</a>
 
-<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/help/RunAny_huiZz_Text变量命名功能.gif" alt="RunAny_huiZz_Text变量命名功能">
+<img src="https://hui-zz.github.io/RunAny/assets/images/RunAny_huiZz_Text变量命名功能.gif" alt="RunAny_huiZz_Text变量命名功能">
 
 | 插件文件      | 插件分类     | 插件功能                                                     |
 | ------------- | ------------ | ------------------------------------------------------------ |
@@ -193,7 +193,7 @@ RunAny追求就是：<u>**一劳永逸**</u>
 
 **你的支持是我最大的动力！(金额随意，都是心意)：**
 
-<img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/支持RunAny.jpg" alt="支持RunAny" width="275" height="275"><img src="https://raw.githubusercontent.com/hui-Zz/RunAny/logic/支持RunAny.png" alt="支持RunAny" width="275" height="275">
+<img src="https://hui-zz.github.io/RunAny/assets/images/支持RunAny.jpg" alt="支持RunAny" width="275" height="275"><img src="https://hui-zz.github.io/RunAny/assets/images/支持RunAny.png" alt="支持RunAny" width="275" height="275">
 
 ---
 

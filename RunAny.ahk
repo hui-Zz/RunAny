@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.5 @2021.04.30
+║【RunAny】一劳永逸的快速启动工具 v5.7.5 @2021.05.05
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"   ;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
 global RunAny_update_version:="5.7.5"
-global RunAny_update_time:="2021.04.30"
+global RunAny_update_time:="2021.05.05"
 gosub,Var_Set           ;~参数初始化
 gosub,Menu_Var_Set      ;~自定义变量
 gosub,Icon_Set          ;~图标初始化
@@ -2072,7 +2072,7 @@ Ev_Show:
 	getZz:=Get_Zz()
 	evSearch:=""
 	if(Trim(getZz," `t`n`r")!=""){
-		getZzSize:=StrSplit(getZz,"`n").Length()
+		getZzLength:=StrSplit(getZz,"`n").Length()
 		Loop, parse, getZz, `n, `r
 		{
 			S_LoopField=%A_LoopField%
@@ -2081,7 +2081,7 @@ Ev_Show:
 				SplitPath,S_LoopField,fileName,,,name_no_ext
 				S_LoopField:=EvShowExt ? fileName : name_no_ext
 			}
-			if(InStr(S_LoopField,A_Space) && getZzSize>1){
+			if(InStr(S_LoopField,A_Space) && getZzLength>1){
 				S_LoopField="""%S_LoopField%"""
 			}
 			evSearch.=S_LoopField "|"
