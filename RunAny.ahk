@@ -603,7 +603,7 @@ GetMenuItemMode(item,fullItemFlag:=false){
 		return InStr(item,":::",,0,1)=len-2 ? 5 : 4
 	if(RegExMatch(item,"iS)^.*?\.(exe|lnk|bat|cmd|vbs|ps1|ahk) .*?([\w-]+://?|www[.]).*"))
 		return 60
-	if(RegExMatch(item,"iS)([\w-]+://?|www[.]).*"))
+	if(RegExMatch(item,"iS)^([\w-]+://?|www[.]).*"))
 		return 6
 	if(RegExMatch(item,"S).+?\[.+?\]%?\(.*?\)"))
 		return 8
@@ -5088,7 +5088,8 @@ SetOK:
 	;[保存内部关联打开后缀列表]
 	if(OpenExtFlag){
 		Gui, ListView, RunAnyOpenExtLV
-		IniDelete, %RunAnyConfig%, OpenExt
+		IniWrite, delete=1, %RunAnyConfig%, OpenExt
+		IniDelete, %RunAnyConfig%, OpenExt, delete
 		Loop % LV_GetCount()
 		{
 			LV_GetText(openExtName, A_Index, 1)
@@ -5099,7 +5100,8 @@ SetOK:
 	;[保存自定义菜单变量]
 	if(MenuVarFlag){
 		Gui, ListView, RunAnyMenuVarLV
-		IniDelete, %RunAnyConfig%, MenuVar
+		IniWrite, delete=1, %RunAnyConfig%, MenuVar
+		IniDelete, %RunAnyConfig%, MenuVar, delete
 		Loop % LV_GetCount()
 		{
 			LV_GetText(menuVarName, A_Index, 1)
