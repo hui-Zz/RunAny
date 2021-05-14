@@ -2111,7 +2111,12 @@ One_Search:
 	Loop,parse,OneKeyUrl,`n
 	{
 		if(A_LoopField){
-			Run_Search(A_LoopField,getZz,BrowserPathRun)
+			if(Candy_isFile){
+				SplitPath, getZz,FileName
+				Run_Search(A_LoopField,FileName,BrowserPathRun)
+			}else{
+				Run_Search(A_LoopField,getZz,BrowserPathRun)
+			}
 		}
 	}
 return
