@@ -8,29 +8,29 @@
 ║ 讨论QQ群：246308937
 ╚══════════════════════════════════════════════════
 */
-#NoEnv                  ;~不检查空变量为环境变量
-#Persistent             ;~让脚本持久运行
-#WinActivateForce       ;~强制激活窗口
-#SingleInstance,Force   ;~运行替换旧实例
-ListLines,Off           ;~不显示最近执行的脚本行
-AutoTrim,On             ;~自动去除变量中前导和尾随空格制表符
-SendMode,Input          ;~使用更速度和可靠方式发送键鼠点击
-CoordMode,Menu          ;~相对于整个屏幕
-SetBatchLines,-1        ;~脚本全速执行
-SetWorkingDir,%A_ScriptDir% ;~脚本当前工作目录
-global StartTick:=A_TickCount  ;评估RunAny初始化时间
-global RunAnyZz:="RunAny"   ;名称
-global RunAnyConfig:="RunAnyConfig.ini"   ;~配置文件
-global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~插件注册配置文件
-global RunAny_update_version:="5.7.5"
-global RunAny_update_time:="2021.05.05"
-gosub,Var_Set           ;~参数初始化
-gosub,Menu_Var_Set      ;~自定义变量
-gosub,Icon_Set          ;~图标初始化
-gosub,Run_Exist         ;~调用判断依赖
-gosub,Plugins_Read      ;~插件脚本读取
+#NoEnv                  ;~;不检查空变量为环境变量
+#Persistent             ;~;让脚本持久运行
+#WinActivateForce       ;~;强制激活窗口
+#SingleInstance,Force   ;~;运行替换旧实例
+ListLines,Off           ;~;不显示最近执行的脚本行
+AutoTrim,On             ;~;自动去除变量中前导和尾随空格制表符
+SendMode,Input          ;~;使用更速度和可靠方式发送键鼠点击
+CoordMode,Menu          ;~;相对于整个屏幕
+SetBatchLines,-1        ;~;脚本全速执行
+SetWorkingDir,%A_ScriptDir%               ;~;脚本当前工作目录
+global StartTick:=A_TickCount             ;~;评估RunAny初始化时间
+global RunAnyZz:="RunAny"                 ;~;名称
+global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
+global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
+global RunAny_update_version:="5.7.5"     ;~;版本号
+global RunAny_update_time:="2021.05.05"   ;~;修改日期
+gosub,Var_Set           ;~;01.参数初始化
+gosub,Menu_Var_Set      ;~;02.自定义变量
+gosub,Icon_Set          ;~;03.图标初始化
+gosub,Run_Exist         ;~;04.调用环境判断
+gosub,Plugins_Read      ;~;05.插件脚本读取
 ;══════════════════════════════════════════════════════════════════
-;~;[初始化菜单显示热键]
+;~;[07.初始化菜单显示热键]
 HotKeyList:=["MenuHotKey","MenuHotKey2","MenuNoGetHotKey","EvHotKey","OneHotKey"]
 RunHotKeyList:=HotKeyList.Clone()
 HotKeyList.Push("TreeHotKey1","TreeHotKey2","TreeIniHotKey1","TreeIniHotKey2")
@@ -72,7 +72,8 @@ For ki, kv in HotKeyList
 		}
 	}
 }
-Gosub,MenuTray	;~托盘菜单
+;~;[08.托盘菜单]
+Gosub,MenuTray
 if(errorKeyStr){
 	gosub,Menu_Set
 	if(ki!=1 && ki!=2)
@@ -90,15 +91,16 @@ if(A_AhkVersion < 1.1.28){
 t1:=A_TickCount-StartTick
 Menu_Tray_Tip("初始化时间：" Round(t1/1000,3) "s`n","开始运行插件脚本...")
 if(!iniFlag){
-	;~;[运行插件脚本]
+	;~;[09.运行插件脚本]
 	Gosub,AutoClose_Plugins
 	Gosub,AutoRun_Plugins
-	;~;[插件对象注册]
+	;~;[10.插件对象注册]
 	Gosub,Plugins_Object_Register
 }
-;~;[后缀图标初始化]
+;~;[11.后缀图标初始化]
 Gosub,Icon_FileExt_Set
 ;══════════════════════════════════════════════════════════════════
+;~;[12.创建初始菜单]
 t2:=A_TickCount-StartTick
 Menu_Tray_Tip("运行插件脚本：" Round((t2-t1)/1000,3) "s`n","开始创建无图标菜单...")
 global MenuObj:=Object()                    ;~程序全路径
@@ -138,20 +140,20 @@ Loop,%MenuCount%
 }
 MenuShowFlag:=true
 ;══════════════════════════════════════════════════════════════════
-;~;[判断如果有无路径应用则需要使用Everything]
+;~;[13.判断有无路径应用则需要使用Everything]
 EvPath:=Var_Read("EvPath")
 if(!EvNo){
 	global EvQueryFlag:=false  ;~Everything是否可以搜索到结果
 	EvCommandStr:=EvDemandSearch ? everythingCommandStr() : ""
 	if(!EvDemandSearch || (EvDemandSearch && EvCommandStr!="")){
 		evAdminRun:=A_IsAdmin ? "-admin" : ""
-		;~;[获取everything路径]
+		;获取everything路径
 		evExist:=true
 		DetectHiddenWindows,On
 		if(WinExist("ahk_exe Everything.exe")){
 			WinGet, EvPathRun, ProcessPath, ahk_exe Everything.exe
 			ev := new everything
-			;~;[RunAny管理员权限运行后发现Everything非管理员权限则重新以管理员权限运行]
+			;RunAny管理员权限运行后发现Everything非管理员权限则重新以管理员权限运行
 			if(!ev.GetIsAdmin() && A_IsAdmin && EvPathRun){
 				Run,%EvPathRun% -exit
 				Run,%EvPathRun% -startup %evAdminRun%
@@ -188,9 +190,9 @@ if(!EvNo){
 			;>>发现Everything已运行则取到路径
 			WinGet, EvPath, ProcessPath, ahk_exe Everything.exe
 		}
-		;~;[使用everything补全无路径exe的全路径]
-		global MenuObjEv:=Object()    ;~Everything搜索结果程序全径
-		global MenuObjSame:=Object()  ;~Everything搜索结果重名程序全径
+		;使用everything补全无路径exe的全路径
+		global MenuObjEv:=Object()    ;Everything搜索结果程序全径
+		global MenuObjSame:=Object()  ;Everything搜索结果重名程序全径
 		If(evExist){
 			if(EvCheckFlag){
 				RegWrite,REG_SZ,HKEY_CURRENT_USER,SOFTWARE\RunAny,EvTotResults,0
@@ -209,7 +211,7 @@ if(!EvNo){
 				break
 			}
 		}
-		;~;[如果需要自动关闭everything]
+		;如果需要自动关闭everything
 		if(EvAutoClose && EvPath && EvQueryFlag){
 			EvPathRun:=Get_Transform_Val(EvPath)
 			Run,%EvPathRun% -exit
@@ -220,29 +222,25 @@ if(!EvNo){
 ;══════════════════════════════════════════════════════════════════
 t3:=A_TickCount-StartTick
 Menu_Tray_Tip("调用Everything搜索应用全路径：" Round((t3-t2)/1000,3) "s`n","开始加载完整菜单功能...")
-;~;
 Menu_Read(iniVar1,menuRoot1,"",1)
 
 t4:=t5:=A_TickCount-StartTick
 Menu_Tray_Tip("创建菜单1：" Round((t4-t3)/1000,3) "s`n")
-;~;[如果有第2菜单则开始加载]
+;~;[14.如果有第2菜单则开始加载]
 if(MENU2FLAG){
 	Menu_Tray_Tip("","开始创建菜单2内容...")
 	Menu_Read(iniVar2,menuRoot2,"",2)
-
 	t5:=A_TickCount-StartTick
 	Menu_Tray_Tip("创建菜单2：" Round((t5-t4)/1000,3) "s`n")
 }
+
+;~;[15.初始菜单加载后操作]
 if(SendStrEcKey!="")
 	SendStrDcKey:=SendStrDecrypt(SendStrEcKey,RunAnyZz ConfigDate)
+}
 try Menu,Tray,Icon,% ZzIconS[1],% ZzIconS[2]
 
-if(MenuObjEv["totalcmd"] || MenuObjEv["TotalCMD64"]){
-	ClipWaitTime:=Var_Read("ClipWaitTime",1.5)
-	ClipWaitApp:=Var_Read("ClipWaitApp","totalcmd.exe,totalcmd64.exe")
-}
-
-;~[对菜单内容项进行过滤调整]
+;~;[16.对菜单内容项进行过滤调整]
 Loop,%MenuCount%
 {
 	menuDefaultRoot%A_Index%:=[M%A_Index% " "]
@@ -258,7 +256,7 @@ Loop,%MenuCount%
 	Menu_Item_List_Filter(A_Index,"MenuWebList",HideWeb)
 	Menu_Item_List_Filter(A_Index,"MenuGetZzList",HideGetZz)
 	
-	;[带%s的网址菜单分类下增加批量搜索功能项]
+	;带%s的网址菜单分类下增加批量搜索功能项
 	For mn,items in MenuWebList%A_Index%
 	{
 		if(!RegExMatch(mn,"S)[^\s]+\s$")){
@@ -270,27 +268,25 @@ Loop,%MenuCount%
 	;设置后缀公共菜单
 	MenuObjExt["public"]:=MenuObjPublic
 	
-	;[选中文本菜单过滤分类]
+	;选中文本菜单过滤分类
 	if(MenuObjText%A_Index%.MaxIndex()>0){
 		Menu_Tree_List_Filter(A_Index,"MenuObjText",2)
 		rootName:=menuWebRoot%A_Index%[1]
-		;[开启选中文字菜单后，主菜单里面不带%getZz%或%s的都不再显示]
+		;开启选中文字菜单后，主菜单里面不带%getZz%或%s的都不再显示
 		for k,v in MenuObjTree%A_Index%[rootName]
 		{
 			if(v!="" && GetMenuItemMode(v,true)<10){
 				if(!InStr(v,"%getZz%") && !InStr(v,"%s")){
 					try Menu,%rootName%,Delete,% Get_Obj_Name(v)
-				}else{
-					global MenuObjTextRootFlag:=true
 				}
 			}
 		}
 	}
-	;[选中文件菜单过滤分类]
+	;选中文件菜单过滤分类
 	if(MenuObjFile%A_Index%.MaxIndex()>0){
 		Menu_Tree_List_Filter(A_Index,"MenuObjFile",3)
 		rootName:=menuFileRoot%A_Index%[1]
-		;[开启选中文件菜单后，主菜单里面不带%getZz%或%s的都不再显示]
+		;开启选中文件菜单后，主菜单里面不带%getZz%或%s的都不再显示
 		for k,v in MenuObjTree%A_Index%[rootName]
 		{
 			if(v!="" && !InStr(v,"%getZz%") && !InStr(v,"%s") 
@@ -299,7 +295,7 @@ Loop,%MenuCount%
 			}
 		}
 	}
-	;~;[最近运行项]
+	;~;[17.最近运行项]
 	if(RecentMax>0){
 		M_Index:=A_Index
 		Menu,% menuDefaultRoot%M_Index%[1],Add
@@ -329,11 +325,11 @@ Loop,%MenuCount%
 		}
 	}
 }
-;~;[内部关联后缀打开方式]
+;~;[18.内部关联后缀打开方式]
 Gosub,Open_Ext_Set
 
 Menu_Tray_Tip("","菜单已经可以正常使用`n开始为菜单中exe程序加载图标...")
-;~;[循环为菜单中EXE程序添加图标，过程较慢]
+;~;[19.菜单中EXE程序加载图标，有ico图标更快]
 For k, v in MenuExeIconArray
 {
 	if(DisableExeIcon){
@@ -351,7 +347,7 @@ For k, v in MenuExeArray
 	}
 }
 ;-------------------------------------------------------------------------------------------
-;#菜单已经加载完毕，托盘图标变化
+;~;[20.菜单已经加载完毕，托盘图标变化]
 if(EvNo || EvQueryFlag || EvCommandStr="")
 	try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 t6:=A_TickCount-StartTick
@@ -579,7 +575,7 @@ RunABackupClear(RunABackupDir,RunABackupFile){
 	}
 }
 ;══════════════════════════════════════════════════════════════════
-;~;[获取菜单项启动模式]
+;~;{获取菜单项启动模式}
 ;~;1-启动路径|2-短语模式|3-模拟打字短语|4-热键映射|5-AHK热键映射|6-网址|60-程序参数中带网址
 ;~;7-文件夹|8-插件脚本函数
 ;~;10-菜单分类|11-分割符|12-注释说明
@@ -612,7 +608,7 @@ GetMenuItemMode(item,fullItemFlag:=false){
 	return 1
 }
 ;══════════════════════════════════════════════════════════════════
-;~;[读取配置并开始创建菜单]
+;~;【读取配置并开始创建菜单】
 ;══════════════════════════════════════════════════════════════════
 Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 	MenuObjName:=Object()	;~程序菜单项名称
@@ -627,15 +623,15 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				continue
 			}
 			TREE_TYPE_FLAG:=(TREE_TYPE="" || TREE_TYPE="    ")
+			;~;[生成节点树层级结构]
 			if(InStr(Z_LoopField,"-")=1){
-				;~;[生成节点树层级结构]
 				menuItem:=RegExReplace(Z_LoopField,"S)^-+")
 				treeLevel:=RegExReplace(Z_LoopField,"S)(^-+).*","$1")
 				menuLevel:=StrLen(treeLevel)
 				if(InStr(menuItem,"|")){
 					menuItems:=StrSplit(menuItem,"|",,2)
 					menuItem:=menuItems[1]
-					;~;[读取菜单关联后缀][不重复]
+					;[读取菜单关联后缀][不重复]
 					if(TREE_TYPE=""){
 						Loop, parse,% menuItems[2],%A_Space%
 						{
@@ -666,7 +662,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 						MenuObjTree%TREE_NO%[menuItemType]:=Object()
 					MenuObjTreeLevel[menuItemType]:=treeLevel
 					
-					;~;[分割Tab获取菜单自定义热键][不重复]
+					;[分割Tab获取菜单自定义热键][不重复]
 					if(TREE_TYPE_FLAG && InStr(menuItem,"`t")){
 						menuKeyStr:=RegExReplace(menuItem, "S)\t+", A_Tab)
 						menuKeys:=StrSplit(menuKeyStr,"`t")
@@ -715,8 +711,8 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 			flagEXE:=false			;~添加exe菜单项目
 			flagSys:=false			;~添加系统项目文件
 			IconFail:=false		;~是否显示无效项图标
+			;~;[生成有前缀备注的应用]
 			if(InStr(Z_LoopField,"|")){
-				;~;[生成有前缀备注的应用]
 				menuDiy:=StrSplit(Z_LoopField,"|",,2)
 				appName:=RegExReplace(menuDiy[2],"iS)(.*?\.[a-zA-Z0-9]+)($| .*)","$1")	;去掉参数，取应用名
 				appName:=RegExReplace(appName,"iS)\.exe$")	;去掉exe后缀，取应用名
@@ -767,7 +763,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					}
 					if(!HideFail)
 						flagEXE:=true
-					;~;[添加菜单项]
+					;添加菜单项
 					if(flagEXE){
 						Menu,% menuRootFn[menuLevel],add,% menuDiy[1],Menu_Run,%MenuBar%
 						if(IconFail)
@@ -781,10 +777,10 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				}else{
 					Menu_Add(menuRootFn[menuLevel],menuDiy[1],itemParam,itemMode,TREE_NO)
 				}
-				;~;[分割Tab获取应用自定义热键]
+				;[分割Tab获取应用自定义热键]
 				menuKeyStr:=RegExReplace(menuDiy[1], "S)\t+", A_Tab)
 				menuKeys:=StrSplit(menuKeyStr,"`t")
-				;~;[设置热键启动方式][不重复]
+				;[设置热键启动方式][不重复]
 				if(TREE_TYPE_FLAG && InStr(menuDiy[1],"`t") && menuKeys[2]){
 					MenuObjKey[menuKeys[2]]:=itemParam
 					MenuObjKeyName[menuKeys[2]]:=menuKeys[1]
@@ -796,7 +792,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 						Hotkey,% menuKeys[2],Menu_Key_Run,On
 					}
 				}
-				;~;[设置热字符串启动方式][不重复]
+				;[设置热字符串启动方式][不重复]
 				if(TREE_TYPE="" && RegExMatch(menuKeys[1],"S):[*?a-zA-Z0-9]+?:[^:]*")){
 					hotStrName:=menuKeys[1]
 					if(RegExMatch(hotStrName,"S).*_:\d{1,2}$"))
@@ -807,10 +803,10 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 						MenuObjKey[hotstr]:=itemParam
 						MenuObjKeyName[hotstr]:=menuKeys[1]
 						if(RegExMatch(hotstr,"S):[^:]*?X[^:]*?:[^:]*")){
-							;热字符串运行不带%getZz%的函数、不带%getZz%或%s的网址不传递选中内容
-							if(!InStr(menuDiy[2],"%getZz%") && RegExMatch(menuDiy[2],"iS).+?\[.+?\]%?\(.*?\)")){
+							;热字符串运行不传递选中内容：不带%getZz%的运行项、不带%getZz%或%s的网址
+							if(itemMode=6 && !InStr(menuDiy[2],"%getZz%") && !InStr(menuDiy[2],"%s")){
 								Hotstring(hotstr,"Menu_Key_NoGet_Run","On")
-							}else if(RegExMatch(menuDiy[2],"iS)([\w-]+://?|www[.]).*") && !InStr(menuDiy[2],"%getZz%") && !InStr(menuDiy[2],"%s")){
+							}else if(!InStr(menuDiy[2],"%getZz%")){
 								Hotstring(hotstr,"Menu_Key_NoGet_Run","On")
 							}else{
 								Hotstring(hotstr,"Menu_Key_Run","On")
@@ -840,7 +836,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				}
 				if(!HideFail)
 					flagEXE:=true
-				;~;[添加菜单项]
+				;添加菜单项
 				if(flagEXE){
 					Menu,% menuRootFn[menuLevel],add,% menuAppName,Menu_Run,%MenuBar%
 					if(IconFail){
@@ -875,7 +871,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				}
 				if(!HideFail)
 					flagEXE:=true
-				;~;[添加菜单项]
+				;添加菜单项
 				if(flagEXE){
 					Menu,% menuRootFn[menuLevel],add,% menuAppName,Menu_Run,%MenuBar%
 					if(IconFail)
@@ -979,7 +975,7 @@ Menu_HotStr_Hint_Run:
 	SetTimer,RemoveToolTip,%HotStrShowTime%
 return
 ;══════════════════════════════════════════════════════════════════
-;~;[生成菜单(判断后缀创建图标)]
+;~;【生成菜单(判断后缀创建图标)】
 ;══════════════════════════════════════════════════════════════════
 Menu_Add(menuName,menuItem,item,itemMode,TREE_NO){
 	if(!menuName || !item)
@@ -1098,7 +1094,7 @@ MenuShowTime:
 	}
 return
 ;══════════════════════════════════════════════════════════════════
-;~;[显示菜单]
+;~;【显示菜单】
 ;══════════════════════════════════════════════════════════════════
 Menu_Show:
 	try{
@@ -1284,7 +1280,7 @@ Menu_Show:
 			}
 		}
 		;#选中文本弹出网址菜单#
-		if(MenuObjTextRootFlag && MenuObjText%MENU_NO%.MaxIndex()=1){
+		if(MenuObjText%MENU_NO%.MaxIndex()=1){
 			;如果根目录没有%getZz%或%s且text菜单只有1个，直接显示这个text菜单
 			Menu_Show_Show(MenuObjText%MENU_NO%[1],getZz)
 		}else{
@@ -1292,7 +1288,7 @@ Menu_Show:
 		}
 	}catch{}
 return
-;~;[菜单热键显示]
+;~;【显示菜单-热键】
 Menu_Key_Show:
 	getZz:=Get_Zz()
 	try {
@@ -1379,7 +1375,7 @@ Menu_Add_Del_Temp(addDel=1,TREE_NO=1,mName="",LabelName="",mIcon="",mIconNum="")
 	}
 }
 ;══════════════════════════════════════════════════════════════════
-;~;[菜单运行]
+;~;【菜单运行】
 ;══════════════════════════════════════════════════════════════════
 Menu_Run:
 	Z_ThisMenuItem:=A_ThisMenuItem
@@ -1635,7 +1631,7 @@ MultifunctionMenu:
 	M_ThisMenuItem:=A_ThisMenuItem
 return
 ;══════════════════════════════════════════════════════════════════
-;~;[菜单热键运行]
+;~;【菜单运行-热键】
 ;══════════════════════════════════════════════════════════════════
 Menu_Key_Run:
 	getZz:=Get_Zz()
@@ -2568,7 +2564,7 @@ SetSaveItem:
 		vitemName.=vhotStrSave
 	}
 	Gui,SaveItem:Destroy
-	;~;[读取菜单内容插入新菜单项到RunAny.ini]
+	;[读取菜单内容插入新菜单项到RunAny.ini]
 	Loop, parse, iniFileVar, `n, `r
 	{
 		itemContent=%A_LoopField%
@@ -2619,18 +2615,18 @@ SetSaveItem:
 	}
 return
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-;~;[菜单配置Gui]
+;~;【——菜单配置Gui——】
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 Menu_Edit:
 	global TVFlag:=false
 	global FailFlag:=false
-	;~;[功能菜单初始化]
+	;[功能菜单初始化]
 	treeRoot:=Object()
 	global moveRoot:=Object()
 	moveRoot[1]:="moveMenu" . both
 	Menu,% moveRoot[1],add
 	global moveLevel:=0
-	;~;[树型菜单初始化]
+	;[树型菜单初始化]
 	Gui, Destroy
 	Gui, +Resize
 	Gui, Font,s10, Microsoft YaHei
@@ -2639,14 +2635,14 @@ Menu_Edit:
 	GuiControl, Hide, MyProgress
 	GuiControl, -Redraw, RunAnyTV
 	Tv:=new treeview(HTV)
-	;~;[读取菜单配置内容写入树形菜单]
+	;[读取菜单配置内容写入树形菜单]
 	Loop, parse, iniFileVar, `n, `r, %A_Space%%A_Tab%
 	{
 		if(A_LoopField=""){
 			continue
 		}
 		if(InStr(A_LoopField,"-")=1){
-			;~;[生成节点树层级结构]
+			;[生成节点树层级结构]
 			treeLevel:=StrLen(RegExReplace(A_LoopField,"S)(^-+).+","$1"))
 			if(RegExMatch(A_LoopField,"S)^-+[^-]+.*")){
 				if(treeLevel=1){
@@ -2862,7 +2858,7 @@ TVEdit_GuiVal:
 		menuDiy:=StrSplit(ItemText,"|",,2)
 		itemName:=menuDiy[1]
 		itemPath:=menuDiy[2]
-		;~;[分割Tab获取应用自定义热键]
+		;[分割Tab获取应用自定义热键]
 		menuKeyStr:=RegExReplace(menuDiy[1], "S)\t+", A_Tab)
 		menuKeys:=StrSplit(menuKeyStr,"`t")
 		itemName:=menuKeys[1]
@@ -2874,12 +2870,12 @@ TVEdit_GuiVal:
 				itemGlobalKey:=StrReplace(menuKeys[2], "#")
 			}
 		}
-		;~;[设置透明度]
+		;[设置透明度]
 		if(RegExMatch(itemName,"S).*?_:(\d{1,2})$")){
 			itemTrNum:=RegExReplace(itemName,"S).*?_:(\d{1,2})$","$1")
 			itemName:=RegExReplace(itemName,"S)(.*)_:\d{1,2}$","$1")
 		}
-		;~;[设置热字符串启动方式]
+		;[设置热字符串启动方式]
 		if(RegExMatch(itemName,"S):[*?a-zA-Z0-9]+?:[^:]*")){
 			hotStr:=RegExReplace(itemName,"S)^[^:]*?(:[*?a-zA-Z0-9]+?:[^:]*)","$1")
 			hotStrOption:=RegExReplace(hotstr,"S)^(:[*?a-zA-Z0-9]+?:)[^:]*","$1")
@@ -2890,6 +2886,7 @@ TVEdit_GuiVal:
 		itemPath:=ItemText
 	}
 return
+;~;【新增修改菜单项Gui】
 Menu_Item_Edit:
 	SaveLabel:=menuGuiFlag ? "SetSaveItemGui" : "SetSaveItem"
 	PromptStr:=menuGuiFlag ? "需要" : "点击此处"
@@ -3823,7 +3820,7 @@ Set_Icon(itemVar,editVar=true){
 		return "Icon11"
 	if(!editVar && FileName="" && FileExt="exe")
 		return "Icon3"
-	;~;[获取网址图标]
+	;[获取网址图标]
 	if(setItemMode=6){
 		try{
 			website:=RegExReplace(objText,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
@@ -3839,7 +3836,7 @@ Set_Icon(itemVar,editVar=true){
 			return "Icon7"
 		}
 	}
-	;~;[编辑后图标重新加载]
+	;[编辑后图标重新加载]
 	if(editVar && FailFlag){
 		;~;[编辑后通过everything重新添加应用图标]
 		if(FileExt="exe"){
@@ -3909,38 +3906,38 @@ Set_Icon(itemVar,editVar=true){
 }
 ;修改于ahk论坛全选全不选
 TV_CheckUncheckWalk(_GuiEvent, _EventInfo, _GuiControl)
-{	
-	static 	TV_SuspendEvents := False											;最初接受事件并保持跟踪
-	If ( TV_SuspendEvents || !_GuiEvent || !_EventInfo || !_GuiControl )		;无所事事：出去！
-		Return
-	If _GuiEvent = Normal														;这是一个左键：继续
-	{
-		Critical											                    ;不能被中断。
-		TV_SuspendEvents := True												;在工作时停止对功能的进一步调用
-		Gui, TreeView, %_GuiControl% 											;激活正确的TV
-		TV_Modify(_EventInfo, "Select")										;选择项目反正...这一行可能在这里取消和分散进一步
-		If TV_Get( _EventInfo, "Checked" )									;项目的复选标记
-		{
-			If TV_GetChild( _EventInfo )										;项目的节点
-				ToggleAllTheWay( _EventInfo, False )							;复选标记所有的孩子一路下来
-		}
-		Else																	;它未被选中
-		{
-			If TV_GetChild( _EventInfo )										;它是一个节点
-				ToggleAllTheWay( _EventInfo, True )							;取消选中所有的孩子一直向下
-			If TV_Get( TV_GetParent( _EventInfo ), "Checked") 				;父节点选中怎么样？
-			{
-				locItemId := TV_GetParent( _EventInfo )						;父节点检查标记：获取父ID
-				While locItemId													;循环一路向上
-				{
-					TV_Modify( locItemId , "-Check" )							;它的未选中：检查！
-					locItemId := TV_GetParent( locItemId )					;获取下一个父ID
-				}
-			}
-		}
-	}
-	TV_SuspendEvents := False													;激活事件
-	Return
+{
+    static  TV_SuspendEvents := False                                           ;最初接受事件并保持跟踪
+    If ( TV_SuspendEvents || !_GuiEvent || !_EventInfo || !_GuiControl )        ;无所事事：跳出
+        Return
+    If _GuiEvent = Normal                                                       ;这是一个左键：继续
+    {
+        Critical                                                                ;不能被中断。
+        TV_SuspendEvents := True                                                ;在工作时停止对功能的进一步调用
+        Gui, TreeView, %_GuiControl%                                            ;激活正确的TV
+        TV_Modify(_EventInfo, "Select")                                         ;选择项目反正...这一行可能在这里取消和分散进一步
+        If TV_Get( _EventInfo, "Checked" )                                      ;项目的复选标记
+        {
+            If TV_GetChild( _EventInfo )                                        ;项目的节点
+                ToggleAllTheWay( _EventInfo, False )                            ;复选标记所有的子节点一路下来
+        }
+        Else                                                                    ;它未被选中
+        {
+            If TV_GetChild( _EventInfo )                                        ;它是一个节点
+                ToggleAllTheWay( _EventInfo, True )                             ;取消选中所有的子节点一直向下
+            If TV_Get( TV_GetParent( _EventInfo ), "Checked")                   ;父节点选中怎么样？
+            {
+                locItemId := TV_GetParent( _EventInfo )                         ;父节点检查标记：获取父ID
+                While locItemId                                                 ;循环一路向上
+                {
+                    TV_Modify( locItemId , "-Check" )                           ;取消选中
+                    locItemId := TV_GetParent( locItemId )                      ;获取下一个父ID
+                }
+            }
+        }
+    }
+    TV_SuspendEvents := False                                                   ;激活事件
+    Return
 }
 ; ToggleAllTheWay：内部使用
 ToggleAllTheWay(_ItemID=0, _ChkUchk=True ) {
@@ -4014,7 +4011,7 @@ WM_NOTIFY(Param*){
 	}
 }
 ;══════════════════════════════════════════════════════════════════
-;~;[插件管理Gui]
+;~;【插件-管理Gui】
 ;══════════════════════════════════════════════════════════════════
 Plugins_Manage:
 	gosub,Plugins_Read
@@ -4338,7 +4335,7 @@ IniWrite,1,%RunAnyConfig%,Plugins,%newObjRegInput%
 gosub,Plugins_Manage
 Run,notepad.exe %A_ScriptDir%\%PluginsDir%\%newObjRegInput%
 return
-;[插件脚本库]
+;~;【插件-脚本库Gui】
 LVPluginsLib:
 	PluginsDirPath:=StrReplace(PluginsDirPath, "|", "`n")
 	Gui,PluginsLib:Destroy
@@ -4881,25 +4878,19 @@ Menu_Set:
 	LV_Add(HoldCtrlWinRun ? "Icon1" : "Icon2", HoldCtrlWinRun,"", "[按住Ctrl+Win键] 回车或点击菜单项（选项数字可互用） 11:以管理员权限运行 12:最小化运行 13:最大化运行 14:隐藏运行(部分有效)","","HoldCtrlWinRun")
 	LV_Add(HoldShiftWinRun ? "Icon1" : "Icon2", HoldShiftWinRun,"", "[按住Shift+Win键] 回车或点击菜单项（选项数字可互用） 31:复制运行路径 32:输出运行路径 33:复制软件名 34:输出软件名 35:复制软件名+后缀 36:输出软件名+后缀","","HoldShiftWinRun")
 	LV_Add(HoldCtrlShiftWinRun ? "Icon1" : "Icon2", HoldCtrlShiftWinRun,"", "[按住Ctrl+Shift+Win键] 回车或点击菜单项（选项数字可互用） 4:强制结束该软件单个进程","","HoldCtrlShiftWinRun")
-	if(RunAnyMenuSpaceFlag){
+	if(RunAnyMenuSpaceFlag)
 		LV_Add(RunAnyMenuSpaceRun ? "Icon1" : "Icon2", RunAnyMenuSpaceRun,"", "[按空格键] 运行菜单项（只能复制上面已设置的选项数字）","RunAny_Menu.ahk","RunAnyMenuSpaceRun")
-	}
-	if(RunAnyMenuRButtonFlag){
+	if(RunAnyMenuRButtonFlag)
 		LV_Add(RunAnyMenuRButtonRun ? "Icon1" : "Icon2", RunAnyMenuRButtonRun,"", "[按右键] 运行菜单项（只能复制上面已设置的选项数字）","RunAny_Menu.ahk","RunAnyMenuRButtonRun")
-	}
-	if(RunAnyMenuMButtonFlag){
+	if(RunAnyMenuMButtonFlag)
 		LV_Add(RunAnyMenuMButtonRun ? "Icon1" : "Icon2", RunAnyMenuMButtonRun,"", "[按中键] 运行菜单项（只能复制上面已设置的选项数字）","RunAny_Menu.ahk","RunAnyMenuMButtonRun")
-	}
-	if(RunAnyMenuXButton1Flag){
+	if(RunAnyMenuXButton1Flag)
 		LV_Add(RunAnyMenuXButton1Run ? "Icon1" : "Icon2", RunAnyMenuXButton1Run,"", "[按XButton1键] 运行菜单项（只能复制上面已设置的选项数字）","RunAny_Menu.ahk","RunAnyMenuXButton1Run")
-	}
-	if(RunAnyMenuXButton2Flag){
+	if(RunAnyMenuXButton2Flag)
 		LV_Add(RunAnyMenuXButton2Run ? "Icon1" : "Icon2", RunAnyMenuXButton2Run,"", "[按XButton2键] 运行菜单项（只能复制上面已设置的选项数字）","RunAny_Menu.ahk","RunAnyMenuXButton2Run")
-	}
 	LV_Add(HoldKeyShowTime ? "Icon1" : "Icon2", HoldKeyShowTime,"毫秒", "按键运行菜单项复制运行路径、软件名等提示信息的显示时间","RunAny_Menu.ahk","HoldKeyShowTime")
-	if(RunAnyMenuTransparentFlag){
+	if(RunAnyMenuTransparentFlag)
 		LV_Add(RunAnyMenuTransparent ? "Icon1" : "Icon2", RunAnyMenuTransparent,"", "RunAny菜单和右键菜单透明度数值（0全透明-255不透明）","RunAny_Menu.ahk","RunAnyMenuTransparent")
-	}
 	LV_Add(RUNANY_SELF_MENU_ITEM1 ? "Icon1" : "Icon2", RUNANY_SELF_MENU_ITEM1,, "RunAny自身功能的菜单项名称修改1：&1批量搜索","","RUNANY_SELF_MENU_ITEM1")
 	LV_Add(RUNANY_SELF_MENU_ITEM2 ? "Icon1" : "Icon2", RUNANY_SELF_MENU_ITEM2,, "RunAny自身功能的菜单项名称修改2：RunAny设置","","RUNANY_SELF_MENU_ITEM2")
 	LV_Add(RUNANY_SELF_MENU_ITEM3 ? "Icon1" : "Icon2", RUNANY_SELF_MENU_ITEM3,, "RunAny自身功能的菜单项名称修改3：0【添加到此菜单】","","RUNANY_SELF_MENU_ITEM3")
@@ -4940,7 +4931,7 @@ Menu_Set:
 		}
 	}
 	return
-;~;[关于Gui]
+;~;【关于Gui】
 Menu_About:
 	Gui,99:Destroy
 	Gui,99:Color,FFFFFF
@@ -5506,11 +5497,11 @@ listviewAdvancedConfig:
 	}
 return
 
-;══════════════════════════════════════════════════════════════════
-;~;[初始化]
-;══════════════════════════════════════════════════════════════════
+;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+;~;【——初始化——】
+;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 Var_Set:
-	;~;[RunAny设置参数]
+	;[RunAny设置参数]
 	global Z_ScriptName:=FileExist(RunAnyZz ".exe") ? RunAnyZz ".exe" : A_ScriptName
 	RegRead, AutoRun, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 	AutoRun:=AutoRun=A_ScriptDir "\" Z_ScriptName ? 1 : 0
@@ -5691,7 +5682,7 @@ Var_Set:
 		Gosub,Auto_Update
 	}
 return
-;~;[菜单自定义变量]
+;~;【菜单自定义变量】
 Menu_Var_Set:
 	global MenuVarIniList:={}
 	global MenuVarTypeList:={}
@@ -5727,9 +5718,9 @@ Menu_Var_Set:
 		}
 	}
 return
-;~;[内部关联后缀打开方式]
+;~;【内部关联后缀打开方式】
 Open_Ext_Set:
-	;~;[支持一键直达浏览器无路径识别]
+	;支持一键直达浏览器无路径识别
 	global BrowserPath:=Var_Read("BrowserPath")
 	global BrowserPathRun:=Get_Obj_Path_Transform(BrowserPath)
 	global openExtIniList:={}
@@ -5743,6 +5734,11 @@ Open_Ext_Set:
 		{
 			extLoopField:=RegExReplace(A_LoopField,"^\.","")
 			openExtRunList[extLoopField]:=Get_Obj_Path_Transform(itemList[1])
+		}
+		if((itemList[2]="folder" && (InStr(itemList[1],"totalcmd.exe") || InStr(itemList[1],"TotalCMD64.exe")))
+			|| MenuObjEv["totalcmd"] || MenuObjEv["TotalCMD64"]){
+			ClipWaitTime:=Var_Read("ClipWaitTime",1.5)
+			ClipWaitApp:=Var_Read("ClipWaitApp","totalcmd.exe,totalcmd64.exe")
 		}
 	}
 	if(!openExtRunList["folder"]){
@@ -5760,7 +5756,7 @@ Open_Ext_Set:
 	}
 	global OpenFolderPathRun:=openExtRunList["folder"]
 return
-;~;[图标初始化]
+;~;【图标初始化】
 Icon_Set:
 	global RunIconDir:=A_ScriptDir "\RunIcon"
 	global WebIconDir:=RunIconDir "\WebIcon"
@@ -5891,7 +5887,7 @@ Icon_FileExt_Set:
 	}
 	IconFolderPath:=StrReplace(IconFolderPath, "|", "`n")
 return
-;~;[调用判断]
+;~;【调用环境判断】
 Run_Exist:
 	;#判断菜单配置文件初始化#
 	global iniPath:=A_ScriptDir "\" RunAnyZz ".ini"
@@ -5961,7 +5957,7 @@ Run_Exist:
 		}
 	}
 return
-;~;[AHK插件脚本读取]
+;~;【AHK插件脚本Read】
 Plugins_Read:
 	global PluginsObjList:=Object()
 	global PluginsPathList:=Object()
@@ -6021,7 +6017,7 @@ Plugins_Read:
 		}
 	}
 return
-;~;[RunAny的AHK脚本对象注册]
+;~;【AHK脚本对象注册】
 Plugins_Object_Register:
 	global PluginsObjRegGUID:=Object()	;~插件对象注册GUID列表
 	global PluginsObjRegActive:=Object()	;~插件对象注册Active列表
@@ -6229,7 +6225,7 @@ menuItemIconFileName(menuItem){
 	}
 	return menuItem
 }
-;~;[自动启动插件]
+;~;【自动启动插件】
 AutoRun_Plugins:
 	try {
 		if(A_AhkPath){
@@ -6379,7 +6375,7 @@ exit
 ),%A_Temp%\RunAny_Update.bat
 return
 ;══════════════════════════════════════════════════════════════════
-;~;[托盘菜单]
+;~;【托盘菜单】
 MenuTray:
 	Menu,Tray,NoStandard
 	try Menu,Tray,Icon,% MenuIconS[1],% MenuIconS[2]
@@ -6528,9 +6524,9 @@ URLDownloadToFile(URL, FilePath, Options:="", RequestHeaders:="")
 	return, 1
 }
 ;══════════════════════════════════════════════════════════════════
-;~;[使用everything搜索所有exe程序]
+;~;【使用everything搜索所有exe程序】
 ;══════════════════════════════════════════════════════════════════
-;~;[校验everything是否可正常返回搜索结果]
+;[校验everything是否可正常返回搜索结果]
 everythingCheck:
 FileDelete,%A_Temp%\RunAnyEv.ahk
 FileAppend,
