@@ -237,7 +237,6 @@ if(MENU2FLAG){
 ;~;[15.初始菜单加载后操作]
 if(SendStrEcKey!="")
 	SendStrDcKey:=SendStrDecrypt(SendStrEcKey,RunAnyZz ConfigDate)
-}
 try Menu,Tray,Icon,% ZzIconS[1],% ZzIconS[2]
 
 ;~;[16.对菜单内容项进行过滤调整]
