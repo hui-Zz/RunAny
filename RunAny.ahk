@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.5 @2021.05.05
+║【RunAny】一劳永逸的快速启动工具 v5.7.5 @2021.06.03
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.5"     ;~;版本号
-global RunAny_update_time:="2021.05.05"   ;~;修改日期
+global RunAny_update_time:="2021.06.03"   ;~;修改日期
 gosub,Var_Set           ;~;01.参数初始化
 gosub,Menu_Var_Set      ;~;02.自定义变量
 gosub,Icon_Set          ;~;03.图标初始化
@@ -6654,15 +6654,24 @@ everythingCommandStr(){
 			}
 			itemVars:=StrSplit(A_LoopField,"|",,2)
 			itemVar:=itemVars[2] ? itemVars[2] : itemVars[1]
+			itemMode:=GetMenuItemMode(itemVar)
 			outVar:=RegExReplace(itemVar,"iS)^([^|]+?\.[^ ]+)($| .*)","$1")	;去掉参数
-			if(!RegExMatch(outVar,"S)\\|\/|\:|\*|\?|\""|\<|\>|\|") 
-					&& !InStr(EvCommandStr,"|" outVar "|") && GetMenuItemMode(A_LoopField)=1
-					&& !FileExist(A_WinDir "\" outVar) && !FileExist(A_WinDir "\system32\" outVar)){
-				if(InStr(outVar,A_Space) || InStr(outVar,"!")){
-					EvCommandStr.="""" outVar . """|"
+			if(InStr(EvCommandStr,"|" outVar "|") || (itemMode!=1 && itemMode!=8)){
+				continue
+			}else if(itemMode=1 && (RegExMatch(outVar,"S)\\|\/|\:|\*|\?|\""|\<|\>|\|")
+					|| FileExist(A_WinDir "\" outVar) || FileExist(A_WinDir "\system32\" outVar))){
+				continue
+			}else if(itemMode=8){
+				if(RegExMatch(itemVar,"iS).+?\[.+?\]%?\(.*?%"".+?""%.*?\)")){
+					outVar:=RegExReplace(itemVar,"iS).+?\[.+?\]%?\(.*?%""(.+?)""%.*?\)","$1")
 				}else{
-					EvCommandStr.=outVar . "|"
+					continue
 				}
+			}
+			if(InStr(outVar,A_Space) || InStr(outVar,"!")){
+				EvCommandStr.="""" outVar . """|"
+			}else{
+				EvCommandStr.=outVar . "|"
 			}
 		}
 	}
