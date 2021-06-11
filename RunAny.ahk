@@ -1195,14 +1195,14 @@ Menu_Show:
 					continue
 				}
 				;一键计算公式数字加减乘除
-				if(RegExMatch(S_LoopField,"S)^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+($|=$)")){
+				if(RegExMatch(S_LoopField,"S)^[\(\)\.\s]*\d+\s*[+*/-]+[\(\)\.+*/-\d\s]+($|=$)")){
 					formula:=S_LoopField
-					if(RegExMatch(S_LoopField,"S)^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+=$")){
+					if(RegExMatch(S_LoopField,"S)^[\(\)\.\s]*\d+\s*[+*/-]+[\(\)\.+*/-\d\s]+=$")){
 						StringTrimRight, formula, formula, 1
 					}
 					calc:=js_eval(formula)
 					selectResult.=A_LoopField
-					if(RegExMatch(S_LoopField,"S)^[\(\)\.\d]+[+*/-]+[\(\)\.+*/-\d]+=$")){
+					if(RegExMatch(S_LoopField,"S)^[\(\)\.\s]*\d+\s*[+*/-]+[\(\)\.+*/-\d\s]+=$")){
 						calcFlag:=true
 						selectResult.=calc
 					}else{
