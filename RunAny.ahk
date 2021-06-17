@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.5 @2021.06.11
+║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.06.17
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -22,8 +22,8 @@ global StartTick:=A_TickCount             ;~;评估RunAny初始化时间
 global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
-global RunAny_update_version:="5.7.5"     ;~;版本号
-global RunAny_update_time:="2021.06.11"   ;~;修改日期
+global RunAny_update_version:="5.7.6"     ;~;版本号
+global RunAny_update_time:="2021.06.17"   ;~;修改日期
 gosub,Var_Set           ;~;01.参数初始化
 gosub,Menu_Var_Set      ;~;02.自定义变量
 gosub,Icon_Set          ;~;03.图标初始化
@@ -238,12 +238,8 @@ if(MENU2FLAG){
 ;~;[15.初始菜单加载后操作]
 if(SendStrEcKey!="")
 	SendStrDcKey:=SendStrDecrypt(SendStrEcKey,RunAnyZz ConfigDate)
-MenuTrayTipHide:=True
-Gosub,RunCtrl_PathApps
-if(EvNo || EvQueryFlag || EvCommandStr=""){
-	MenuTrayTipHide:=True
-	gosub,RunCtrl_MenuApps
-}
+
+Gosub,Rule_Effect
 try Menu,Tray,Icon,% ZzIconS[1],% ZzIconS[2]
 
 ;~;[16.对菜单内容项进行过滤调整]
@@ -1793,7 +1789,6 @@ MenuRunDebugModeShow(key:=0){
 	}
 }
 Run_Any(any,mode:=""){
-	global MenuTrayTipHide
 	Menu_Debug_Mode("[运行路径]`n" any "`n")
 	if(!MenuTrayTipHide){
 		Menu_Run_Tray_Tip(any "`n")
@@ -4698,7 +4693,7 @@ return
 RunCtrlLVMenu(addMenu){
 	flag:=addMenu="RunCtrlGuiMenu" ? true : false
 	Menu, %addMenu%, Add,% flag ? "启动" : "启动`tF1", RunCtrlLVRun
-	Menu, %addMenu%, Icon,% flag ? "启动" : "启动`tF1", SHELL32.dll,3
+	Menu, %addMenu%, Icon,% flag ? "启动" : "启动`tF1",% EXEIconS[1],% EXEIconS[2]
 	Menu, %addMenu%, Add,% flag ? "添加组" : "添加组`tF3", RunCtrlLVAdd
 	Menu, %addMenu%, Icon,% flag ? "添加组" : "添加组`tF3",% RunCtrlManageIconS[1],% RunCtrlManageIconS[2]
 	Menu, %addMenu%, Add,% flag ? "添加应用" : "添加应用`tF4", LVCtrlRunAdd
@@ -4783,25 +4778,33 @@ return
 RunCtrlLVRun:
 	Gui,RunCtrlGui:Default
 	Gui,RunCtrlGui:Submit, NoHide
-	gosub,RunCtrl_PathApps
-	gosub,RunCtrl_MenuApps
+	GuiControlGet, focusGuiName, Focus
+	if(focusGuiName="ListBox1"){
+		effectResult:=RunCtrl_RunRules(RunCtrlList[RunCtrlListBox])
+		if(!effectResult){
+			ToolTip, 规则验证失败
+			SetTimer,RemoveToolTip,3000
+		}
+	}else if(focusGuiName="SysListView321"){
+		gosub,LVCtrlRunRun
+	}
 return
 RunCtrlLVAdd:
-	FileName:=FileRuleLogic2:=RuleMostRun:=RuleIntervalTime:=RunCtrlListBox:=""
-	FileRuleLogic1:=true
+	RuleGroupName:=RuleGroupLogic2:=RuleMostRun:=RuleIntervalTime:=RunCtrlListBox:=""
+	RuleGroupLogic1:=true
 	menuItem:="新建"
 	gosub,RunCtrlConfig
 return
 RunCtrlLVEdit:
-	FileName:=RunCtrlListBox
+	RuleGroupName:=RunCtrlListBox
 	menuItem:="编辑"
 	Gui,RunCtrlGui:Default
 	GuiControlGet, focusGuiName, Focus
 	if(focusGuiName="ListBox1"){
 		FileRuleRun:=RunCtrlList[RunCtrlListBox].enable
 		FileRuleEnable:=FileRuleRun ? "Green" : ""
-		FileRuleLogic1:=RunCtrlList[RunCtrlListBox].ruleLogic
-		FileRuleLogic2:=FileRuleLogic1 ? 0 : 1
+		RuleGroupLogic1:=RunCtrlList[RunCtrlListBox].ruleLogic
+		RuleGroupLogic2:=RuleGroupLogic1 ? 0 : 1
 		RuleMostRun:=RunCtrlList[RunCtrlListBox].ruleMostRun
 		RuleIntervalTime:=RunCtrlList[RunCtrlListBox].ruleIntervalTime
 		gosub,RunCtrlConfig
@@ -4818,14 +4821,14 @@ RunCtrlConfig:
 	Gui,2:Margin,20,20
 	Gui,2:Add, CheckBox, xm+5 y+15 Checked%FileRuleRun% vvFileRuleRun c%FileRuleEnable%, 启用规则组
 	Gui,2:Add, Text, x+10 yp w60, 规则组名：
-	Gui,2:Add, Edit, x+5 yp-3 w300 vvFileName, %FileName%
+	Gui,2:Add, Edit, x+5 yp-3 w300 vvRuleGroupName, %RuleGroupName%
 	Gui,2:Add, GroupBox,xm y+15 w500 h350,规则组设置
-	Gui,2:Add, Radio, xm+10 yp+25 Checked%FileRuleLogic1% vvFileRuleLogic1, 与(全部匹配)(&A)
-	Gui,2:Add, Radio, x+10 yp Checked%FileRuleLogic2% vvFileRuleLogic2, 或(部分匹配)(&O)
+	Gui,2:Add, Radio, xm+10 yp+25 Checked%RuleGroupLogic1% vvRuleGroupLogic1, 与(全部匹配)(&A)
+	Gui,2:Add, Radio, x+10 yp Checked%RuleGroupLogic2% vvRuleGroupLogic2, 或(部分匹配)(&O)
 	Gui,2:Add, Text, xm+10 y+15 w100, 规则循环最大次数:
 	Gui,2:Add, Edit, x+2 yp-3 Number w50 h20 vvRuleMostRun, %RuleMostRun%
 	Gui,2:Add, Text, x+20 yp+3 w110, 循环间隔时间(秒):
-	Gui,2:Add, Edit, x+2 yp-3 Number w100 h20 vvRuleIntervalTime, %RuleIntervalTime%
+	Gui,2:Add, Edit, x+2 yp-3 w100 h20 vvRuleIntervalTime, %RuleIntervalTime%
 	Gui,2:Add, Button, xm+10 y+15 w85 GLVFuncAdd, + 增加规则(&A)
 	Gui,2:Add, Button, x+10 yp w85 GLVFuncEdit, * 修改规则(&E)
 	Gui,2:Add, Button, x+10 yp w85 GLVFuncRemove, - 减少规则(&D)
@@ -4850,32 +4853,32 @@ RunCtrlLVSave:
 	Gui,2:Submit, NoHide
 	fnx:=250
 	fny:=40
-	if(!vFileName){
+	if(!vRuleGroupName){
 		ToolTip, 请填入规则组名,%fnx%,%fny%
 		SetTimer,RemoveToolTip,3000
 		return
 	}
-	if(FileName!=vFileName && RunCtrlList[vFileName]){
+	if(RuleGroupName!=vRuleGroupName && RunCtrlList[vRuleGroupName]){
 		ToolTip, 已存在相同的规则组名，请修改,%fnx%,%fny%
 		SetTimer,RemoveToolTip,3000
 		return
 	}
-	if(Instr(vFileName, A_SPACE)){
-		StringReplace, vFileName, vFileName, %A_SPACE%, _, All
-		GuiControl, 2:, vFileName, %vFileName%
+	if(Instr(vRuleGroupName, A_SPACE)){
+		StringReplace, vRuleGroupName, vRuleGroupName, %A_SPACE%, _, All
+		GuiControl, 2:, vRuleGroupName, %vRuleGroupName%
 		ToolTip, 规则组名不能带有空格，请用_代替,%fnx%,%fny%
 		SetTimer,RemoveToolTip,3000
 		return
 	}
-	if(Instr(vFileName, A_Tab)){
-		StringReplace, vFileName, vFileName, %A_Tab%, _, All
-		GuiControl, 2:, vFileName, %vFileName%
+	if(Instr(vRuleGroupName, A_Tab)){
+		StringReplace, vRuleGroupName, vRuleGroupName, %A_Tab%, _, All
+		GuiControl, 2:, vRuleGroupName, %vRuleGroupName%
 		ToolTip, 规则组名不能带有制表符，请用_代替,%fnx%,%fny%
 		SetTimer,RemoveToolTip,3000
 		return
 	}
 	;中文、数字、字母、下划线正则校验，根据Unicode字符属性Han来判断中文，RunAnyCtrl.ahk编码不能为ANSI
-	if(!RegExMatch(vFileName,"^[\p{Han}A-Za-z0-9_]+$")){
+	if(!RegExMatch(vRuleGroupName,"^[\p{Han}A-Za-z0-9_]+$")){
 		ToolTip, 规则组名只能为中文、数字、字母、下划线,%fnx%,%fny%
 		SetTimer,RemoveToolTip,5000
 		return
@@ -4892,21 +4895,21 @@ RunCtrlLVSave:
 	}
 	;~ ;[写入配置文件]
 	Gui,RunCtrlGui:Default
-	vFileRuleLogic:=vFileRuleLogic1=1 ? 1 : 0
-	if(FileName!=vFileName){
-		IniDelete, %RunAnyConfig%, RunCtrlList, %FileName%
-		IniDelete, %RunAnyConfig%, %FileName%_Rule
-		IniDelete, %RunAnyConfig%, %FileName%_Run
+	vFileRuleLogic:=vRuleGroupLogic1=1 ? 1 : 0
+	if(RuleGroupName!=vRuleGroupName){
+		IniDelete, %RunAnyConfig%, RunCtrlList, %RuleGroupName%
+		IniDelete, %RunAnyConfig%, %RuleGroupName%_Rule
+		IniDelete, %RunAnyConfig%, %RuleGroupName%_Run
 	}
 	vFileRuleVal=%vFileRuleRun%|%vFileRuleLogic%
 	if(vRuleMostRun!="")
 		vFileRuleVal.="|" vRuleMostRun
 	if(vRuleIntervalTime!="")
 		vFileRuleVal.="|" vRuleIntervalTime
-	IniWrite, %vFileRuleVal%, %RunAnyConfig%, RunCtrlList, %vFileName%
+	IniWrite, %vFileRuleVal%, %RunAnyConfig%, RunCtrlList, %vRuleGroupName%
 
-	if(RunCtrlList[FileName]){
-		For runn, runv in RunCtrlList[FileName].runList
+	if(RunCtrlList[RuleGroupName]){
+		For runn, runv in RunCtrlList[RuleGroupName].runList
 		{
 			runMenu:=runv.noPath ? "menu" : "path"
 			runRepeat:=runv.repeatRun ? "|1" : ""
@@ -4914,9 +4917,9 @@ RunCtrlLVSave:
 		}
 		runContent:=SubStr(runContent, 1, -StrLen("`n"))
 	}
-	IniWrite, %runContent%, %RunAnyConfig%, %vFileName%_Run
+	IniWrite, %runContent%, %RunAnyConfig%, %vRuleGroupName%_Run
 	ruleContent:=SubStr(ruleContent, 1, -StrLen("`n"))
-	IniWrite, %ruleContent%, %RunAnyConfig%, %vFileName%_Rule
+	IniWrite, %ruleContent%, %RunAnyConfig%, %vRuleGroupName%_Rule
 	gosub,RunCtrl_Read
 	Gui,2:Destroy
 return
@@ -5027,24 +5030,6 @@ LVFuncSave:
 		SetTimer,RemoveToolTip,3000
 		return
 	}
-	; if(InStr(vFuncValue,"|")){
-	; 	ToolTip, 条件值不能包含有“|”，因为每个参数保存用“|”进行分隔,%fnx%,%fny%
-	; 	SetTimer,RemoveToolTip,3000
-	; 	return
-	; }
-	; vFuncValueNums:=StrSplit(vFuncValue,"`n")
-	; if(vFuncValueNums.MaxIndex() > 10){
-	; 	ToolTip, 条件值每行一个参数，最多支持10行,%fnx%,%fny%
-	; 	SetTimer,RemoveToolTip,3000
-	; 	return
-	; }
-	; funcValueStr:=""
-	; Loop,% vFuncValueNums.MaxIndex()
-	; {
-	; 	if(vFuncValueNums[A_Index])
-	; 		funcValueStr.=vFuncValueNums[A_Index] . "|"
-	; }
-	; stringtrimright, funcValueStr, funcValueStr, 1
 	vFuncValue:=StrReplace(vFuncValue,"`t","``t")
 	vFuncValue:=StrReplace(vFuncValue,"`n","``n")
 	;[写入配置文件]
@@ -5109,6 +5094,18 @@ return
 LVCtrlRunEdit:
 	menuItem:="编辑"
 	gosub,LVCtrlRunConfig
+return
+LVCtrlRunRun:
+	Loop
+	{
+		RowNumber := LV_GetNext(RowNumber)  ; 在前一次找到的位置后继续搜索.
+		if not RowNumber  ; 上面返回零, 所以选择的行已经都找到了.
+			break
+		LV_GetText(RunCtrlRunValue, RowNumber, 1)
+		LV_GetText(RunCtrlNoPath, RowNumber, 2)
+		LV_GetText(RunCtrlRepeatRun, RowNumber, 3)
+		RunCtrl_RunApps(RunCtrlRunValue, RunCtrlNoPath="菜单项" ? 1 : 0, 1)
+	}
 return
 LVCtrlRunConfig:
 	Gui, ListView, RunCtrlLV
@@ -5913,10 +5910,7 @@ return
 SetScheduledTasks:
 	cmdClipReturn("""schtasks /create /tn """ RunAnyZz "启动"" /tr " A_AhkPath " /sc onlogon /rl HIGHEST""")
 	Run,taskschd.msc
-	chassisTypes:=cmdClipReturn("wmic PATH Win32_SystemEnclosure get ChassisTypes /value | findstr ""ChassisTypes=""")
-	chassisTypes:=RegExReplace(chassisTypes,"i)ChassisTypes=\{(\d+)\}.*","$1")
-	chassisTypes:=Format("{:d}",chassisTypes)
-	if(chassisTypes>=8){
+	if(rule_chassis_types()>=8){
 		Sleep,1000
 		MsgBox, 64, 任务计划%RunAnyZz%创建完成, 在每次系统登录时会以管理员权限启动%RunAnyZz%`n`n
 		(
@@ -6302,8 +6296,7 @@ Var_Set:
 	}
 	global AdminRun:=Var_Read("AdminRun",0)
 	;#判断管理员权限#
-	if(AdminRun && !A_IsAdmin)
-	{
+	if(AdminRun && !A_IsAdmin){
 		adminahkpath:=""
 		if(!A_IsCompiled)
 			adminahkpath:=A_AhkPath A_Space
@@ -6311,6 +6304,7 @@ Var_Set:
 		ExitApp
 	}
 	global getZz:=""
+	global MenuShowMenuRun:=""
 	global MENU_NO:=1
 	global HideMenuTrayIcon:=Var_Read("HideMenuTrayIcon",0)
 	if(HideMenuTrayIcon)
@@ -6759,6 +6753,8 @@ Plugins_Read:
 	global PluginsEditor:=Var_Read("PluginsEditor")
 	global PluginsDirPath:=Var_Read("PluginsDirPath")
 	global PluginsDirPathList:="%A_ScriptDir%\RunPlugins|" PluginsDirPath
+	FileRead,pluginsContent,%A_ScriptFullPath%
+	PluginsContentList[RunAnyZz ".ahk"]:=pluginsContent
 	Loop, parse, PluginsDirPathList, |
 	{
 		PluginsFolder:=Get_Transform_Val(A_LoopField)
@@ -7036,7 +7032,7 @@ AutoRun_Plugins:
 			}
 		}
 	} catch e {
-		MsgBox,16,自动启动插件出错,% "启动项名：" runn "`n启动项路径：" runv 
+		MsgBox,16,自动启动插件出错,% "启动插件名：" runn "`n启动插件路径：" runv 
 			. "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 	} finally {
 		SetWorkingDir,%A_ScriptDir%
@@ -7120,17 +7116,17 @@ RunCtrlLogicEnumGetKey(val){
 
 class RunCtrl
 {
-	name:=""				;运行组名
-	enable:=false			;运行组启用状态
-	noPath:=true			;无全路径应用
-	noMenu:=true			;无菜单项应用
-	ruleLogic:=true			;规则组逻辑：与、或
-	ruleMostRun:=""			;规则循环最大次数
-	ruleIntervalTime:=""	;循环间隔时间(秒)
-	runNums:=""				;运行次数
-	runList:=Object()		;应用运行队列
-	ruleFile:=Object()		;规则文件
-	ruleList:=Object()		;规则队列
+	name:=""                ;运行组名
+	enable:=false           ;运行组启用状态
+	noPath:=true            ;无全路径应用
+	noMenu:=true            ;无菜单项应用
+	ruleLogic:=true         ;规则组逻辑：与、或
+	ruleMostRun:=0          ;规则循环最大次数
+	ruleIntervalTime:=0     ;循环间隔时间(秒)
+	runNums:=""             ;运行次数
+	runList:=Object()       ;应用运行队列
+	ruleFile:=Object()      ;规则文件
+	ruleList:=Object()      ;规则队列
 	__New(name,enable,ruleLogic,ruleMostRun,ruleIntervalTime){
 		this.name:=name
 		this.enable:=enable
@@ -7148,7 +7144,7 @@ class RunCtrl
 
 			itemList:=StrSplit(varList[1],"|",,2)
 			noPathStr:=itemList[1]
-			runObj.repeatRun:=itemList[2]
+			runObj.repeatRun:=itemList[2]!="" ? itemList[2] : 0
 			if(noPathStr="path"){
 				this.noPath:=false
 				runObj.noPath:=false
@@ -7191,66 +7187,91 @@ class RunCtrlRunRule
 	logic:=1
 }
 
-;~;【规则启动-全路径应用】
-RunCtrl_PathApps:
-	DetectHiddenWindows,On
-	try {
+;~;【规则生效】
+Rule_Effect:
+	global MenuTrayTipHide:=True
+	global runIndex:=Object()
+	try{
 		for n,obj in RunCtrlList
 		{
 			runCtrlObj:=RunCtrlList[n]
-			if(RunCtrlListBox){
-				runCtrlObj:=RunCtrlList[RunCtrlListBox]
-			}else if(!runCtrlObj.enable){
+			if(!runCtrlObj.enable){
 				continue
 			}
-			if(!runCtrlObj.noPath && RunCtrl_RuleEffect(runCtrlObj)){
-				for i,runv in runCtrlObj.runList
-				{
-					if(runv.noPath=0){
-						SplitPath,% runv.path, name, dir
-						if(dir && FileExist(dir))
-							SetWorkingDir,%dir%
-						Run_Any(runv.path)
-					}
+			rcName:=runCtrlObj.name
+			;规则循环
+			if(runCtrlObj.ruleMostRun!="" && runCtrlObj.ruleMostRun>0){
+				runIndex[rcName]:=0	;规则定时器初始计数为0
+				funcEffect%rcName%:=Func("RunCtrl_RunRules").Bind(runCtrlObj)	;规则定时器
+				ruleTime:=runCtrlObj.ruleIntervalTime>0 ? runCtrlObj.ruleIntervalTime * 1000 : 1000		;规则定时器间隔时间(秒)
+				SetTimer,% funcEffect%rcName%, %ruleTime%
+			}else{
+				RunCtrl_RunRules(runCtrlObj)
+			}
+		}
+	} catch e {
+		MsgBox,16,规则判断出错,% "规则名：" rcName 
+			. "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+	} finally {
+		MenuTrayTipHide:=False
+	}
+return
+;~;【规则启动-应用】
+RunCtrl_RunRules(runCtrlObj){
+	try {
+		rcName:=runCtrlObj.name
+		effectResult:=RunCtrl_RuleEffect(runCtrlObj)
+		if(effectResult){
+			for i,runv in runCtrlObj.runList
+			{
+				if(!runCtrlObj.noPath){
+					RunCtrl_RunApps(runv.path, runv.noPath, runv.repeatRun)
+				}
+				if(!runCtrlObj.noMenu){
+					RunCtrl_RunApps(runv.path, runv.noPath, runv.repeatRun)
 				}
 			}
-			if(RunCtrlListBox)
-				break
 		}
-		MenuTrayTipHide:=False
+		runIndex[rcName]++	;规则定时器运行计数+1
+		;规则运行计数达到最大循环次数 || 启动项已达到最多运行次数 => 结束定时器
+		if((runIndex[rcName] && runIndex[rcName] >= runCtrlObj.ruleMostRun)){
+			try SetTimer,% funcEffect%rcName%, Off
+		}
+		return effectResult
 	} catch e {
-		MsgBox,16,自动启动应用出错,% "启动项路径：" v 
+		MsgBox,16,启动规则出错,% "启动规则名：" rcName 
+			. "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+	}
+}
+;~;[规则启动应用]
+RunCtrl_RunApps(path,noPath,repeatRun:=0){
+	try {
+		DetectHiddenWindows,On
+		if(noPath){
+			path:=Get_Obj_Transform_Name(Trim(path," `t`n`r"))
+			if(!repeatRun && Check_IsRun(MenuObj[path])){
+				return
+			}
+			MenuShowMenuRun:=path
+			gosub,Menu_Run
+		}else{
+			SplitPath,% path, name, dir
+			if(!repeatRun && Check_IsRun(path)){
+				return
+			}
+			if(dir && FileExist(dir))
+				SetWorkingDir,%dir%
+			Run_Any(path)
+		}
+	} catch e {
+		MsgBox,16,规则启动应用出错,% "启动应用：" path
 			. "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 	} finally {
 		SetWorkingDir,%A_ScriptDir%
 		DetectHiddenWindows,Off
 	}
-return
-;~;【规则启动-菜单应用】
-RunCtrl_MenuApps:
-	for n,obj in RunCtrlList
-	{
-		runCtrlObj:=RunCtrlList[n]
-		if(RunCtrlListBox){
-			runCtrlObj:=RunCtrlList[RunCtrlListBox]
-		}else if(!runCtrlObj.enable){
-			continue
-		}
-		if(!runCtrlObj.noMenu && RunCtrl_RuleEffect(runCtrlObj)){
-			for i,runv in runCtrlObj.runList
-			{
-				if(runv.noPath){
-					MenuShowMenuRun:=Get_Obj_Transform_Name(Trim(runv.path," `t`n`r"))
-					gosub,Menu_Run
-				}
-			}
-		}
-		if(RunCtrlListBox)
-			break
-	}
-	MenuTrayTipHide:=False
-return
-;~;[判断规则是否成立]
+}
+;~;[规则判断是否成立]
 RunCtrl_RuleEffect(runCtrlObj){
 	effectFlag:=false
 	for ruleFile,ruleStatus in runCtrlObj.ruleFile
@@ -7313,7 +7334,11 @@ RunCtrl_RuleEffect(runCtrlObj){
 	}
 	return effectFlag
 }
-
+rule_chassis_types(){
+	chassisTypes:=cmdClipReturn("wmic PATH Win32_SystemEnclosure get ChassisTypes /value | findstr ""ChassisTypes=""")
+	chassisTypes:=RegExReplace(chassisTypes,"i)ChassisTypes=\{(\d+)\}.*","$1")
+	return Format("{:d}",chassisTypes)
+}
 Check_Network(lpszUrl=""){
 	if(lpszUrl="")
 		lpszUrl:="http://www.baidu.com"
