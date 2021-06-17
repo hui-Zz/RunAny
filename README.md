@@ -4,7 +4,7 @@
 </a>
 </p>
 
-#         【RunAny】一劳永逸的快速启动工具 ![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat-square&logo=github)  [![HitCount](http://hits.dwyl.io/hui-Zz/RunAny.svg)](http://hits.dwyl.io/hui-Zz/RunAny)
+#         【RunAny】一劳永逸的快速启动工具 ![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat-square&logo=github) 
 
 ​    **RunAny区别一般的启动工具，适合家里、公司多台电脑的用户，不管软件装在C盘还是D盘Anywhere，根据名字直接找到并运行**
 
@@ -19,7 +19,7 @@
 - ☑ [外接脚本，个性函数，自由定制](#runPlugins)
 
 【Github下载地址：】https://github.com/hui-Zz/RunAny/archive/master.zip
-- 蓝奏云下载：https://www.lanzous.com/b902490/
+- 蓝奏云下载：https://www.lanzoux.com/b902490/
 - 百度云下载：https://pan.baidu.com/s/1qxbYAx0UA-u1dkoY-RXZJg
 
 ## 【RunAny完整版文档地址：】[https://hui-zz.gitee.io/runany](https://hui-zz.gitee.io/runany) （国内速度快）
