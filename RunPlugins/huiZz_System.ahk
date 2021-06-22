@@ -52,7 +52,7 @@ class RunAnyObj {
 	;[获取本地IP]
 	;参数说明：output：1-输出IP；0-显示IP并复制到剪贴板
 	system_ip_zz(output=0){
-		ip:=this.cmdClipReturn("for /f ""tokens=4"" %a in ('route print^|findstr 0.0.0.0.*0.0.0.0') do echo %a",%output%)
+		ip:=cmdClipReturn("for /f ""tokens=4"" %a in ('route print^|findstr 0.0.0.0.*0.0.0.0') do echo %a",%output%)
 		ip:=StrReplace(ip,"`r`n")
 		ip:=StrReplace(ip," ")
 		if(output){
@@ -67,23 +67,6 @@ class RunAnyObj {
 	;[ping选中地址]
 	system_ping_zz(getZz:=""){
 		Run,% ComSpec " /C ping " getZz " -t"
-	}
-	/*
-	【隐藏运行cmd命令并将结果存入剪贴板后取回 @hui-Zz】
-	*/
-	cmdClipReturn(command,save=0){
-		cmdInfo:=""
-		if(save)
-			Clip_Saved:=ClipboardAll
-		try{
-			Clipboard=
-			Run,% ComSpec " /C " command " | CLIP", , Hide
-			ClipWait,2
-			cmdInfo:=Clipboard
-		}catch{}
-		if(save)
-			Clipboard:=Clip_Saved
-		return cmdInfo
 	}
 	;[重启桌面]
 	system_explorer_zz(){
@@ -138,6 +121,29 @@ class RunAnyObj {
 	system_runas_zz(getZz:=""){
 		Run *RunAs "%getZz%"
 	}
+
+;══════════════════════════大括号以上是RunAny菜单调用的函数══════════════════════════
+
+}
+
+;════════════════════════════以下是脚本自己调用依赖的函数════════════════════════════
+
+/*
+【隐藏运行cmd命令并将结果存入剪贴板后取回 @hui-Zz】
+*/
+cmdClipReturn(command,save=0){
+	cmdInfo:=""
+	if(save)
+		Clip_Saved:=ClipboardAll
+	try{
+		Clipboard=
+		Run,% ComSpec " /C " command " | CLIP", , Hide
+		ClipWait,2
+		cmdInfo:=Clipboard
+	}catch{}
+	if(save)
+		Clipboard:=Clip_Saved
+	return cmdInfo
 }
 
 ;独立使用方式

@@ -1790,9 +1790,8 @@ MenuRunDebugModeShow(key:=0){
 }
 Run_Any(any,mode:=""){
 	Menu_Debug_Mode("[运行路径]`n" any "`n")
-	if(!MenuTrayTipHide){
+	if(MenuIconFlag){
 		Menu_Run_Tray_Tip(any "`n")
-		MenuTrayTipHide:=False
 	}
 	if(mode!=""){
 		Run,%any%,,%mode%
@@ -4029,7 +4028,7 @@ Plugins_Gui_Show:
 	gosub,Plugins_LV_Icon_Set
 	;根据网络自动选择对应插件说明网页地址
 	pagesPluginsUrl:=RunAnyGiteePages . "/runany/#/plugins-help"
-	if(!Check_Network(RunAnyGiteePages)){
+	if(!rule_check_network(RunAnyGiteePages)){
 		pagesPluginsUrl:=RunAnyGiteePages . "/RunAny/#/plugins-help"
 	}
 	pagesHash:=pagesPluginsUrl . "?id="
@@ -4051,7 +4050,7 @@ Plugins_Gui_Show:
 	LV_SetImageList(PluginsImageListID)
 	For runn, runv in PluginsObjList
 	{
-		runStatus:=Check_IsRun(PluginsPathList[runn]) ? "启动" : ""
+		runStatus:=rule_check_is_run(PluginsPathList[runn]) ? "启动" : ""
 		pluginsConfig:=runv ? "自启" : ""
 		if(!PluginsPathList[runn])
 			pluginsConfig:="未找到"
@@ -4391,9 +4390,9 @@ SavePluginsLib:
 	gosub,Plugins_Gui_Show
 return
 PluginsDownVersion:
-	if(!Check_Network(giteeUrl)){
+	if(!rule_check_network(giteeUrl)){
 		RunAnyDownDir:=githubUrl . RunAnyGithubDir
-		if(!Check_Network(githubUrl)){
+		if(!rule_check_network(githubUrl)){
 			TrayTip,,网络异常，无法连接网络读取最新版本文件，请手动下载,5,1
 			pluginsDownList:=PluginsObjList
 			checkGithub:=false
@@ -4435,9 +4434,9 @@ LVDown:
 	)
 	IfMsgBox Ok
 	{
-		if(!Check_Network(giteeUrl)){
+		if(!rule_check_network(giteeUrl)){
 			RunAnyDownDir:=githubUrl . RunAnyGithubDir
-			if(!Check_Network(githubUrl)){
+			if(!rule_check_network(githubUrl)){
 				MsgBox,网络异常，无法连接网络读取最新版本文件，请手动下载
 				return
 			}
@@ -4599,7 +4598,7 @@ LVModifyCol(width, colList*){
 【判断启动项当前是否已经运行】（RunAnyCtrl）
 runNamePath 进程名或者启动项路径
 */
-Check_IsRun(runNamePath){
+rule_check_is_run(runNamePath){
 	runValue:=RegExReplace(runNamePath,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
 	SplitPath, runValue, name,, ext  ; 获取扩展名
 	if(ext="ahk"){
@@ -4710,6 +4709,7 @@ RunCtrlLVMenu(addMenu){
 	try Menu, %addMenu%, Icon,% flag ? "向上" : "向上`t(F6/PgUp)",% UpIconS[1],% UpIconS[2]
 	Menu, %addMenu%, Disable,% flag ? "向下" : "向下`t(F5/PgDn)"
 	Menu, %addMenu%, Disable,% flag ? "向上" : "向上`t(F6/PgUp)"
+	Menu, %addMenu%, Add,% flag ? "全选" : "全选`tCtrl+A", RunCtrlLVSelect
 }
 RunCtrlLVDel:
 	Gui,RunCtrlGui:Default
@@ -4774,7 +4774,12 @@ return
 	F4::gosub,LVCtrlRunAdd
 	Del::gosub,RunCtrlLVDel
 	F7::gosub,RunCtrlLVRule
+	^a::gosub,RunCtrlLVSelect
 #If
+RunCtrlLVSelect:
+	Gui,RunCtrlGui:Default
+	LV_Modify(0, "Select")   ; 选择所有.
+return
 RunCtrlLVRun:
 	Gui,RunCtrlGui:Default
 	Gui,RunCtrlGui:Submit, NoHide
@@ -4839,6 +4844,7 @@ RunCtrlConfig:
 	For k, v in RunCtrlList[RunCtrlListBox].ruleList
 	{
 		funcBoolean:=v.logic="1" ? "相等" : v.logic="0" ? "不相等" : RunCtrlLogicEnum[v.logic]
+		funcBoolean:=rulestatusList[v.name] ? funcBoolean : "规则失效"
 		LV_Add("", v.name, funcBoolean, v.value)
 	}
 	LV_ModifyCol(1)
@@ -5062,7 +5068,11 @@ DropDownRuleChoose:
 	if(ruleparamList[vRuleName]){
 		GuiControl, F:show, vRuleParamText
 		GuiControl, F:hide, vRuleText
-		GuiControl, F:,vFuncBooleanEQ,1
+		if(FuncBooleanEQ){
+			GuiControl, F:,vFuncBooleanEQ,1
+		}else{
+			GuiControl, F:,vFuncBooleanNE,1
+		}
 		GuiControl, F:Disable, vFuncBooleanGE
 		GuiControl, F:Disable, vFuncBooleanLE
 		GuiControl, F:Disable, vFuncBooleanGT
@@ -5298,10 +5308,11 @@ LVRuleSave:
 	;[写入配置文件]
 	Gui,R:Default
 	if(menuRuleItem="规则编辑"){
-		if(RuleName!=vRuleName){
+		if(RuleName!=vRuleName || RuleFunction!=vRuleFunction){
 			IniDelete, %RunAnyConfig%, RunCtrlRule, %RuleName%|%RuleFunction%
 			;~ 变更所有正在使用此规则的启动项中关联规则名称
-			Change_Rule_Name(RuleName,vRuleName)
+			if(RuleName!=vRuleName)
+				Change_Rule_Name(RuleName,vRuleName)
 		}
 		LV_Modify(RowNumber,"",vRuleName,vRuleFunction,"重启生效",ruleparamList[vRuleName] ? "传参" : "",vRulePath)
 	}else{
@@ -7069,17 +7080,17 @@ RunCtrl_Read:
 		if(varList[1]="" || varList[2]="" || itemList[1]="" || itemList[2]="")
 			continue
 		RuleNameStr.=itemList[1] "|"
-		rulefuncList[itemList[1]]:=itemList[2]
-		rulefileList[itemList[1]]:=varList[2]
+		rulefuncList[(rulefuncList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=itemList[2]
+		rulefileList[(rulefileList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=varList[2]
 		SplitPath,% varList[2],fileName,,,nameNotExt
 		ruleitemList[itemList[1]]:=nameNotExt
-		if(InStr(PluginsContentList[(varList[2])],itemList[2] "(")){
-			rulestatusList[itemList[1]]:=1
-		}else if(varList[2]="RunAny.ahk"){
-			rulestatusList[itemList[1]]:=IsFunc(itemList[2])
+		if(varList[2]=RunAnyZz ".ahk"){
+			rulestatusList[(rulestatusList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=IsFunc(itemList[2])
+		}else{
+			rulestatusList[(rulestatusList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=InStr(PluginsContentList[(varList[2])],itemList[2] "(") ? 1 : 0
 		}
 		if(!InStr(PluginsContentList[(varList[2])],itemList[2] "()")){
-			ruleparamList[itemList[1]]:=1
+			ruleparamList[(ruleparamList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=1
 		}
 	}
 	RuleNameStr:=SubStr(RuleNameStr, 1, -StrLen("|"))
@@ -7189,7 +7200,6 @@ class RunCtrlRunRule
 
 ;~;【规则生效】
 Rule_Effect:
-	global MenuTrayTipHide:=True
 	global runIndex:=Object()
 	try{
 		for n,obj in RunCtrlList
@@ -7212,8 +7222,6 @@ Rule_Effect:
 	} catch e {
 		MsgBox,16,规则判断出错,% "规则名：" rcName 
 			. "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
-	} finally {
-		MenuTrayTipHide:=False
 	}
 return
 ;~;【规则启动-应用】
@@ -7249,14 +7257,14 @@ RunCtrl_RunApps(path,noPath,repeatRun:=0){
 		DetectHiddenWindows,On
 		if(noPath){
 			path:=Get_Obj_Transform_Name(Trim(path," `t`n`r"))
-			if(!repeatRun && Check_IsRun(MenuObj[path])){
+			if(!repeatRun && rule_check_is_run(MenuObj[path])){
 				return
 			}
 			MenuShowMenuRun:=path
 			gosub,Menu_Run
 		}else{
 			SplitPath,% path, name, dir
-			if(!repeatRun && Check_IsRun(path)){
+			if(!repeatRun && rule_check_is_run(path)){
 				return
 			}
 			if(dir && FileExist(dir))
@@ -7339,7 +7347,7 @@ rule_chassis_types(){
 	chassisTypes:=RegExReplace(chassisTypes,"i)ChassisTypes=\{(\d+)\}.*","$1")
 	return Format("{:d}",chassisTypes)
 }
-Check_Network(lpszUrl=""){
+rule_check_network(lpszUrl=""){
 	if(lpszUrl="")
 		lpszUrl:="http://www.baidu.com"
 	return DllCall("Wininet.dll\InternetCheckConnection", "Ptr", &lpszUrl, "UInt", 0x1, "UInt", 0x0, "Int")
@@ -7353,9 +7361,9 @@ Auto_Update:
 	if(FileExist(A_Temp "\RunAny_Update.bat"))
 		FileDelete, %A_Temp%\RunAny_Update.bat
 	;[下载最新的更新脚本]
-	if(!Check_Network(giteeUrl)){
+	if(!rule_check_network(giteeUrl)){
 		RunAnyDownDir:=githubUrl . RunAnyGithubDir
-		if(!Check_Network(githubUrl)){
+		if(!rule_check_network(githubUrl)){
 			TrayTip,,网络异常，无法连接网络读取最新版本文件,3,1
 			return
 		}
@@ -7408,7 +7416,7 @@ Config_Update:
 	}
 return
 RunAny_Update:
-if(Check_Network(RunAnyGiteePages)){
+if(rule_check_network(RunAnyGiteePages)){
 	Run,%RunAnyGiteePages%/runany/#/change-log
 }else{
 	Run,%RunAnyGithubPages%/RunAny/#/change-log

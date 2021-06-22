@@ -2,7 +2,7 @@
 ;* 【ObjReg文本操作脚本[文本函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.1.9"
+global RunAny_Plugins_Version:="1.2.0"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
@@ -19,6 +19,7 @@ CoordMode,Menu,Window   ;~坐标相对活动窗口
 #Include %A_ScriptDir%\RunAny_ObjReg.ahk
 
 class RunAnyObj {
+
 	;[文本多行合并]
 	;参数说明：getZz：选中的文本内容
 	;splitStr：换行符替换的分隔文本(默认空格，逗号为特殊字符，转义写成`,)
@@ -179,7 +180,7 @@ class RunAnyObj {
 			Send_Str_Zz(getZz)
 		}
 	}
-	;[便捷替换粘贴文本]
+	;[选中内容与剪贴板内容互换]
 	text_paste_zz(getZz:=""){
 		SendInput,^v
 		Clipboard:=getZz
@@ -187,6 +188,23 @@ class RunAnyObj {
 	;[百度剪贴板内容]
 	text_baidu_zz(){
 		Run,https://www.baidu.com/s?wd=%Clipboard%
+	}
+	;[复制或输出文件文本的内容]
+	;参数说明：getZz：选中的文件 或 传递文件路径(可使用无路径)
+	;isSend：0-显示并保存到剪贴板；1-输出结果
+	;encoding：使用不同编码读取文件
+	text_file_content(getZz:="",isSend=0,encoding:=""){
+		if(encoding!=""){
+			try{
+				FileEncoding,%encoding%
+			}catch e{
+				MsgBox,16,文件编码出错,% "请设置正确的编码读取!`n参考：https://wyagd001.github.io/zh-cn/docs/commands/FileEncoding.htm"
+				. "`n`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+			}
+		}
+		FileRead, fileVar, %getZz%
+		if(fileVar!="")
+			Send_Or_Show(fileVar,isSend)
 	}
 	;[比较工具(Beyond Compare)比较选中文本内容和剪贴板]
 	;参数说明：getZz：选中的文本内容
@@ -202,8 +220,8 @@ class RunAnyObj {
 	}
 	;[批量添加序号]
 	;参数说明：getZz：选中的文本内容
-	;arab：0-中文数字；1-阿拉伯数字
 	;seqNumStr：序号形式
+	;arab：0-中文数字；1-阿拉伯数字
 	text_seq_num_zz(getZz:="",seqNumStr:="",arab:=1){
 		textResult:=""
 		ignoreNum:=0
@@ -343,9 +361,12 @@ class RunAnyObj {
 	runany_google_translate(getZz,from,to){
 		return GoogleTranslate(getZz,from,to)
 	}
+
+;══════════════════════════大括号以上是RunAny菜单调用的函数══════════════════════════
+
 }
 
-;════════════════════════════以下为需要依赖的函数════════════════════════════
+;════════════════════════════以下是脚本自己调用依赖的函数════════════════════════════
 
 ;~;输出结果
 Send_Str_Zz(strZz){

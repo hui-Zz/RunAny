@@ -24,7 +24,7 @@ class RunAnyObj {
 		}
 		guiWH:=picHeight+20
 		GUI,pic:Destroy
-		GUI,pic:Add,Picture,w-1 h%picHeight% hwndhimage gSaveAs,% f:=this.GEN_QR_CODE(getZz)
+		GUI,pic:Add,Picture,w-1 h%picHeight% hwndhimage gSaveAs,% f:=GEN_QR_CODE(getZz)
 		GUI,pic:Show,w%guiWH% h%guiWH%,点击保存图片 Esc关闭
 		return
 		SaveAs:
@@ -39,12 +39,18 @@ class RunAnyObj {
 		  GUI,pic:Destroy
 		return
 	}
-	GEN_QR_CODE(string,file="")
-	{
-	  sFile := strlen(file) ? file : A_Temp "\" A_NowUTC ".png"
-	  DllCall( A_ScriptDir "\quricol" A_PtrSize * 8 ".dll\GeneratePNG","str", sFile , "str", string, "int", 4, "int", 2, "int", 0)
-	  Return sFile
-	}
+
+;══════════════════════════大括号以上是RunAny菜单调用的函数══════════════════════════
+
+}
+
+;════════════════════════════以下是脚本自己调用依赖的函数════════════════════════════
+
+GEN_QR_CODE(string,file="")
+{
+	sFile := strlen(file) ? file : A_Temp "\" A_NowUTC ".png"
+	DllCall( A_ScriptDir "\quricol" A_PtrSize * 8 ".dll\GeneratePNG","str", sFile , "str", string, "int", 4, "int", 2, "int", 0)
+	Return sFile
 }
 
 ;独立使用方式
