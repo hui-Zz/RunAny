@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.06.17
+║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.06.23
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.6"     ;~;版本号
-global RunAny_update_time:="2021.06.17"   ;~;修改日期
+global RunAny_update_time:="2021.06.23"   ;~;修改日期
 gosub,Var_Set           ;~;01.参数初始化
 gosub,Menu_Var_Set      ;~;02.自定义变量
 gosub,Icon_Set          ;~;03.图标初始化
@@ -280,6 +280,8 @@ Loop,%MenuCount%
 			if(v!="" && GetMenuItemMode(v,true)<10){
 				if(!InStr(v,"%getZz%") && !InStr(v,"%s")){
 					try Menu,%rootName%,Delete,% Get_Obj_Name(v)
+				}else{
+					global MenuObjTextRootFlag:=true
 				}
 			}
 		}
@@ -1252,7 +1254,7 @@ Menu_Show:
 			}
 		}
 		;#选中文本弹出网址菜单#
-		if(MenuObjText%MENU_NO%.MaxIndex()=1){
+		if(!MenuObjTextRootFlag && MenuObjText%MENU_NO%.MaxIndex()=1){
 			;如果根目录没有%getZz%或%s且text菜单只有1个，直接显示这个text菜单
 			Menu_Show_Show(MenuObjText%MENU_NO%[1],getZz)
 		}else{
@@ -6299,8 +6301,8 @@ SetCancel:
 return
 ;[GuiSize]
 GuiSize:
-PGuiSize:
-DGuiSize:
+PluginsManageGuiSize:
+PluginsDownloadGuiSize:
 	if A_EventInfo = 1
 		return
 	GuiControl, Move, RunAnyTV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
@@ -6347,7 +6349,7 @@ RunCtrlGuiGuiSize:
 return
 ;[GuiContextMenu]
 GuiContextMenu:
-PGuiContextMenu:
+PluginsManageGuiContextMenu:
 	If (A_GuiControl = "RunAnyTV") {
 		TV_Modify(A_EventInfo, "Select Vis")
 		Menu, TVMenu, Show
@@ -6361,17 +6363,6 @@ RunCtrlGuiGuiContextMenu:
 	If (A_GuiControl = "RunCtrlListBox" || A_GuiControl = "RunCtrlLV") {
 		TV_Modify(A_EventInfo, "Select Vis")
 		Menu, RunCtrlLVMenu, Show
-	}
-return
-PGuiDropFiles:  ; 对拖放提供支持.
-	MsgBox,33,RunAny新增插件,是否复制脚本文件到插件目录？`n%A_ScriptDir%\%PluginsDir%
-	IfMsgBox Ok
-	{
-		Loop, Parse, A_GuiEvent, `n
-		{
-			FileCopy, %A_LoopField%, %A_ScriptDir%\%PluginsDir%
-		}
-		gosub,Plugins_Gui_Show
 	}
 return
 ;[GuiDropFiles]  ; 对拖放提供支持.
@@ -6399,6 +6390,17 @@ SaveItemGuiDropFiles:
 		GuiControl,SaveItem:, vitemPath, % Get_Item_Run_Path(SelectedFileName)
 	}
 	gosub,EditItemPathChange
+return
+PluginsManageGuiDropFiles:
+	MsgBox,33,RunAny新增插件,是否复制脚本文件到插件目录？`n%A_ScriptDir%\%PluginsDir%
+	IfMsgBox Ok
+	{
+		Loop, Parse, A_GuiEvent, `n
+		{
+			FileCopy, %A_LoopField%, %A_ScriptDir%\%PluginsDir%
+		}
+		gosub,Plugins_Gui_Show
+	}
 return
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 ;~;【——初始化——】
