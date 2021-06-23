@@ -2733,40 +2733,6 @@ return
 	F2::gosub,TVEdit
 	Tab::Send_Str_Zz(A_Tab)
 #If
-GuiContextMenu:
-PGuiContextMenu:
-	If (A_GuiControl = "RunAnyTV") {
-		TV_Modify(A_EventInfo, "Select Vis")
-		Menu, TVMenu, Show
-	}
-	If (A_GuiControl = "RunAnyLV") {
-		LV_Modify(A_EventInfo, "Select Vis")
-		Menu, LVMenu, Show
-	}
-return
-GuiSize:
-PGuiSize:
-DGuiSize:
-	if A_EventInfo = 1
-		return
-	GuiControl, Move, RunAnyTV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
-	GuiControl, Move, RunAnyLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
-	GuiControl, Move, RunAnyDownLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
-return
-GuiClose:
-	if(TVFlag){
-		MsgBox,51,菜单树退出,已修改过菜单信息，是否保存修改再退出？
-		IfMsgBox Yes
-		{
-			gosub,Menu_Save
-			gosub,Menu_Reload
-		}
-		IfMsgBox No
-			Gui, Destroy
-	}else{
-		Gui, Destroy
-	}
-return
 ;~;[创建头部及右键功能菜单]
 TVMenu(addMenu){
 	flag:=addMenu="GuiMenu" ? true : false
@@ -3032,21 +2998,6 @@ SetSaveItemGui:
 		TV_MoveMenuClean()
 	}
 return
-GuiControlShow(guiName,controls*){
-	For k,v in controls
-	{
-	GuiControl, %guiName%:Show, %v%
-	}
-}
-GuiControlHide(guiName,controls*){
-	For k,v in controls
-	{
-	GuiControl, %guiName%:Hide, %v%
-	}
-}
-GuiControlSet(guiName,controlName,controlVal:=""){
-	GuiControl, %guiName%:, %controlName%, %controlVal%
-}
 #If WinActive("新增修改菜单项 - " RunAnyZz " - 支持拖放应用")
 	~^v::
 		if(InStr(Clipboard,"|")){
@@ -3309,46 +3260,6 @@ SetShortcut:
 		gosub,SetSaveItemFullPath
 	}
 	gosub,EditItemPathChange
-return
-SaveItemGuiSize:
-	if A_EventInfo = 1
-		return
-	GuiControl,SaveItem:MoveDraw, vitemName, % "W" . (A_GuiWidth-360)
-	GuiControl,SaveItem:MoveDraw, vitemPath, % "H" . (A_GuiHeight-230) . " W" . (A_GuiWidth - 120)
-	GuiControl,SaveItem:MoveDraw, vPictureIconAdd,% "x" . (A_GuiWidth-130)
-	GuiControl,SaveItem:MoveDraw, vTextIconAdd,% "x" . (A_GuiWidth-200)
-	GuiControl,SaveItem:MoveDraw, vTextIconDown,% "x" . (A_GuiWidth-100)
-	GuiControl,SaveItem:MoveDraw, vSaveItemSaveBtn,% "x" . (A_GuiWidth / 2 - 100) . " y" . (A_GuiHeight-60)
-	GuiControl,SaveItem:MoveDraw, vSaveItemCancelBtn,% "x" . (A_GuiWidth / 2 + 10) . " y" . (A_GuiHeight-60)
-	GuiControl,SaveItem:MoveDraw, vStatusBar,% "x30" . " y" . (A_GuiHeight-30)
-return
-GuiDropFiles:  ; 对拖放提供支持.
-SaveItemGuiDropFiles:
-	Loop, Parse, A_GuiEvent, `n
-	{
-		SelectedFileName = %A_LoopField%  ; 仅获取首个文件 (如果有多个文件的时候).
-		break
-	}
-	;获取鼠标下面的控件
-	MouseGetPos, , , id, control
-	WinGetClass, class, ahk_id %id%
-	if(control="SysTreeView321"){
-		Loop, Parse, A_GuiEvent, `n
-		{
-			fileID:=TV_Add(Get_Item_Run_Path(A_LoopField),0,Set_Icon(TreeImageListID,A_LoopField))
-			TVFlag:=true
-		}
-	}
-	if(control="Edit1"){
-		GuiControl,SaveItem:, vitemName, % Get_Item_Run_Path(SelectedFileName)
-	}
-	if(control="Edit4"){
-		GuiControl,SaveItem:, vitemPath, % Get_Item_Run_Path(SelectedFileName)
-	}
-	gosub,EditItemPathChange
-return
-SaveItemGuiEscape:
-	Gui,SaveItem:Destroy
 return
 TVDown:
 	TV_Move(true)
@@ -4041,12 +3952,12 @@ Plugins_Gui_Show:
 	global ColumnAutoRun:=3
 	global ColumnContent:=5
 	DetectHiddenWindows,On
-	Gui,P:Destroy
-	Gui,P:Default
-	Gui,P:+Resize
-	Gui,P:Font, s10, Microsoft YaHei
-	Gui,P:Add, Listview, xm w710 r22 grid AltSubmit vRunAnyLV glistview, 插件文件|运行状态|自动启动|插件描述|插件说明地址
-	GuiControl,P: -Redraw, RunAnyLV
+	Gui,PluginsManage:Destroy
+	Gui,PluginsManage:Default
+	Gui,PluginsManage:+Resize
+	Gui,PluginsManage:Font, s10, Microsoft YaHei
+	Gui,PluginsManage:Add, Listview, xm w710 r22 grid AltSubmit vRunAnyLV glistview, 插件文件|运行状态|自动启动|插件描述|插件说明地址
+	GuiControl,PluginsManage: -Redraw, RunAnyLV
 	LV_SetImageList(PluginsImageListID)
 	For runn, runv in PluginsObjList
 	{
@@ -4056,12 +3967,12 @@ Plugins_Gui_Show:
 			pluginsConfig:="未找到"
 		LV_Add(LVPluginsIcon(runn), runn, runStatus, pluginsConfig, PluginsTitleList[runn], PluginsHelpList[runn])
 	}
-	GuiControl,P: +Redraw, RunAnyLV
+	GuiControl,PluginsManage: +Redraw, RunAnyLV
 	LVMenu("LVMenu")
 	LVMenu("ahkGuiMenu")
-	Gui,P: Menu, ahkGuiMenu
+	Gui,PluginsManage: Menu, ahkGuiMenu
 	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
-	Gui,P:Show, , %RunAnyZz% 插件管理 - 支持拖放 %RunAny_update_version% %RunAny_update_time%%AdminMode%
+	Gui,PluginsManage:Show, , %RunAnyZz% 插件管理 - 支持拖放 %RunAny_update_version% %RunAny_update_time%%AdminMode%
 	DetectHiddenWindows,Off
 return
 
@@ -4124,7 +4035,7 @@ LVHelp:
 	return
 return
 LVApply:
-	Gui,P:Default
+	Gui,PluginsManage:Default
 	DetectHiddenWindows,On      ;~显示隐藏窗口
 	Row:=LV_GetNext(0, "F")
 	RowNumber:=0
@@ -4252,30 +4163,16 @@ listview:
 		gosub,LVApply
     }
 return
-PGuiDropFiles:  ; 对拖放提供支持.
-	MsgBox,33,RunAny新增插件,是否复制脚本文件到插件目录？`n%A_ScriptDir%\%PluginsDir%
-	IfMsgBox Ok
-	{
-		Loop, Parse, A_GuiEvent, `n
-		{
-			FileCopy, %A_LoopField%, %A_ScriptDir%\%PluginsDir%
-		}
-		gosub,Plugins_Gui_Show
-	}
-return
-PGuiEscape:
-	Gui,P:Destroy
-return
 LVAdd:
 	global pluginsDownList:=Object()
 	global pluginsNameList:=Object()
 	gosub,PluginsDownVersion
-	Gui,D:Destroy
-	Gui,D:Default
-	Gui,D:+Resize
-	Gui,D:Font, s10, Microsoft YaHei
-	Gui,D:Add, Listview, xm w620 r15 grid AltSubmit Checked vRunAnyDownLV, 插件文件|状态|版本号|最新版本|插件描述
-	GuiControl,D: -Redraw, RunAnyDownLV
+	Gui,PluginsDownload:Destroy
+	Gui,PluginsDownload:Default
+	Gui,PluginsDownload:+Resize
+	Gui,PluginsDownload:Font, s10, Microsoft YaHei
+	Gui,PluginsDownload:Add, Listview, xm w620 r15 grid AltSubmit Checked vRunAnyDownLV, 插件文件|状态|版本号|最新版本|插件描述
+	GuiControl,PluginsDownload: -Redraw, RunAnyDownLV
 	For pk, pv in pluginsDownList
 	{
 		runStatus:=PluginsPathList[pk] ? "已下载" : "未下载"
@@ -4284,12 +4181,12 @@ LVAdd:
 			runStatus:=pluginsLocalVersion < pv ? "可更新" : "已最新"
 		LV_Add("", pk, runStatus, pluginsLocalVersion, checkGithub ? pv : "网络异常",checkGithub ? pluginsNameList[pk] : PluginsTitleList[pk])
 	}
-	GuiControl,D: +Redraw, RunAnyDownLV
+	GuiControl,PluginsDownload: +Redraw, RunAnyDownLV
 	Menu, ahkDownMenu, Add,下载, LVDown
 	Menu, ahkDownMenu, Icon,下载, SHELL32.dll,194
-	Gui,D: Menu, ahkDownMenu
+	Gui,PluginsDownload: Menu, ahkDownMenu
 	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
-	Gui,D:Show, , %RunAnyZz% 插件下载 %RunAny_update_version% %RunAny_update_time%
+	Gui,PluginsDownload:Show, , %RunAnyZz% 插件下载 %RunAny_update_version% %RunAny_update_time%
 return
 LVCreate:
 newObjRegCount:=1
@@ -4348,7 +4245,7 @@ LVPluginsLib:
 	PluginsDirPath:=StrReplace(PluginsDirPath, "|", "`n")
 	Gui,PluginsLib:Destroy
 	Gui,PluginsLib:Default
-	Gui,PluginsLib:+OwnerP
+	Gui,PluginsLib:+OwnerPluginsManage
 	Gui,PluginsLib:Margin,20,20
 	Gui,PluginsLib:Font,,Microsoft YaHei
 	Gui,PluginsLib:Add, GroupBox,xm y+10 w460 h220
@@ -4386,7 +4283,7 @@ SavePluginsLib:
 	IniWrite,%vPluginsDirPath%,%RunAnyConfig%,Config,PluginsDirPath
 	IniWrite,%vPluginsEditor%,%RunAnyConfig%,Config,PluginsEditor
 	Gui,PluginsLib:Destroy
-	Gui,P:Destroy
+	Gui,PluginsManage:Destroy
 	gosub,Plugins_Gui_Show
 return
 PluginsDownVersion:
@@ -4676,18 +4573,6 @@ RunCtrlListView:
 		gosub,LVCtrlRunEdit
     }
 return
-RunCtrlGuiGuiContextMenu:
-	If (A_GuiControl = "RunCtrlListBox" || A_GuiControl = "RunCtrlLV") {
-		TV_Modify(A_EventInfo, "Select Vis")
-		Menu, RunCtrlLVMenu, Show
-	}
-return
-RunCtrlGuiGuiSize:
-	if A_EventInfo = 1
-		return
-	GuiControl, Move, RunCtrlListBox, % "H" . (A_GuiHeight-20)
-	GuiControl, Move, RunCtrlLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 175)
-return
 ;创建头部及右键功能菜单
 RunCtrlLVMenu(addMenu){
 	flag:=addMenu="RunCtrlGuiMenu" ? true : false
@@ -4851,7 +4736,7 @@ RunCtrlConfig:
 	LV_ModifyCol(2)
 	GuiControl, 2:+Redraw, FuncLV
 	Gui,2:Add,Button,Default xm+150 y+15 w75 GRunCtrlLVSave,保存(&Y)
-	Gui,2:Add,Button,x+20 w75 GLVCancel,取消(&C)
+	Gui,2:Add,Button,x+20 w75 GSetCancel,取消(&C)
 	Gui,2:Show, , %RunAnyZz% 规则组 - %menuItem% %RunAny_update_version% %RunAny_update_time%%AdminMode%
 return
 
@@ -5004,7 +4889,7 @@ LVFuncConfig:
 	; `n多个参数每行为一个参数，最多支持10个，保存会用|分隔
 	Gui,F:Add, Edit, xm y+10 w350 r6 vvFuncValue, %FuncValue%
 	Gui,F:Add, Button,Default xm+80 y+15 w75 GLVFuncSave,保存(&Y)
-	Gui,F:Add, Button,x+10 w75 GLVCancel,取消(&C)
+	Gui,F:Add, Button,x+10 w75 GSetCancel,取消(&C)
 	Gui,F:Show, , %RunAnyZz% 修改规则函数 %RunAny_update_version% %RunAny_update_time%%AdminMode%
 	gosub,DropDownRuleChoose
 return
@@ -5085,10 +4970,6 @@ DropDownRuleChoose:
 		GuiControl, F:enable, vFuncBooleanGT
 		GuiControl, F:enable, vFuncBooleanLT
 	}
-return
-GuiEscape:
-LVCancel:
-	Gui,Destroy
 return
 SetFilePath:
 	FileSelectFile, filePath, 3, , 请选择导入的启动项, (*.ahk;*.exe)
@@ -5230,22 +5111,22 @@ LVRuleEdit:
 return
 ;~;【规则-编辑Gui】
 LVRuleConfig:
-	Gui,P:Destroy
-	Gui,P:Font,,Microsoft YaHei
-	Gui,P:Margin,20,10
-	Gui,P:Add, Text, xm y+10 w60, 规则名：
-	Gui,P:Add, Edit, xm+60 yp-3 w450 vvRuleName, %RuleName%
-	Gui,P:Add, Text, xm y+10 w60, 规则函数：
-	Gui,P:Add, Edit, xm+60 yp-3 w225 vvRuleFunction, %RuleFunction%
-	Gui,P:Add, DropDownList, x+5 yp+2 w220 vvRuleDLL GDropDownRuleList
-	Gui,P:Add, Button, xm-5 yp+30 w60 h60 GSetRulePath,规则路径 可自动识别函数名
-	Gui,P:Add, Edit, xm+60 yp w450 r3 vvRulePath GRulePathChange, %RulePath%
-	Gui,P:Add, Button,Default xm+180 y+10 w75 GLVRuleSave,保存(&Y)
-	Gui,P:Add, Button,x+10 w75 GLVCancel,取消(&C)
-	Gui,P:Show, , %RunAnyZz% 规则编辑 %RunAny_update_version% %RunAny_update_time%%AdminMode%
+	Gui,SaveRule:Destroy
+	Gui,SaveRule:Font,,Microsoft YaHei
+	Gui,SaveRule:Margin,20,10
+	Gui,SaveRule:Add, Text, xm y+10 w60, 规则名：
+	Gui,SaveRule:Add, Edit, xm+60 yp-3 w450 vvRuleName, %RuleName%
+	Gui,SaveRule:Add, Text, xm y+10 w60, 规则函数：
+	Gui,SaveRule:Add, Edit, xm+60 yp-3 w225 vvRuleFunction, %RuleFunction%
+	Gui,SaveRule:Add, DropDownList, x+5 yp+2 w220 vvRuleDLL GDropDownRuleList
+	Gui,SaveRule:Add, Button, xm-5 yp+30 w60 h60 GSetRulePath,规则路径 可自动识别函数名
+	Gui,SaveRule:Add, Edit, xm+60 yp w450 r3 vvRulePath GRulePathChange, %RulePath%
+	Gui,SaveRule:Add, Button,Default xm+180 y+10 w75 GLVRuleSave,保存(&Y)
+	Gui,SaveRule:Add, Button,x+10 w75 GSetCancel,取消(&C)
+	Gui,SaveRule:Show, , %RunAnyZz% 规则编辑 %RunAny_update_version% %RunAny_update_time%%AdminMode%
 	funcnameStr:=KnowAhkFuncZz(RulePath)
-	GuiControl, P:, vRuleDLL, |
-	GuiControl, P:, vRuleDLL, %funcnameStr%
+	GuiControl, SaveRule:, vRuleDLL, |
+	GuiControl, SaveRule:, vRuleDLL, %funcnameStr%
 	funcNameChoose:=1
 	loop, parse, funcnameStr, |
 	{
@@ -5254,7 +5135,7 @@ LVRuleConfig:
 			break
 		}
 	}
-	GuiControl, P:Choose, vRuleDLL, %funcNameChoose%
+	GuiControl, SaveRule:Choose, vRuleDLL, %funcNameChoose%
 return
 LVRuleMinus:
 	DelRowList:=""
@@ -5287,7 +5168,7 @@ LVRuleMinus:
 	}
 return
 LVRuleSave:
-	Gui,P:Submit, NoHide
+	Gui,SaveRule:Submit, NoHide
 	if(!vRuleName || !vRuleFunction || !vRulePath){
 		MsgBox, 48, ,请填入规则名、规则函数和规则路径
 		return
@@ -5322,7 +5203,7 @@ LVRuleSave:
 	LV_ModifyCol()  ; 根据内容自动调整每列的大小.
 	GuiControl, R:+Redraw, RuleLV
 	gosub,RunCtrl_Read
-	Gui,P:Destroy
+	Gui,SaveRule:Destroy
 return
 listrule:
     if A_GuiEvent = DoubleClick
@@ -5333,28 +5214,28 @@ return
 SetRulePath:
 	FileSelectFile, rulePath, 3, , 请选择要使用的的AutoHotkey规则脚本, (*.ahk)
 	if(rulePath){
-		Gui,P:Submit, NoHide
+		Gui,SaveRule:Submit, NoHide
 		Get_Rule_Func_Name(rulePath,vRuleFunction)
 		rulePath:=StrReplace(rulePath,A_ScriptDir "\" PluginsDir "\")
 		rulePath:=StrReplace(rulePath,A_ScriptDir "\")
-		GuiControl, P:, vRulePath, %rulePath%
+		GuiControl, SaveRule:, vRulePath, %rulePath%
 	}
 return
 RulePathChange:
-	Gui,P:Submit, NoHide
+	Gui,SaveRule:Submit, NoHide
 	Get_Rule_Func_Name(vRulePath,vRuleFunction)
 return
 DropDownRuleList:
-	Gui,P:Submit, NoHide
-	GuiControl, P:, vRuleFunction, %vRuleDLL%
+	Gui,SaveRule:Submit, NoHide
+	GuiControl, SaveRule:, vRuleFunction, %vRuleDLL%
 return
 ;[自动根据规则脚本的路径来变更函数下拉选择框和空规则函数]
 Get_Rule_Func_Name(rulePath,vRuleFunction){
 	if(rulePath){
 		funcnameStr:=KnowAhkFuncZz(rulePath)
-		GuiControl, P:, vRuleDLL, |
-		GuiControl, P:, vRuleDLL, %funcnameStr%
-		GuiControl, P:Choose, vRuleDLL, 1
+		GuiControl, SaveRule:, vRuleDLL, |
+		GuiControl, SaveRule:, vRuleDLL, %funcnameStr%
+		GuiControl, SaveRule:Choose, vRuleDLL, 1
 		if(!vRuleFunction && funcnameStr){
 			gosub,DropDownRuleList
 		}
@@ -5911,9 +5792,6 @@ SetOK:
 	}
 	gosub,Menu_Reload
 return
-SetCancel:
-	Gui,Destroy
-return
 SetHideSelectZz:
 	GuiControlGet, outPutVar, , vHideSelectZz
 	GuiControl,, vHideSelectZz2, %outPutVar%
@@ -6000,26 +5878,6 @@ SetHideMenuTrayIcon:
 只能通过快捷键来再次打开RunAny设置界面，如果忘记热键的话`n`n需要手动修改 RunAnyConfig.ini 文件取消隐藏图标： HideMenuTrayIcon=0
 		)
 	}
-return
-66GuiSize:
-	if A_EventInfo = 1
-		return
-	GuiControl, Move, ConfigTab, % "H" . (A_GuiHeight * 0.88) . " W" . (A_GuiWidth - 20)
-	GuiControl, Move, vDisableAppGroup, % "H" . (A_GuiHeight * 0.30) . " W" . (A_GuiWidth - 40)
-	GuiControl, Move, vDisableApp, % "H" . (A_GuiHeight * 0.25) . " W" . (A_GuiWidth - 60)
-	GuiControl, Move, RunAnyHotkeyLV, % " W" . (A_GuiWidth - 60)
-	GuiControl, Move, RunAnyMenuVarLV, % "H" . (A_GuiHeight * 0.68) . " W" . (A_GuiWidth - 60)
-	GuiControl, Move, vEvCommandGroup, % "H" . (A_GuiHeight * 0.52) . " W" . (A_GuiWidth - 40)
-	GuiControl, Move, vEvCommand, % "H" . (A_GuiHeight * 0.32) . " W" . (A_GuiWidth - 60)
-	GuiControl, Move, vOneKeyUrlGroup, % " W" . (A_GuiWidth - 40)
-	GuiControl, Move, vOneKeyUrl, % " W" . (A_GuiWidth - 60)
-	GuiControl, Move, vBrowserPath, % " W" . (A_GuiWidth - 120)
-	GuiControl, Move, RunAnyOpenExtLV, % "H" . (A_GuiHeight * 0.68) . " W" . (A_GuiWidth - 60)
-	GuiControl, Move, AdvancedConfigLV, % "H" . (A_GuiHeight * 0.77) . " W" . (A_GuiWidth - 60)
-	GuiControl, MoveDraw, vSetOK, % " X" . (A_GuiWidth * 0.30) . " Y" . (A_GuiHeight * 0.92)
-	GuiControl, MoveDraw, vSetCancel, % " X" . (A_GuiWidth * 0.30 + 90) . " Y" . (A_GuiHeight * 0.92)
-	GuiControl, MoveDraw, vSetReSet, % " X" . (A_GuiWidth * 0.30 + 180) . " Y" . (A_GuiHeight * 0.92)
-	GuiControl, MoveDraw, vMenu_Config, % " X" . (A_GuiWidth * 0.30 + 310) . " Y" . (A_GuiHeight * 0.925)
 return
 Reg_Set(vGui, var, sz){
 	StringCaseSense, On
@@ -6288,7 +6146,159 @@ listviewAdvancedConfig:
 		AdvancedConfigFlag:=true
 	}
 return
-
+;[窗口控件控制函数]
+GuiControlShow(guiName,controls*){
+	For k,v in controls
+	{
+	GuiControl, %guiName%:Show, %v%
+	}
+}
+GuiControlHide(guiName,controls*){
+	For k,v in controls
+	{
+	GuiControl, %guiName%:Hide, %v%
+	}
+}
+GuiControlSet(guiName,controlName,controlVal:=""){
+	GuiControl, %guiName%:, %controlName%, %controlVal%
+}
+;~;【——窗口事件Gui——】
+GuiClose:
+	if(TVFlag){
+		MsgBox,51,菜单树退出,已修改过菜单信息，是否保存修改再退出？
+		IfMsgBox Yes
+		{
+			gosub,Menu_Save
+			gosub,Menu_Reload
+		}
+		IfMsgBox No
+			Gui, Destroy
+	}else{
+		Gui, Destroy
+	}
+return
+;[GuiEscape]
+GuiEscape:
+SaveItemGuiEscape:
+PluginsManageGuiEscape:
+PluginsDownloadGuiEscape:
+PluginsLibGuiEscape:
+RunCtrlGuiGuiEscape:
+2GuiEscape:
+FGuiEscape:
+CtrlRunGuiEscape:
+RGuiEscape:
+SaveRuleGuiEscape:
+99GuiEscape:
+keyGuiEscape:
+SaveExtGuiEscape:
+SaveVarGuiEscape:
+SetCancel:
+	Gui,Destroy
+return
+;[GuiSize]
+GuiSize:
+PGuiSize:
+DGuiSize:
+	if A_EventInfo = 1
+		return
+	GuiControl, Move, RunAnyTV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
+	GuiControl, Move, RunAnyLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
+	GuiControl, Move, RunAnyDownLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
+return
+66GuiSize:
+	if A_EventInfo = 1
+		return
+	GuiControl, Move, ConfigTab, % "H" . (A_GuiHeight * 0.88) . " W" . (A_GuiWidth - 20)
+	GuiControl, Move, vDisableAppGroup, % "H" . (A_GuiHeight * 0.30) . " W" . (A_GuiWidth - 40)
+	GuiControl, Move, vDisableApp, % "H" . (A_GuiHeight * 0.25) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, RunAnyHotkeyLV, % " W" . (A_GuiWidth - 60)
+	GuiControl, Move, RunAnyMenuVarLV, % "H" . (A_GuiHeight * 0.68) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, vEvCommandGroup, % "H" . (A_GuiHeight * 0.52) . " W" . (A_GuiWidth - 40)
+	GuiControl, Move, vEvCommand, % "H" . (A_GuiHeight * 0.32) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, vOneKeyUrlGroup, % " W" . (A_GuiWidth - 40)
+	GuiControl, Move, vOneKeyUrl, % " W" . (A_GuiWidth - 60)
+	GuiControl, Move, vBrowserPath, % " W" . (A_GuiWidth - 120)
+	GuiControl, Move, RunAnyOpenExtLV, % "H" . (A_GuiHeight * 0.68) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, AdvancedConfigLV, % "H" . (A_GuiHeight * 0.77) . " W" . (A_GuiWidth - 60)
+	GuiControl, MoveDraw, vSetOK, % " X" . (A_GuiWidth * 0.30) . " Y" . (A_GuiHeight * 0.92)
+	GuiControl, MoveDraw, vSetCancel, % " X" . (A_GuiWidth * 0.30 + 90) . " Y" . (A_GuiHeight * 0.92)
+	GuiControl, MoveDraw, vSetReSet, % " X" . (A_GuiWidth * 0.30 + 180) . " Y" . (A_GuiHeight * 0.92)
+	GuiControl, MoveDraw, vMenu_Config, % " X" . (A_GuiWidth * 0.30 + 310) . " Y" . (A_GuiHeight * 0.925)
+return
+SaveItemGuiSize:
+	if A_EventInfo = 1
+		return
+	GuiControl,SaveItem:MoveDraw, vitemName, % "W" . (A_GuiWidth-360)
+	GuiControl,SaveItem:MoveDraw, vitemPath, % "H" . (A_GuiHeight-230) . " W" . (A_GuiWidth - 120)
+	GuiControl,SaveItem:MoveDraw, vPictureIconAdd,% "x" . (A_GuiWidth-130)
+	GuiControl,SaveItem:MoveDraw, vTextIconAdd,% "x" . (A_GuiWidth-200)
+	GuiControl,SaveItem:MoveDraw, vTextIconDown,% "x" . (A_GuiWidth-100)
+	GuiControl,SaveItem:MoveDraw, vSaveItemSaveBtn,% "x" . (A_GuiWidth / 2 - 100) . " y" . (A_GuiHeight-60)
+	GuiControl,SaveItem:MoveDraw, vSaveItemCancelBtn,% "x" . (A_GuiWidth / 2 + 10) . " y" . (A_GuiHeight-60)
+	GuiControl,SaveItem:MoveDraw, vStatusBar,% "x30" . " y" . (A_GuiHeight-30)
+return
+RunCtrlGuiGuiSize:
+	if A_EventInfo = 1
+		return
+	GuiControl, Move, RunCtrlListBox, % "H" . (A_GuiHeight-20)
+	GuiControl, Move, RunCtrlLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 175)
+return
+;[GuiContextMenu]
+GuiContextMenu:
+PGuiContextMenu:
+	If (A_GuiControl = "RunAnyTV") {
+		TV_Modify(A_EventInfo, "Select Vis")
+		Menu, TVMenu, Show
+	}
+	If (A_GuiControl = "RunAnyLV") {
+		LV_Modify(A_EventInfo, "Select Vis")
+		Menu, LVMenu, Show
+	}
+return
+RunCtrlGuiGuiContextMenu:
+	If (A_GuiControl = "RunCtrlListBox" || A_GuiControl = "RunCtrlLV") {
+		TV_Modify(A_EventInfo, "Select Vis")
+		Menu, RunCtrlLVMenu, Show
+	}
+return
+PGuiDropFiles:  ; 对拖放提供支持.
+	MsgBox,33,RunAny新增插件,是否复制脚本文件到插件目录？`n%A_ScriptDir%\%PluginsDir%
+	IfMsgBox Ok
+	{
+		Loop, Parse, A_GuiEvent, `n
+		{
+			FileCopy, %A_LoopField%, %A_ScriptDir%\%PluginsDir%
+		}
+		gosub,Plugins_Gui_Show
+	}
+return
+;[GuiDropFiles]  ; 对拖放提供支持.
+GuiDropFiles:
+SaveItemGuiDropFiles:
+	Loop, Parse, A_GuiEvent, `n
+	{
+		SelectedFileName = %A_LoopField%  ; 仅获取首个文件 (如果有多个文件的时候).
+		break
+	}
+	;获取鼠标下面的控件
+	MouseGetPos, , , id, control
+	WinGetClass, class, ahk_id %id%
+	if(control="SysTreeView321"){
+		Loop, Parse, A_GuiEvent, `n
+		{
+			fileID:=TV_Add(Get_Item_Run_Path(A_LoopField),0,Set_Icon(TreeImageListID,A_LoopField))
+			TVFlag:=true
+		}
+	}
+	if(control="Edit1"){
+		GuiControl,SaveItem:, vitemName, % Get_Item_Run_Path(SelectedFileName)
+	}
+	if(control="Edit4"){
+		GuiControl,SaveItem:, vitemPath, % Get_Item_Run_Path(SelectedFileName)
+	}
+	gosub,EditItemPathChange
+return
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 ;~;【——初始化——】
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -7770,7 +7780,7 @@ exeQuery(exeName,noSystemExe:=" !C:\Windows*"){
 	ev.Query()
 	return ev.GetResultFullPathName(0)
 }
-;~;[修改于AHK论坛，IPC方式和everything进行通讯]
+;~;[IPC方式和everything进行通讯，修改于AHK论坛]
 class everything
 {
 	__New(){
