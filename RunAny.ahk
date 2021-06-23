@@ -580,39 +580,6 @@ RunABackupClear(RunABackupDir,RunABackupFile){
 	}
 }
 ;══════════════════════════════════════════════════════════════════
-;~;{获取菜单项启动模式}
-;~;1-启动路径|2-短语模式|3-模拟打字短语|4-热键映射|5-AHK热键映射|6-网址|60-程序参数中带网址
-;~;7-文件夹|8-插件脚本函数
-;~;10-菜单分类|11-分割符|12-注释说明
-GetMenuItemMode(item,fullItemFlag:=false){
-	if(fullItemFlag){
-		if(InStr(item,";")=1)
-			return 12
-		if(RegExMatch(item,"S)^-+[^-]+.*"))
-			return 10
-		if(RegExMatch(item,"S)^-+"))
-			return 11
-		menuItems:=StrSplit(item,"|",,2)
-		item:=(menuItems[2]) ? menuItems[2] : menuItems[1]
-	}
-	len:=StrLen(item)
-	if(len=0)
-		return 1
-	if(InStr(item,";",,0,1)=len)
-		return InStr(item,";;",,0,1)=len-1 ? 3 : 2
-	if(InStr(item,"::",,0,1)=len-1)
-		return InStr(item,":::",,0,1)=len-2 ? 5 : 4
-	if(RegExMatch(item,"iS)^.*?\.(exe|lnk|bat|cmd|vbs|ps1|ahk) .*?([\w-]+://?|www[.]).*"))
-		return 60
-	if(RegExMatch(item,"iS)^([\w-]+://?|www[.]).*"))
-		return 6
-	if(RegExMatch(item,"S).+?\[.+?\]%?\(.*?\)"))
-		return 8
-	if(InStr(FileExist(item), "D"))
-		return 7
-	return 1
-}
-;══════════════════════════════════════════════════════════════════
 ;~;【读取配置并开始创建菜单】
 ;══════════════════════════════════════════════════════════════════
 Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
@@ -1099,7 +1066,7 @@ MenuShowTime:
 	}
 return
 ;══════════════════════════════════════════════════════════════════
-;~;【显示菜单】
+;~;【——显示菜单——】
 ;══════════════════════════════════════════════════════════════════
 Menu_Show:
 	try{
@@ -1380,7 +1347,7 @@ Menu_Add_Del_Temp(addDel=1,TREE_NO=1,mName="",LabelName="",mIcon="",mIconNum="")
 	}
 }
 ;══════════════════════════════════════════════════════════════════
-;~;【菜单运行】
+;~;【——菜单运行——】
 ;══════════════════════════════════════════════════════════════════
 Menu_Run:
 	Z_ThisMenuItem:=A_ThisMenuItem
@@ -2124,7 +2091,10 @@ One_Search:
 		}
 	}
 return
-;~;[检查后缀名]
+;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+;~;【——函数方法——】
+;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+;[检查后缀名]
 Ext_Check(name,len,ext){
 	len_ext:=StrLen(ext)
 	site:=InStr(name,ext,,0,1)
@@ -2196,7 +2166,7 @@ Get_Zz(){
 	Clipboard:=Candy_Saved
 	return CandySel
 }
-;~;[文本转换为URL编码]
+;[文本转换为URL编码]
 SkSub_UrlEncode(str, enc="UTF-8")
 {
     enc:=trim(enc)
@@ -2208,6 +2178,13 @@ SkSub_UrlEncode(str, enc="UTF-8")
    encoded .= hex
    Return encoded
 }
+;[数组拼接字符]
+StrJoin(sep, params*) {
+	str:=""
+    for index,param in params
+        str .= param . sep
+    return SubStr(str, 1, -StrLen(sep))
+}
 ;~;获取变量展开转换后的值
 Get_Transform_Val(var){
 	try{
@@ -2216,6 +2193,363 @@ Get_Transform_Val(var){
 	}catch{
 		return var
 	}
+}
+;变量布尔值反转
+Variable_Boolean_Reverse(vars*){
+	global
+	for i,v in vars
+	{
+		%v%:=!%v%
+	}
+}
+/*
+【获取当前电脑机型-规则】
+返回值参考：https://docs.microsoft.com/zh-cn/windows/win32/cimwin32prov/win32-systemenclosure
+*/
+rule_chassis_types(){
+	chassisTypes:=cmdClipReturn("wmic PATH Win32_SystemEnclosure get ChassisTypes /value | findstr ""ChassisTypes=""")
+	chassisTypes:=RegExReplace(chassisTypes,"i)ChassisTypes=\{(\d+)\}.*","$1")
+	return Format("{:d}",chassisTypes)
+}
+;~;[检查网络状态-规则]
+rule_check_network(lpszUrl=""){
+	if(lpszUrl="")
+		lpszUrl:="http://www.baidu.com"
+	return DllCall("Wininet.dll\InternetCheckConnection", "Ptr", &lpszUrl, "UInt", 0x1, "UInt", 0x0, "Int")
+}
+/*
+【判断启动项当前是否已经运行】
+runNamePath 进程名或者启动项路径
+*/
+rule_check_is_run(runNamePath){
+	runValue:=RegExReplace(runNamePath,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
+	SplitPath, runValue, name,, ext  ; 获取扩展名
+	if(ext="ahk"){
+		if(InStr(runNamePath,"..\")=1){
+			runNamePath:=IsFunc("funcPath2AbsoluteZz") ? Func("funcPath2AbsoluteZz").Call(runNamePath,A_ScriptFullPath) : runNamePath
+		}
+		IfWinExist, %runNamePath% ahk_class AutoHotkey
+		{
+			return true
+		}
+	}else if(name){
+		Process,Exist,%name%
+		if ErrorLevel
+			return true
+	}
+	return false
+}
+/*
+【相对路径转换为绝对路径 by hui-Zz】
+aPath 被转换的相对路径，可带文件名
+ahkPath 相对参照的执行脚本完整全路径，带文件名
+return -1 路径参数有误
+*/
+funcPath2AbsoluteZz(aPath,ahkPath){
+	SplitPath, aPath, fname, fdir, fext, , fdrive
+	SplitPath, ahkPath, name, dir, ext, , drive
+	if(!aPath || !ahkPath)
+		return -1
+	;下级目录直接加上参照目录路径
+	if(!fdrive && !InStr(aPath,"..")){
+		return dir . "\" . aPath
+	}
+	pathList:=StrSplit(dir,"\")
+	;上级目录根据层级递进添加多级路径
+	if(InStr(aPath,"..\")=1){
+		aPathStr:=RegExReplace(aPath, "\.\.\\", , PointCount)
+		pathStr:=""
+		;每次向上递进，找到添加与启动项相匹配路径段
+		Loop,% pathList.MaxIndex()-PointCount
+		{
+			pathStr.=pathList[A_Index] . "\"
+		}
+		filePath:=pathStr . aPathStr
+		return filePath
+	}
+	return false
+}
+/*
+【绝对路径转换为相对路径 by hui-Zz】
+fPath 被转换的全路径，可带文件名
+ahkPath 相对参照的执行脚本完整全路径，带文件名
+return -1 路径参数有误
+return -2 被转换路径和参照路径不在同一磁盘，不能转换
+*/
+funcPath2RelativeZz(fPath,ahkPath){
+	SplitPath, fPath, fname, fdir, fext, , fdrive
+	SplitPath, ahkPath, name, dir, ext, , drive
+	if(!fPath || !ahkPath || !dir || !fdir || !fdrive)
+		return -1
+	if(fdrive!=drive){
+		return -2
+	}
+	;下级目录直接去掉参照目录路径
+	if(InStr(fPath,dir)){
+		filePath:=StrReplace(fPath,dir)
+		StringTrimLeft, filePath, filePath, 1
+		return filePath
+	}
+	;上级目录根据层级递进添加多级前缀..\
+	pathList:=StrSplit(dir,"\")
+	Loop,% pathList.MaxIndex()
+	{
+		pathStr:=""
+		upperStr:=""
+		;每次向上递进，找到与启动项相匹配路径段替换成..\
+		Loop,% pathList.MaxIndex()-A_Index
+		{
+			pathStr.=pathList[A_Index] . "\"
+		}
+		StringTrimRight, pathStr, pathStr, 1
+		if(InStr(fdir,pathStr)){
+			Loop,% A_Index
+			{
+				upperStr.="..\"
+			}
+			StringTrimRight, upperStr, upperStr, 1
+			filePath:=StrReplace(fPath,pathStr,upperStr)
+			return filePath
+		}
+	}
+	return false
+}
+;[利用HTML中JS的eval函数来计算]
+js_eval(exp)
+{
+	HtmlObj:=ComObjCreate("HTMLfile")
+	exp:=escapeString(exp)
+	if(InStr(exp,"-") && InStr(exp,".")){
+		;解决eval减法精度失真问题，根据最长的小数位数四舍五入
+		subMaxNum:=0
+		expResult:=exp
+		while RegExMatch(expResult,"S)(\.\d+)")
+		{
+			sub:=RegExReplace(expResult,".*(\.\d+).*","$1")
+			if(StrLen(sub)>subMaxNum)
+				subMaxNum:=StrLen(sub)
+			expResult:=RegExReplace(expResult,sub)
+		}
+		expNum:="1"
+		Loop,%subMaxNum%
+		{
+			expNum.="0"
+		}
+	}else{
+		expNum:="100000000000000"
+	}
+	HtmlObj.write("<body><script>var t=document.body;t.innerText='';t.innerText=Math.round(eval('" . exp . "')*" expNum ")/" expNum ";</script></body>")
+	return InStr(cabbage:=HtmlObj.body.innerText, "body") ? "?" : cabbage
+}
+escapeString(string){
+	string:=RegExReplace(string, "('|""|&|\\|\\n|\\r|\\t|\\b|\\f)", "\$1")
+	string:=RegExReplace(string, "\R", "\n")
+	return string
+}
+/*
+【隐藏运行cmd命令并将结果存入剪贴板后取回 @hui-Zz】
+*/
+cmdClipReturn(command){
+	cmdInfo:=""
+	Clip_Saved:=ClipboardAll
+	try{
+		Clipboard=
+		Run,% ComSpec " /C " command " | CLIP", , Hide
+		ClipWait,2
+		cmdInfo:=Clipboard
+	}catch{}
+	Clipboard:=Clip_Saved
+	return cmdInfo
+}
+;[动态执行脚本注册对象]
+DynaExpr_ObjRegisterActive(GUID,appFunc,appParms:="",getZz:="")
+{
+	sScript:="
+	(
+		#NoTrayIcon
+		get_zz = " getZz "
+		try appPlugins := ComObjActive(""" GUID """)
+		appPlugins[""" appFunc """](" appParms ")
+	)"
+	PID:=DynaRun(sScript)
+}
+;[动态获得AHK代码结果值]
+DynaExpr_EvalToVar(sExpr,getZz:="")
+{
+	sTmpFile := A_Temp "\temp.ahk"
+	sScript:="
+	(
+		#NoTrayIcon
+		FileDelete " sTmpFile "
+		get_zz = " getZz "
+		val := " sExpr "
+		FileAppend %val%, " sTmpFile "
+	)"
+
+	PID:=DynaRun(sScript)
+
+	Process,WaitClose,%PID%
+	FileRead sResult, %sTmpFile%
+	return sResult
+}
+;[动态执行AHK代码]
+DynaRun(TempScript, pipename="", params="")
+{
+   static _:="uint",@:="Ptr"
+   If pipename =
+      name := "AHK" A_TickCount
+   Else
+      name := pipename
+   __PIPE_GA_ := DllCall("CreateNamedPipe","str","\\.\pipe\" name,_,2,_,0,_,255,_,0,_,0,@,0,@,0)
+   __PIPE_    := DllCall("CreateNamedPipe","str","\\.\pipe\" name,_,2,_,0,_,255,_,0,_,0,@,0,@,0)
+   if (__PIPE_=-1 or __PIPE_GA_=-1)
+      Return 0
+	 If A_IsCompiled || (A_IsDll && DllCall(A_AhkPath "\ahkgetvar","Str","A_IsCompiled")) ; allow compiled executable to execute dynamic scripts. Requires AHK_H
+		Run, % """" A_AhkPath """" (params?" ":"") params " /E ""\\.\pipe\" name """",,UseErrorLevel HIDE, PID
+	 else
+		Run, % """" A_AhkPath """" (params?" ":"") params " ""\\.\pipe\" name """",,UseErrorLevel HIDE, PID
+   If ErrorLevel
+      MsgBox, 262144, ERROR,% "Could not open file:`n" __AHK_EXE_ """\\.\pipe\" name """"
+   DllCall("ConnectNamedPipe",@,__PIPE_GA_,@,0)
+   DllCall("CloseHandle",@,__PIPE_GA_)
+   DllCall("ConnectNamedPipe",@,__PIPE_,@,0)
+   script := (A_IsUnicode ? chr(0xfeff) : (chr(239) . chr(187) . chr(191))) TempScript
+   if !DllCall("WriteFile",@,__PIPE_,"str",script,_,(StrLen(script)+1)*(A_IsUnicode ? 2 : 1),_ "*",0,@,0)
+      Return A_LastError,DllCall("CloseHandle",@,__PIPE_)
+   DllCall("CloseHandle",@,__PIPE_)
+   Return PID
+}
+;[改进版URLDownloadToFile，来源于：http://ahkcn.net/thread-5658.html]
+URLDownloadToFile(URL, FilePath, Options:="", RequestHeaders:="")
+{
+	Options:=this.解析信息到对象(Options)
+	RequestHeaders:=this.解析信息到对象(RequestHeaders)
+
+	ComObjError(0)	;禁用 COM 错误通告。禁用后，检查 A_LastError 的值，脚本可以实现自己的错误处理
+	WebRequest := ComObjCreate("WinHttp.WinHttpRequest.5.1")
+
+	if (Options["EnableRedirects"]<>"")	;设置是否获取跳转后的页面信息
+		WebRequest.Option(6):=Options["EnableRedirects"]
+	;proxy_setting没值时，根据Proxy值的情况智能设定是否要进行代理访问。
+	;这样的好处是多数情况下需要代理时依然只用给出代理服务器地址即可。而在已经给出代理服务器地址后，又可以很方便的对是否启用代理进行开关。
+	if (Options["proxy_setting"]="" and Options["Proxy"]<>"")
+		Options["proxy_setting"]:=2	;0表示 Proxycfg.exe 运行了且遵循 Proxycfg.exe 的设置（没运行则效果同设置为1）。1表示忽略代理直连。2表示使用代理
+	if (Options["proxy_setting"]="" and Options["Proxy"]="")
+		Options["proxy_setting"]:=1
+	;设置代理服务器。微软的代码 SetProxy() 是放在 Open() 之前的，所以我也放前面设置，以免无效
+	WebRequest.SetProxy(Options["proxy_setting"],Options["Proxy"],Options["ProxyBypassList"])
+	if (Options["Timeout"]="")		;Options["Timeout"]如果被设置为-1，并不代表无限超时，而是依然遵循SetTimeouts第4个参数设置的最大超时时间
+		WebRequest.SetTimeouts(0,60000,30000,0)		;0或-1都表示超时无限等待，正整数则表示最大超时（单位毫秒）
+	else if (Options["Timeout"]>30)				;如果超时设置大于30秒，则需要将默认的最大超时时间修改为大于30秒
+		WebRequest.SetTimeouts(0,60000,30000,Options["Timeout"]*1000)
+	else
+		WebRequest.SetTimeouts(0,60000,30000,30000)	;此为SetTimeouts的默认设置。这句可以不加，因为默认就是这样，加在这里是为了表述清晰。
+
+	WebRequest.Open("GET", URL, true)   			;true为异步获取。默认是false，龟速的根源！！！卡顿的根源！！！
+
+	;SetRequestHeader() 必须 Open() 之后才有效
+	for k, v in RequestHeaders
+	{
+		if (k="Cookie")
+		{
+			WebRequest.SetRequestHeader("Cookie","tuzi")    ;先设置一个cookie，防止出错，msdn推荐这么做
+			WebRequest.SetRequestHeader("Cookie",v)
+		}
+		WebRequest.SetRequestHeader(k,v)
+	}
+
+	Loop
+	{
+		WebRequest.Send()
+		WebRequest.WaitForResponse(-1)		;WaitForResponse方法确保获取的是完整的响应。-1表示总是使用SetTimeouts设置的超时
+
+		;获取状态码，一般status为200说明请求成功
+		this.Status:=WebRequest.Status()
+		this.StatusText:=WebRequest.StatusText()
+
+		if (Options["expected_status"]="" or Options["expected_status"]=this.Status)
+			break
+		;尝试指定次数后页面返回的状态码依旧与预期状态码不一致，则抛出错误及详细错误信息（可使用我另一个错误处理函数专门记录处理它们）
+		;即使number_of_retries为空，表达式依然成立，所以不用为number_of_retries设置初始值。
+		else if (A_Index>=Options["number_of_retries"])
+		{
+			this.extra.URL:=URL
+			this.extra.Expected_Status:=Options["expected_status"]
+			this.extra.Status:=this.Status
+			this.extra.StatusText:=this.StatusText
+			throw, Exception("经过" Options.number_of_retries "次尝试后，服务器返回状态码依旧与期望值不一致", -1, Object(this.extra))
+		}
+	}
+
+	ADO:=ComObjCreate("adodb.stream")   		;使用 adodb.stream 编码返回值。参考 http://bbs.howtoadmin.com/ThRead-814-1-1.html
+	ADO.Type:=1									;以二进制方式操作
+	ADO.Mode:=3 								;可同时进行读写
+	ADO.Open()  								;开启物件
+	ADO.Write(WebRequest.ResponseBody())    	;写入物件。注意没法将 WebRequest.ResponseBody() 存入一个变量，所以必须用这种方式写文件
+	ADO.SaveToFile(FilePath,2)   				;文件存在则覆盖
+	ADO.Close()
+	this.ResponseHeaders:=this.解析信息到对象(WebRequest.GetAllResponseHeaders())
+	return, 1
+}
+;══════════════════════════════════════════════════════════════════
+;~;【函数方法-内部】
+;══════════════════════════════════════════════════════════════════
+;~;[写入注册表]
+Reg_Set(vGui, var, sz){
+	StringCaseSense, On
+	if(vGui!=var){
+		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, %sz%, %vGui%
+		IniWrite,%vGui%,%RunAnyConfig%,Config,%sz%
+	}
+	StringCaseSense, Off
+}
+;~;[读取注册表]
+Var_Read(rValue,defVar=""){
+	if(IniConfig){
+		IniRead, regVar,%RunAnyConfig%, Config, %rValue%,% defVar ? defVar : A_Space
+	}else{
+		RegRead, regVar, HKEY_CURRENT_USER, SOFTWARE\RunAny, %rValue%
+	}
+	if(regVar!=""){
+		if(InStr(regVar,"ZzIcon.dll") && !FileExist(A_ScriptDir "\ZzIcon.dll"))
+			return defVar
+		else
+			return regVar
+	}else{
+		return defVar
+	}
+}
+;~;{获取菜单项启动模式}
+;~;1-启动路径|2-短语模式|3-模拟打字短语|4-热键映射|5-AHK热键映射|6-网址|60-程序参数中带网址
+;~;7-文件夹|8-插件脚本函数
+;~;10-菜单分类|11-分割符|12-注释说明
+GetMenuItemMode(item,fullItemFlag:=false){
+	if(fullItemFlag){
+		if(InStr(item,";")=1)
+			return 12
+		if(RegExMatch(item,"S)^-+[^-]+.*"))
+			return 10
+		if(RegExMatch(item,"S)^-+"))
+			return 11
+		menuItems:=StrSplit(item,"|",,2)
+		item:=(menuItems[2]) ? menuItems[2] : menuItems[1]
+	}
+	len:=StrLen(item)
+	if(len=0)
+		return 1
+	if(InStr(item,";",,0,1)=len)
+		return InStr(item,";;",,0,1)=len-1 ? 3 : 2
+	if(InStr(item,"::",,0,1)=len-1)
+		return InStr(item,":::",,0,1)=len-2 ? 5 : 4
+	if(RegExMatch(item,"iS)^.*?\.(exe|lnk|bat|cmd|vbs|ps1|ahk) .*?([\w-]+://?|www[.]).*"))
+		return 60
+	if(RegExMatch(item,"iS)^([\w-]+://?|www[.]).*"))
+		return 6
+	if(RegExMatch(item,"S).+?\[.+?\]%?\(.*?\)"))
+		return 8
+	if(InStr(FileExist(item), "D"))
+		return 7
+	return 1
 }
 ;~;[获取分类名称]
 Get_Tree_Name(z_item,show_key=true){
@@ -2320,186 +2654,16 @@ Check_Obj_Ext(filePath){
 	else
 		return true
 }
-/*
-【相对路径转换为绝对路径 by hui-Zz】
-aPath 被转换的相对路径，可带文件名
-ahkPath 相对参照的执行脚本完整全路径，带文件名
-return -1 路径参数有误
-*/
-funcPath2AbsoluteZz(aPath,ahkPath){
-	SplitPath, aPath, fname, fdir, fext, , fdrive
-	SplitPath, ahkPath, name, dir, ext, , drive
-	if(!aPath || !ahkPath)
-		return -1
-	;下级目录直接加上参照目录路径
-	if(!fdrive && !InStr(aPath,"..")){
-		return dir . "\" . aPath
-	}
-	pathList:=StrSplit(dir,"\")
-	;上级目录根据层级递进添加多级路径
-	if(InStr(aPath,"..\")=1){
-		aPathStr:=RegExReplace(aPath, "\.\.\\", , PointCount)
-		pathStr:=""
-		;每次向上递进，找到添加与启动项相匹配路径段
-		Loop,% pathList.MaxIndex()-PointCount
-		{
-			pathStr.=pathList[A_Index] . "\"
-		}
-		filePath:=pathStr . aPathStr
-		return filePath
-	}
-	return false
-}
-/*
-【绝对路径转换为相对路径 by hui-Zz】
-fPath 被转换的全路径，可带文件名
-ahkPath 相对参照的执行脚本完整全路径，带文件名
-return -1 路径参数有误
-return -2 被转换路径和参照路径不在同一磁盘，不能转换
-*/
-funcPath2RelativeZz(fPath,ahkPath){
-	SplitPath, fPath, fname, fdir, fext, , fdrive
-	SplitPath, ahkPath, name, dir, ext, , drive
-	if(!fPath || !ahkPath || !dir || !fdir || !fdrive)
-		return -1
-	if(fdrive!=drive){
-		return -2
-	}
-	;下级目录直接去掉参照目录路径
-	if(InStr(fPath,dir)){
-		filePath:=StrReplace(fPath,dir)
-		StringTrimLeft, filePath, filePath, 1
-		return filePath
-	}
-	;上级目录根据层级递进添加多级前缀..\
-	pathList:=StrSplit(dir,"\")
-	Loop,% pathList.MaxIndex()
+;[自动调整列表宽度]
+LVModifyCol(width, colList*){
+	LV_ModifyCol()  ; 根据内容自动调整每列的大小.
+	for index,col in colList
 	{
-		pathStr:=""
-		upperStr:=""
-		;每次向上递进，找到与启动项相匹配路径段替换成..\
-		Loop,% pathList.MaxIndex()-A_Index
-		{
-			pathStr.=pathList[A_Index] . "\"
-		}
-		StringTrimRight, pathStr, pathStr, 1
-		if(InStr(fdir,pathStr)){
-			Loop,% A_Index
-			{
-				upperStr.="..\"
-			}
-			StringTrimRight, upperStr, upperStr, 1
-			filePath:=StrReplace(fPath,pathStr,upperStr)
-			return filePath
-		}
+		LV_ModifyCol(col, width)
+		LV_ModifyCol(col, "center")
 	}
-	return false
 }
-;~;[利用HTML中JS的eval函数来计算]
-js_eval(exp)
-{
-	HtmlObj:=ComObjCreate("HTMLfile")
-	exp:=escapeString(exp)
-	if(InStr(exp,"-") && InStr(exp,".")){
-		;解决eval减法精度失真问题，根据最长的小数位数四舍五入
-		subMaxNum:=0
-		expResult:=exp
-		while RegExMatch(expResult,"S)(\.\d+)")
-		{
-			sub:=RegExReplace(expResult,".*(\.\d+).*","$1")
-			if(StrLen(sub)>subMaxNum)
-				subMaxNum:=StrLen(sub)
-			expResult:=RegExReplace(expResult,sub)
-		}
-		expNum:="1"
-		Loop,%subMaxNum%
-		{
-			expNum.="0"
-		}
-	}else{
-		expNum:="100000000000000"
-	}
-	HtmlObj.write("<body><script>var t=document.body;t.innerText='';t.innerText=Math.round(eval('" . exp . "')*" expNum ")/" expNum ";</script></body>")
-	return InStr(cabbage:=HtmlObj.body.innerText, "body") ? "?" : cabbage
-}
-escapeString(string){
-	string:=RegExReplace(string, "('|""|&|\\|\\n|\\r|\\t|\\b|\\f)", "\$1")
-	string:=RegExReplace(string, "\R", "\n")
-	return string
-}
-/*
-【隐藏运行cmd命令并将结果存入剪贴板后取回 @hui-Zz】
-*/
-cmdClipReturn(command){
-	cmdInfo:=""
-	Clip_Saved:=ClipboardAll
-	try{
-		Clipboard:=""
-		Run,% ComSpec " /C " command " | CLIP", , Hide
-		ClipWait,2
-		cmdInfo:=Clipboard
-	}catch{}
-	Clipboard:=Clip_Saved
-	return cmdInfo
-}
-;~;[动态执行脚本注册对象]
-DynaExpr_ObjRegisterActive(GUID,appFunc,appParms:="",getZz:="")
-{
-	sScript:="
-	(
-		#NoTrayIcon
-		get_zz = " getZz "
-		try appPlugins := ComObjActive(""" GUID """)
-		appPlugins[""" appFunc """](" appParms ")
-	)"
-	PID:=DynaRun(sScript)
-}
-;~;[动态获得AHK代码结果值]
-DynaExpr_EvalToVar(sExpr,getZz:="")
-{
-	sTmpFile := A_Temp "\temp.ahk"
-	sScript:="
-	(
-		#NoTrayIcon
-		FileDelete " sTmpFile "
-		get_zz = " getZz "
-		val := " sExpr "
-		FileAppend %val%, " sTmpFile "
-	)"
 
-	PID:=DynaRun(sScript)
-
-	Process,WaitClose,%PID%
-	FileRead sResult, %sTmpFile%
-	return sResult
-}
-;~;[动态执行AHK代码]
-DynaRun(TempScript, pipename="", params="")
-{
-   static _:="uint",@:="Ptr"
-   If pipename =
-      name := "AHK" A_TickCount
-   Else
-      name := pipename
-   __PIPE_GA_ := DllCall("CreateNamedPipe","str","\\.\pipe\" name,_,2,_,0,_,255,_,0,_,0,@,0,@,0)
-   __PIPE_    := DllCall("CreateNamedPipe","str","\\.\pipe\" name,_,2,_,0,_,255,_,0,_,0,@,0,@,0)
-   if (__PIPE_=-1 or __PIPE_GA_=-1)
-      Return 0
-	 If A_IsCompiled || (A_IsDll && DllCall(A_AhkPath "\ahkgetvar","Str","A_IsCompiled")) ; allow compiled executable to execute dynamic scripts. Requires AHK_H
-		Run, % """" A_AhkPath """" (params?" ":"") params " /E ""\\.\pipe\" name """",,UseErrorLevel HIDE, PID
-	 else
-		Run, % """" A_AhkPath """" (params?" ":"") params " ""\\.\pipe\" name """",,UseErrorLevel HIDE, PID
-   If ErrorLevel
-      MsgBox, 262144, ERROR,% "Could not open file:`n" __AHK_EXE_ """\\.\pipe\" name """"
-   DllCall("ConnectNamedPipe",@,__PIPE_GA_,@,0)
-   DllCall("CloseHandle",@,__PIPE_GA_)
-   DllCall("ConnectNamedPipe",@,__PIPE_,@,0)
-   script := (A_IsUnicode ? chr(0xfeff) : (chr(239) . chr(187) . chr(191))) TempScript
-   if !DllCall("WriteFile",@,__PIPE_,"str",script,_,(StrLen(script)+1)*(A_IsUnicode ? 2 : 1),_ "*",0,@,0)
-      Return A_LastError,DllCall("CloseHandle",@,__PIPE_)
-   DllCall("CloseHandle",@,__PIPE_)
-   Return PID
-}
 ;══════════════════════════════════════════════════════════════════
 ;~;[添加编辑新添加的菜单项]
 Menu_Add_File_Item:
@@ -3360,7 +3524,7 @@ Menu_Save:
 		FileAppend,%saveText%,%iniFileWrite%
 	}
 return
-;~;[制表符设置]
+;[制表符设置]
 Set_Tab(tabNum){
 	tabText:=""
 	Loop,%tabNum%
@@ -4481,45 +4645,6 @@ LVStatusChange(RowNumber,FileStatus,lvItem,FileName){
 		LV_Modify(RowNumber, "Icon4", ,lvItem)
 	}
 	LV_ModifyCol()
-}
-;[自动调整列表宽度]
-LVModifyCol(width, colList*){
-	LV_ModifyCol()  ; 根据内容自动调整每列的大小.
-	for index,col in colList
-	{
-		LV_ModifyCol(col, width)
-		LV_ModifyCol(col, "center")
-	}
-}
-/*
-【判断启动项当前是否已经运行】（RunAnyCtrl）
-runNamePath 进程名或者启动项路径
-*/
-rule_check_is_run(runNamePath){
-	runValue:=RegExReplace(runNamePath,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
-	SplitPath, runValue, name,, ext  ; 获取扩展名
-	if(ext="ahk"){
-		if(InStr(runNamePath,"..\")=1){
-			runNamePath:=IsFunc("funcPath2AbsoluteZz") ? Func("funcPath2AbsoluteZz").Call(runNamePath,A_ScriptFullPath) : runNamePath
-		}
-		IfWinExist, %runNamePath% ahk_class AutoHotkey
-		{
-			return true
-		}
-	}else if(name){
-		Process,Exist,%name%
-		if ErrorLevel
-			return true
-	}
-	return false
-}
-;变量布尔值反转
-Variable_Boolean_Reverse(vars*){
-	global
-	for i,v in vars
-	{
-		%v%:=!%v%
-	}
 }
 ;══════════════════════════════════════════════════════════════════
 ;~;【启动控制-管理Gui】
@@ -5879,30 +6004,6 @@ SetHideMenuTrayIcon:
 		)
 	}
 return
-Reg_Set(vGui, var, sz){
-	StringCaseSense, On
-	if(vGui!=var){
-		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, %sz%, %vGui%
-		IniWrite,%vGui%,%RunAnyConfig%,Config,%sz%
-	}
-	StringCaseSense, Off
-}
-;~;[读取注册表]
-Var_Read(rValue,defVar=""){
-	if(IniConfig){
-		IniRead, regVar,%RunAnyConfig%, Config, %rValue%,% defVar ? defVar : A_Space
-	}else{
-		RegRead, regVar, HKEY_CURRENT_USER, SOFTWARE\RunAny, %rValue%
-	}
-	if(regVar!=""){
-		if(InStr(regVar,"ZzIcon.dll") && !FileExist(A_ScriptDir "\ZzIcon.dll"))
-			return defVar
-		else
-			return regVar
-	}else{
-		return defVar
-	}
-}
 ;-------------------------------------RunAny热键配置界面-------------------------------------
 RunA_Hotkey_Edit:
 	Gui, ListView, RunAnyHotkeyLV
@@ -6558,6 +6659,76 @@ Open_Ext_Set:
 	}
 	global OpenFolderPathRun:=openExtRunList["folder"]
 return
+;~;【调用环境判断】
+Run_Exist:
+	;#判断菜单配置文件初始化#
+	global iniPath:=A_ScriptDir "\" RunAnyZz ".ini"
+	global iniPath2:=A_ScriptDir "\" RunAnyZz "2.ini"
+	global iniFile:=iniPath
+	global iniVar1:=""
+	global both:=1
+	global RunABackupDirPath:=Get_Transform_Val(RunABackupDir)
+	IfNotExist %RunABackupDirPath%
+		FileCreateDir,%RunABackupDirPath%
+	IfNotExist %RunABackupDirPath%\%RunAnyConfig%
+		FileCreateDir,%RunABackupDirPath%\%RunAnyConfig%
+	IfNotExist,%A_ScriptDir%\%PluginsDir%
+		FileCreateDir, %A_ScriptDir%\%PluginsDir%
+	if(RunAEncoding){
+		try{
+			FileEncoding,%RunAEncoding%
+		}catch e{
+			MsgBox,16,文件编码出错,% "请设置正确的编码读取RunAny.ini!`n参考：https://wyagd001.github.io/zh-cn/docs/commands/FileEncoding.htm"
+			. "`n`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+		}
+	}
+	FileGetSize,iniFileSize,%iniFile%
+	If(!FileExist(iniFile) || iniFileSize=0){
+		TrayTip,,RunAny初始化中...,2,1
+		gosub,First_Run
+	}
+	FileRead, iniVar1, %iniPath%
+	;#判断第2菜单ini#
+	global MENU2FLAG:=false
+	IfExist,%iniPath2%
+	{
+		global iniVar2:=""
+		MENU2FLAG:=true
+		FileRead, iniVar2, %iniPath2%
+		IfNotExist %RunABackupDirPath%\%RunAnyZz%2.ini
+			FileCreateDir,%RunABackupDirPath%\%RunAnyZz%2.ini
+	}
+	;#判断配置文件
+	if(!FileExist(RunAnyConfig)){
+		IniWrite,%IniConfig%,%RunAnyConfig%,Config,IniConfig
+	}
+	global iniFileVar:=iniVar1
+	;#判断Everything拓展DLL文件#
+	if(!EvNo){
+		global everyDLL:="Everything.dll"
+		if(FileExist(A_ScriptDir "\Everything.dll")){
+			everyDLL:=DllCall("LoadLibrary", str, "Everything.dll") ? "Everything.dll" : "Everything64.dll"
+		}else if(FileExist(A_ScriptDir "\Everything64.dll")){
+			everyDLL:=DllCall("LoadLibrary", str, "Everything64.dll") ? "Everything64.dll" : "Everything.dll"
+		}
+		IfNotExist,%A_ScriptDir%\%everyDLL%
+		{
+			MsgBox,17,,没有找到%everyDLL%，将不能识别菜单中程序的路径`n需要将%everyDLL%放到【%A_ScriptDir%】目录下`n是否需要从网上下载%everyDLL%？
+			IfMsgBox Ok
+			{
+				URLDownloadToFile(RunAnyDownDir "/" everyDLL,A_ScriptDir "\" everyDLL)
+				gosub,Menu_Reload
+			}
+		}
+		global EvCheckFlag:=false  ;~是否启动Everything搜索检查
+		RegRead,EvTotResults,HKEY_CURRENT_USER,SOFTWARE\RunAny,EvTotResults
+		RegRead,RunAnyTickCount,HKEY_CURRENT_USER,SOFTWARE\RunAny,RunAnyTickCount
+		RegWrite,REG_SZ,HKEY_CURRENT_USER,SOFTWARE\RunAny,RunAnyTickCount,%A_TickCount%
+		if(!RunAnyTickCount || A_TickCount<RunAnyTickCount || !EvTotResults){
+			EvCheckFlag:=true
+		}
+	}
+return
 ;~;【图标初始化】
 Icon_Set:
 	global RunIconDir:=A_ScriptDir "\RunIcon"
@@ -6692,204 +6863,6 @@ Icon_FileExt_Set:
 	}
 	IconFolderPath:=StrReplace(IconFolderPath, "|", "`n")
 return
-;~;【调用环境判断】
-Run_Exist:
-	;#判断菜单配置文件初始化#
-	global iniPath:=A_ScriptDir "\" RunAnyZz ".ini"
-	global iniPath2:=A_ScriptDir "\" RunAnyZz "2.ini"
-	global iniFile:=iniPath
-	global iniVar1:=""
-	global both:=1
-	global RunABackupDirPath:=Get_Transform_Val(RunABackupDir)
-	IfNotExist %RunABackupDirPath%
-		FileCreateDir,%RunABackupDirPath%
-	IfNotExist %RunABackupDirPath%\%RunAnyConfig%
-		FileCreateDir,%RunABackupDirPath%\%RunAnyConfig%
-	IfNotExist,%A_ScriptDir%\%PluginsDir%
-		FileCreateDir, %A_ScriptDir%\%PluginsDir%
-	if(RunAEncoding){
-		try{
-			FileEncoding,%RunAEncoding%
-		}catch e{
-			MsgBox,16,文件编码出错,% "请设置正确的编码读取RunAny.ini!`n参考：https://wyagd001.github.io/zh-cn/docs/commands/FileEncoding.htm"
-			. "`n`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
-		}
-	}
-	FileGetSize,iniFileSize,%iniFile%
-	If(!FileExist(iniFile) || iniFileSize=0){
-		TrayTip,,RunAny初始化中...,2,1
-		gosub,First_Run
-	}
-	FileRead, iniVar1, %iniPath%
-	;#判断第2菜单ini#
-	global MENU2FLAG:=false
-	IfExist,%iniPath2%
-	{
-		global iniVar2:=""
-		MENU2FLAG:=true
-		FileRead, iniVar2, %iniPath2%
-		IfNotExist %RunABackupDirPath%\%RunAnyZz%2.ini
-			FileCreateDir,%RunABackupDirPath%\%RunAnyZz%2.ini
-	}
-	;#判断配置文件
-	if(!FileExist(RunAnyConfig)){
-		IniWrite,%IniConfig%,%RunAnyConfig%,Config,IniConfig
-	}
-	global iniFileVar:=iniVar1
-	;#判断Everything拓展DLL文件#
-	if(!EvNo){
-		global everyDLL:="Everything.dll"
-		if(FileExist(A_ScriptDir "\Everything.dll")){
-			everyDLL:=DllCall("LoadLibrary", str, "Everything.dll") ? "Everything.dll" : "Everything64.dll"
-		}else if(FileExist(A_ScriptDir "\Everything64.dll")){
-			everyDLL:=DllCall("LoadLibrary", str, "Everything64.dll") ? "Everything64.dll" : "Everything.dll"
-		}
-		IfNotExist,%A_ScriptDir%\%everyDLL%
-		{
-			MsgBox,17,,没有找到%everyDLL%，将不能识别菜单中程序的路径`n需要将%everyDLL%放到【%A_ScriptDir%】目录下`n是否需要从网上下载%everyDLL%？
-			IfMsgBox Ok
-			{
-				URLDownloadToFile(RunAnyDownDir "/" everyDLL,A_ScriptDir "\" everyDLL)
-				gosub,Menu_Reload
-			}
-		}
-		global EvCheckFlag:=false  ;~是否启动Everything搜索检查
-		RegRead,EvTotResults,HKEY_CURRENT_USER,SOFTWARE\RunAny,EvTotResults
-		RegRead,RunAnyTickCount,HKEY_CURRENT_USER,SOFTWARE\RunAny,RunAnyTickCount
-		RegWrite,REG_SZ,HKEY_CURRENT_USER,SOFTWARE\RunAny,RunAnyTickCount,%A_TickCount%
-		if(!RunAnyTickCount || A_TickCount<RunAnyTickCount || !EvTotResults){
-			EvCheckFlag:=true
-		}
-	}
-return
-;~;【AHK插件脚本Read】
-Plugins_Read:
-	global PluginsObjList:=Object()
-	global PluginsPathList:=Object()
-	global PluginsTitleList:=Object()
-	global PluginsContentList:=Object()
-	global PluginsObjNum:=0
-	global PluginsDir:="RunPlugins"	;~插件目录
-	global PluginsDirList:=[]
-	global PluginsEditor:=Var_Read("PluginsEditor")
-	global PluginsDirPath:=Var_Read("PluginsDirPath")
-	global PluginsDirPathList:="%A_ScriptDir%\RunPlugins|" PluginsDirPath
-	FileRead,pluginsContent,%A_ScriptFullPath%
-	PluginsContentList[RunAnyZz ".ahk"]:=pluginsContent
-	Loop, parse, PluginsDirPathList, |
-	{
-		PluginsFolder:=Get_Transform_Val(A_LoopField)
-		PluginsFolder:=RegExReplace(PluginsFolder,"(.*)\\$","$1")
-		if(!FileExist(PluginsFolder))
-			continue
-		PluginsDirList.Push(PluginsFolder)
-		Loop,%PluginsFolder%\*.ahk,0	;Plugins目录下AHK脚本
-		{
-			PluginsObjList[(A_LoopFileName)]:=0
-			PluginsPathList[(A_LoopFileName)]:=A_LoopFileFullPath
-			PluginsTitleList[(A_LoopFileName)]:=Plugins_Read_Title(A_LoopFileFullPath)
-			if(A_LoopField="%A_ScriptDir%\RunPlugins"){
-				FileRead,pluginsContent,%A_LoopFileFullPath%
-				PluginsContentList[(A_LoopFileName)]:=pluginsContent
-			}
-		}
-		Loop,%PluginsFolder%\*.*,2	;Plugins目录下文件夹内同名AHK脚本
-		{
-			IfExist,%A_LoopFileFullPath%\%A_LoopFileName%.ahk
-			{
-				PluginsObjList[(A_LoopFileName . ".ahk")]:=0
-				PluginsPathList[(A_LoopFileName . ".ahk")]:=A_LoopFileFullPath "\" A_LoopFileName ".ahk"
-				PluginsTitleList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Title(A_LoopFileFullPath "\" A_LoopFileName ".ahk")
-				if(A_LoopField="%A_ScriptDir%\RunPlugins"){
-					FileRead,pluginsContent,% A_LoopFileFullPath "\" A_LoopFileName ".ahk"
-					PluginsContentList[(A_LoopFileName . ".ahk")]:=pluginsContent
-				}
-			}
-		}
-	}
-	IniRead,pluginsVar,%RunAnyConfig%,Plugins
-	Loop, parse, pluginsVar, `n, `r
-	{
-		varList:=StrSplit(A_LoopField,"=",,2)
-		SplitPath,% varList[1], name,, ext, name_no_ext
-		PluginsObjList[(varList[1])]:=varList[2]
-		if(varList[2])
-			PluginsObjNum++
-		Loop,% PluginsDirList.MaxIndex()
-		{
-			if(FileExist(PluginsDirList[A_Index] "\" varList[1]))
-				PluginsPathList[(varList[1])]:=PluginsDirList[A_Index] "\" varList[1]
-			if(FileExist(PluginsDirList[A_Index] "\" name_no_ext "\" varList[1]))
-				PluginsPathList[(varList[1])]:=PluginsDirList[A_Index] "\" name_no_ext "\" varList[1]
-		}
-	}
-return
-;~;【AHK脚本对象注册】
-Plugins_Object_Register:
-	global PluginsObjRegGUID:=Object()	;~插件对象注册GUID列表
-	global PluginsObjRegActive:=Object()	;~插件对象注册Active列表
-	global RunAny_ObjReg_Path
-	RunAny_ObjReg_Path=%A_ScriptDir%\%PluginsDir%\%RunAny_ObjReg%
-	IfExist,%RunAny_ObjReg_Path%
-	{
-		IniRead,objRegVar,%RunAny_ObjReg_Path%,objreg
-		Loop, parse, objRegVar, `n, `r
-		{
-			varList:=StrSplit(A_LoopField,"=",,2)
-			PluginsObjRegGUID[(varList[1])]:=varList[2]
-		}
-	}
-	if(PluginsObjRegGUID["huiZz_Text"] && PluginsObjList["huiZz_Text.ahk"]){
-		;#判断huiZz_Text插件是否可以文字翻译
-		if(InStr(PluginsContentList["huiZz_Text.ahk"],"runany_google_translate(getZz,from,to){")){
-			global translateFlag:=true
-		}
-		;#判断huiZz_Text插件是否可以文字加解密
-		if(InStr(PluginsContentList["huiZz_Text.ahk"],"runany_encrypt(text,key){")
-				&& InStr(PluginsContentList["huiZz_Text.ahk"],"runany_decrypt(text,key){")){
-			global encryptFlag:=true
-		}
-	}
-	;#判断RunAny_Menu插件是否启用
-	if(PluginsObjList["RunAny_Menu.ahk"]){
-		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"SetTimer,Transparent_Show"))
-			global RunAnyMenuTransparentFlag:=true
-		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~Space Up::"))
-			global RunAnyMenuSpaceFlag:=true
-		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~RButton Up::"))
-			global RunAnyMenuRButtonFlag:=true
-		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~MButton Up::"))
-			global RunAnyMenuMButtonFlag:=true
-		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~XButton1 Up::"))
-			global RunAnyMenuXButton1Flag:=true
-		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~XButton2 Up::"))
-			global RunAnyMenuXButton2Flag:=true
-	}
-return
-Plugins_Read_Title(filePath){
-	returnStr:=""
-	strReg:="iS).*?【(.*?)】.*"
-	Loop, read, %filePath%
-	{
-		if(RegExMatch(A_LoopReadLine,strReg)){
-			returnStr:=RegExReplace(A_LoopReadLine,strReg,"$1")
-			break
-		}
-	}
-	return returnStr
-}
-Plugins_Read_Version(filePath){
-	returnStr:=""
-	strReg=iS)^\t*\s*global RunAny_Plugins_Version:="([\d\.]*)"
-	Loop, read, %filePath%
-	{
-		if(RegExMatch(A_LoopReadLine,strReg)){
-			returnStr:=RegExReplace(A_LoopReadLine,strReg,"$1")
-			break
-		}
-	}
-	return returnStr
-}
 ;~;[树型菜单图标集]
 Gui_Icon_Image_Set(ImageListID){
 	IL_Add(ImageListID, "shell32.dll", 1)
@@ -7031,6 +7004,137 @@ menuItemIconFileName(menuItem){
 	}
 	return menuItem
 }
+;══════════════════════════════════════════════════════════════════
+;~;【——插件脚本——】
+;══════════════════════════════════════════════════════════════════
+;~;【AHK插件脚本Read】
+Plugins_Read:
+	global PluginsObjList:=Object()
+	global PluginsPathList:=Object()
+	global PluginsTitleList:=Object()
+	global PluginsContentList:=Object()
+	global PluginsObjNum:=0
+	global PluginsDir:="RunPlugins"	;~插件目录
+	global PluginsDirList:=[]
+	global PluginsEditor:=Var_Read("PluginsEditor")
+	global PluginsDirPath:=Var_Read("PluginsDirPath")
+	global PluginsDirPathList:="%A_ScriptDir%\RunPlugins|" PluginsDirPath
+	FileRead,pluginsContent,%A_ScriptFullPath%
+	PluginsContentList[RunAnyZz ".ahk"]:=pluginsContent
+	Loop, parse, PluginsDirPathList, |
+	{
+		PluginsFolder:=Get_Transform_Val(A_LoopField)
+		PluginsFolder:=RegExReplace(PluginsFolder,"(.*)\\$","$1")
+		if(!FileExist(PluginsFolder))
+			continue
+		PluginsDirList.Push(PluginsFolder)
+		Loop,%PluginsFolder%\*.ahk,0	;Plugins目录下AHK脚本
+		{
+			PluginsObjList[(A_LoopFileName)]:=0
+			PluginsPathList[(A_LoopFileName)]:=A_LoopFileFullPath
+			PluginsTitleList[(A_LoopFileName)]:=Plugins_Read_Title(A_LoopFileFullPath)
+			if(A_LoopField="%A_ScriptDir%\RunPlugins"){
+				FileRead,pluginsContent,%A_LoopFileFullPath%
+				PluginsContentList[(A_LoopFileName)]:=pluginsContent
+			}
+		}
+		Loop,%PluginsFolder%\*.*,2	;Plugins目录下文件夹内同名AHK脚本
+		{
+			IfExist,%A_LoopFileFullPath%\%A_LoopFileName%.ahk
+			{
+				PluginsObjList[(A_LoopFileName . ".ahk")]:=0
+				PluginsPathList[(A_LoopFileName . ".ahk")]:=A_LoopFileFullPath "\" A_LoopFileName ".ahk"
+				PluginsTitleList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Title(A_LoopFileFullPath "\" A_LoopFileName ".ahk")
+				if(A_LoopField="%A_ScriptDir%\RunPlugins"){
+					FileRead,pluginsContent,% A_LoopFileFullPath "\" A_LoopFileName ".ahk"
+					PluginsContentList[(A_LoopFileName . ".ahk")]:=pluginsContent
+				}
+			}
+		}
+	}
+	IniRead,pluginsVar,%RunAnyConfig%,Plugins
+	Loop, parse, pluginsVar, `n, `r
+	{
+		varList:=StrSplit(A_LoopField,"=",,2)
+		SplitPath,% varList[1], name,, ext, name_no_ext
+		PluginsObjList[(varList[1])]:=varList[2]
+		if(varList[2])
+			PluginsObjNum++
+		Loop,% PluginsDirList.MaxIndex()
+		{
+			if(FileExist(PluginsDirList[A_Index] "\" varList[1]))
+				PluginsPathList[(varList[1])]:=PluginsDirList[A_Index] "\" varList[1]
+			if(FileExist(PluginsDirList[A_Index] "\" name_no_ext "\" varList[1]))
+				PluginsPathList[(varList[1])]:=PluginsDirList[A_Index] "\" name_no_ext "\" varList[1]
+		}
+	}
+return
+;~;【AHK脚本对象注册】
+Plugins_Object_Register:
+	global PluginsObjRegGUID:=Object()	;~插件对象注册GUID列表
+	global PluginsObjRegActive:=Object()	;~插件对象注册Active列表
+	global RunAny_ObjReg_Path
+	RunAny_ObjReg_Path=%A_ScriptDir%\%PluginsDir%\%RunAny_ObjReg%
+	IfExist,%RunAny_ObjReg_Path%
+	{
+		IniRead,objRegVar,%RunAny_ObjReg_Path%,objreg
+		Loop, parse, objRegVar, `n, `r
+		{
+			varList:=StrSplit(A_LoopField,"=",,2)
+			PluginsObjRegGUID[(varList[1])]:=varList[2]
+		}
+	}
+	if(PluginsObjRegGUID["huiZz_Text"] && PluginsObjList["huiZz_Text.ahk"]){
+		;#判断huiZz_Text插件是否可以文字翻译
+		if(InStr(PluginsContentList["huiZz_Text.ahk"],"runany_google_translate(getZz,from,to){")){
+			global translateFlag:=true
+		}
+		;#判断huiZz_Text插件是否可以文字加解密
+		if(InStr(PluginsContentList["huiZz_Text.ahk"],"runany_encrypt(text,key){")
+				&& InStr(PluginsContentList["huiZz_Text.ahk"],"runany_decrypt(text,key){")){
+			global encryptFlag:=true
+		}
+	}
+	;#判断RunAny_Menu插件是否启用
+	if(PluginsObjList["RunAny_Menu.ahk"]){
+		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"SetTimer,Transparent_Show"))
+			global RunAnyMenuTransparentFlag:=true
+		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~Space Up::"))
+			global RunAnyMenuSpaceFlag:=true
+		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~RButton Up::"))
+			global RunAnyMenuRButtonFlag:=true
+		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~MButton Up::"))
+			global RunAnyMenuMButtonFlag:=true
+		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~XButton1 Up::"))
+			global RunAnyMenuXButton1Flag:=true
+		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~XButton2 Up::"))
+			global RunAnyMenuXButton2Flag:=true
+	}
+return
+Plugins_Read_Title(filePath){
+	returnStr:=""
+	strReg:="iS).*?【(.*?)】.*"
+	Loop, read, %filePath%
+	{
+		if(RegExMatch(A_LoopReadLine,strReg)){
+			returnStr:=RegExReplace(A_LoopReadLine,strReg,"$1")
+			break
+		}
+	}
+	return returnStr
+}
+Plugins_Read_Version(filePath){
+	returnStr:=""
+	strReg=iS)^\t*\s*global RunAny_Plugins_Version:="([\d\.]*)"
+	Loop, read, %filePath%
+	{
+		if(RegExMatch(A_LoopReadLine,strReg)){
+			returnStr:=RegExReplace(A_LoopReadLine,strReg,"$1")
+			break
+		}
+	}
+	return returnStr
+}
 ;~;【自动启动插件】
 AutoRun_Plugins:
 	try {
@@ -7059,7 +7163,7 @@ AutoRun_Plugins:
 		SetWorkingDir,%A_ScriptDir%
 	}
 return
-;~;[随RunAny自动关闭插件]
+;[随RunAny自动关闭插件]
 AutoClose_Plugins:
 	DetectHiddenWindows,On
 	For runn, runv in PluginsPathList
@@ -7076,6 +7180,9 @@ AutoClose_Plugins:
 	}
 	DetectHiddenWindows,Off
 return
+;══════════════════════════════════════════════════════════════════
+;~;【——规则启动——】
+;══════════════════════════════════════════════════════════════════
 ;~;【规则启动项Read】
 RunCtrl_Read:
 	;规则名-脚本路径列表；规则名-函数名列表；规则名-状态列表；规则名-执行列表；每项启动项设置的规则内容
@@ -7352,16 +7459,9 @@ RunCtrl_RuleEffect(runCtrlObj){
 	}
 	return effectFlag
 }
-rule_chassis_types(){
-	chassisTypes:=cmdClipReturn("wmic PATH Win32_SystemEnclosure get ChassisTypes /value | findstr ""ChassisTypes=""")
-	chassisTypes:=RegExReplace(chassisTypes,"i)ChassisTypes=\{(\d+)\}.*","$1")
-	return Format("{:d}",chassisTypes)
-}
-rule_check_network(lpszUrl=""){
-	if(lpszUrl="")
-		lpszUrl:="http://www.baidu.com"
-	return DllCall("Wininet.dll\InternetCheckConnection", "Ptr", &lpszUrl, "UInt", 0x1, "UInt", 0x0, "Int")
-}
+;══════════════════════════════════════════════════════════════════
+;~;【——检查更新——】
+;══════════════════════════════════════════════════════════════════
 Check_Update:
 	checkUpdateFlag:=true
 	TrayTip,,RunAny检查更新中……,2,1
@@ -7540,79 +7640,6 @@ Ini_Run(ini){
 	}catch{
 		Run,notepad.exe "%ini%"
 	}
-}
-;══════════════════════════════════════════════════════════════════
-;~;[改进版URLDownloadToFile，来源于：http://ahkcn.net/thread-5658.html]
-URLDownloadToFile(URL, FilePath, Options:="", RequestHeaders:="")
-{
-	Options:=this.解析信息到对象(Options)
-	RequestHeaders:=this.解析信息到对象(RequestHeaders)
-
-	ComObjError(0)	;禁用 COM 错误通告。禁用后，检查 A_LastError 的值，脚本可以实现自己的错误处理
-	WebRequest := ComObjCreate("WinHttp.WinHttpRequest.5.1")
-
-	if (Options["EnableRedirects"]<>"")	;设置是否获取跳转后的页面信息
-		WebRequest.Option(6):=Options["EnableRedirects"]
-	;proxy_setting没值时，根据Proxy值的情况智能设定是否要进行代理访问。
-	;这样的好处是多数情况下需要代理时依然只用给出代理服务器地址即可。而在已经给出代理服务器地址后，又可以很方便的对是否启用代理进行开关。
-	if (Options["proxy_setting"]="" and Options["Proxy"]<>"")
-		Options["proxy_setting"]:=2	;0表示 Proxycfg.exe 运行了且遵循 Proxycfg.exe 的设置（没运行则效果同设置为1）。1表示忽略代理直连。2表示使用代理
-	if (Options["proxy_setting"]="" and Options["Proxy"]="")
-		Options["proxy_setting"]:=1
-	;设置代理服务器。微软的代码 SetProxy() 是放在 Open() 之前的，所以我也放前面设置，以免无效
-	WebRequest.SetProxy(Options["proxy_setting"],Options["Proxy"],Options["ProxyBypassList"])
-	if (Options["Timeout"]="")		;Options["Timeout"]如果被设置为-1，并不代表无限超时，而是依然遵循SetTimeouts第4个参数设置的最大超时时间
-		WebRequest.SetTimeouts(0,60000,30000,0)		;0或-1都表示超时无限等待，正整数则表示最大超时（单位毫秒）
-	else if (Options["Timeout"]>30)				;如果超时设置大于30秒，则需要将默认的最大超时时间修改为大于30秒
-		WebRequest.SetTimeouts(0,60000,30000,Options["Timeout"]*1000)
-	else
-		WebRequest.SetTimeouts(0,60000,30000,30000)	;此为SetTimeouts的默认设置。这句可以不加，因为默认就是这样，加在这里是为了表述清晰。
-
-	WebRequest.Open("GET", URL, true)   			;true为异步获取。默认是false，龟速的根源！！！卡顿的根源！！！
-
-	;SetRequestHeader() 必须 Open() 之后才有效
-	for k, v in RequestHeaders
-	{
-		if (k="Cookie")
-		{
-			WebRequest.SetRequestHeader("Cookie","tuzi")    ;先设置一个cookie，防止出错，msdn推荐这么做
-			WebRequest.SetRequestHeader("Cookie",v)
-		}
-		WebRequest.SetRequestHeader(k,v)
-	}
-
-	Loop
-	{
-		WebRequest.Send()
-		WebRequest.WaitForResponse(-1)		;WaitForResponse方法确保获取的是完整的响应。-1表示总是使用SetTimeouts设置的超时
-
-		;获取状态码，一般status为200说明请求成功
-		this.Status:=WebRequest.Status()
-		this.StatusText:=WebRequest.StatusText()
-
-		if (Options["expected_status"]="" or Options["expected_status"]=this.Status)
-			break
-		;尝试指定次数后页面返回的状态码依旧与预期状态码不一致，则抛出错误及详细错误信息（可使用我另一个错误处理函数专门记录处理它们）
-		;即使number_of_retries为空，表达式依然成立，所以不用为number_of_retries设置初始值。
-		else if (A_Index>=Options["number_of_retries"])
-		{
-			this.extra.URL:=URL
-			this.extra.Expected_Status:=Options["expected_status"]
-			this.extra.Status:=this.Status
-			this.extra.StatusText:=this.StatusText
-			throw, Exception("经过" Options.number_of_retries "次尝试后，服务器返回状态码依旧与期望值不一致", -1, Object(this.extra))
-		}
-	}
-
-	ADO:=ComObjCreate("adodb.stream")   		;使用 adodb.stream 编码返回值。参考 http://bbs.howtoadmin.com/ThRead-814-1-1.html
-	ADO.Type:=1									;以二进制方式操作
-	ADO.Mode:=3 								;可同时进行读写
-	ADO.Open()  								;开启物件
-	ADO.Write(WebRequest.ResponseBody())    	;写入物件。注意没法将 WebRequest.ResponseBody() 存入一个变量，所以必须用这种方式写文件
-	ADO.SaveToFile(FilePath,2)   				;文件存在则覆盖
-	ADO.Close()
-	this.ResponseHeaders:=this.解析信息到对象(WebRequest.GetAllResponseHeaders())
-	return, 1
 }
 ;══════════════════════════════════════════════════════════════════
 ;~;【使用everything搜索所有exe程序】
