@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.06.23
+║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.06.24
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.6"     ;~;版本号
-global RunAny_update_time:="2021.06.23"   ;~;修改日期
+global RunAny_update_time:="2021.06.24"   ;~;修改日期
 gosub,Var_Set           ;~;01.参数初始化
 gosub,Menu_Var_Set      ;~;02.自定义变量
 gosub,Icon_Set          ;~;03.图标初始化
@@ -756,6 +756,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				menuKeys:=StrSplit(menuKeyStr,"`t")
 				;[设置热键启动方式][不重复]
 				if(TREE_TYPE_FLAG && InStr(menuDiy[1],"`t") && menuKeys[2]){
+					MenuObj[menuKeys[1]]:=itemParam
 					MenuObjKey[menuKeys[2]]:=itemParam
 					MenuObjKeyName[menuKeys[2]]:=menuKeys[1]
 					if(!InStr(menuDiy[2],"%getZz%") && RegExMatch(menuDiy[2],"iS).+?\[.+?\]%?\(.*?\)")){
@@ -2187,7 +2188,7 @@ StrJoin(sep, params*) {
         str .= param . sep
     return SubStr(str, 1, -StrLen(sep))
 }
-;~;获取变量展开转换后的值
+;~;[获取变量展开转换后的值]
 Get_Transform_Val(var){
 	try{
 		Transform,varTemp,Deref,%var%
@@ -4098,7 +4099,7 @@ WM_NOTIFY(Param*){
 	}
 }
 ;══════════════════════════════════════════════════════════════════
-;~;【插件-管理Gui】
+;~;【——插件Gui——】
 ;══════════════════════════════════════════════════════════════════
 Plugins_Gui_Show:
 	gosub,Plugins_Read
@@ -4649,7 +4650,7 @@ LVStatusChange(RowNumber,FileStatus,lvItem,FileName){
 	LV_ModifyCol()
 }
 ;══════════════════════════════════════════════════════════════════
-;~;【启动控制-管理Gui】
+;~;【——启动控制Gui——】
 ;══════════════════════════════════════════════════════════════════
 RunCtrl_Manage:
 	gosub,RunCtrl_Read
@@ -4729,11 +4730,13 @@ RunCtrlLVDel:
 		return
 	GuiControlGet, focusGuiName, Focus
 	if(focusGuiName="ListBox1"){
-		MsgBox,35,确认移除规则组 %RunCtrlListBox%？(Esc取消),确定移除规则组：%RunCtrlListBox% ？`n【注意】：同时会移除 %RunCtrlListBox% 下的所有运行项！
+		MsgBox,35,确认移除规则组 %RunCtrlListBox%？(Esc取消),确定移除规则组：%RunCtrlListBox% ？`n【注意!】：同时会移除 %RunCtrlListBox% 下的所有运行项和规则条件！
 		IfMsgBox Yes
 		{
 			IniDelete,%RunAnyConfig%,RunCtrlList,%RunCtrlListBox%
+			IniDelete,%RunAnyConfig%,%RunCtrlListBox%_Run
 			IniDelete,%RunAnyConfig%,%RunCtrlListBox%_Rule
+			gosub,RunCtrl_Manage
 		}
 	}
 	if(focusGuiName!="SysListView321"){
@@ -4840,8 +4843,8 @@ RunCtrlConfig:
 	Gui,2:Add, Text, x+10 yp w60, 规则组名：
 	Gui,2:Add, Edit, x+5 yp-3 w300 vvRuleGroupName, %RuleGroupName%
 	Gui,2:Add, GroupBox,xm y+15 w500 h350,规则组设置
-	Gui,2:Add, Radio, xm+10 yp+25 Checked%RuleGroupLogic1% vvRuleGroupLogic1, 与(全部匹配)(&A)
-	Gui,2:Add, Radio, x+10 yp Checked%RuleGroupLogic2% vvRuleGroupLogic2, 或(部分匹配)(&O)
+	Gui,2:Add, Radio, xm+10 yp+25 Checked%RuleGroupLogic1% vvRuleGroupLogic1, 与（全部规则都验证成立）(&A)
+	Gui,2:Add, Radio, x+10 yp Checked%RuleGroupLogic2% vvRuleGroupLogic2, 或（一个规则即验证成立）(&O)
 	Gui,2:Add, Text, xm+10 y+15 w100, 规则循环最大次数:
 	Gui,2:Add, Edit, x+2 yp-3 Number w50 h20 vvRuleMostRun, %RuleMostRun%
 	Gui,2:Add, Text, x+20 yp+3 w110, 循环间隔时间(秒):
@@ -4938,8 +4941,8 @@ RunCtrlLVSave:
 	IniWrite, %runContent%, %RunAnyConfig%, %vRuleGroupName%_Run
 	ruleContent:=SubStr(ruleContent, 1, -StrLen("`n"))
 	IniWrite, %ruleContent%, %RunAnyConfig%, %vRuleGroupName%_Rule
-	gosub,RunCtrl_Read
 	Gui,2:Destroy
+	gosub,RunCtrl_Manage
 return
 ; LVImport:
 ; 	FileSelectFile, selectName, M35, , 选择多项要导入的AHK(EXE), (*.ahk;*.exe)
@@ -5195,7 +5198,7 @@ SaveRunCtrlRunValue:
 	gosub,RunCtrl_Manage
 return
 ;══════════════════════════════════════════════════════════════════════════════════════════════════════
-;~;【规则-管理Gui】
+;~;【——规则Gui——】
 ;══════════════════════════════════════════════════════════════════════════════════════════════════════
 RunCtrlLVRule:
 	gosub,RunCtrl_Read
@@ -5203,22 +5206,23 @@ RunCtrlLVRule:
 	Gui,R:Default
 	Gui,R:+Resize
 	Gui,R:Font, s10, Microsoft YaHei
-	Gui,R:Add, Listview, xm w600 r18 grid AltSubmit BackgroundF6F6E8 vRuleLV glistrule, 规则名|规则函数|状态|参数|规则插件名
+	Gui,R:Add, Listview, xm w600 r18 grid AltSubmit BackgroundF6F6E8 vRuleLV glistrule, 规则名|规则函数|状态|类型|参数|规则插件名
 	;[读取规则内容写入列表]
 	GuiControl, -Redraw, RuleLV
 	For ki, kv in rulefileList
 	{
-		LV_Add("", ki, rulefuncList[ki], rulestatusList[ki] ? "正常" : "不可用",ruleparamList[ki] ? "传参" : "", kv)
+		LV_Add("", ki, rulefuncList[ki], rulestatusList[ki] ? "正常" : "不可用",ruletypelist[ki] ? "变量" : "插件",ruleparamList[ki] ? "传参" : "", kv)
 	}
 	GuiControl, +Redraw, RuleLV
-	Menu, ruleGuiMenu, Add, 增加, LVRulePlus
-	Menu, ruleGuiMenu, Icon, 增加, SHELL32.dll,1
+	Menu, ruleGuiMenu, Add, 新增, LVRulePlus
+	Menu, ruleGuiMenu, Icon, 新增, SHELL32.dll,1
 	Menu, ruleGuiMenu, Add, 修改, LVRuleEdit
 	Menu, ruleGuiMenu, Icon, 修改, SHELL32.dll,134
 	Menu, ruleGuiMenu, Add, 减少, LVRuleMinus
 	Menu, ruleGuiMenu, Icon, 减少, SHELL32.dll,132
 	Gui,R:Menu, ruleGuiMenu
 	LV_ModifyCol()  ; 根据内容自动调整每列的大小.
+	LV_ModifyCol(2,"Sort")
 	Gui,R:Show, , %RunAnyZz% 规则管理 %RunAny_update_version% %RunAny_update_time%%AdminMode%
 return
 LVRulePlus:
@@ -5232,8 +5236,11 @@ LVRuleEdit:
 		return
 	LV_GetText(RuleName, RowNumber, 1)
 	LV_GetText(RuleFunction, RowNumber, 2)
-	LV_GetText(RulePath, RowNumber, 5)
+	LV_GetText(RuleType, RowNumber, 4)
+	LV_GetText(RulePath, RowNumber, 6)
 	menuRuleItem:="规则编辑"
+	RuleTypeVar:=RuleType="变量" ? 1 : 0
+	RuleTypeFunc:=RuleTypeVar=1 ? 0 : 1
 	gosub,LVRuleConfig
 return
 ;~;【规则-编辑Gui】
@@ -5243,10 +5250,14 @@ LVRuleConfig:
 	Gui,SaveRule:Margin,20,10
 	Gui,SaveRule:Add, Text, xm y+10 w60, 规则名：
 	Gui,SaveRule:Add, Edit, xm+60 yp-3 w450 vvRuleName, %RuleName%
+	Gui,SaveRule:Add, Text, xm y+10 w60, 规则类型：
+	Gui,SaveRule:Add, Radio, x+4 yp Checked%RuleTypeVar% GRuleTypeChange vvRuleTypeVar, 菜单变量
+	Gui,SaveRule:Add, Radio, x+4 yp Checked%RuleTypeFunc% GRuleTypeChange vvRuleTypeFunc, 插件函数
+	Gui,SaveRule:Add, Link, x+15 yp vvVarDocs,<a href="https://hui-zz.gitee.io/runany/#/article/built-in-variables">变量参考</a>
 	Gui,SaveRule:Add, Text, xm y+10 w60, 规则函数：
 	Gui,SaveRule:Add, Edit, xm+60 yp-3 w225 vvRuleFunction, %RuleFunction%
 	Gui,SaveRule:Add, DropDownList, x+5 yp+2 w220 vvRuleDLL GDropDownRuleList
-	Gui,SaveRule:Add, Button, xm-5 yp+30 w60 h60 GSetRulePath,规则路径 可自动识别函数名
+	Gui,SaveRule:Add, Button, xm-5 yp+30 w60 h60 vvSetRulePath GSetRulePath,规则路径 可自动识别函数名
 	Gui,SaveRule:Add, Edit, xm+60 yp w450 r3 vvRulePath GRulePathChange, %RulePath%
 	Gui,SaveRule:Add, Button,Default xm+180 y+10 w75 GLVRuleSave,保存(&Y)
 	Gui,SaveRule:Add, Button,x+10 w75 GSetCancel,取消(&C)
@@ -5263,6 +5274,7 @@ LVRuleConfig:
 		}
 	}
 	GuiControl, SaveRule:Choose, vRuleDLL, %funcNameChoose%
+	gosub,RuleTypeChange
 return
 LVRuleMinus:
 	DelRowList:=""
@@ -5296,7 +5308,10 @@ LVRuleMinus:
 return
 LVRuleSave:
 	Gui,SaveRule:Submit, NoHide
-	if(!vRuleName || !vRuleFunction || !vRulePath){
+	if(vRuleTypeVar){
+		vRulePath:=0
+	}
+	if(!vRuleName || !vRuleFunction || vRulePath=""){
 		MsgBox, 48, ,请填入规则名、规则函数和规则路径
 		return
 	}
@@ -5308,10 +5323,12 @@ LVRuleSave:
 		MsgBox, 48, ,已存在相同的规则名，请修改
 		return
 	}
-	checkRulePath:=Get_Transform_Val(vRulePath)
-	if(!FileExist(checkRulePath) && !FileExist(A_ScriptDir "\" PluginsDir "\" checkRulePath)){
-		MsgBox, 48, ,规则路径AHK脚本不存在，请重新添加
-		return
+	if(vRuleTypeFunc){
+		checkRulePath:=Get_Transform_Val(vRulePath)
+		if(!FileExist(checkRulePath) && !FileExist(A_ScriptDir "\" PluginsDir "\" checkRulePath)){
+			MsgBox, 48, ,规则路径AHK脚本不存在，请重新添加
+			return
+		}
 	}
 	;[写入配置文件]
 	Gui,R:Default
@@ -5322,9 +5339,9 @@ LVRuleSave:
 			if(RuleName!=vRuleName)
 				Change_Rule_Name(RuleName,vRuleName)
 		}
-		LV_Modify(RowNumber,"",vRuleName,vRuleFunction,"重启生效",ruleparamList[vRuleName] ? "传参" : "",vRulePath)
+		LV_Modify(RowNumber,"",vRuleName,vRuleFunction,"重启生效",vRuleTypeVar ? "变量" : "插件",ruleparamList[vRuleName] ? "传参" : "",vRulePath)
 	}else{
-		LV_Add("",vRuleName,vRuleFunction,"重启生效",ruleparamList[vRuleName] ? "传参" : "",vRulePath)
+		LV_Add("",vRuleName,vRuleFunction,"重启生效",vRuleTypeVar ? "变量" : "插件",ruleparamList[vRuleName] ? "传参" : "",vRulePath)
 	}
 	IniWrite, %vRulePath%, %RunAnyConfig%, RunCtrlRule, %vRuleName%|%vRuleFunction%
 	LV_ModifyCol()  ; 根据内容自动调整每列的大小.
@@ -5346,6 +5363,20 @@ SetRulePath:
 		rulePath:=StrReplace(rulePath,A_ScriptDir "\" PluginsDir "\")
 		rulePath:=StrReplace(rulePath,A_ScriptDir "\")
 		GuiControl, SaveRule:, vRulePath, %rulePath%
+	}
+return
+RuleTypeChange:
+	Gui,SaveRule:Submit, NoHide
+	if(vRuleTypeVar){
+		GuiControlShow("SaveRule","vVarDocs")
+		GuiControlHide("SaveRule","vRuleDLL","vSetRulePath","vRulePath")
+	}else{
+		GuiControlShow("SaveRule","vRuleDLL","vSetRulePath","vRulePath")
+		GuiControlHide("SaveRule","vVarDocs")
+		if(vRulePath="0"){
+			GuiControl, SaveRule:, vRulePath, RunCtrl_Common.ahk
+			gosub,RulePathChange
+		}
 	}
 return
 RulePathChange:
@@ -5419,7 +5450,7 @@ KnowAhkFuncZz(ahkPath){
 	return funcnameStr
 }
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-;~;【设置选项Gui】
+;~;【——设置选项Gui——】
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 Config_Gui_Show:
 	if(GetKeyState("Shift")){
@@ -6835,11 +6866,11 @@ Icon_FileExt_Set:
 	}
 	global ZzIconS:=StrSplit(ZzIconPath,",")
 	;[RunAny菜单图标初始化]
-	try Menu,Tray,Icon,启动菜单(&Z)`t%MenuHotKey%,% ZzIconS[1],% ZzIconS[2],%MenuTrayIconSize%
+	try Menu,Tray,Icon,显示菜单(&Z)`t%MenuHotKey%,% ZzIconS[1],% ZzIconS[2],%MenuTrayIconSize%
 	try Menu,Tray,Icon,修改菜单(&E)`t%TreeHotKey1%,% TreeIconS[1],% TreeIconS[2],%MenuTrayIconSize%
 	Menu,Tray,Icon,修改文件(&F)`t%TreeIniHotKey1%,% EditFileIconS[1],% EditFileIconS[2],%MenuTrayIconSize%
 	If(MENU2FLAG){
-		try Menu,Tray,Icon,启动菜单2(&2)`t%MenuHotKey2%,% ZzIconS[1],% ZzIconS[2],%MenuTrayIconSize%
+		try Menu,Tray,Icon,显示菜单2(&2)`t%MenuHotKey2%,% ZzIconS[1],% ZzIconS[2],%MenuTrayIconSize%
 		try Menu,Tray,Icon,修改菜单2(&W)`t%TreeHotKey2%,% TreeIconS[1],% TreeIconS[2],%MenuTrayIconSize%
 		Menu,Tray,Icon,修改文件2(&G)`t%TreeIniHotKey2%,% EditFileIconS[1],% EditFileIconS[2],%MenuTrayIconSize%
 	}
@@ -7188,7 +7219,7 @@ return
 ;~;【规则启动项Read】
 RunCtrl_Read:
 	;规则名-脚本路径列表；规则名-函数名列表；规则名-状态列表；规则名-执行列表；每项启动项设置的规则内容
-	global rulefileList:=Object(),ruleitemList:=Object(),rulefuncList:=Object(),rulestatusList:=Object(),ruleparamList:=Object()
+	global rulefileList:=Object(),ruleitemList:=Object(),rulefuncList:=Object(),rulestatusList:=Object(),ruletypelist:=Object(),ruleparamList:=Object()
 	global RuleNameStr:=""
 	ruleitemVar:=rulefuncVar:=""
 	IniRead,ruleitemVar,%RunAnyConfig%,RunCtrlRule
@@ -7205,11 +7236,16 @@ RunCtrl_Read:
 		ruleitemList[itemList[1]]:=nameNotExt
 		if(varList[2]=RunAnyZz ".ahk"){
 			rulestatusList[(rulestatusList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=IsFunc(itemList[2])
+		}else if(varList[2]="0"){
+			ruletypelist[(ruletypelist[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=true
+			if(Get_Transform_Val("%" itemList[2] "%")!=itemList[2]){
+				rulestatusList[(rulestatusList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=true
+			}
 		}else{
 			rulestatusList[(rulestatusList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=InStr(PluginsContentList[(varList[2])],itemList[2] "(") ? 1 : 0
 		}
-		if(!InStr(PluginsContentList[(varList[2])],itemList[2] "()")){
-			ruleparamList[(ruleparamList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=1
+		if(varList[2]!="0" && !InStr(PluginsContentList[(varList[2])],itemList[2] "()")){
+			ruleparamList[(ruleparamList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=true
 		}
 	}
 	RuleNameStr:=SubStr(RuleNameStr, 1, -StrLen("|"))
@@ -7351,10 +7387,7 @@ RunCtrl_RunRules(runCtrlObj){
 		if(effectResult){
 			for i,runv in runCtrlObj.runList
 			{
-				if(!runCtrlObj.noPath){
-					RunCtrl_RunApps(runv.path, runv.noPath, runv.repeatRun)
-				}
-				if(!runCtrlObj.noMenu){
+				if(!runCtrlObj.noPath || !runCtrlObj.noMenu){
 					RunCtrl_RunApps(runv.path, runv.noPath, runv.repeatRun)
 				}
 			}
@@ -7401,14 +7434,16 @@ RunCtrl_RunApps(path,noPath,repeatRun:=0){
 ;~;[规则判断是否成立]
 RunCtrl_RuleEffect(runCtrlObj){
 	effectFlag:=false
+	ruleRunCount:=0
 	for ruleFile,ruleStatus in runCtrlObj.ruleFile
 	{
-		if(ruleFile!="RunAny"){
+		if(ruleFile!="0" && ruleFile!="RunAny"){
 			PluginsObjRegActive[ruleFile]:=ComObjActive(PluginsObjRegGUID[ruleFile])
 		}
 	}
 	for i,rulev in runCtrlObj.ruleList
 	{
+		ruleRunCount++
 		if(!rulefuncList[rulev.name])
 			continue
 		;获取RunCtrl_Common.ahk等插件规则函数结果
@@ -7426,7 +7461,11 @@ RunCtrl_RuleEffect(runCtrlObj){
 				effectFlag:=effectResult
 			}
 		}else{
-			effectResult:=PluginsObjRegActive[rulev.file][(rulefuncList[rulev.name])]()
+			if(ruletypelist[rulev.name]){
+				effectResult:=Get_Transform_Val("%" rulefuncList[rulev.name] "%")
+			}else{
+				effectResult:=PluginsObjRegActive[rulev.file][(rulefuncList[rulev.name])]()
+			}
 			;根据不同的运算符判断结果为真或假
 			if(rulev.value=""){
 				if(rulev.logic=0 || rulev.logic="ne"){
@@ -7459,7 +7498,7 @@ RunCtrl_RuleEffect(runCtrlObj){
 			break
 		}
 	}
-	return effectFlag
+	return ruleRunCount>0 ? effectFlag : true
 }
 ;══════════════════════════════════════════════════════════════════
 ;~;【——检查更新——】
@@ -7570,12 +7609,12 @@ return
 MenuTray:
 	Menu,Tray,NoStandard
 	try Menu,Tray,Icon,% MenuIconS[1],% MenuIconS[2]
-	Menu,Tray,add,启动菜单(&Z)`t%MenuHotKey%,Menu_Show1
+	Menu,Tray,add,显示菜单(&Z)`t%MenuHotKey%,Menu_Show1
 	Menu,Tray,add,修改菜单(&E)`t%TreeHotKey1%,Menu_Edit1
 	Menu,Tray,add,修改文件(&F)`t%TreeIniHotKey1%,Menu_Ini
 	Menu,Tray,add
 	If(MENU2FLAG){
-		Menu,Tray,add,启动菜单2(&2)`t%MenuHotKey2%,Menu_Show2
+		Menu,Tray,add,显示菜单2(&2)`t%MenuHotKey2%,Menu_Show2
 		Menu,Tray,add,修改菜单2(&W)`t%TreeHotKey2%,Menu_Edit2
 		Menu,Tray,add,修改文件2(&G)`t%TreeIniHotKey2%,Menu_Ini2
 		Menu,Tray,add
@@ -7590,7 +7629,7 @@ MenuTray:
 	Menu,Tray,add,重启(&R)`t%RunAReloadHotKey%,Menu_Reload
 	Menu,Tray,add,停用(&S)`t%RunASuspendHotKey%,Menu_Suspend
 	Menu,Tray,add,退出(&X)`t%RunAExitHotKey%,Menu_Exit
-	Menu,Tray,Default,启动菜单(&Z)`t%MenuHotKey%
+	Menu,Tray,Default,显示菜单(&Z)`t%MenuHotKey%
 	Menu,Tray,Click,1
 return
 Menu_Tray:

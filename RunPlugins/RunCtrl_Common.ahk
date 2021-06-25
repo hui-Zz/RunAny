@@ -9,42 +9,16 @@ global RunAny_Plugins_Version:="1.0.0"
 #Include %A_ScriptDir%\RunAny_ObjReg.ahk
 
 class RunAnyObj {
-	rule_true(){
-		return true
-	}
-	rule_false(){
-		return false
-	}
 	;电脑开机后的运行时长(秒)
 	rule_boot_time(){
 		return A_TickCount/1000
 	}
-	;当前电脑名称
-	rule_computer_name(){
-		return A_ComputerName
+	;当前内网ip地址
+	rule_ip_internal(){
+		ip:=cmdClipReturn("for /f ""tokens=4"" %a in ('route print^|findstr 0.0.0.0.*0.0.0.0') do echo %a")
+		return StrReplace(ip," `r`n")
 	}
-	;当前登录用户名称
-	rule_user_name(){
-		return A_UserName
-	}
-	;当前windows系统版本：WIN_7, WIN_8, WIN_VISTA, WIN_2003, WIN_XP, WIN_2000, Windows10版本为具体的版本号数字
-	rule_system_version(){
-		return A_OSVersion
-	}
-	;当前操作系统为64位
-	rule_system_is_64bit(){
-		return A_Is64bitOS
-	}
-	/*
-	验证当前内网ip地址
-	ip 验证的ip（模糊匹配）
-	*/
-	rule_ip_internal(ip=""){
-		if(!ip)
-			return false
-		cmdResult:=cmdClipReturn("for /f ""tokens=4"" %a in ('route print^|findstr 0.0.0.0.*0.0.0.0') do echo %a")
-		return InStr(cmdResult,ip) ? true : false
-	}
+
 	/*
 	【验证当前连接的Wifi名称】（后台静默）
 	ssid wifi名称
@@ -117,8 +91,3 @@ cmdClipReturn(command){
 	Clipboard:=Clip_Saved
 	return cmdInfo
 }
-
-;独立使用RunAnyObj菜单内函数方式
-;F1::
-	;RunAnyObj.你的函数名(参数1,参数2)
-;return
