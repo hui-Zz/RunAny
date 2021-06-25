@@ -1,7 +1,7 @@
 ﻿;****************************
 ;* 【RunCtrl公共规则函数库】 *
 ;****************************
-global RunAny_Plugins_Version:="1.0.0"
+global RunAny_Plugins_Version:="1.0.1"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
 #SingleInstance,Force   ;~运行替换旧实例
@@ -91,3 +91,8 @@ cmdClipReturn(command){
 	Clipboard:=Clip_Saved
 	return cmdInfo
 }
+
+;独立使用RunAnyObj菜单内函数方式
+;~ F2::
+	;~ RunAnyObj.rule_ip_internal()
+;~ return

@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.06.24
+║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.06.25
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.6"     ;~;版本号
-global RunAny_update_time:="2021.06.24"   ;~;修改日期
+global RunAny_update_time:="2021.06.25"   ;~;修改日期
 gosub,Var_Set           ;~;01.参数初始化
 gosub,Menu_Var_Set      ;~;02.自定义变量
 gosub,Icon_Set          ;~;03.图标初始化
@@ -6332,12 +6332,14 @@ SetCancel:
 return
 ;[GuiSize]
 GuiSize:
+RGuiSize:
 PluginsManageGuiSize:
 PluginsDownloadGuiSize:
 	if A_EventInfo = 1
 		return
 	GuiControl, Move, RunAnyTV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 	GuiControl, Move, RunAnyLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
+	GuiControl, Move, RuleLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 	GuiControl, Move, RunAnyDownLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 return
 66GuiSize:
@@ -6701,12 +6703,13 @@ Run_Exist:
 	global iniVar1:=""
 	global both:=1
 	global RunABackupDirPath:=Get_Transform_Val(RunABackupDir)
+	global PluginsDir:="RunPlugins"	;~插件目录
 	IfNotExist %RunABackupDirPath%
 		FileCreateDir,%RunABackupDirPath%
 	IfNotExist %RunABackupDirPath%\%RunAnyConfig%
 		FileCreateDir,%RunABackupDirPath%\%RunAnyConfig%
-	IfNotExist,%A_ScriptDir%\%PluginsDir%
-		FileCreateDir, %A_ScriptDir%\%PluginsDir%
+	IfNotExist,%A_ScriptDir%\%PluginsDir%\Lib
+		FileCreateDir, %A_ScriptDir%\%PluginsDir%\Lib
 	if(RunAEncoding){
 		try{
 			FileEncoding,%RunAEncoding%
@@ -7047,7 +7050,6 @@ Plugins_Read:
 	global PluginsTitleList:=Object()
 	global PluginsContentList:=Object()
 	global PluginsObjNum:=0
-	global PluginsDir:="RunPlugins"	;~插件目录
 	global PluginsDirList:=[]
 	global PluginsEditor:=Var_Read("PluginsEditor")
 	global PluginsDirPath:=Var_Read("PluginsDirPath")
@@ -7374,7 +7376,7 @@ Rule_Effect:
 				RunCtrl_RunRules(runCtrlObj)
 			}
 		}
-	} catch e {
+	} catch e { 
 		MsgBox,16,规则判断出错,% "规则名：" rcName 
 			. "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 	}
@@ -7392,15 +7394,16 @@ RunCtrl_RunRules(runCtrlObj){
 				}
 			}
 		}
+		return effectResult
+	} catch e {
+		MsgBox,16,启动规则出错,% "启动规则名：" rcName 
+			. "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+	} finally {
 		runIndex[rcName]++	;规则定时器运行计数+1
 		;规则运行计数达到最大循环次数 || 启动项已达到最多运行次数 => 结束定时器
 		if((runIndex[rcName] && runIndex[rcName] >= runCtrlObj.ruleMostRun)){
 			try SetTimer,% funcEffect%rcName%, Off
 		}
-		return effectResult
-	} catch e {
-		MsgBox,16,启动规则出错,% "启动规则名：" rcName 
-			. "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 	}
 }
 ;~;[规则启动应用]
@@ -7437,7 +7440,7 @@ RunCtrl_RuleEffect(runCtrlObj){
 	ruleRunCount:=0
 	for ruleFile,ruleStatus in runCtrlObj.ruleFile
 	{
-		if(ruleFile!="0" && ruleFile!="RunAny"){
+		if(ruleStatus && ruleFile!="0" && ruleFile!="RunAny"){
 			PluginsObjRegActive[ruleFile]:=ComObjActive(PluginsObjRegGUID[ruleFile])
 		}
 	}
