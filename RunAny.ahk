@@ -2802,13 +2802,14 @@ Menu_Edit:
 	Menu,% moveRoot[1],add
 	global moveLevel:=0
 	;[树型菜单初始化]
-	Gui, Destroy
-	Gui, +Resize
-	Gui, Font,s10, Microsoft YaHei
-	Gui, Add, TreeView,vRunAnyTV w600 r30 -Readonly AltSubmit Checked hwndHTV gTVClick ImageList%TreeImageListID%
-	Gui, Add, Progress,vMyProgress w450 cBlue
-	GuiControl, Hide, MyProgress
-	GuiControl, -Redraw, RunAnyTV
+	Gui, MenuEdit:Destroy
+	Gui, MenuEdit:Default
+	Gui, MenuEdit:+Resize
+	Gui, MenuEdit:Font,s10, Microsoft YaHei
+	Gui, MenuEdit:Add, TreeView,vRunAnyTV w600 r30 -Readonly AltSubmit Checked hwndHTV gTVClick ImageList%TreeImageListID%
+	Gui, MenuEdit:Add, Progress,vMyProgress w450 cBlue
+	GuiControl, MenuEdit:Hide, MyProgress
+	GuiControl, MenuEdit:-Redraw, RunAnyTV
 	Tv:=new treeview(HTV)
 	;[读取菜单配置内容写入树形菜单]
 	Loop, parse, iniFileVar, `n, `r, %A_Space%%A_Tab%
@@ -2846,12 +2847,12 @@ Menu_Edit:
 			}
 		}
 	}
-	GuiControl, +Redraw, RunAnyTV
+	GuiControl, MenuEdit:+Redraw, RunAnyTV
 	try Menu,TVMenu,Delete
 	TVMenu("TVMenu")
 	TVMenu("GuiMenu")
-	Gui, Menu, GuiMenu
-	Gui, Show, , %RunAnyZz%菜单树管理【%both%】%RunAny_update_version% %RunAny_update_time%%AdminMode%(双击修改，右键操作)
+	Gui, MenuEdit:Menu, GuiMenu
+	Gui, MenuEdit:Show, , %RunAnyZz%菜单树管理【%both%】%RunAny_update_version% %RunAny_update_time%%AdminMode%(双击修改，右键操作)
 	if(TVEditItem!=""){
 		ItemEdit:=Get_Obj_Name(TVEditItem)
 		ItemID = 0
@@ -2988,7 +2989,13 @@ TVEdit:
 	menuGuiFlag:=true
 	menuGuiEditFlag:=true
 	selIDTVEdit:=""
-	gosub,Menu_Item_Edit
+	if(RunCtrlMenuItemFlag){
+		Gui, MenuEdit:Destroy
+		GuiControlSet("CtrlRun","vRunCtrlRunValue",itemName)
+		RunCtrlMenuItemFlag:=false
+	}else{
+		gosub,Menu_Item_Edit
+	}
 return
 TVEdit_GuiVal:
 	itemGlobalWinKey:=itemTrNum:=setItemMode:=0
@@ -3048,7 +3055,7 @@ Menu_Item_Edit:
 	itemIconFile:=IconFolderList[menuItemIconFileName(itemIconName)]
 	Gui,SaveItem:Destroy
 	if(menuGuiFlag)
-		Gui,SaveItem:+owner1
+		Gui,SaveItem:+ownerMenuEdit
 	Gui,SaveItem:Margin,20,20
 	Gui,SaveItem:+Resize
 	Gui,SaveItem:Font,,Microsoft YaHei
@@ -3150,7 +3157,7 @@ SetSaveItemGui:
 	vitemPath:=StrReplace(vitemPath,"`n","``n")
 	saveText:=vitemName . itemGlobalKeyStr . splitStr . vitemPath
 	Gui,SaveItem:Destroy
-	Gui,1:Default
+	Gui,MenuEdit:Default
 	TV_Modify(selID, , saveText)
 	TV_Modify(selID, "Select Vis")
 	TV_Modify(selID, Set_Icon(TreeImageListID,saveText))
@@ -5157,9 +5164,15 @@ LVCtrlRunConfig:
 	Gui,CtrlRun:Show,,%RunAnyZz% - %openExtItem%启动项 %RunAny_update_version% %RunAny_update_time%
 return
 SetRunCtrlRunValue:
-	FileSelectFile, runPath, , , 启动程序路径
-	if(runPath){
-		GuiControl,, vRunCtrlRunValue, %runPath%
+	Gui,CtrlRun:Submit, NoHide
+	if(vRunCtrlNoPath1){
+		global RunCtrlMenuItemFlag:=true
+		gosub,Menu_Edit1
+	}else if(vRunCtrlNoPath2){
+		FileSelectFile, runPath, , , 启动程序路径
+		if(runPath){
+			GuiControlSet("CtrlRun","vRunCtrlRunValue",runPath)
+		}
 	}
 return
 SaveRunCtrlRunValue:
