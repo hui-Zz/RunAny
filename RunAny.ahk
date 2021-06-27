@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.06.25
+║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.06.27
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.6"     ;~;版本号
-global RunAny_update_time:="2021.06.25"   ;~;修改日期
+global RunAny_update_time:="2021.06.27"   ;~;修改日期
 gosub,Var_Set           ;~;01.参数初始化
 gosub,Menu_Var_Set      ;~;02.自定义变量
 gosub,Icon_Set          ;~;03.图标初始化
@@ -5013,10 +5013,11 @@ LVFuncConfig:
 	Gui,F:+Owner2
 	Gui,F:Font,,Microsoft YaHei
 	Gui,F:Margin,20,10
-	Gui,F:Add, Text, xm y+15 w60, 规则名：
-	Gui,F:Add, DropDownList, xm+60 yp-5 Choose%RuleNameChoose% GDropDownRuleChoose vvRuleName, %RuleNameStr%
-	Gui,F:Add, Radio, xm y+10 Checked%FuncBooleanEQ% vvFuncBooleanEQ, 相等 ( 真 &True )
-	Gui,F:Add, Radio, x+4 yp Checked%FuncBooleanNE% vvFuncBooleanNE, 不相等 ( 假 &False )
+	Gui,F:Add, Text, xm y+10 w60, 规则名：
+	Gui,F:Add, DropDownList, xm+60 yp-3 Choose%RuleNameChoose% GDropDownRuleChoose vvRuleName, %RuleNameStr%
+	Gui,F:Add, Text, x+10 yp+3 cblue w150 vvRuleResultText, 
+	Gui,F:Add, Radio, xm y+10 Checked%FuncBooleanEQ% vvFuncBooleanEQ, 相等 ( 真 &True 1)
+	Gui,F:Add, Radio, x+4 yp Checked%FuncBooleanNE% vvFuncBooleanNE, 不相等 ( 假 &False 0)
 	Gui,F:Add, Radio, xm y+10 Checked%FuncBooleanGE% vvFuncBooleanGE, 大于等于　　　
 	Gui,F:Add, Radio, x+6 yp Checked%FuncBooleanLE% vvFuncBooleanLE, 小于等于　　　
 	Gui,F:Add, Radio, xm y+10 Checked%FuncBooleanGT% vvFuncBooleanGT, 大于　　　　　
@@ -5024,7 +5025,7 @@ LVFuncConfig:
 	Gui,F:Add, Text, xm y+10 w350 vvRuleText, 条件值：（只判断规则真假，可不填写）
 	Gui,F:Add, Text, xm yp w350 cblue vvRuleParamText, 条件值：（条件值变为参数传递到规则函数，只判断结果真假）
 	; `n多个参数每行为一个参数，最多支持10个，保存会用|分隔
-	Gui,F:Add, Edit, xm y+10 w350 r6 vvFuncValue, %FuncValue%
+	Gui,F:Add, Edit, xm y+10 w350 r6 vvFuncValue GFuncValueChange, %FuncValue%
 	Gui,F:Add, Button,Default xm+80 y+15 w75 GLVFuncSave,保存(&Y)
 	Gui,F:Add, Button,x+10 w75 GSetCancel,取消(&C)
 	Gui,F:Show, , %RunAnyZz% 修改规则函数 %RunAny_update_version% %RunAny_update_time%%AdminMode%
@@ -5106,6 +5107,13 @@ DropDownRuleChoose:
 		GuiControl, F:enable, vFuncBooleanLE
 		GuiControl, F:enable, vFuncBooleanGT
 		GuiControl, F:enable, vFuncBooleanLT
+	}
+	GuiControl, F:,vRuleResultText,% RunCtrl_RuleResult(vRuleName, ruleitemList[vRuleName], vFuncValue)
+return
+FuncValueChange:
+	Gui,F:Submit, NoHide
+	if(!InStr(rulefileList[vRuleName],"RunCtrl_Network.ahk")){
+		gosub,DropDownRuleChoose
 	}
 return
 SetFilePath:
@@ -5219,12 +5227,14 @@ RunCtrlLVRule:
 	Gui,R:Default
 	Gui,R:+Resize
 	Gui,R:Font, s10, Microsoft YaHei
-	Gui,R:Add, Listview, xm w600 r18 grid AltSubmit BackgroundF6F6E8 vRuleLV glistrule, 规则名|规则函数|状态|类型|参数|规则插件名
+	Gui,R:Add, Listview, xm w600 r18 grid AltSubmit BackgroundF6F6E8 vRuleLV glistrule, 规则名|规则函数|状态|类型|参数|示例|规则插件名
 	;[读取规则内容写入列表]
 	GuiControl, -Redraw, RuleLV
-	For ki, kv in rulefileList
+	For kName, kVal in rulefileList
 	{
-		LV_Add("", ki, rulefuncList[ki], rulestatusList[ki] ? "正常" : "不可用",ruletypelist[ki] ? "变量" : "插件",ruleparamList[ki] ? "传参" : "", kv)
+		LV_Add("", kName, rulefuncList[kName], rulestatusList[kName] ? "正常" : "不可用"
+			,ruletypelist[kName] ? "变量" : "插件",ruleparamList[kName] ? "传参" : ""
+			,!InStr(kVal,"RunCtrl_Network.ahk") ? RunCtrl_RuleResult(kName, ruleitemList[kName], "") : "www.ip-api.com" , kVal)
 	}
 	GuiControl, +Redraw, RuleLV
 	Menu, ruleGuiMenu, Add, 新增, LVRulePlus
@@ -5250,7 +5260,7 @@ LVRuleEdit:
 	LV_GetText(RuleName, RowNumber, 1)
 	LV_GetText(RuleFunction, RowNumber, 2)
 	LV_GetText(RuleType, RowNumber, 4)
-	LV_GetText(RulePath, RowNumber, 6)
+	LV_GetText(RulePath, RowNumber, 7)
 	menuRuleItem:="规则编辑"
 	RuleTypeVar:=RuleType="变量" ? 1 : 0
 	RuleTypeFunc:=RuleTypeVar=1 ? 0 : 1
@@ -5304,7 +5314,7 @@ LVRuleMinus:
 		{
 			LV_GetText(RuleName, RowNumber, 1)
 			LV_GetText(RuleFunction, RowNumber, 2)
-			LV_GetText(RulePath, RowNumber, 4)
+			LV_GetText(RulePath, RowNumber, 7)
 			DelRowList:=RowNumber . ":" . DelRowList
 			IniDelete, %RunAnyConfig%, RunCtrlRule, %RuleName%|%RuleFunction%
 			;删除所有正在使用此规则的关联配置
@@ -5352,9 +5362,9 @@ LVRuleSave:
 			if(RuleName!=vRuleName)
 				Change_Rule_Name(RuleName,vRuleName)
 		}
-		LV_Modify(RowNumber,"",vRuleName,vRuleFunction,"重启生效",vRuleTypeVar ? "变量" : "插件",ruleparamList[vRuleName] ? "传参" : "",vRulePath)
+		LV_Modify(RowNumber,"",vRuleName,vRuleFunction,"重启生效",vRuleTypeVar ? "变量" : "插件",ruleparamList[vRuleName] ? "传参" : "",,vRulePath)
 	}else{
-		LV_Add("",vRuleName,vRuleFunction,"重启生效",vRuleTypeVar ? "变量" : "插件",ruleparamList[vRuleName] ? "传参" : "",vRulePath)
+		LV_Add("",vRuleName,vRuleFunction,"重启生效",vRuleTypeVar ? "变量" : "插件",ruleparamList[vRuleName] ? "传参" : "",,vRulePath)
 	}
 	IniWrite, %vRulePath%, %RunAnyConfig%, RunCtrlRule, %vRuleName%|%vRuleFunction%
 	LV_ModifyCol()  ; 根据内容自动调整每列的大小.
@@ -7431,6 +7441,7 @@ RunCtrl_RunApps(path,noPath,repeatRun:=0){
 			MenuShowMenuRun:=path
 			gosub,Menu_Run
 		}else{
+			path:=Get_Transform_Val(path)
 			SplitPath,% path, name, dir
 			if(!repeatRun && rule_check_is_run(path)){
 				return
@@ -7462,14 +7473,10 @@ RunCtrl_RuleEffect(runCtrlObj){
 		ruleRunCount++
 		if(!rulefuncList[rulev.name])
 			continue
-		;获取RunCtrl_Common.ahk等插件规则函数结果
+		;获取变量规则、插件规则函数的执行结果
+		effectResult:=RunCtrl_RuleResult(rulev.name, rulev.file, rulev.value)
+		;根据运算符计算规则最终是否成立
 		if(ruleparamList[rulev.name]){
-			;传参模式仅判断真假，不做运算符计算
-			if(rulev.file="RunAny" && IsFunc(rulefuncList[rulev.name])){
-				effectResult:=Func(rulefuncList[rulev.name]).Call(rulev.value)
-			}else{
-				effectResult:=PluginsObjRegActive[rulev.file][(rulefuncList[rulev.name])](rulev.value)
-			}
 			;如果规则设定条件为（假、不相等），而脚本执行结果是真，则判定为假；执行结果是假，则判定为真
 			if(rulev.logic=0 || rulev.logic="ne"){
 				effectFlag:=!effectResult
@@ -7477,11 +7484,6 @@ RunCtrl_RuleEffect(runCtrlObj){
 				effectFlag:=effectResult
 			}
 		}else{
-			if(ruletypelist[rulev.name]){
-				effectResult:=Get_Transform_Val("%" rulefuncList[rulev.name] "%")
-			}else{
-				effectResult:=PluginsObjRegActive[rulev.file][(rulefuncList[rulev.name])]()
-			}
 			;根据不同的运算符判断结果为真或假
 			if(rulev.value=""){
 				if(rulev.logic=0 || rulev.logic="ne"){
@@ -7515,6 +7517,27 @@ RunCtrl_RuleEffect(runCtrlObj){
 		}
 	}
 	return ruleRunCount>0 ? effectFlag : true
+}
+;~;[规则结果返回]
+RunCtrl_RuleResult(ruleName,ruleFile,ruleValue:=""){
+	effectResult=
+	if(ruleparamList[ruleName]){
+		;传参模式仅判断真假，不做运算符计算
+		if(ruleFile=RunAnyZz && IsFunc(rulefuncList[ruleName])){
+			effectResult:=Func(rulefuncList[ruleName]).Call(ruleValue)
+		}else{
+			effectResult:=PluginsObjRegActive[ruleFile][(rulefuncList[ruleName])](ruleValue)
+		}
+	}else{
+		if(ruletypelist[ruleName]){
+			effectResult:=Get_Transform_Val("%" rulefuncList[ruleName] "%")
+		}else if(ruleFile=RunAnyZz && IsFunc(rulefuncList[ruleName])){
+			effectResult:=Func(rulefuncList[ruleName]).Call()
+		}else{
+			effectResult:=PluginsObjRegActive[(ruleitemList[ruleName])][(rulefuncList[ruleName])]()
+		}
+	}
+	return effectResult
 }
 ;══════════════════════════════════════════════════════════════════
 ;~;【——检查更新——】
