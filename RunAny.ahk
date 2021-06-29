@@ -365,16 +365,17 @@ if(iniFlag){
 	gosub,Menu_About
 	gosub,Menu_Show1
 }
-RegRead, ReloadGosub, HKEY_CURRENT_USER, Software\RunAny, ReloadGosub
-if(ReloadGosub){
-	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, ReloadGosub, 0
-	gosub,%ReloadGosub%
-}
 ;提前加载菜单树图标缓存
 Gosub,Plugins_LV_Icon_Set
 global TreeImageListID := IL_Create(11)
 Icon_Image_Set(TreeImageListID)
 Icon_Tree_Image_Set(TreeImageListID)
+;如果有需要继续执行的操作
+RegRead, ReloadGosub, HKEY_CURRENT_USER, Software\RunAny, ReloadGosub
+if(ReloadGosub){
+	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, ReloadGosub, 0
+	gosub,%ReloadGosub%
+}
 ;自动备份配置文件
 if(RunABackupRule && RunABackupDirPath!=A_ScriptDir){
 	RunABackupFormatStr:=Get_Transform_Val(RunABackupFormat)
@@ -2791,7 +2792,7 @@ return
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 ;~;【——菜单配置Gui——】
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-Menu_Edit:
+Menu_Edit_Gui:
 	global TVFlag:=false
 	global FailFlag:=false
 	;[功能菜单初始化]
@@ -2874,13 +2875,13 @@ Menu_Edit1:
 	both:=1
 	iniFileWrite:=iniPath
 	iniFileVar:=iniVar1
-	gosub,Menu_Edit
+	gosub,Menu_Edit_Gui
 return
 Menu_Edit2:
 	both:=2
 	iniFileWrite:=iniPath2
 	iniFileVar:=iniVar2
-	gosub,Menu_Edit
+	gosub,Menu_Edit_Gui
 return
 #If WinActive(RunAnyZz "菜单树管理【" both "】")
 	F5::
@@ -3499,7 +3500,7 @@ TVSave:
 	IfMsgBox No
 	{
 		gosub,Menu_Save
-		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, ReloadGosub, Menu_Edit
+		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, ReloadGosub, Menu_Edit%both%
 		gosub,Menu_Reload
 	}
 return
@@ -4660,44 +4661,44 @@ LVStatusChange(RowNumber,FileStatus,lvItem,FileName){
 ;══════════════════════════════════════════════════════════════════
 RunCtrl_Manage:
 	gosub,RunCtrl_Read
-	Gui,RunCtrlGui:Destroy
-	Gui,RunCtrlGui:Default
-	Gui,RunCtrlGui:+Resize
-	Gui,RunCtrlGui:Font, s10, Microsoft YaHei
-	Gui,RunCtrlGui:Add, ListBox, x16 w130 r27 vRunCtrlListBox gRunCtrlListClick Choose1, %RunCtrlListBoxVar%
-	Gui,RunCtrlGui:Add, Listview,x+15 w530 r20 grid AltSubmit vRunCtrlLV gRunCtrlListView, 启动项|类型|重复运行
-	GuiControl,RunCtrlGui:-Redraw, RunCtrlLV
+	Gui,RunCtrlManage:Destroy
+	Gui,RunCtrlManage:Default
+	Gui,RunCtrlManage:+Resize
+	Gui,RunCtrlManage:Font, s10, Microsoft YaHei
+	Gui,RunCtrlManage:Add, ListBox, x16 w130 r27 vRunCtrlListBox gRunCtrlListClick Choose1, %RunCtrlListBoxVar%
+	Gui,RunCtrlManage:Add, Listview,x+15 w530 r20 grid AltSubmit vRunCtrlLV gRunCtrlListView, 启动项|类型|重复运行
+	GuiControl,RunCtrlManage:-Redraw, RunCtrlLV
 	LVImageListID := IL_Create(11)
 	Icon_Image_Set(LVImageListID)
 	LV_SetImageList(LVImageListID)
-	Gui,RunCtrlGui:Submit, NoHide
+	Gui,RunCtrlManage:Submit, NoHide
 	For runn, runv in RunCtrlList[RunCtrlListBox].runList
 	{
 		LV_Add(Set_Icon(LVImageListID,runv.noPath ? Get_Obj_Path(runv.path) : runv.path,false,false,runv.path)
 			,runv.path,runv.noPath ? "菜单项" : "全路径",runv.repeatRun ? "重复" : "")
 	}
-	GuiControl,RunCtrlGui:+Redraw, RunCtrlLV
+	GuiControl,RunCtrlManage:+Redraw, RunCtrlLV
 	LV_ModifyCol()
 	LV_ModifyCol(1,450)
 	RunCtrlLVMenu("RunCtrlLVMenu")
-	RunCtrlLVMenu("RunCtrlGuiMenu")
-	Gui,RunCtrlGui: Menu, RunCtrlGuiMenu
-	Gui,RunCtrlGui:Show, w720 , %RunAnyZz% 启动管理 %RunAny_update_version% %RunAny_update_time%%AdminMode%(双击修改，右键操作)
+	RunCtrlLVMenu("RunCtrlManageMenu")
+	Gui,RunCtrlManage: Menu, RunCtrlManageMenu
+	Gui,RunCtrlManage:Show, w720 , %RunAnyZz% 启动管理 %RunAny_update_version% %RunAny_update_time%%AdminMode%(双击修改，右键操作)
 return
 
 RunCtrlListClick:
 	if A_GuiEvent = Normal
 	{
-		Gui,RunCtrlGui:Default
-		Gui,RunCtrlGui:Submit, NoHide
+		Gui,RunCtrlManage:Default
+		Gui,RunCtrlManage:Submit, NoHide
 		LV_delete()
-		GuiControl,RunCtrlGui:-Redraw, RunCtrlLV
+		GuiControl,RunCtrlManage:-Redraw, RunCtrlLV
 		For runn, runv in RunCtrlList[RunCtrlListBox].runList
 		{
 			LV_Add(Set_Icon(LVImageListID,runv.noPath ? Get_Obj_Path(runv.path) : runv.path,false,false,runv.path)
 				,runv.path,runv.noPath ? "菜单项" : "全路径",runv.repeatRun ? "重复" : "")
 		}
-		GuiControl,RunCtrlGui:+Redraw, RunCtrlLV
+		GuiControl,RunCtrlManage:+Redraw, RunCtrlLV
 	}else if A_GuiEvent = DoubleClick
 	{
 		gosub,RunCtrlLVEdit
@@ -4711,7 +4712,7 @@ RunCtrlListView:
 return
 ;创建头部及右键功能菜单
 RunCtrlLVMenu(addMenu){
-	flag:=addMenu="RunCtrlGuiMenu" ? true : false
+	flag:=addMenu="RunCtrlManageMenu" ? true : false
 	Menu, %addMenu%, Add,% flag ? "启动" : "启动`tF1", RunCtrlLVRun
 	Menu, %addMenu%, Icon,% flag ? "启动" : "启动`tF1",% EXEIconS[1],% EXEIconS[2]
 	Menu, %addMenu%, Add,% flag ? "添加组" : "添加组`tF3", RunCtrlLVAdd
@@ -4733,7 +4734,7 @@ RunCtrlLVMenu(addMenu){
 	Menu, %addMenu%, Add,% flag ? "全选" : "全选`tCtrl+A", RunCtrlLVSelect
 }
 RunCtrlLVDel:
-	Gui,RunCtrlGui:Default
+	Gui,RunCtrlManage:Default
 	if(RunCtrlListBox="")
 		return
 	GuiControlGet, focusGuiName, Focus
@@ -4800,12 +4801,12 @@ return
 	^a::gosub,RunCtrlLVSelect
 #If
 RunCtrlLVSelect:
-	Gui,RunCtrlGui:Default
+	Gui,RunCtrlManage:Default
 	LV_Modify(0, "Select")   ; 选择所有.
 return
 RunCtrlLVRun:
-	Gui,RunCtrlGui:Default
-	Gui,RunCtrlGui:Submit, NoHide
+	Gui,RunCtrlManage:Default
+	Gui,RunCtrlManage:Submit, NoHide
 	GuiControlGet, focusGuiName, Focus
 	if(focusGuiName="ListBox1"){
 		effectResult:=RunCtrl_RunRules(RunCtrlList[RunCtrlListBox])
@@ -4826,7 +4827,7 @@ return
 RunCtrlLVEdit:
 	RuleGroupName:=RunCtrlListBox
 	menuItem:="编辑"
-	Gui,RunCtrlGui:Default
+	Gui,RunCtrlManage:Default
 	GuiControlGet, focusGuiName, Focus
 	if(focusGuiName="ListBox1"){
 		FileRuleRun:=RunCtrlList[RunCtrlListBox].enable
@@ -4842,28 +4843,28 @@ RunCtrlLVEdit:
 return
 ;~;【启动控制-规则组配置Gui】
 RunCtrlConfig:
-	Gui,2:Destroy
-	Gui,2:Default
-	Gui,2:+OwnerRunCtrlGui
-	Gui,2:Font,,Microsoft YaHei
-	Gui,2:Margin,20,20
-	Gui,2:Add, CheckBox, xm+5 y+15 Checked%FileRuleRun% vvFileRuleRun c%FileRuleEnable%, 启用规则组
-	Gui,2:Add, Text, x+10 yp w60, 规则组名：
-	Gui,2:Add, Edit, x+5 yp-3 w300 vvRuleGroupName, %RuleGroupName%
-	Gui,2:Add, GroupBox,xm y+15 w500 h350,规则组设置
-	Gui,2:Add, Radio, xm+10 yp+25 Checked%RuleGroupLogic1% vvRuleGroupLogic1, 与（全部规则都验证成立）(&A)
-	Gui,2:Add, Radio, x+10 yp Checked%RuleGroupLogic2% vvRuleGroupLogic2, 或（一个规则即验证成立）(&O)
-	Gui,2:Add, Text, xm+10 y+15 w100, 规则循环最大次数:
-	Gui,2:Add, Edit, x+2 yp-3 Number w50 h20 vvRuleMostRun, %RuleMostRun%
-	Gui,2:Add, Text, x+20 yp+3 w110, 循环间隔时间(秒):
-	Gui,2:Add, Edit, x+2 yp-3 w100 h20 vvRuleIntervalTime, %RuleIntervalTime%
-	Gui,2:Add, Button, xm+10 y+15 w85 GLVFuncAdd, + 增加规则(&A)
-	Gui,2:Add, Button, x+10 yp w85 GLVFuncEdit, · 修改规则(&E)
-	Gui,2:Add, Button, x+10 yp w85 GLVFuncRemove, - 减少规则(&D)
-	Gui,2:Font, s10, Microsoft YaHei
-	Gui,2:Add, Listview, xm+10 y+10 w480 r10 grid AltSubmit C808000 vFuncLV glistfunc, 规则名|条件|条件值
+	Gui,RunCtrlConfig:Destroy
+	Gui,RunCtrlConfig:Default
+	Gui,RunCtrlConfig:+OwnerRunCtrlManage
+	Gui,RunCtrlConfig:Font,,Microsoft YaHei
+	Gui,RunCtrlConfig:Margin,20,20
+	Gui,RunCtrlConfig:Add, CheckBox, xm+5 y+15 Checked%FileRuleRun% vvFileRuleRun c%FileRuleEnable%, 启用规则组
+	Gui,RunCtrlConfig:Add, Text, x+10 yp w60, 规则组名：
+	Gui,RunCtrlConfig:Add, Edit, x+5 yp-3 w300 vvRuleGroupName, %RuleGroupName%
+	Gui,RunCtrlConfig:Add, GroupBox,xm y+15 w500 h390,规则组设置
+	Gui,RunCtrlConfig:Add, Radio, xm+10 yp+25 Checked%RuleGroupLogic1% vvRuleGroupLogic1, 与（全部规则都验证成立）(&A)
+	Gui,RunCtrlConfig:Add, Radio, x+10 yp Checked%RuleGroupLogic2% vvRuleGroupLogic2, 或（一个规则即验证成立）(&O)
+	Gui,RunCtrlConfig:Add, Text, xm+10 y+15 w100, 规则循环最大次数:
+	Gui,RunCtrlConfig:Add, Edit, x+2 yp-3 Number w50 h20 vvRuleMostRun, %RuleMostRun%
+	Gui,RunCtrlConfig:Add, Text, x+20 yp+3 w110, 循环间隔时间(秒):
+	Gui,RunCtrlConfig:Add, Edit, x+2 yp-3 w100 h20 vvRuleIntervalTime, %RuleIntervalTime%
+	Gui,RunCtrlConfig:Add, Button, xm+10 y+15 w85 GLVFuncAdd, + 增加规则(&A)
+	Gui,RunCtrlConfig:Add, Button, x+10 yp w85 GLVFuncEdit, · 修改规则(&E)
+	Gui,RunCtrlConfig:Add, Button, x+10 yp w85 GLVFuncRemove, - 减少规则(&D)
+	Gui,RunCtrlConfig:Font, s10, Microsoft YaHei
+	Gui,RunCtrlConfig:Add, Listview, xm+10 y+10 w480 r10 grid AltSubmit C808000 vFuncLV glistfunc, 规则名|条件|条件值
 	;[读取启动项设置的规则内容写入列表]
-	GuiControl, 2:-Redraw, FuncLV
+	GuiControl, RunCtrlConfig:-Redraw, FuncLV
 	For k, v in RunCtrlList[RunCtrlListBox].ruleList
 	{
 		funcBoolean:=v.logic="1" ? "相等" : v.logic="0" ? "不相等" : RunCtrlLogicEnum[v.logic]
@@ -4872,14 +4873,14 @@ RunCtrlConfig:
 	}
 	LV_ModifyCol(1)
 	LV_ModifyCol(2)
-	GuiControl, 2:+Redraw, FuncLV
-	Gui,2:Add,Button,Default xm+150 y+15 w75 GRunCtrlLVSave,保存(&Y)
-	Gui,2:Add,Button,x+20 w75 GSetCancel,取消(&C)
-	Gui,2:Show, , %RunAnyZz% 规则组 - %menuItem% %RunAny_update_version% %RunAny_update_time%%AdminMode%
+	GuiControl, RunCtrlConfig:+Redraw, FuncLV
+	Gui,RunCtrlConfig:Add,Button,Default xm+150 y+15 w75 GRunCtrlLVSave,保存(&Y)
+	Gui,RunCtrlConfig:Add,Button,x+20 w75 GSetCancel,取消(&C)
+	Gui,RunCtrlConfig:Show, , %RunAnyZz% 规则组 - %menuItem% %RunAny_update_version% %RunAny_update_time%%AdminMode%
 return
 
 RunCtrlLVSave:
-	Gui,2:Submit, NoHide
+	Gui,RunCtrlConfig:Submit, NoHide
 	fnx:=250
 	fny:=40
 	if(!vRuleGroupName){
@@ -4894,14 +4895,14 @@ RunCtrlLVSave:
 	}
 	if(Instr(vRuleGroupName, A_SPACE)){
 		StringReplace, vRuleGroupName, vRuleGroupName, %A_SPACE%, _, All
-		GuiControl, 2:, vRuleGroupName, %vRuleGroupName%
+		GuiControl, RunCtrlConfig:, vRuleGroupName, %vRuleGroupName%
 		ToolTip, 规则组名不能带有空格，请用_代替,%fnx%,%fny%
 		SetTimer,RemoveToolTip,3000
 		return
 	}
 	if(Instr(vRuleGroupName, A_Tab)){
 		StringReplace, vRuleGroupName, vRuleGroupName, %A_Tab%, _, All
-		GuiControl, 2:, vRuleGroupName, %vRuleGroupName%
+		GuiControl, RunCtrlConfig:, vRuleGroupName, %vRuleGroupName%
 		ToolTip, 规则组名不能带有制表符，请用_代替,%fnx%,%fny%
 		SetTimer,RemoveToolTip,3000
 		return
@@ -4923,7 +4924,7 @@ RunCtrlLVSave:
 		ruleContent.=RuleName . "|" . FuncBoolean . "=" . FuncValue . "`n"
 	}
 	;~ ;[写入配置文件]
-	Gui,RunCtrlGui:Default
+	Gui,RunCtrlManage:Default
 	vFileRuleLogic:=vRuleGroupLogic1=1 ? 1 : 0
 	if(RuleGroupName!=vRuleGroupName){
 		IniDelete, %RunAnyConfig%, RunCtrlList, %RuleGroupName%
@@ -4949,7 +4950,7 @@ RunCtrlLVSave:
 	IniWrite, %runContent%, %RunAnyConfig%, %vRuleGroupName%_Run
 	ruleContent:=SubStr(ruleContent, 1, -StrLen("`n"))
 	IniWrite, %ruleContent%, %RunAnyConfig%, %vRuleGroupName%_Rule
-	Gui,2:Destroy
+	Gui,RunCtrlConfig:Destroy
 	gosub,RunCtrl_Manage
 return
 ; LVImport:
@@ -5011,7 +5012,7 @@ return
 ;~;【启动控制-运行规则Gui】
 LVFuncConfig:
 	Gui,F:Destroy
-	Gui,F:+Owner2
+	Gui,F:+OwnerRunCtrlConfig
 	Gui,F:Font,,Microsoft YaHei
 	Gui,F:Margin,20,10
 	Gui,F:Add, Text, xm y+10 w60, 规则名：
@@ -5064,7 +5065,7 @@ LVFuncSave:
 	vFuncValue:=StrReplace(vFuncValue,"`n","``n")
 	;[写入配置文件]
 	Gui,F:Destroy
-	Gui,2:Default
+	Gui,RunCtrlConfig:Default
 	for k,v in RunCtrlLogicEnum
 	{
 		if(vFuncBoolean%k%){
@@ -5079,7 +5080,7 @@ LVFuncSave:
 	}
 	LV_ModifyCol(1)
 	LV_ModifyCol(2)
-	GuiControl, 2:+Redraw, FuncLV
+	GuiControl, RunCtrlConfig:+Redraw, FuncLV
 return
 listfunc:
     if A_GuiEvent = DoubleClick
@@ -5119,7 +5120,7 @@ FuncValueChange:
 return
 SetFilePath:
 	FileSelectFile, filePath, 3, , 请选择导入的启动项, (*.ahk;*.exe)
-	GuiControl, 2:, vFilePath, %filePath%
+	GuiControl, RunCtrlConfig:, vFilePath, %filePath%
 return
 ;~;【启动控制-启动项Gui】
 LVCtrlRunAdd:
@@ -5159,7 +5160,7 @@ LVCtrlRunConfig:
 	RunCtrlRepeatRun:=RunCtrlRepeatRun="重复" ? 1 : 0
 	Gui,CtrlRun:Destroy
 	Gui,CtrlRun:Default
-	Gui,CtrlRun:+OwnerRunCtrlGui
+	Gui,CtrlRun:+OwnerRunCtrlManage
 	Gui,CtrlRun:Margin,20,20
 	Gui,CtrlRun:Font,,Microsoft YaHei
 	Gui,CtrlRun:Add, Radio, xm+10 yp+25 Checked%RunCtrlNoPath1% vvRunCtrlNoPath1, 菜单项(&Z)
@@ -6341,8 +6342,8 @@ SaveItemGuiEscape:
 PluginsManageGuiEscape:
 PluginsDownloadGuiEscape:
 PluginsLibGuiEscape:
-RunCtrlGuiGuiEscape:
-2GuiEscape:
+RunCtrlManageGuiEscape:
+RunCtrlConfigGuiEscape:
 FGuiEscape:
 CtrlRunGuiEscape:
 RGuiEscape:
@@ -6398,7 +6399,7 @@ SaveItemGuiSize:
 	GuiControl,SaveItem:MoveDraw, vSaveItemCancelBtn,% "x" . (A_GuiWidth / 2 + 10) . " y" . (A_GuiHeight-60)
 	GuiControl,SaveItem:MoveDraw, vStatusBar,% "x30" . " y" . (A_GuiHeight-30)
 return
-RunCtrlGuiGuiSize:
+RunCtrlManageGuiSize:
 	if A_EventInfo = 1
 		return
 	GuiControl, Move, RunCtrlListBox, % "H" . (A_GuiHeight-20)
@@ -6416,7 +6417,7 @@ PluginsManageGuiContextMenu:
 		Menu, LVMenu, Show
 	}
 return
-RunCtrlGuiGuiContextMenu:
+RunCtrlManageGuiContextMenu:
 	If (A_GuiControl = "RunCtrlListBox" || A_GuiControl = "RunCtrlLV") {
 		TV_Modify(A_EventInfo, "Select Vis")
 		Menu, RunCtrlLVMenu, Show
