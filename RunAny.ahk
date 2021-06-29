@@ -370,12 +370,11 @@ if(ReloadGosub){
 	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, ReloadGosub, 0
 	gosub,%ReloadGosub%
 }
-;GUI控件图标缓存加载
+;提前加载菜单树图标缓存
 Gosub,Plugins_LV_Icon_Set
 global TreeImageListID := IL_Create(11)
-global LVImageListID := IL_Create(11)
-Gui_Icon_Image_Set(TreeImageListID)
-Gui_Icon_Image_Set(LVImageListID)
+Icon_Image_Set(TreeImageListID)
+Icon_Tree_Image_Set(TreeImageListID)
 ;自动备份配置文件
 if(RunABackupRule && RunABackupDirPath!=A_ScriptDir){
 	RunABackupFormatStr:=Get_Transform_Val(RunABackupFormat)
@@ -4668,6 +4667,8 @@ RunCtrl_Manage:
 	Gui,RunCtrlGui:Add, ListBox, x16 w130 r27 vRunCtrlListBox gRunCtrlListClick Choose1, %RunCtrlListBoxVar%
 	Gui,RunCtrlGui:Add, Listview,x+15 w530 r20 grid AltSubmit vRunCtrlLV gRunCtrlListView, 启动项|类型|重复运行
 	GuiControl,RunCtrlGui:-Redraw, RunCtrlLV
+	LVImageListID := IL_Create(11)
+	Icon_Image_Set(LVImageListID)
 	LV_SetImageList(LVImageListID)
 	Gui,RunCtrlGui:Submit, NoHide
 	For runn, runv in RunCtrlList[RunCtrlListBox].runList
@@ -4857,7 +4858,7 @@ RunCtrlConfig:
 	Gui,2:Add, Text, x+20 yp+3 w110, 循环间隔时间(秒):
 	Gui,2:Add, Edit, x+2 yp-3 w100 h20 vvRuleIntervalTime, %RuleIntervalTime%
 	Gui,2:Add, Button, xm+10 y+15 w85 GLVFuncAdd, + 增加规则(&A)
-	Gui,2:Add, Button, x+10 yp w85 GLVFuncEdit, * 修改规则(&E)
+	Gui,2:Add, Button, x+10 yp w85 GLVFuncEdit, · 修改规则(&E)
 	Gui,2:Add, Button, x+10 yp w85 GLVFuncRemove, - 减少规则(&D)
 	Gui,2:Font, s10, Microsoft YaHei
 	Gui,2:Add, Listview, xm+10 y+10 w480 r10 grid AltSubmit C808000 vFuncLV glistfunc, 规则名|条件|条件值
@@ -5227,14 +5228,14 @@ RunCtrlLVRule:
 	Gui,R:Default
 	Gui,R:+Resize
 	Gui,R:Font, s10, Microsoft YaHei
-	Gui,R:Add, Listview, xm w600 r18 grid AltSubmit BackgroundF6F6E8 vRuleLV glistrule, 规则名|规则函数|状态|类型|参数|示例|规则插件名
+	Gui,R:Add, Listview, xm w660 r18 grid AltSubmit BackgroundF6F6E8 vRuleLV glistrule, 规则名|规则函数|状态|类型|参数|示例|规则插件名
 	;[读取规则内容写入列表]
 	GuiControl, -Redraw, RuleLV
 	For kName, kVal in rulefileList
 	{
 		LV_Add("", kName, rulefuncList[kName], rulestatusList[kName] ? "正常" : "不可用"
 			,ruletypelist[kName] ? "变量" : "插件",ruleparamList[kName] ? "传参" : ""
-			,!InStr(kVal,"RunCtrl_Network.ahk") ? RunCtrl_RuleResult(kName, ruleitemList[kName], "") : "www.ip-api.com" , kVal)
+			,!InStr(kVal,"RunCtrl_Network.ahk") ? RunCtrl_RuleResult(kName, ruleitemList[kName], "") : "http://ip-api.com/json" , kVal)
 	}
 	GuiControl, +Redraw, RuleLV
 	Menu, ruleGuiMenu, Add, 新增, LVRulePlus
@@ -5579,7 +5580,7 @@ Config_Gui_Show:
 	Gui,66:Tab,菜单变量,,Exact
 	Gui,66:Add,Text,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%,自定义配置RunAny菜单中可以使用的变量
 	Gui,66:Add,Button, xm yp+30 w50 GLVMenuVarAdd, + 增加
-	Gui,66:Add,Button, x+10 yp w50 GLVMenuVarEdit, * 修改
+	Gui,66:Add,Button, x+10 yp w50 GLVMenuVarEdit, · 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuVarRemove, - 减少
 	Gui,66:Add,Link, x+15 yp-5,使用方法：变量两边加百分号如：<a href="https://hui-zz.gitee.io/runany/#/article/built-in-variables">`%变量名`%`n</a>编辑菜单项的启动路径中 或 RunAny.ini文件中使用
 	Gui,66:Add,Listview,xm yp+40 r16 grid AltSubmit vRunAnyMenuVarLV glistviewMenuVar, 菜单变量名|类型|菜单变量值（动态变量不同电脑会自动变化）
@@ -5644,7 +5645,7 @@ Config_Gui_Show:
 	Gui,66:Tab,内部关联,,Exact
 	Gui,66:Add,Text,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%,内部关联软件打开%RunAnyZz%菜单内不同后缀的文件（仅菜单内部不作用资源管理器）
 	Gui,66:Add,Button, xm yp+30 w50 GLVOpenExtAdd, + 增加
-	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtEdit, * 修改
+	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtEdit, · 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtRemove, - 减少
 	Gui,66:Add,Text, x+10 yp-5 w360,特殊类型：网址http https www ftp等`n文件夹folder（原来使用TC、DO第三方软件打开文件夹的功能）
 	Gui,66:Add,Listview,xm yp+40 r16 grid AltSubmit -Multi vRunAnyOpenExtLV glistviewOpenExt, RunAny菜单内文件后缀(用空格分隔)|打开方式(支持无路径)
@@ -6922,8 +6923,8 @@ Icon_FileExt_Set:
 	}
 	IconFolderPath:=StrReplace(IconFolderPath, "|", "`n")
 return
-;~;[树型菜单图标集]
-Gui_Icon_Image_Set(ImageListID){
+;~;[图标集初始图标]
+Icon_Image_Set(ImageListID){
 	IL_Add(ImageListID, "shell32.dll", 1)
 	IL_Add(ImageListID, "shell32.dll", 2)
 	IL_Add(ImageListID, EXEIconS[1], EXEIconS[2])
@@ -6935,7 +6936,9 @@ Gui_Icon_Image_Set(ImageListID){
 	IL_Add(ImageListID, "shell32.dll", 100)
 	IL_Add(ImageListID, "shell32.dll", 101)
 	IL_Add(ImageListID, FuncIconS[1], FuncIconS[2])
-	;#菜单加载完后，预读完成"修改菜单"的GUI图标
+}
+;#菜单加载完后，预读完成"修改菜单"的GUI图标
+Icon_Tree_Image_Set(ImageListID){
 	Loop,%MenuCount%
 	{
 		Loop, parse, iniVar%A_Index%, `n, `r, %A_Space%%A_Tab%
