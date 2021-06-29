@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.06.27
+║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.06.29
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.6"     ;~;版本号
-global RunAny_update_time:="2021.06.27"   ;~;修改日期
+global RunAny_update_time:="2021.06.29"   ;~;修改日期
 gosub,Var_Set           ;~;01.参数初始化
 gosub,Menu_Var_Set      ;~;02.自定义变量
 gosub,Icon_Set          ;~;03.图标初始化
@@ -4809,18 +4809,15 @@ RunCtrlLVRun:
 	Gui,RunCtrlManage:Submit, NoHide
 	GuiControlGet, focusGuiName, Focus
 	if(focusGuiName="ListBox1"){
-		effectResult:=RunCtrl_RunRules(RunCtrlList[RunCtrlListBox])
-		if(!effectResult){
-			ToolTip, 规则验证失败
-			SetTimer,RemoveToolTip,3000
-		}
+		effectResult:=RunCtrl_RunRules(RunCtrlList[RunCtrlListBox],true)
 	}else if(focusGuiName="SysListView321"){
 		gosub,LVCtrlRunRun
 	}
 return
 RunCtrlLVAdd:
-	RuleGroupName:=RuleGroupLogic2:=RuleMostRun:=RuleIntervalTime:=RunCtrlListBox:=""
+	RuleGroupName:=RuleGroupLogic2:=RuleMostRun:=RuleIntervalTime:=RuleGroupKey:=RunCtrlListBox:=""
 	RuleGroupLogic1:=true
+	RuleGroupWinKey:=false
 	menuItem:="新建"
 	gosub,RunCtrlConfig
 return
@@ -4835,7 +4832,15 @@ RunCtrlLVEdit:
 		RuleGroupLogic1:=RunCtrlList[RunCtrlListBox].ruleLogic
 		RuleGroupLogic2:=RuleGroupLogic1 ? 0 : 1
 		RuleMostRun:=RunCtrlList[RunCtrlListBox].ruleMostRun
+		RuleMostRun:=RuleMostRun=0 ? "" : RuleMostRun
 		RuleIntervalTime:=RunCtrlList[RunCtrlListBox].ruleIntervalTime
+		RuleIntervalTime:=RuleIntervalTime=0 ? "" : RuleIntervalTime
+		RuleGroupKey:=RunCtrlList[RunCtrlListBox].key
+		RuleGroupWinKey:=0
+		if(InStr(RuleGroupKey,"#")){
+			RuleGroupWinKey:=1
+			RuleGroupKey:=StrReplace(RuleGroupKey, "#")
+		}
 		gosub,RunCtrlConfig
 	}else if(focusGuiName="SysListView321"){
 		gosub,LVCtrlRunEdit
@@ -4849,9 +4854,12 @@ RunCtrlConfig:
 	Gui,RunCtrlConfig:Font,,Microsoft YaHei
 	Gui,RunCtrlConfig:Margin,20,20
 	Gui,RunCtrlConfig:Add, CheckBox, xm+5 y+15 Checked%FileRuleRun% vvFileRuleRun c%FileRuleEnable%, 启用规则组
-	Gui,RunCtrlConfig:Add, Text, x+10 yp w60, 规则组名：
+	Gui,RunCtrlConfig:Add, Text, x+30 yp w60, 全局热键：
+	Gui,RunCtrlConfig:Add, Hotkey,x+5 yp-2 w130 h22 vvRuleGroupKey,%RuleGroupKey%
+	Gui,RunCtrlConfig:Add, Checkbox, x+10 yp+3 w55 Checked%RuleGroupWinKey% vvRuleGroupWinKey,Win
+	Gui,RunCtrlConfig:Add, Text, xm+5 yp+30 w60, 规则组名：
 	Gui,RunCtrlConfig:Add, Edit, x+5 yp-3 w300 vvRuleGroupName, %RuleGroupName%
-	Gui,RunCtrlConfig:Add, GroupBox,xm y+15 w500 h390,规则组设置
+	Gui,RunCtrlConfig:Add, GroupBox,xm y+10 w500 h390,规则组设置
 	Gui,RunCtrlConfig:Add, Radio, xm+10 yp+25 Checked%RuleGroupLogic1% vvRuleGroupLogic1, 与（全部规则都验证成立）(&A)
 	Gui,RunCtrlConfig:Add, Radio, x+10 yp Checked%RuleGroupLogic2% vvRuleGroupLogic2, 或（一个规则即验证成立）(&O)
 	Gui,RunCtrlConfig:Add, Text, xm+10 y+15 w100, 规则循环最大次数:
@@ -4932,10 +4940,16 @@ RunCtrlLVSave:
 		IniDelete, %RunAnyConfig%, %RuleGroupName%_Run
 	}
 	vFileRuleVal=%vFileRuleRun%|%vFileRuleLogic%
-	if(vRuleMostRun!="")
-		vFileRuleVal.="|" vRuleMostRun
-	if(vRuleIntervalTime!="")
-		vFileRuleVal.="|" vRuleIntervalTime
+	if(vRuleMostRun!=""){
+		vFileRuleVal.="|" vRuleMostRun "|" vRuleIntervalTime
+	}
+	if(vRuleGroupKey!=""){
+		if(vRuleMostRun=""){
+			vFileRuleVal.="||"
+		}
+		vRuleGroupKey:=vRuleGroupWinKey ? "#" . vRuleGroupKey : vRuleGroupKey
+		vFileRuleVal.="|" vRuleGroupKey
+	}
 	IniWrite, %vFileRuleVal%, %RunAnyConfig%, RunCtrlList, %vRuleGroupName%
 
 	if(RunCtrlList[RuleGroupName]){
@@ -7295,9 +7309,17 @@ RunCtrl_Read:
 		runCtrlName:=varList[1]
 		RunCtrlListBoxVar.=runCtrlName "|"
 
-		itemList:=StrSplit(varList[2],"|",,4)
-		RunCtrlObj:=new RunCtrl(runCtrlName,itemList[1],itemList[2],itemList[3],itemList[4])
+		itemList:=StrSplit(varList[2],"|",,5)
+		RunCtrlObj:=new RunCtrl(runCtrlName,itemList[1],itemList[2],itemList[3],itemList[4],itemList[5])
 		RunCtrlList[runCtrlName]:=RunCtrlObj
+		try{
+			if(itemList[5]!=""){
+				funcEffect:=Func("RunCtrl_RunRules").Bind(RunCtrlObj,true)
+				Hotkey,% itemList[5],% funcEffect,On
+			}
+		} catch{
+			MsgBox,16,规则组%runCtrlName%：热键配置不正确,% "热键错误：`n" itemList[5] "`n请设置正确热键后重启RunAny"
+		}
 	}
 	RunCtrlListBoxVar:=SubStr(RunCtrlListBoxVar, 1, -StrLen("|"))
 return
@@ -7316,6 +7338,7 @@ class RunCtrl
 	enable:=false           ;运行组启用状态
 	noPath:=true            ;无全路径应用
 	noMenu:=true            ;无菜单项应用
+	key:=""                 ;规则组全局热键
 	ruleLogic:=true         ;规则组逻辑：与、或
 	ruleMostRun:=0          ;规则循环最大次数
 	ruleIntervalTime:=0     ;循环间隔时间(秒)
@@ -7323,12 +7346,13 @@ class RunCtrl
 	runList:=Object()       ;应用运行队列
 	ruleFile:=Object()      ;规则文件
 	ruleList:=Object()      ;规则队列
-	__New(name,enable,ruleLogic,ruleMostRun,ruleIntervalTime){
+	__New(name,enable,ruleLogic,ruleMostRun,ruleIntervalTime,key){
 		this.name:=name
 		this.enable:=enable
 		this.ruleLogic:=ruleLogic
 		this.ruleMostRun:=ruleMostRun
 		this.ruleIntervalTime:=ruleIntervalTime
+		this.key:=key
 		IniRead,ctrlAppsVar,%RunAnyConfig%,%name%_Run
 		Loop, parse, ctrlAppsVar, `n, `r
 		{
@@ -7410,7 +7434,7 @@ Rule_Effect:
 	}
 return
 ;~;【规则启动-应用】
-RunCtrl_RunRules(runCtrlObj){
+RunCtrl_RunRules(runCtrlObj,show:=0){
 	try {
 		rcName:=runCtrlObj.name
 		effectResult:=RunCtrl_RuleEffect(runCtrlObj)
@@ -7421,6 +7445,9 @@ RunCtrl_RunRules(runCtrlObj){
 					RunCtrl_RunApps(runv.path, runv.noPath, runv.repeatRun)
 				}
 			}
+		}else if(show){
+			ToolTip, 规则验证失败
+			SetTimer,RemoveToolTip,3000
 		}
 		return effectResult
 	} catch e {
