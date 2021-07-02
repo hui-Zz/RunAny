@@ -1357,6 +1357,8 @@ Menu_Run:
 	any:=MenuObj[(Z_ThisMenuItem)]
 	if(MenuShowMenuRun){
 		any:=MenuObj[(MenuShowMenuRun)]
+		if(any="")
+			TrayTip,,%MenuShowMenuRun% 没有找到`n请检查是否存在(在Everything能搜索到)，并重启RunAny重试,3,1
 		MenuShowMenuRun:=""
 	}
 	MenuRunDebugModeShow()
@@ -4661,11 +4663,21 @@ LVStatusChange(RowNumber,FileStatus,lvItem,FileName){
 ;══════════════════════════════════════════════════════════════════
 RunCtrl_Manage_Gui:
 	gosub,RunCtrl_Read
+	RunCtrlListBoxChoose:=1
+	if(RunCtrlListBox!=""){
+		for i,v in RunCtrlListBoxList
+		{
+			if(RunCtrlListBox=v){
+				RunCtrlListBoxChoose:=i
+				break
+			}
+		}
+	}
 	Gui,RunCtrlManage:Destroy
 	Gui,RunCtrlManage:Default
 	Gui,RunCtrlManage:+Resize
 	Gui,RunCtrlManage:Font, s10, Microsoft YaHei
-	Gui,RunCtrlManage:Add, ListBox, x16 w130 vRunCtrlListBox gRunCtrlListClick Choose1, %RunCtrlListBoxVar%
+	Gui,RunCtrlManage:Add, ListBox, x16 w130 vRunCtrlListBox gRunCtrlListClick Choose%RunCtrlListBoxChoose%, %RunCtrlListBoxVar%
 	Gui,RunCtrlManage:Add, Listview,x+15 w530 r15 grid AltSubmit vRunCtrlLV gRunCtrlListView, 启动项|类型|重复运行
 	GuiControl,RunCtrlManage:-Redraw, RunCtrlLV
 	LVImageListID := IL_Create(11)
@@ -4847,7 +4859,7 @@ RunCtrlLVDown:
 return
 RunCtrlLVSelect:
 	Gui,RunCtrlManage:Default
-	LV_Modify(0, "Select")   ; 选择所有.
+	LV_Modify(0, "Select Focus")   ; 选择所有.
 return
 RunCtrlLVRun:
 	Gui,RunCtrlManage:Default
@@ -7339,7 +7351,7 @@ RunCtrl_Read:
 	}
 	RuleNameStr:=SubStr(RuleNameStr, 1, -StrLen("|"))
 	;---规则启动项---
-	global RunCtrlList:=Object()
+	global RunCtrlList:=Object(),RunCtrlListBoxList:=Object()
 	global RunCtrlLogicEnum:={"eq":"相等","ne":"不相等","ge":"大于等于","le":"小于等于","gt":"大于","lt":"小于"}
 	global RunCtrlListBoxVar:=""
 	IniRead,runCtrlListVar,%RunAnyConfig%,RunCtrlList
@@ -7353,7 +7365,7 @@ RunCtrl_Read:
 			continue
 		runCtrlName:=varList[1]
 		RunCtrlListBoxVar.=runCtrlName "|"
-
+		RunCtrlListBoxList.Push(runCtrlName)
 		itemList:=StrSplit(varList[2],"|",,5)
 		RunCtrlObj:=new RunCtrl(runCtrlName,itemList[1],itemList[2],itemList[3],itemList[4],itemList[5])
 		RunCtrlList[runCtrlName]:=RunCtrlObj
