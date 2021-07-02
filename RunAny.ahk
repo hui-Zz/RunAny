@@ -2991,7 +2991,7 @@ TVEdit:
 	selIDTVEdit:=""
 	if(RunCtrlMenuItemFlag){
 		Gui, MenuEdit:Destroy
-		GuiControlSet("CtrlRun","vRunCtrlRunValue",itemName)
+		GuiControlSet("CtrlRun","vRunCtrlRunValue",itemName!="" ? itemName : itemPath)
 		RunCtrlMenuItemFlag:=false
 	}else{
 		gosub,Menu_Item_Edit
@@ -4665,8 +4665,8 @@ RunCtrl_Manage_Gui:
 	Gui,RunCtrlManage:Default
 	Gui,RunCtrlManage:+Resize
 	Gui,RunCtrlManage:Font, s10, Microsoft YaHei
-	Gui,RunCtrlManage:Add, ListBox, x16 w130 r27 vRunCtrlListBox gRunCtrlListClick Choose1, %RunCtrlListBoxVar%
-	Gui,RunCtrlManage:Add, Listview,x+15 w530 r20 grid AltSubmit vRunCtrlLV gRunCtrlListView, 启动项|类型|重复运行
+	Gui,RunCtrlManage:Add, ListBox, x16 w130 vRunCtrlListBox gRunCtrlListClick Choose1, %RunCtrlListBoxVar%
+	Gui,RunCtrlManage:Add, Listview,x+15 w530 r15 grid AltSubmit vRunCtrlLV gRunCtrlListView, 启动项|类型|重复运行
 	GuiControl,RunCtrlManage:-Redraw, RunCtrlLV
 	LVImageListID := IL_Create(11)
 	Icon_Image_Set(LVImageListID)
@@ -4725,12 +4725,10 @@ RunCtrlLVMenu(addMenu){
 	Menu, %addMenu%, Icon,% flag ? "移除" : "移除`tDel", SHELL32.dll,132
 	Menu, %addMenu%, Add,% flag ? "规则" : "规则`tF7", Rule_Manage_Gui
 	Menu, %addMenu%, Icon,% flag ? "规则" : "规则`tF7", SHELL32.dll,166
-	Menu, %addMenu%, Add,% flag ? "向下" : "向下`t(F5/PgDn)", TVDown
-	try Menu, %addMenu%, Icon,% flag ? "向下" : "向下`t(F5/PgDn)",% DownIconS[1],% DownIconS[2]
-	Menu, %addMenu%, Add,% flag ? "向上" : "向上`t(F6/PgUp)", TVUp
-	try Menu, %addMenu%, Icon,% flag ? "向上" : "向上`t(F6/PgUp)",% UpIconS[1],% UpIconS[2]
-	Menu, %addMenu%, Disable,% flag ? "向下" : "向下`t(F5/PgDn)"
-	Menu, %addMenu%, Disable,% flag ? "向上" : "向上`t(F6/PgUp)"
+	Menu, %addMenu%, Add,% flag ? "下移" : "下移`t(F5/PgDn)", RunCtrlLVDown
+	try Menu, %addMenu%, Icon,% flag ? "下移" : "下移`t(F5/PgDn)",% DownIconS[1],% DownIconS[2]
+	Menu, %addMenu%, Add,% flag ? "上移" : "上移`t(F6/PgUp)", RunCtrlLVUp
+	try Menu, %addMenu%, Icon,% flag ? "上移" : "上移`t(F6/PgUp)",% UpIconS[1],% UpIconS[2]
 	Menu, %addMenu%, Add,% flag ? "全选" : "全选`tCtrl+A", RunCtrlLVSelect
 }
 RunCtrlLVDel:
@@ -4800,6 +4798,53 @@ return
 	F7::gosub,Rule_Manage_Gui
 	^a::gosub,RunCtrlLVSelect
 #If
+RunCtrlLVUp:
+RunCtrlLVDown:
+	Gui,RunCtrlManage:Default
+	Gui,RunCtrlManage:Submit, NoHide
+	if(RunCtrlListBox=""){
+		return
+	}
+	RunRowNumber1 := LV_GetNext(0, "F")
+	if not RunRowNumber1
+		return
+	if(A_ThisLabel="RunCtrlLVDown"){
+		RunRowNumber2 := RunRowNumber1 + 1 
+		RunRowCount := LV_GetCount()
+		if(RunRowNumber2 > RunRowCount)
+			return
+	}else if(A_ThisLabel="RunCtrlLVUp"){
+		RunRowNumber2 := RunRowNumber1 - 1 
+		if(RunRowNumber2 <= 0)
+			return
+	}
+	LV_GetText(RunCtrlRunValue1, RunRowNumber1, 1)
+	LV_GetText(RunCtrlNoPath1, RunRowNumber1, 2)
+	LV_GetText(RunCtrlRepeatRun1, RunRowNumber1, 3)
+	LV_GetText(RunCtrlRunValue2, RunRowNumber2, 1)
+	LV_GetText(RunCtrlNoPath2, RunRowNumber2, 2)
+	LV_GetText(RunCtrlRepeatRun2, RunRowNumber2, 3)
+	LV_Modify(RunRowNumber1,Set_Icon(LVImageListID,RunCtrlNoPath2 ? Get_Obj_Path(RunCtrlRunValue2) : RunCtrlRunValue2,false,false,RunCtrlRunValue2)
+		,RunCtrlRunValue2,RunCtrlNoPath2,RunCtrlRepeatRun2)
+	LV_Modify(RunRowNumber2,Set_Icon(LVImageListID,RunCtrlNoPath1 ? Get_Obj_Path(RunCtrlRunValue1) : RunCtrlRunValue1,false,false,RunCtrlRunValue1)
+		,RunCtrlRunValue1,RunCtrlNoPath1,RunCtrlRepeatRun1)
+	;顺序改变后写入配置文件
+	runContent=
+	Gui, ListView, RunCtrlLV
+	Loop % LV_GetCount()
+	{
+		LV_GetText(RunCtrlRunValue, A_Index, 1)
+		LV_GetText(RunCtrlNoPath, A_Index, 2)
+		LV_GetText(RunCtrlRepeatRun, A_Index, 3)
+		runMenu:=RunCtrlNoPath="菜单项" ? "menu" : "path"
+		runRepeat:=RunCtrlRepeatRun="重复" ? "|1" : ""
+		runContent.=runMenu runRepeat "=" RunCtrlRunValue "`n"
+	}
+	runContent:=SubStr(runContent, 1, -StrLen("`n"))
+	IniWrite, %runContent%, %RunAnyConfig%, %RunCtrlListBox%_Run
+	LV_Modify(0, "-Select")
+	LV_Modify(RunRowNumber2, "Select Focus")
+return
 RunCtrlLVSelect:
 	Gui,RunCtrlManage:Default
 	LV_Modify(0, "Select")   ; 选择所有.
@@ -5035,9 +5080,9 @@ LVFuncConfig:
 	Gui,RunCtrlFunc:Add, Radio, xm y+10 Checked%FuncBooleanEQ% vvFuncBooleanEQ, 相等 ( 真 &True 1)
 	Gui,RunCtrlFunc:Add, Radio, x+4 yp Checked%FuncBooleanNE% vvFuncBooleanNE, 不相等 ( 假 &False 0)
 	Gui,RunCtrlFunc:Add, Radio, xm y+10 Checked%FuncBooleanGE% vvFuncBooleanGE, 大于等于　　　
-	Gui,RunCtrlFunc:Add, Radio, x+6 yp Checked%FuncBooleanLE% vvFuncBooleanLE, 小于等于　　　
+	Gui,RunCtrlFunc:Add, Radio, x+10 yp Checked%FuncBooleanLE% vvFuncBooleanLE, 小于等于　　　
 	Gui,RunCtrlFunc:Add, Radio, xm y+10 Checked%FuncBooleanGT% vvFuncBooleanGT, 大于　　　　　
-	Gui,RunCtrlFunc:Add, Radio, x+6 yp Checked%FuncBooleanLT% vvFuncBooleanLT, 小于　　　　　
+	Gui,RunCtrlFunc:Add, Radio, x+10 yp Checked%FuncBooleanLT% vvFuncBooleanLT, 小于　　　　　
 	Gui,RunCtrlFunc:Add, Text, xm y+10 w350 vvRuleText, 条件值：（只判断规则真假，可不填写）
 	Gui,RunCtrlFunc:Add, Text, xm yp w350 cblue vvRuleParamText, 条件值：（条件值变为参数传递到规则函数，只判断结果真假）
 	; `n多个参数每行为一个参数，最多支持10个，保存会用|分隔
@@ -6417,7 +6462,7 @@ return
 RunCtrlManageGuiSize:
 	if A_EventInfo = 1
 		return
-	GuiControl, Move, RunCtrlListBox, % "H" . (A_GuiHeight-20)
+	GuiControl, Move, RunCtrlListBox, % "H" . (A_GuiHeight-15)
 	GuiControl, Move, RunCtrlLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 175)
 return
 ;[GuiContextMenu]
