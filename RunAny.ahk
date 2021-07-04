@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.06.29
+║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.07.04
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.6"     ;~;版本号
-global RunAny_update_time:="2021.06.29"   ;~;修改日期
+global RunAny_update_time:="2021.07.04"   ;~;更新日期
 gosub,Var_Set           ;~;01.参数初始化
 gosub,Menu_Var_Set      ;~;02.自定义变量
 gosub,Icon_Set          ;~;03.图标初始化
@@ -4916,7 +4916,7 @@ RunCtrlConfig:
 	Gui,RunCtrlConfig:Add, Checkbox, x+10 yp+3 w55 Checked%RuleGroupWinKey% vvRuleGroupWinKey,Win
 	Gui,RunCtrlConfig:Add, Text, xm+5 yp+30 w60, 规则组名：
 	Gui,RunCtrlConfig:Add, Edit, x+5 yp-3 w300 vvRuleGroupName, %RuleGroupName%
-	Gui,RunCtrlConfig:Add, GroupBox,xm y+10 w500 h390,规则组设置
+	Gui,RunCtrlConfig:Add, GroupBox,xm y+10 w500 h385,规则组设置
 	Gui,RunCtrlConfig:Add, Radio, xm+10 yp+25 Checked%RuleGroupLogic1% vvRuleGroupLogic1, 与（全部规则都验证成立）(&A)
 	Gui,RunCtrlConfig:Add, Radio, x+10 yp Checked%RuleGroupLogic2% vvRuleGroupLogic2, 或（一个规则即验证成立）(&O)
 	Gui,RunCtrlConfig:Add, Text, xm+10 y+15 w100, 规则循环最大次数:
@@ -4927,17 +4927,18 @@ RunCtrlConfig:
 	Gui,RunCtrlConfig:Add, Button, x+10 yp w85 GLVFuncEdit, · 修改规则(&E)
 	Gui,RunCtrlConfig:Add, Button, x+10 yp w85 GLVFuncRemove, - 减少规则(&D)
 	Gui,RunCtrlConfig:Font, s10, Microsoft YaHei
-	Gui,RunCtrlConfig:Add, Listview, xm+10 y+10 w480 r10 grid AltSubmit C808000 vFuncLV glistfunc, 规则名|条件|条件值
+	Gui,RunCtrlConfig:Add, Listview, xm+10 y+10 w480 r10 grid AltSubmit C808000 vFuncLV glistfunc, 规则名|中断|条件|条件值
 	;[读取启动项设置的规则内容写入列表]
 	GuiControl, RunCtrlConfig:-Redraw, FuncLV
 	For k, v in RunCtrlList[RunCtrlListBox].ruleList
 	{
 		funcBoolean:=v.logic="1" ? "相等" : v.logic="0" ? "不相等" : RunCtrlLogicEnum[v.logic]
 		funcBoolean:=rulestatusList[v.name] ? funcBoolean : "规则失效"
-		LV_Add("", v.name, funcBoolean, v.value)
+		LV_Add("", v.name, v.ruleBreak, funcBoolean, v.value)
 	}
 	LV_ModifyCol(1)
 	LV_ModifyCol(2)
+	LV_ModifyCol(3)
 	GuiControl, RunCtrlConfig:+Redraw, FuncLV
 	Gui,RunCtrlConfig:Add,Button,Default xm+150 y+15 w75 GRunCtrlLVSave,保存(&Y)
 	Gui,RunCtrlConfig:Add,Button,x+20 w75 GSetCancel,取消(&C)
@@ -4982,11 +4983,13 @@ RunCtrlLVSave:
 	Loop % LV_GetCount()
 	{
 		LV_GetText(RuleName, A_Index, 1)
-		LV_GetText(FuncBoolean, A_Index, 2)
-		LV_GetText(FuncValue, A_Index, 3)
+		LV_GetText(FuncBreak, A_Index, 2)
+		LV_GetText(FuncBoolean, A_Index, 3)
+		LV_GetText(FuncValue, A_Index, 4)
 		FuncBoolean:=RunCtrlLogicEnumGetKey(FuncBoolean)
 		FuncBoolean:=FuncBoolean="eq" ? 1 : FuncBoolean="ne" ? 0 : FuncBoolean
-		ruleContent.=RuleName . "|" . FuncBoolean . "=" . FuncValue . "`n"
+		FuncBreak:=FuncBreak ? "|" FuncBreak : ""
+		ruleContent.=RuleName . "|" . FuncBoolean . FuncBreak . "=" . FuncValue . "`n"
 	}
 	;~ ;[写入配置文件]
 	Gui,RunCtrlManage:Default
@@ -5048,7 +5051,7 @@ return
 LVFuncAdd:
 	menuFuncItem:="新建规则函数"
 	RuleName:=FuncBoolean:=FuncValue:=""
-	FuncBooleanNE:=FuncBooleanGE:=FuncBooleanLE:=FuncBooleanGT:=FuncBooleanLT:=false
+	FuncBooleanNE:=FuncBooleanGE:=FuncBooleanLE:=FuncBooleanGT:=FuncBooleanLT:=FuncBreak:=false
 	FuncBooleanEQ:=true
 	RuleNameChoose:=1
 	gosub,LVFuncConfig
@@ -5059,8 +5062,10 @@ LVFuncEdit:
 	if not RowNumber
 		return
 	LV_GetText(RuleName, RowNumber, 1)
-	LV_GetText(FuncBoolean, RowNumber, 2)
-	LV_GetText(FuncValue, RowNumber, 3)
+	LV_GetText(FuncBreak, RowNumber, 2)
+	LV_GetText(FuncBoolean, RowNumber, 3)
+	LV_GetText(FuncValue, RowNumber, 4)
+	FuncBreak:=FuncBreak ? 1 : 0
 	for k,v in RunCtrlLogicEnum
 	{
 		FuncBoolean%k%:=false
@@ -5095,6 +5100,7 @@ LVFuncConfig:
 	Gui,RunCtrlFunc:Add, Radio, x+10 yp Checked%FuncBooleanLE% vvFuncBooleanLE, 小于等于　　　
 	Gui,RunCtrlFunc:Add, Radio, xm y+10 Checked%FuncBooleanGT% vvFuncBooleanGT, 大于　　　　　
 	Gui,RunCtrlFunc:Add, Radio, x+10 yp Checked%FuncBooleanLT% vvFuncBooleanLT, 小于　　　　　
+	Gui,RunCtrlFunc:Add, CheckBox, xm y+10 Checked%FuncBreak% vvFuncBreak, 不满足此条件就中断整个规则循环（排在其他规则前面）
 	Gui,RunCtrlFunc:Add, Text, xm y+10 w350 vvRuleText, 条件值：（只判断规则真假，可不填写）
 	Gui,RunCtrlFunc:Add, Text, xm yp w350 cblue vvRuleParamText, 条件值：（条件值变为参数传递到规则函数，只判断结果真假）
 	; `n多个参数每行为一个参数，最多支持10个，保存会用|分隔
@@ -5145,12 +5151,13 @@ LVFuncSave:
 	}
 	ruleLogic:=RunCtrlLogicEnum[funcBoolean]
 	if(menuFuncItem="修改规则函数"){
-		LV_Modify(RowNumber,"",vRuleName,ruleLogic,vFuncValue)
+		LV_Modify(RowNumber,"",vRuleName,vFuncBreak ? "*" : "",ruleLogic,vFuncValue)
 	}else{
-		LV_Add("",vRuleName,ruleLogic,vFuncValue)
+		LV_Add("",vRuleName,vFuncBreak ? "*" : "",ruleLogic,vFuncValue)
 	}
 	LV_ModifyCol(1)
 	LV_ModifyCol(2)
+	LV_ModifyCol(3)
 	GuiControl, RunCtrlConfig:+Redraw, FuncLV
 return
 listfunc:
@@ -5705,7 +5712,7 @@ Settings_Gui:
 	Gui,66:Add,Checkbox,Checked%OneKeyFolder% x+10 yp vvOneKeyFolder,文件夹路径
 	Gui,66:Add,Checkbox,Checked%OneKeyMagnet% x+10 yp vvOneKeyMagnet,磁力链接
 	Gui,66:Add,Checkbox,Checked%OneKeyRegedit% x+10 yp vvOneKeyRegedit,注册表路径
-	Gui,66:Add,GroupBox,xm-10 y+20 h320 vvOneKeyUrlGroup,一键搜索选中文字 %OneHotKey%
+	Gui,66:Add,GroupBox,xm-10 y+20 h310 vvOneKeyUrlGroup,一键搜索选中文字 %OneHotKey%
 	Gui,66:Add,Hotkey,xm yp+30 w150 vvOneKey,%OneKey%
 	Gui,66:Add,Checkbox,Checked%OneWinKey% xm+155 yp+3 vvOneWinKey,Win
 	Gui,66:Add,Checkbox,Checked%OneKeyMenu% x+38 vvOneKeyMenu,绑定菜单1热键为一键搜索
@@ -7319,7 +7326,7 @@ return
 ;══════════════════════════════════════════════════════════════════
 ;~;【规则启动项Read】
 RunCtrl_Read:
-	;规则名-脚本路径列表；规则名-函数名列表；规则名-状态列表；规则名-执行列表；每项启动项设置的规则内容
+	;规则名-脚本路径；规则名-脚本插件名；规则名-函数名；规则名-状态；规则名-类型；规则名-是否传参
 	global rulefileList:=Object(),ruleitemList:=Object(),rulefuncList:=Object(),rulestatusList:=Object(),ruletypelist:=Object(),ruleparamList:=Object()
 	global RuleNameStr:=""
 	ruleitemVar:=rulefuncVar:=""
@@ -7434,13 +7441,14 @@ class RunCtrl
 		Loop, parse, ruleAppsVar, `n, `r
 		{
 			varList:=StrSplit(A_LoopField,"=",,2)
-			itemList:=StrSplit(varList[1],"|",,2)
+			itemList:=StrSplit(varList[1],"|",,3)
 			if(varList[1]="" || itemList[1]="")
 				continue
 			runRuleObj:=new RunCtrlRunRule
 			runRuleObj.value:=varList[2]
 			runRuleObj.name:=itemList[1]
 			runRuleObj.logic:=itemList[2]
+			runRuleObj.ruleBreak:=itemList[3]
 			runRuleObj.file:=ruleitemList[itemList[1]]
 			this.ruleList.push(runRuleObj)
 			if(rulestatusList[runRuleObj.name]){
@@ -7458,9 +7466,7 @@ class RunCtrlRun
 }
 class RunCtrlRunRule
 {
-	file:=""
-	name:=""
-	value:=""
+	file:="",name:="",value:="",ruleBreak:=""
 	logic:=1
 }
 
@@ -7551,6 +7557,7 @@ RunCtrl_RunApps(path,noPath,repeatRun:=0){
 RunCtrl_RuleEffect(runCtrlObj){
 	effectFlag:=false
 	ruleRunCount:=0
+	rcName:=runCtrlObj.name
 	for ruleFile,ruleStatus in runCtrlObj.ruleFile
 	{
 		if(ruleStatus && ruleFile!="0" && ruleFile!="RunAny"){
@@ -7595,6 +7602,11 @@ RunCtrl_RuleEffect(runCtrlObj){
 			}else{
 				effectFlag:=effectResult
 			}
+		}
+		;有中断标记的规则不满足时，则直接中断后续判断并停止规则循环
+		if(!effectFlag && rulev.ruleBreak){
+			try SetTimer,% funcEffect%rcName%, Off
+			break
 		}
 		;该启动项所有规则必须全部为真时，如有一假就退出循环
 		;该启动项只需要有一项规则为真时，如有一真就退出循环
