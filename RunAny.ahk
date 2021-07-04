@@ -688,50 +688,58 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 			;~;[生成有前缀备注的应用]
 			if(InStr(Z_LoopField,"|")){
 				menuDiy:=StrSplit(Z_LoopField,"|",,2)
+				menuItemDiy:=menuDiy[1]
 				appName:=RegExReplace(menuDiy[2],"iS)(.*?\.[a-zA-Z0-9]+)($| .*)","$1")	;去掉参数，取应用名
 				appName:=RegExReplace(appName,"iS)\.exe$")	;去掉exe后缀，取应用名
-				if(MenuObjName.HasKey(menuDiy[1]) || MenuObjParam.HasKey(menuDiy[1])){
-					menuDiy[1].="重名"
+				;[分割Tab获取应用自定义热键]
+				menuKeyStr:=RegExReplace(menuDiy[1], "S)\t+", A_Tab)
+				menuKeys:=StrSplit(menuKeyStr,"`t",,2)
+				if(MenuObjName.HasKey(menuItemDiy) || MenuObjParam.HasKey(menuItemDiy)){
+					if(menuKeys[2]){
+						menuItemDiy:=menuKeys[1] "重名" A_Tab menuKeys[2]
+					}else{
+						menuItemDiy.="重名"
+					}
 				}
-				item:=MenuObjEv[appName]
-				if(item){
-					SplitPath, item,,, FileExt  ; 获取文件扩展名.
+				itemContent:=MenuObjEv[appName]
+				if(itemContent){
+					SplitPath, itemContent,,, FileExt  ; 获取文件扩展名.
 					appParm:=RegExReplace(menuDiy[2],"iS).*?\." FileExt "($| .*)","$1")	;去掉应用名，取参数
 					;非exe后缀的菜单项名与无路径exe的名称相同，则自动在菜单项名末尾添加后缀标记
-					if(FileExt!="exe" && appName!=menuDiy[1] && MenuObjEv[menuDiy[1]]){
-						menuDiy[1].="." FileExt
+					if(FileExt!="exe" && appName!=menuItemDiy && MenuObjEv[menuItemDiy]){
+						menuItemDiy.="." FileExt
 					}
-					MenuObjParam[menuDiy[1]]:=item . appParm
-					itemParam:=item . appParm
+					MenuObjParam[menuItemDiy]:=itemContent . appParm
+					itemParam:=itemContent . appParm
 					flagEXE:=true
 				}else{
-					item:=menuDiy[2]
+					itemContent:=menuDiy[2]
 					itemParam:=menuDiy[2]
-					if(transformValFlag && RegExMatch(item,"iS).*?\.(exe|lnk|bat|cmd|vbs|ps1|ahk) .*"))
-						item:=RegExReplace(item,"iS)(.*?\.(exe|lnk|bat|cmd|vbs|ps1|ahk)) .*","$1")	;只去参数
-					SplitPath, item,,, FileExt  ; 获取文件扩展名.
+					if(transformValFlag && RegExMatch(itemContent,"iS).*?\.(exe|lnk|bat|cmd|vbs|ps1|ahk) .*"))
+						itemContent:=RegExReplace(itemContent,"iS)(.*?\.(exe|lnk|bat|cmd|vbs|ps1|ahk)) .*","$1")	;只去参数
+					SplitPath, itemContent,,, FileExt  ; 获取文件扩展名.
 					;~;如果是有效全路径或系统程序则保留显示
-					if(RegExMatch(item,"iS)^(\\\\|.:\\).*?\.(exe|lnk|bat|cmd|vbs|ps1|ahk)$") && FileExist(item)){
+					if(RegExMatch(itemContent,"iS)^(\\\\|.:\\).*?\.(exe|lnk|bat|cmd|vbs|ps1|ahk)$") && FileExist(itemContent)){
 						flagEXE:=true
-					}else if(FileExist(A_WinDir "\" item) || FileExist(A_WinDir "\system32\" item)){
+					}else if(FileExist(A_WinDir "\" itemContent) || FileExist(A_WinDir "\system32\" itemContent)){
 						flagEXE:=true
 						if(FileExt!="exe"){
 							flagSys:=true
-							flagSysPath:=FileExist(A_WinDir "\" item) ? A_WinDir "\" item : ""
-							if(flagSysPath="" && FileExist(A_WinDir "\system32\" item))
-								flagSysPath:=A_WinDir "\system32\" item
+							flagSysPath:=FileExist(A_WinDir "\" itemContent) ? A_WinDir "\" itemContent : ""
+							if(flagSysPath="" && FileExist(A_WinDir "\system32\" itemContent))
+								flagSysPath:=A_WinDir "\system32\" itemContent
 						}
 					}
 					;~;如果是有效程序、不隐藏失效、不是exe程序则添加该菜单项功能
 					if(FileExt!="exe"){
-						MenuObj[menuDiy[1]]:=menuDiy[2]
+						MenuObj[menuItemDiy]:=menuDiy[2]
 					}else if(flagEXE || !HideFail){
-						MenuObjParam[menuDiy[1]]:=menuDiy[2]
+						MenuObjParam[menuItemDiy]:=menuDiy[2]
 					}
 				}
 				if(FileExt="exe"){
 					if(flagEXE){
-						MenuExeArrayPush(menuRootFn[menuLevel],menuDiy[1],item,menuDiy[2],TREE_NO)
+						MenuExeArrayPush(menuRootFn[menuLevel],menuItemDiy,itemContent,menuDiy[2],TREE_NO)
 					}else{
 						IconFail:=true
 					}
@@ -739,21 +747,18 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 						flagEXE:=true
 					;添加菜单项
 					if(flagEXE){
-						Menu,% menuRootFn[menuLevel],add,% menuDiy[1],Menu_Run,%MenuBar%
+						Menu,% menuRootFn[menuLevel],add,% menuItemDiy,Menu_Run,%MenuBar%
 						if(IconFail)
-							Menu_Item_Icon(menuRootFn[menuLevel],menuDiy[1],"SHELL32.dll","124")
+							Menu_Item_Icon(menuRootFn[menuLevel],menuItemDiy,"SHELL32.dll","124")
 					}
 				}else if FileExt in lnk,bat,cmd,vbs,ps1,ahk
 				{
-					Menu_Add(menuRootFn[menuLevel],menuDiy[1],item,itemMode,TREE_NO)
+					Menu_Add(menuRootFn[menuLevel],menuItemDiy,itemContent,itemMode,TREE_NO)
 				}else if(flagSys){
-					Menu_Add(menuRootFn[menuLevel],menuDiy[1],flagSysPath="" ? item : flagSysPath,itemMode,TREE_NO)
+					Menu_Add(menuRootFn[menuLevel],menuItemDiy,flagSysPath="" ? itemContent : flagSysPath,itemMode,TREE_NO)
 				}else{
-					Menu_Add(menuRootFn[menuLevel],menuDiy[1],itemParam,itemMode,TREE_NO)
+					Menu_Add(menuRootFn[menuLevel],menuItemDiy,itemParam,itemMode,TREE_NO)
 				}
-				;[分割Tab获取应用自定义热键]
-				menuKeyStr:=RegExReplace(menuDiy[1], "S)\t+", A_Tab)
-				menuKeys:=StrSplit(menuKeyStr,"`t")
 				;[设置热键启动方式][不重复]
 				if(TREE_TYPE_FLAG && InStr(menuDiy[1],"`t") && menuKeys[2]){
 					MenuObj[menuKeys[1]]:=itemParam
@@ -952,11 +957,11 @@ return
 ;══════════════════════════════════════════════════════════════════
 ;~;【生成菜单(判断后缀创建图标)】
 ;══════════════════════════════════════════════════════════════════
-Menu_Add(menuName,menuItem,item,itemMode,TREE_NO){
-	if(!menuName || !item)
+Menu_Add(menuName,menuItem,itemContent,itemMode,TREE_NO){
+	if(!menuName || !itemContent)
 		return
 	try {
-		SplitPath, item,,, FileExt  ; 获取文件扩展名.
+		SplitPath, itemContent,,, FileExt  ; 获取文件扩展名.
 		Menu,%menuName%,add,%menuItem%,Menu_Run,%MenuBar%
 		MenuBar:=""
 		MenuObjList%TREE_NO%[menuName].=menuItem "`n"
@@ -970,7 +975,7 @@ Menu_Add(menuName,menuItem,item,itemMode,TREE_NO){
 			return
 		}
 		if(itemMode=6){  ; {网址}
-			website:=RegExReplace(item,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
+			website:=RegExReplace(itemContent,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
 			webIcon:=RunIconDir "\" website ".ico"
 			webIconNum:=0
 			if(!FileExist(webIcon)){
@@ -978,13 +983,13 @@ Menu_Add(menuName,menuItem,item,itemMode,TREE_NO){
 				webIconNum:=UrlIconS[2]
 			}
 			Menu_Item_Icon(menuName,menuItem,webIcon,webIconNum)
-			if(InStr(item,"%s") || InStr(item,"%getZz%"))
+			if(InStr(itemContent,"%s") || InStr(itemContent,"%getZz%"))
 				MenuWebList%TREE_NO%[menuName].=menuItem "`n"
 			return
 		}
 		if(itemMode=8){  ; {脚本插件函数}
 			Menu_Item_Icon(menuName,menuItem,FuncIconS[1],FuncIconS[2])
-			if(InStr(item,"%getZz%")){
+			if(InStr(itemContent,"%getZz%")){
 				MenuGetZzList%TREE_NO%[menuName].=menuItem "`n"	; 添加到GetZz搜索
 			}
 			return
@@ -993,7 +998,7 @@ Menu_Add(menuName,menuItem,item,itemMode,TREE_NO){
 			Menu,%menuName%,Icon,%menuItem%,% FolderIconS[1],% FolderIconS[2],%MenuIconSize%
 		}else if(FileExt="lnk"){  ; {快捷方式}
 			try{
-				FileGetShortcut, %item%, OutItem, , , , OutIcon, OutIconNum
+				FileGetShortcut, %itemContent%, OutItem, , , , OutIcon, OutIconNum
 				if(!OutIcon){
 					OutIcon:=OutItem
 					OutIconNum:=0
@@ -1007,7 +1012,7 @@ Menu_Add(menuName,menuItem,item,itemMode,TREE_NO){
 				}
 			}
 		}else{  ; {处理未知的项目图标}
-			If(FileExt && FileExist(item)){
+			If(FileExt && FileExist(itemContent)){
 				try{
 					RegRead, regFileExt, HKEY_CLASSES_ROOT, .%FileExt%
 					RegRead, regFileIcon, HKEY_CLASSES_ROOT, %regFileExt%\DefaultIcon
@@ -1022,7 +1027,7 @@ Menu_Add(menuName,menuItem,item,itemMode,TREE_NO){
 		}
 	} catch e {
 		MsgBox,16,判断后缀创建菜单项出错,% "菜单名：" menuName "`n菜单项：" menuItem 
-			. "`n路径：" item "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+			. "`n路径：" itemContent "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 	}
 }
 ;~;[统一设置菜单项图标]
@@ -6658,10 +6663,6 @@ Var_Set:
 	global RunAnyMenuMButtonRun:=Var_Read("RunAnyMenuMButtonRun",0)
 	global RunAnyMenuXButton1Run:=Var_Read("RunAnyMenuXButton1Run",0)
 	global RunAnyMenuXButton2Run:=Var_Read("RunAnyMenuXButton2Run",0)
-	Loop,parse,ClipWaitApp,`,
-	{
-		GroupAdd,ClipWaitGUI,ahk_exe %A_LoopField%
-	}
 	global HoldKeyList:={"HoldCtrlRun":2,"HoldCtrlShiftRun":3,"HoldCtrlWinRun":4,"HoldShiftRun":5,"HoldShiftWinRun":6,"HoldCtrlShiftWinRun":7}
 	global HoldKeyValList:={"HoldCtrlRun":2,"HoldCtrlShiftRun":3,"HoldCtrlWinRun":11,"HoldShiftRun":5,"HoldShiftWinRun":31,"HoldCtrlShiftWinRun":4}
 	for k, v in HoldKeyList
@@ -6782,6 +6783,10 @@ Open_Ext_Set:
 			ClipWaitTime:=Var_Read("ClipWaitTime",1.5)
 			ClipWaitApp:=Var_Read("ClipWaitApp","totalcmd.exe,totalcmd64.exe")
 		}
+	}
+	Loop,parse,ClipWaitApp,`,
+	{
+		GroupAdd,ClipWaitGUI,ahk_exe %A_LoopField%
 	}
 	if(!openExtRunList["folder"]){
 		TcPath:=Var_Read("TcPath")
