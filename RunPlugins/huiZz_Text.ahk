@@ -2,7 +2,7 @@
 ;* 【ObjReg文本操作脚本[文本函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.2.0"
+global RunAny_Plugins_Version:="1.2.1"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
@@ -183,6 +183,7 @@ class RunAnyObj {
 	;[选中内容与剪贴板内容互换]
 	text_paste_zz(getZz:=""){
 		SendInput,^v
+		Sleep,200
 		Clipboard:=getZz
 	}
 	;[百度剪贴板内容]

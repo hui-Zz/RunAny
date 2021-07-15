@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.07.04
+║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.07.11
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.6"     ;~;版本号
-global RunAny_update_time:="2021.07.04"   ;~;更新日期
+global RunAny_update_time:="2021.07.11"   ;~;更新日期
 gosub,Var_Set           ;~;01.参数初始化
 gosub,Menu_Var_Set      ;~;02.自定义变量
 gosub,Icon_Set          ;~;03.图标初始化
@@ -1095,6 +1095,7 @@ Menu_Show:
 			}
 			return
 		}
+		getZz:=Get_Transform_Val(getZz)
 		if(Candy_isFile){
 			SplitPath, getZz,FileName,, FileExt  ; 获取文件扩展名.
 			if(InStr(FileExist(getZz), "D")){  ; {目录}
@@ -2361,14 +2362,14 @@ escapeString(string){
 */
 cmdClipReturn(command){
 	cmdInfo:=""
-	Clip_Saved:=ClipboardAll
 	try{
+		Clip_Saved:=ClipboardAll
 		Clipboard=
 		Run,% ComSpec " /C " command " | CLIP", , Hide
 		ClipWait,2
 		cmdInfo:=Clipboard
+		Clipboard:=Clip_Saved
 	}catch{}
-	Clipboard:=Clip_Saved
 	return cmdInfo
 }
 ;[动态执行脚本注册对象]
@@ -2904,7 +2905,7 @@ return
 	F8::gosub,TVImportFile
 	F9::gosub,TVImportFolder
 	^s::gosub,TVSave
-	Esc::gosub,GuiClose
+	Esc::gosub,MenuEditGuiClose
 	F2::gosub,TVEdit
 	Tab::Send_Str_Zz(A_Tab)
 #If
@@ -3794,7 +3795,7 @@ TV_MoveMenuClean(){
 	}
 	TVMenu("TVMenu")
 	TVMenu("GuiMenu")
-	Gui, Menu, GuiMenu
+	Gui, MenuEdit:Menu, GuiMenu
 }
 ;~;[移动节点后保存原来级别和自动变更名称(死了好多脑细胞)]
 Move_Menu:
@@ -4878,7 +4879,7 @@ RunCtrlLVRun:
 return
 RunCtrlLVAdd:
 	RuleGroupName:=RuleGroupLogic2:=RuleMostRun:=RuleIntervalTime:=RuleGroupKey:=RunCtrlListBox:=""
-	RuleGroupLogic1:=true
+	RuleEnable:=RuleGroupLogic1:=true
 	RuleGroupWinKey:=false
 	menuItem:="新建"
 	gosub,RunCtrlConfig
@@ -4889,8 +4890,8 @@ RunCtrlLVEdit:
 	Gui,RunCtrlManage:Default
 	GuiControlGet, focusGuiName, Focus
 	if(focusGuiName="ListBox1"){
-		FileRuleRun:=RunCtrlList[RunCtrlListBox].enable
-		FileRuleEnable:=FileRuleRun ? "Green" : ""
+		RuleEnable:=RunCtrlList[RunCtrlListBox].enable
+		RuleEnableText:=RuleEnable ? "Green" : ""
 		RuleGroupLogic1:=RunCtrlList[RunCtrlListBox].ruleLogic
 		RuleGroupLogic2:=RuleGroupLogic1 ? 0 : 1
 		RuleMostRun:=RunCtrlList[RunCtrlListBox].ruleMostRun
@@ -4915,7 +4916,7 @@ RunCtrlConfig:
 	Gui,RunCtrlConfig:+OwnerRunCtrlManage
 	Gui,RunCtrlConfig:Font,,Microsoft YaHei
 	Gui,RunCtrlConfig:Margin,20,20
-	Gui,RunCtrlConfig:Add, CheckBox, xm+5 y+15 Checked%FileRuleRun% vvFileRuleRun c%FileRuleEnable%, 启用规则组
+	Gui,RunCtrlConfig:Add, CheckBox, xm+5 y+15 Checked%RuleEnable% vvRuleEnable c%RuleEnableText%, 启用规则组
 	Gui,RunCtrlConfig:Add, Text, x+30 yp w60, 全局热键：
 	Gui,RunCtrlConfig:Add, Hotkey,x+5 yp-2 w130 h22 vvRuleGroupKey,%RuleGroupKey%
 	Gui,RunCtrlConfig:Add, Checkbox, x+10 yp+3 w55 Checked%RuleGroupWinKey% vvRuleGroupWinKey,Win
@@ -4998,24 +4999,24 @@ RunCtrlLVSave:
 	}
 	;~ ;[写入配置文件]
 	Gui,RunCtrlManage:Default
-	vFileRuleLogic:=vRuleGroupLogic1=1 ? 1 : 0
+	ruleLogicVal:=vRuleGroupLogic1=1 ? 1 : 0
 	if(RuleGroupName!=vRuleGroupName){
 		IniDelete, %RunAnyConfig%, RunCtrlList, %RuleGroupName%
 		IniDelete, %RunAnyConfig%, %RuleGroupName%_Rule
 		IniDelete, %RunAnyConfig%, %RuleGroupName%_Run
 	}
-	vFileRuleVal=%vFileRuleRun%|%vFileRuleLogic%
+	ruleRunListVal=%vRuleEnable%|%ruleLogicVal%
 	if(vRuleMostRun!=""){
-		vFileRuleVal.="|" vRuleMostRun "|" vRuleIntervalTime
+		ruleRunListVal.="|" vRuleMostRun "|" vRuleIntervalTime
 	}
 	if(vRuleGroupKey!=""){
 		if(vRuleMostRun=""){
-			vFileRuleVal.="||"
+			ruleRunListVal.="||"
 		}
 		vRuleGroupKey:=vRuleGroupWinKey ? "#" . vRuleGroupKey : vRuleGroupKey
-		vFileRuleVal.="|" vRuleGroupKey
+		ruleRunListVal.="|" vRuleGroupKey
 	}
-	IniWrite, %vFileRuleVal%, %RunAnyConfig%, RunCtrlList, %vRuleGroupName%
+	IniWrite, %ruleRunListVal%, %RunAnyConfig%, RunCtrlList, %vRuleGroupName%
 
 	if(RunCtrlList[RuleGroupName]){
 		For runn, runv in RunCtrlList[RuleGroupName].runList
@@ -6406,7 +6407,7 @@ GuiControlSet(guiName,controlName,controlVal:=""){
 	GuiControl, %guiName%:, %controlName%, %controlVal%
 }
 ;~;【——窗口事件Gui——】
-GuiClose:
+MenuEditGuiClose:
 	if(TVFlag){
 		MsgBox,51,菜单树退出,已修改过菜单信息，是否保存修改再退出？
 		IfMsgBox Yes
@@ -6421,7 +6422,7 @@ GuiClose:
 	}
 return
 ;[GuiEscape]
-GuiEscape:
+MenuEditGuiEscape:
 SaveItemGuiEscape:
 PluginsManageGuiEscape:
 PluginsDownloadGuiEscape:
@@ -6440,7 +6441,7 @@ SetCancel:
 	Gui,Destroy
 return
 ;[GuiSize]
-GuiSize:
+MenuEditGuiSize:
 RuleManageGuiSize:
 PluginsManageGuiSize:
 PluginsDownloadGuiSize:
@@ -6490,7 +6491,7 @@ RunCtrlManageGuiSize:
 	GuiControl, Move, RunCtrlLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 175)
 return
 ;[GuiContextMenu]
-GuiContextMenu:
+MenuEditGuiContextMenu:
 PluginsManageGuiContextMenu:
 	If (A_GuiControl = "RunAnyTV") {
 		TV_Modify(A_EventInfo, "Select Vis")
@@ -6508,7 +6509,7 @@ RunCtrlManageGuiContextMenu:
 	}
 return
 ;[GuiDropFiles]  ; 对拖放提供支持.
-GuiDropFiles:
+MenuEditGuiDropFiles:
 SaveItemGuiDropFiles:
 	Loop, Parse, A_GuiEvent, `n
 	{
@@ -7609,9 +7610,13 @@ RunCtrl_RuleEffect(runCtrlObj){
 			}
 		}
 		;有中断标记的规则不满足时，则直接中断后续判断并停止规则循环
-		if(!effectFlag && rulev.ruleBreak){
-			try SetTimer,% funcEffect%rcName%, Off
-			break
+		if(rulev.ruleBreak){
+			if(!effectFlag){
+				try SetTimer,% funcEffect%rcName%, Off
+				break
+			}else{
+				continue
+			}
 		}
 		;该启动项所有规则必须全部为真时，如有一假就退出循环
 		;该启动项只需要有一项规则为真时，如有一真就退出循环

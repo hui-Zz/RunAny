@@ -133,16 +133,16 @@ class RunAnyObj {
 */
 cmdClipReturn(command,save=0){
 	cmdInfo:=""
-	if(save)
-		Clip_Saved:=ClipboardAll
 	try{
+		if(save)
+			Clip_Saved:=ClipboardAll
 		Clipboard=
 		Run,% ComSpec " /C " command " | CLIP", , Hide
 		ClipWait,2
 		cmdInfo:=Clipboard
+		if(save)
+			Clipboard:=Clip_Saved
 	}catch{}
-	if(save)
-		Clipboard:=Clip_Saved
 	return cmdInfo
 }
 
