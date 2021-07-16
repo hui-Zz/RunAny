@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.07.11
+║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.07.16
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.6"     ;~;版本号
-global RunAny_update_time:="2021.07.11"   ;~;更新日期
+global RunAny_update_time:="2021.07.16"   ;~;更新日期
 gosub,Var_Set           ;~;01.参数初始化
 gosub,Menu_Var_Set      ;~;02.自定义变量
 gosub,Icon_Set          ;~;03.图标初始化
@@ -1109,8 +1109,6 @@ Menu_Show:
 						MenuShowMenuRun:=Get_Obj_Transform_Name(itemContent)
 						gosub,Menu_Run
 					}else{
-						Menu,%extMenuName%,Insert, ,%RUNANY_SELF_MENU_ITEM4%,Menu_All_Show
-						Menu,%extMenuName%,Icon,%RUNANY_SELF_MENU_ITEM4%,SHELL32.dll,40,%MenuIconSize%
 						if(!HideAddItem){
 							Menu,%extMenuName%,Insert, ,%RUNANY_SELF_MENU_ITEM3%,Menu_Add_File_Item
 							Menu,%extMenuName%,Default,%RUNANY_SELF_MENU_ITEM3%
@@ -1140,7 +1138,6 @@ Menu_Show:
 								Menu,%extMenuName%,Delete,%vn%
 							}
 						}
-						Menu,%extMenuName%,Delete,%RUNANY_SELF_MENU_ITEM4%
 						if(!HideAddItem)
 							Menu,%extMenuName%,Delete,%RUNANY_SELF_MENU_ITEM3%
 					}
@@ -1155,7 +1152,9 @@ Menu_Show:
 						Menu_Add_Del_Temp(0,MENU_NO,RUNANY_SELF_MENU_ITEM3)
 					}
 				}
-			}catch{
+			}catch e{
+				TrayTip,,% "运行路径：" any "`n出错命令：" e.What 
+			. "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,5,1
 				Menu_Show_Show(menuFileRoot%MENU_NO%[1],FileName)
 			}
 			return
@@ -1277,9 +1276,7 @@ Menu_Key_Show:
 	}catch{}
 return
 Menu_All_Show:
-	extMenuHideFlag:=true
-	gosub,Menu_Show1
-	extMenuHideFlag:=false
+	Menu_Show_Show(menuDefaultRoot%MENU_NO%[1],getZz)
 return
 Menu_Show_Show(menuName,itemName){
 	selectCheck:=Trim(itemName," `t`n`r")
@@ -1296,6 +1293,11 @@ Menu_Show_Show(menuName,itemName){
 			Menu,%menuName%,ToggleCheck, 3&
 			Menu,%menuName%,Insert, 4&
 		}
+		if(menuName!=menuDefaultRoot%MENU_NO%[1]){
+			Menu,%menuName%,Insert, ,%RUNANY_SELF_MENU_ITEM4%,Menu_All_Show
+			Menu,%menuName%,Icon,%RUNANY_SELF_MENU_ITEM4%,SHELL32.dll,40,%MenuIconSize%
+		}
+		;[显示菜单]
 		Menu,%menuName%,Show
 		if(translate!=""){
 			Menu,%menuName%,Delete, 4&
@@ -1303,6 +1305,9 @@ Menu_Show_Show(menuName,itemName){
 		}
 		Menu,%menuName%,Delete, 2&
 		Menu,%menuName%,Delete,%itemName%
+		if(menuName!=menuDefaultRoot%MENU_NO%[1]){
+			Menu,%menuName%,Delete,%RUNANY_SELF_MENU_ITEM4%
+		}
 	}else{
 		Menu,%menuName%,Show
 	}
@@ -1350,7 +1355,7 @@ Menu_Add_Del_Temp(addDel=1,TREE_NO=1,mName="",LabelName="",mIcon="",mIconNum="")
 				Menu,%mn%,Insert, ,%mName%,%LabelName%
 				Menu,%mn%,Icon,%mName%,%mIcon%,%mIconNum%,%MenuIconSize%
 			}else{
-				Menu,%mn%,Delete,%mName%
+				try Menu,%mn%,Delete,%mName%
 			}
 		}
 	}
@@ -1964,6 +1969,9 @@ Menu_Run_Plugins_ObjReg:
 			PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8],appParms[9])
 		}else if(appParms.MaxIndex()=10){
 			PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8],appParms[9],appParms[10])
+		}else if(appParms.MaxIndex()>10){
+			ToolTip,脚本插件：%appPlugins%`n脚本函数：%appFunc%`n函数参数：%appParmErrorStr% 参数数量最多为10个，请修改后重试！
+			SetTimer,RemoveToolTip,8000
 		}
 	}
 	if(!InStr(PluginsContentList[(appPlugins ".ahk")],appFunc "(")){
@@ -6657,7 +6665,7 @@ Var_Set:
 	global RUNANY_SELF_MENU_ITEM1:=Var_Read("RUNANY_SELF_MENU_ITEM1","&1批量搜索")
 	global RUNANY_SELF_MENU_ITEM2:=Var_Read("RUNANY_SELF_MENU_ITEM2","RunAny设置")
 	global RUNANY_SELF_MENU_ITEM3:=Var_Read("RUNANY_SELF_MENU_ITEM3","0【添加到此菜单】")
-	global RUNANY_SELF_MENU_ITEM4:=Var_Read("RUNANY_SELF_MENU_ITEM4","-【显示菜单全部】")
+	global RUNANY_SELF_MENU_ITEM4:=Var_Read("RUNANY_SELF_MENU_ITEM4","-【显示全部菜单】")
 	global RunAnyMenuTransparent:=Var_Read("RunAnyMenuTransparent",225)
 	global RunAnyMenuSpaceRun:=Var_Read("RunAnyMenuSpaceRun",2)
 	global RunAnyMenuRButtonRun:=Var_Read("RunAnyMenuRButtonRun",3)
