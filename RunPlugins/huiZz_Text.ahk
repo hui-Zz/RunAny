@@ -2,7 +2,7 @@
 ;* 【ObjReg文本操作脚本[文本函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.2.1"
+global RunAny_Plugins_Version:="1.2.2"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
@@ -38,14 +38,18 @@ class RunAnyObj {
 	;参数说明：getZz：选中的文本内容
 	;searchStr：查找的文本内容
 	;replaceStr：用来替换查找到的文本
-	text_replace_zz(getZz:="",searchStr:="",replaceStr:="",formatStr:=""){
-		if(searchStr="" && replaceStr!=""){
-			getZz:=RegExReplace(getZz,"([a-z0-9$])([A-Z])","$1" Chr(3) "$2")
-			searchStr:=Chr(3)
+	text_replace_zz(getZz:="",searchStr:="",replaceStr:=""){
+		Send_Str_Zz(StrReplace(getZz,searchStr,replaceStr))
+	}
+	;[文本批量替换] v1.2.2
+	;参数说明：getZz：选中的文本内容
+	;replaceStr：用来替换查找到的文本
+	;searchStrs：多个查找的文本内容，最多支持8个
+	text_replace_batch_zz(getZz:="",replaceStr:="",searchStrs*){
+		for index,searchStr in searchStrs
+		{
+			getZz:=StrReplace(getZz,searchStr,replaceStr)
 		}
-		getZz:=StrReplace(getZz,searchStr,replaceStr)
-		if(formatStr!="")
-			getZz:=Format(formatStr,getZz)
 		Send_Str_Zz(getZz)
 	}
 	;[文本格式化]
