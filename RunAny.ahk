@@ -1144,16 +1144,20 @@ Menu_Show:
 				}else{
 					if(!HideAddItem){
 						Menu_Add_Del_Temp(1,MENU_NO,RUNANY_SELF_MENU_ITEM3,"Menu_Add_File_Item","SHELL32.dll","166")
-						Menu,% menuFileRoot%MENU_NO%[1],Default,%RUNANY_SELF_MENU_ITEM3%
+						if(!MenuObjTree%MENU_NO%[M%MENU_NO% "   "]){
+							Menu,% M%MENU_NO% "   ",Insert, ,%RUNANY_SELF_MENU_ITEM3%,Menu_Add_File_Item
+							Menu,% M%MENU_NO% "   ",Icon,%RUNANY_SELF_MENU_ITEM3%,SHELL32.dll,166,%MenuIconSize%
+						}
+						try Menu,% menuFileRoot%MENU_NO%[1],Default,%RUNANY_SELF_MENU_ITEM3%
 					}
 					Menu_Show_Show(menuFileRoot%MENU_NO%[1],FileName)
 					if(!HideAddItem){
-						Menu,% menuFileRoot%MENU_NO%[1],Delete,%RUNANY_SELF_MENU_ITEM3%
+						try Menu,% menuFileRoot%MENU_NO%[1],Delete,%RUNANY_SELF_MENU_ITEM3%
 						Menu_Add_Del_Temp(0,MENU_NO,RUNANY_SELF_MENU_ITEM3)
 					}
 				}
 			}catch e{
-				TrayTip,,% "运行路径：" any "`n出错命令：" e.What 
+				TrayTip,,% "[显示菜单]：" any "`n出错命令：" e.What 
 			. "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,5,1
 				Menu_Show_Show(menuFileRoot%MENU_NO%[1],FileName)
 			}
@@ -2789,7 +2793,7 @@ SetSaveItem:
 			}
 		}
 		saveText.=A_LoopField . "`n"
-		if(endFind){
+		if(endFind && !inputFlag){
 			saveText.=tabText . vitemName . itemGlobalKeyStr . splitStr . vitemPath . "`n"
 			endFind:=false
 			inputFlag:=true
