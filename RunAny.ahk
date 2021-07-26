@@ -1145,6 +1145,7 @@ Menu_Show:
 					if(!HideAddItem){
 						Menu_Add_Del_Temp(1,MENU_NO,RUNANY_SELF_MENU_ITEM3,"Menu_Add_File_Item","SHELL32.dll","166")
 						if(!MenuObjTree%MENU_NO%[M%MENU_NO% "   "]){
+							;如果根目录下没有程序时
 							Menu,% M%MENU_NO% "   ",Insert, ,%RUNANY_SELF_MENU_ITEM3%,Menu_Add_File_Item
 							Menu,% M%MENU_NO% "   ",Icon,%RUNANY_SELF_MENU_ITEM3%,SHELL32.dll,166,%MenuIconSize%
 						}
@@ -2171,7 +2172,7 @@ Get_Zz(){
 	global Candy_isFile
 	global Candy_Select
 	Candy_isFile:=0
-	Candy_Saved:=ClipboardAll
+	try Candy_Saved:=ClipboardAll
 	Clipboard=
 	SendInput,^c
 	if (ClipWaitTime != 0.1) && WinActive("ahk_group ClipWaitGUI"){
@@ -4835,6 +4836,39 @@ RunCtrlLVDown:
 	if(RunCtrlListBox=""){
 		return
 	}
+	GuiControlGet, focusGuiName, Focus
+	if(focusGuiName="ListBox1"){
+		;上下移动规则组
+		RunCtrlListContent:=""
+		for i,v in RunCtrlListBoxList
+		{
+			if(A_ThisLabel="RunCtrlLVDown"){
+				if(RunCtrlListBox=v){
+					if((i + 1) > RunCtrlListBoxList.MaxIndex()){
+						return
+					}
+					RunCtrlListContent.=RunCtrlListBoxList[i + 1] "=" RunCtrlListContentList[RunCtrlListBoxList[i + 1]] "`n"
+					RunCtrlListContent.=v "=" RunCtrlListContentList[v] "`n"
+				}else if(RunCtrlListBox!=RunCtrlListBoxList[i - 1]){
+					RunCtrlListContent.=v "=" RunCtrlListContentList[v] "`n"
+				}
+			}else if(A_ThisLabel="RunCtrlLVUp"){
+				if(RunCtrlListBox=v){
+					if((i - 1) <= 0){
+						return
+					}
+					RunCtrlListContent.=v "=" RunCtrlListContentList[v] "`n"
+					RunCtrlListContent.=RunCtrlListBoxList[i - 1] "=" RunCtrlListContentList[RunCtrlListBoxList[i - 1]] "`n"
+				}else if(RunCtrlListBox!=RunCtrlListBoxList[i + 1]){
+					RunCtrlListContent.=v "=" RunCtrlListContentList[v] "`n"
+				}
+			}
+		}
+		RunCtrlListContent:=SubStr(RunCtrlListContent, 1, -StrLen("`n"))
+		IniWrite,%RunCtrlListContent%,%RunAnyConfig%,RunCtrlList
+		gosub,RunCtrl_Manage_Gui
+		return
+	}
 	RunRowNumber1 := LV_GetNext(0, "F")
 	if not RunRowNumber1
 		return
@@ -7376,7 +7410,7 @@ RunCtrl_Read:
 	}
 	RuleNameStr:=SubStr(RuleNameStr, 1, -StrLen("|"))
 	;---规则启动项---
-	global RunCtrlList:=Object(),RunCtrlListBoxList:=Object()
+	global RunCtrlList:=Object(),RunCtrlListBoxList:=Object(),RunCtrlListContentList:=Object()
 	global RunCtrlLogicEnum:={"eq":"相等","ne":"不相等","ge":"大于等于","le":"小于等于","gt":"大于","lt":"小于"}
 	global RunCtrlListBoxVar:=""
 	IniRead,runCtrlListVar,%RunAnyConfig%,RunCtrlList
@@ -7391,6 +7425,7 @@ RunCtrl_Read:
 		runCtrlName:=varList[1]
 		RunCtrlListBoxVar.=runCtrlName "|"
 		RunCtrlListBoxList.Push(runCtrlName)
+		RunCtrlListContentList[runCtrlName]:=varList[2]
 		itemList:=StrSplit(varList[2],"|",,5)
 		RunCtrlObj:=new RunCtrl(runCtrlName,itemList[1],itemList[2],itemList[3],itemList[4],itemList[5])
 		RunCtrlList[runCtrlName]:=RunCtrlObj
