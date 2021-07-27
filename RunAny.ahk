@@ -108,6 +108,7 @@ global MenuObj:=Object()                    ;~程序全路径
 global MenuObjKey:=Object()                 ;~程序热键
 global MenuObjKeyName:=Object()             ;~程序热键关联菜单项名称
 global MenuObjExt:=Object()                 ;~后缀对应的菜单
+global MenuObjWindow:=Object()              ;~软件窗口对应的菜单
 global MenuHotStrList:=Object()             ;~热字符串对象数组
 global MenuTreeKey:=Object()                ;~菜单树分类热键
 global MenuItemIconList:=Object()           ;~菜单项对应图标对象
@@ -616,6 +617,9 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 								MenuObjText%TREE_NO%.Push(menuItem)
 							}else if(A_LoopField="file"){
 								MenuObjFile%TREE_NO%.Push(menuItem)
+							}else if(RegExMatch(A_LoopField,"iS).+\.exe$")){
+								global MenuObjWindowFlag:=true
+								MenuObjWindow[(A_LoopField)]:=menuItem
 							}else{
 								MenuObjExt[(A_LoopField)]:=menuItem
 							}
@@ -1089,7 +1093,12 @@ Menu_Show:
 			;#无选中内容
 			;加载顺序：无Everything菜单 -> 无图标菜单 -> 有图标无路径识别菜单
 			if(MenuIconFlag && MenuShowFlag){
-				Menu,% menuDefaultRoot%MENU_NO%[1],Show
+				WinGet,name,ProcessName,A
+				if(MenuObjWindowFlag && MenuObjWindow[name]){
+					Menu_Show_Show(MenuObjWindow[name],"")
+				}else{
+					Menu,% menuDefaultRoot%MENU_NO%[1],Show
+				}
 			}else{
 				Menu,% menuRoot%MENU_NO%[1],Show
 			}
@@ -1298,23 +1307,23 @@ Menu_Show_Show(menuName,itemName){
 			Menu,%menuName%,ToggleCheck, 3&
 			Menu,%menuName%,Insert, 4&
 		}
-		if(menuName!=menuDefaultRoot%MENU_NO%[1]){
-			Menu,%menuName%,Insert, ,%RUNANY_SELF_MENU_ITEM4%,Menu_All_Show
-			Menu,%menuName%,Icon,%RUNANY_SELF_MENU_ITEM4%,SHELL32.dll,40,%MenuIconSize%
-		}
-		;[显示菜单]
-		Menu,%menuName%,Show
+	}
+	if(menuName!=menuDefaultRoot%MENU_NO%[1]){
+		Menu,%menuName%,Insert, ,%RUNANY_SELF_MENU_ITEM4%,Menu_All_Show
+		Menu,%menuName%,Icon,%RUNANY_SELF_MENU_ITEM4%,SHELL32.dll,40,%MenuIconSize%
+	}
+	;[显示菜单]
+	Menu,%menuName%,Show
+	if(!HideSelectZz && selectCheck!=""){
 		if(translate!=""){
 			Menu,%menuName%,Delete, 4&
 			Menu,%menuName%,Delete, 3&
 		}
 		Menu,%menuName%,Delete, 2&
 		Menu,%menuName%,Delete,%itemName%
-		if(menuName!=menuDefaultRoot%MENU_NO%[1]){
-			Menu,%menuName%,Delete,%RUNANY_SELF_MENU_ITEM4%
-		}
-	}else{
-		Menu,%menuName%,Show
+	}
+	if(menuName!=menuDefaultRoot%MENU_NO%[1]){
+		Menu,%menuName%,Delete,%RUNANY_SELF_MENU_ITEM4%
 	}
 }
 Menu_Show_Translate(selectCheck){
