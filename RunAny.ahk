@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.07.16
+║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.07.27
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.6"     ;~;版本号
-global RunAny_update_time:="2021.07.16"   ;~;更新日期
+global RunAny_update_time:="2021.07.27"   ;~;更新日期
 gosub,Var_Set           ;~;01.参数初始化
 gosub,Menu_Var_Set      ;~;02.自定义变量
 gosub,Icon_Set          ;~;03.图标初始化
@@ -4765,6 +4765,8 @@ RunCtrlLVMenu(addMenu){
 	Menu, %addMenu%, Icon,% flag ? "移除" : "移除`tDel", SHELL32.dll,132
 	Menu, %addMenu%, Add,% flag ? "规则" : "规则`tF7", Rule_Manage_Gui
 	Menu, %addMenu%, Icon,% flag ? "规则" : "规则`tF7", SHELL32.dll,166
+	Menu, %addMenu%, Add,% flag ? "导入" : "导入`tF8", RunCtrlLVImport
+	Menu, %addMenu%, Icon,% flag ? "导入" : "导入`tF8", SHELL32.dll,55
 	Menu, %addMenu%, Add,% flag ? "下移" : "下移`t(F5/PgDn)", RunCtrlLVDown
 	try Menu, %addMenu%, Icon,% flag ? "下移" : "下移`t(F5/PgDn)",% DownIconS[1],% DownIconS[2]
 	Menu, %addMenu%, Add,% flag ? "上移" : "上移`t(F6/PgUp)", RunCtrlLVUp
@@ -5088,25 +5090,26 @@ RunCtrlLVSave:
 	Gui,RunCtrlConfig:Destroy
 	gosub,RunCtrl_Manage_Gui
 return
-; LVImport:
-; 	FileSelectFile, selectName, M35, , 选择多项要导入的AHK(EXE), (*.ahk;*.exe)
-; 	Loop,parse,selectName,`n
-; 	{
-; 		if(A_Index=1){
-; 			dir:=A_LoopField
-; 		}else{
-; 			fullPath:=dir "\" A_LoopField
-; 			SplitPath, fullPath, , , ext, name_no_ext
-; 			if(run_item_List[name_no_ext]){
-; 				TrayTip,,导入项中有已存在的相同文件名启动项，不会导入,3,1
-; 				continue
-; 			}
-; 			LV_Add("", name_no_ext, ext, "", "", "", "", , "", "", , ,"", , fullPath)
-; 			IniWrite, %fullPath%, %iniFile%, run_item, %name_no_ext%
-; 		}
-; 	}
-; 	LVModifyCol(38,ColumnAutoRun,ColumnHideRun,ColumnCloseRun,ColumnRepeatRun,ColumnRuleRun,ColumnRuleLogic)  ; 根据内容自动调整每列的大小.
-; return
+RunCtrlLVImport:
+	Gui,RunCtrlConfig:Submit, NoHide
+	runContent:=""
+	IniRead,ctrlAppsVar,%RunAnyConfig%,%RunCtrlListBox%_Run
+	FileSelectFile, selectName, M35, , 选择多个你要导入的启动项, (*.*)
+	Loop,parse,selectName,`n
+	{
+		if(A_Index=1){
+			dir:=A_LoopField
+		}else{
+			fullPath:=dir "\" A_LoopField
+			SplitPath, fullPath, , , ext, name_no_ext
+			runContent.="path=" fullPath "`n"
+		}
+	}
+	runContent:=SubStr(runContent, 1, -StrLen("`n"))
+	runContent:=ctrlAppsVar!="" ? ctrlAppsVar "`n" runContent : runContent
+	IniWrite,%runContent%,%RunAnyConfig%,%RunCtrlListBox%_Run
+	gosub,RunCtrl_Manage_Gui
+return
 ;══════════════════════════════════════════════════════════════════════════════════════════════════════
 ;[规则函数配置]
 LVFuncAdd:
