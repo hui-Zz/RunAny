@@ -3010,6 +3010,7 @@ TVAddTree:
 	gosub,Menu_Item_Edit
 return
 TVEdit:
+	Gui,MenuEdit:Default
 	selID:=TV_GetSelection()
 	if(selIDTVEdit!="")
 		selID:=selIDTVEdit
@@ -4911,9 +4912,9 @@ RunCtrlLVDown:
 		LV_GetText(RunCtrlRunValue, A_Index, 1)
 		LV_GetText(RunCtrlNoPath, A_Index, 2)
 		LV_GetText(RunCtrlRepeatRun, A_Index, 3)
-		runMenu:=RunCtrlNoPath="菜单项" ? "menu" : "path"
+		runNoPath:=RunCtrlNoPath="菜单项" ? "menu" : "path"
 		runRepeat:=RunCtrlRepeatRun="重复" ? "|1" : ""
-		runContent.=runMenu runRepeat "=" RunCtrlRunValue "`n"
+		runContent.=runNoPath runRepeat "=" RunCtrlRunValue "`n"
 	}
 	runContent:=SubStr(runContent, 1, -StrLen("`n"))
 	IniWrite, %runContent%, %RunAnyConfig%, %RunCtrlListBox%_Run
@@ -5078,9 +5079,9 @@ RunCtrlLVSave:
 	if(RunCtrlList[RuleGroupName]){
 		For runn, runv in RunCtrlList[RuleGroupName].runList
 		{
-			runMenu:=runv.noPath ? "menu" : "path"
+			runNoPath:=runv.noPath ? "menu" : "path"
 			runRepeat:=runv.repeatRun ? "|1" : ""
-			runContent.=runMenu runRepeat "=" runv.path "`n"
+			runContent.=runNoPath runRepeat "=" runv.path "`n"
 		}
 		runContent:=SubStr(runContent, 1, -StrLen("`n"))
 	}
@@ -7442,7 +7443,7 @@ RunCtrl_Read:
 		RunCtrlObj:=new RunCtrl(runCtrlName,itemList[1],itemList[2],itemList[3],itemList[4],itemList[5])
 		RunCtrlList[runCtrlName]:=RunCtrlObj
 		try{
-			if(itemList[5]!=""){
+			if(itemList[1] && itemList[5]!=""){
 				funcEffect:=Func("RunCtrl_RunRules").Bind(RunCtrlObj,true)
 				Hotkey,% itemList[5],% funcEffect,On
 			}
