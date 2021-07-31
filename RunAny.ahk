@@ -586,9 +586,9 @@ RunABackupClear(RunABackupDir,RunABackupFile){
 ;~;【读取配置并开始创建菜单】
 ;══════════════════════════════════════════════════════════════════
 Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
-	MenuObjName:=Object()	;~程序菜单项名称
-	MenuBar:=""				;~菜单分列标记
-	MenuObjParam:=Object()         ;~程序参数
+	MenuObjName:=Object()    ;~程序菜单项名称
+	MenuBar:=""              ;~菜单分列标记
+	MenuObjParam:=Object()   ;~程序参数
 	menuLevel:=1
 	Loop, parse, iniReadVar, `n, `r
 	{
@@ -754,6 +754,8 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 						Menu,% menuRootFn[menuLevel],add,% menuItemDiy,Menu_Run,%MenuBar%
 						if(IconFail)
 							Menu_Item_Icon(menuRootFn[menuLevel],menuItemDiy,"SHELL32.dll","124")
+					}else{
+						MenuObjTree_Delete_NoFind(MenuObjTree%TREE_NO%,menuRootFn[menuLevel],menuItemDiy)
 					}
 				}else if FileExt in lnk,bat,cmd,vbs,ps1,ahk
 				{
@@ -826,6 +828,8 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					if(IconFail){
 						Menu_Item_Icon(menuRootFn[menuLevel],menuAppName,"SHELL32.dll","124")
 					}
+				}else{
+					MenuObjTree_Delete_NoFind(MenuObjTree%TREE_NO%,menuRootFn[menuLevel],menuAppName)
 				}
 				MenuBar:=""
 				continue
@@ -860,6 +864,8 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					Menu,% menuRootFn[menuLevel],add,% menuAppName,Menu_Run,%MenuBar%
 					if(IconFail)
 						Menu_Item_Icon(menuRootFn[menuLevel],menuAppName,"SHELL32.dll","124")
+				}else{
+					MenuObjTree_Delete_NoFind(MenuObjTree%TREE_NO%,menuRootFn[menuLevel],menuAppName)
 				}
 			}else{
 				if(!MenuObjEv[Z_LoopField])
@@ -1013,6 +1019,7 @@ Menu_Add(menuName,menuItem,itemContent,itemMode,TREE_NO){
 					Menu_Item_Icon(menuName,menuItem,LNKIconS[1],LNKIconS[2])
 				}else{
 					Menu,%menuName%,Delete,%menuItem%
+					MenuObjTree_Delete_NoFind(MenuObjTree%TREE_NO%,menuName,menuItem)
 				}
 			}
 		}else{  ; {处理未知的项目图标}
@@ -1027,11 +1034,20 @@ Menu_Add(menuName,menuItem,itemContent,itemMode,TREE_NO){
 				Menu_Item_Icon(menuName,menuItem,"SHELL32.dll","124")
 			}else{
 				Menu,%menuName%,Delete,%menuItem%
+				MenuObjTree_Delete_NoFind(MenuObjTree%TREE_NO%,menuName,menuItem)
 			}
 		}
 	} catch e {
 		MsgBox,16,判断后缀创建菜单项出错,% "菜单名：" menuName "`n菜单项：" menuItem 
 			. "`n路径：" itemContent "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+	}
+}
+MenuObjTree_Delete_NoFind(MenuObjTreeNum,menuName,menuItem){
+	for i,v in MenuObjTreeNum[menuName]
+	{
+		if(menuItem=Get_Obj_Transform_Name(v)){
+			MenuObjTreeNum[menuName].RemoveAt(i)
+		}
 	}
 }
 ;~;[统一设置菜单项图标]
@@ -1119,6 +1135,8 @@ Menu_Show:
 						gosub,Menu_Run
 					}else{
 						if(!HideAddItem){
+							MenuObjTreeMaxSepNum:=MenuObjTree%MENU_NO%[extMenuName].MaxIndex() + 1
+							Menu,%extMenuName%,Insert,
 							Menu,%extMenuName%,Insert, ,%RUNANY_SELF_MENU_ITEM3%,Menu_Add_File_Item
 							Menu,%extMenuName%,Default,%RUNANY_SELF_MENU_ITEM3%
 							Menu,%extMenuName%,Icon,%RUNANY_SELF_MENU_ITEM3%,SHELL32.dll,166,%MenuIconSize%
@@ -1147,8 +1165,10 @@ Menu_Show:
 								Menu,%extMenuName%,Delete,%vn%
 							}
 						}
-						if(!HideAddItem)
-							Menu,%extMenuName%,Delete,%RUNANY_SELF_MENU_ITEM3%
+						if(!HideAddItem){
+							try Menu,%extMenuName%,Delete,%RUNANY_SELF_MENU_ITEM3%
+							try Menu,%extMenuName%,Delete, %MenuObjTreeMaxSepNum%&
+						}
 					}
 				}else{
 					if(!HideAddItem){
@@ -1162,12 +1182,13 @@ Menu_Show:
 					}
 					Menu_Show_Show(menuFileRoot%MENU_NO%[1],FileName)
 					if(!HideAddItem){
-						try Menu,% menuFileRoot%MENU_NO%[1],Delete,%RUNANY_SELF_MENU_ITEM3%
+						try Menu,% menuFileRoot%MENU_NO%[1],Delete, %RUNANY_SELF_MENU_ITEM3%
 						Menu_Add_Del_Temp(0,MENU_NO,RUNANY_SELF_MENU_ITEM3)
 					}
 				}
 			}catch e{
-				TrayTip,,% "[显示菜单]：" any "`n出错命令：" e.What 
+				menuName:=extMenuName!="" ? extMenuName : menuFileRoot%MENU_NO%[1]
+				TrayTip,,% "[显示菜单]：" menuName "`n出错命令：" e.What 
 			. "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,5,1
 				Menu_Show_Show(menuFileRoot%MENU_NO%[1],FileName)
 			}
@@ -1323,7 +1344,7 @@ Menu_Show_Show(menuName,itemName){
 		Menu,%menuName%,Delete,%itemName%
 	}
 	if(menuName!=menuDefaultRoot%MENU_NO%[1]){
-		Menu,%menuName%,Delete,%RUNANY_SELF_MENU_ITEM4%
+		try Menu,%menuName%,Delete,%RUNANY_SELF_MENU_ITEM4%
 	}
 }
 Menu_Show_Translate(selectCheck){
