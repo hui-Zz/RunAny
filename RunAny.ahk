@@ -2236,7 +2236,16 @@ SkSub_UrlEncode(str, enc="UTF-8")
 StrJoin(sep, params*) {
 	str:=""
     for index,param in params
-        str .= param . sep
+	{
+		if(IsObject(param)){
+			for i,v in param
+			{
+				str.= i ":" v . sep
+			}
+		}else{
+			str.= param . sep
+		}
+	}
     return SubStr(str, 1, -StrLen(sep))
 }
 ;~;[获取变量展开转换后的值]
@@ -2276,22 +2285,25 @@ rule_check_network(lpszUrl=""){
 runNamePath 进程名或者启动项路径
 */
 rule_check_is_run(runNamePath){
+	DetectHiddenWindows,On
+	result:=false
 	runValue:=RegExReplace(runNamePath,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
 	SplitPath, runValue, name,, ext  ; 获取扩展名
 	if(ext="ahk"){
 		if(InStr(runNamePath,"..\")=1){
 			runNamePath:=IsFunc("funcPath2AbsoluteZz") ? Func("funcPath2AbsoluteZz").Call(runNamePath,A_ScriptFullPath) : runNamePath
 		}
-		IfWinExist, %runNamePath% ahk_class AutoHotkey
+		if WinExist(runNamePath " ahk_class AutoHotkey")
 		{
-			return true
+			result:=true
 		}
 	}else if(name){
 		Process,Exist,%name%
 		if ErrorLevel
-			return true
+			result:=true
 	}
-	return false
+	DetectHiddenWindows,Off
+	return result
 }
 /*
 【相对路径转换为绝对路径 by hui-Zz】
@@ -3507,7 +3519,7 @@ TVDel:
 		DelListID.Push(CheckID)
 	}
 	if(!selText){
-		MsgBox,请最少勾选一项
+		MsgBox,64,,请最少勾选一项
 		return
 	}
 	if(RegExMatch(selText,"S)^-+[^-]+.*"))
@@ -3744,7 +3756,7 @@ Website_Icon_Down:
 	}
 return
 WebsiteIconError(errDown){
-	MsgBox,以下网站图标无法下载，请单选后点[网站图标]按钮重新指定网址下载，`n或手动添加对应图标到[%WebIconDir%]`n`n%errDown%
+	MsgBox,64,,以下网站图标无法下载，请单选后点[网站图标]按钮重新指定网址下载，`n或手动添加对应图标到[%WebIconDir%]`n`n%errDown%
 }
 ;~;[上下移动项目]
 TV_Move(moveMode = true){
@@ -4177,7 +4189,6 @@ Plugins_Gui:
 	global ColumnStatus:=2
 	global ColumnAutoRun:=3
 	global ColumnContent:=5
-	DetectHiddenWindows,On
 	Gui,PluginsManage:Destroy
 	Gui,PluginsManage:Default
 	Gui,PluginsManage:+Resize
@@ -4199,7 +4210,6 @@ Plugins_Gui:
 	Gui,PluginsManage: Menu, ahkGuiMenu
 	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
 	Gui,PluginsManage:Show, , %RunAnyZz% 插件管理 - 支持拖放 %RunAny_update_version% %RunAny_update_time%%AdminMode%
-	DetectHiddenWindows,Off
 return
 
 LVMenu(addMenu){
@@ -4560,7 +4570,7 @@ LVDown:
 		if(!rule_check_network(giteeUrl)){
 			RunAnyDownDir:=githubUrl . RunAnyGithubDir
 			if(!rule_check_network(githubUrl)){
-				MsgBox,网络异常，无法连接网络读取最新版本文件，请手动下载
+				MsgBox,48,,网络异常，无法连接网络读取最新版本文件，请手动下载
 				return
 			}
 		}
@@ -4591,13 +4601,13 @@ LVDown:
 					URLDownloadToFile(RunAnyDownDir "/" PluginsDir "/" name_no_ext "/quricol64.dll",A_ScriptDir "\" pluginsDownPath "\quricol64.dll")
 					FileRead, quricol64, %A_ScriptDir%\%pluginsDownPath%\quricol64.dll
 					if(quricol64="404: Not Found`n"){
-						MsgBox,二维码插件quricol64.dll下载异常，请重新更新或到官网下载！
+						MsgBox,48,,二维码插件quricol64.dll下载异常，请重新更新或到官网下载！
 						return
 					}
 				}
 				FileRead, quricol32, %A_ScriptDir%\%pluginsDownPath%\quricol32.dll
 				if(quricol32="404: Not Found`n"){
-					MsgBox,二维码插件quricol32.dll下载异常，请重新更新或到官网下载！
+					MsgBox,48,,二维码插件quricol32.dll下载异常，请重新更新或到官网下载！
 					return
 				}
 			}
@@ -4728,7 +4738,7 @@ RunCtrl_Manage_Gui:
 	Gui,RunCtrlManage:+Resize
 	Gui,RunCtrlManage:Font, s10, Microsoft YaHei
 	Gui,RunCtrlManage:Add, ListBox, x16 w130 vRunCtrlListBox gRunCtrlListClick Choose%RunCtrlListBoxChoose%, %RunCtrlListBoxVar%
-	Gui,RunCtrlManage:Add, Listview,x+15 w530 r15 grid AltSubmit vRunCtrlLV gRunCtrlListView, 启动项|类型|重复运行
+	Gui,RunCtrlManage:Add, Listview,x+15 w570 r15 grid AltSubmit vRunCtrlLV gRunCtrlListView, 启动项|类型|重复运行
 	GuiControl,RunCtrlManage:-Redraw, RunCtrlLV
 	LVImageListID := IL_Create(11)
 	Icon_Image_Set(LVImageListID)
@@ -4745,7 +4755,7 @@ RunCtrl_Manage_Gui:
 	RunCtrlLVMenu("RunCtrlLVMenu")
 	RunCtrlLVMenu("RunCtrlManageMenu")
 	Gui,RunCtrlManage: Menu, RunCtrlManageMenu
-	Gui,RunCtrlManage:Show, w720 , %RunAnyZz% 启动管理 %RunAny_update_version% %RunAny_update_time%%AdminMode%(双击修改，右键操作)
+	Gui,RunCtrlManage:Show, w750 , %RunAnyZz% 启动管理 %RunAny_update_version% %RunAny_update_time%%AdminMode%(双击修改，右键操作)
 return
 
 RunCtrlListClick:
@@ -4776,11 +4786,11 @@ return
 RunCtrlLVMenu(addMenu){
 	flag:=addMenu="RunCtrlManageMenu" ? true : false
 	Menu, %addMenu%, Add,% flag ? "启动" : "启动`tF1", RunCtrlLVRun
-	Menu, %addMenu%, Icon,% flag ? "启动" : "启动`tF1",% EXEIconS[1],% EXEIconS[2]
+	Menu, %addMenu%, Icon,% flag ? "启动" : "启动`tF1",% RunCtrlManageIconS[1],% RunCtrlManageIconS[2]
 	Menu, %addMenu%, Add,% flag ? "添加组" : "添加组`tF3", RunCtrlLVAdd
-	Menu, %addMenu%, Icon,% flag ? "添加组" : "添加组`tF3",% RunCtrlManageIconS[1],% RunCtrlManageIconS[2]
+	Menu, %addMenu%, Icon,% flag ? "添加组" : "添加组`tF3", SHELL32.dll,42
 	Menu, %addMenu%, Add,% flag ? "添加应用" : "添加应用`tF4", LVCtrlRunAdd
-	Menu, %addMenu%, Icon,% flag ? "添加应用" : "添加应用`tF4", SHELL32.dll,3
+	Menu, %addMenu%, Icon,% flag ? "添加应用" : "添加应用`tF4",% EXEIconS[1],% EXEIconS[2]
 	Menu, %addMenu%, Add,% flag ? "编辑" : "编辑`tF2", RunCtrlLVEdit
 	Menu, %addMenu%, Icon,% flag ? "编辑" : "编辑`tF2", SHELL32.dll,134
 	Menu, %addMenu%, Add,% flag ? "移除" : "移除`tDel", RunCtrlLVDel
@@ -5033,7 +5043,7 @@ return
 RunCtrlLVSave:
 	Gui,RunCtrlConfig:Submit, NoHide
 	fnx:=250
-	fny:=40
+	fny:=100
 	if(!vRuleGroupName){
 		ToolTip, 请填入规则组名,%fnx%,%fny%
 		SetTimer,RemoveToolTip,3000
@@ -5393,14 +5403,20 @@ Rule_Manage_Gui:
 	Gui,RuleManage:Default
 	Gui,RuleManage:+Resize
 	Gui,RuleManage:Font, s10, Microsoft YaHei
-	Gui,RuleManage:Add, Listview, xm w660 r18 grid AltSubmit BackgroundF6F6E8 vRuleLV glistrule, 规则名|规则函数|状态|类型|参数|示例|规则插件名
+	Gui,RuleManage:Add, Listview, xm w685 r18 grid AltSubmit BackgroundF6F6E8 vRuleLV glistrule, 规则名|规则函数|状态|类型|参数|示例|规则插件名
 	;[读取规则内容写入列表]
 	GuiControl, -Redraw, RuleLV
 	For kName, kVal in rulefileList
 	{
-		LV_Add("", kName, rulefuncList[kName], rulestatusList[kName] ? "正常" : "不可用"
-			,ruletypelist[kName] ? "变量" : "插件",ruleparamList[kName] ? "传参" : ""
-			,!InStr(kVal,"RunCtrl_Network.ahk") ? RunCtrl_RuleResult(kName, ruleitemList[kName], "") : "http://ip-api.com/json" , kVal)
+		ruleStatus:=rulestatusList[kName] ? "正常" : "未找到"
+		if(!ruletypelist[kName] && kVal!="RunAny.ahk" && !rule_check_is_run(PluginsPathList[kVal])){
+			ruleStatus:="未启动"
+		}
+		ruleResult:=""
+		if(ruleStatus="正常"){
+			ruleResult:=InStr(kVal,"RunCtrl_Network.ahk") ? "http://ip-api.com/json" : RunCtrl_RuleResult(kName, ruleitemList[kName], "")
+		}
+		LV_Add("", kName, rulefuncList[kName], ruleStatus ,ruletypelist[kName] ? "变量" : "插件",ruleparamList[kName] ? "传参" : ""	,ruleResult , kVal)
 	}
 	GuiControl, +Redraw, RuleLV
 	Menu, ruleGuiMenu, Add, 新增, LVRulePlus
@@ -5409,6 +5425,9 @@ Rule_Manage_Gui:
 	Menu, ruleGuiMenu, Icon, 修改, SHELL32.dll,134
 	Menu, ruleGuiMenu, Add, 减少, LVRuleMinus
 	Menu, ruleGuiMenu, Icon, 减少, SHELL32.dll,132
+	Menu, ruleGuiMenu, Add, 添加默认规则, LVRuleDefault
+	Menu, ruleGuiMenu, Icon, 添加默认规则, SHELL32.dll,194
+	Menu, ruleGuiMenu, Add, 全选, LVRuleSelect
 	Gui,RuleManage:Menu, ruleGuiMenu
 	LV_ModifyCol()  ; 根据内容自动调整每列的大小.
 	LV_ModifyCol(2,"Sort")
@@ -5431,6 +5450,58 @@ LVRuleEdit:
 	RuleTypeVar:=RuleType="变量" ? 1 : 0
 	RuleTypeFunc:=RuleTypeVar=1 ? 0 : 1
 	gosub,RuleConfig_Gui
+return
+LVRuleSelect:
+	LV_Modify(0, "Select Focus")   ; 选择所有.
+return
+LVRuleDefault:
+	MsgBox,33,添加默认规则,需要添加最新版本的默认规则吗？（重复的规则不会添加）
+	IfMsgBox Ok
+	{
+		ruleDefaultStr:=""
+		RunCtrlRuleObj:={"电脑名":"A_ComputerName","用户名":"A_UserName","系统版本":"A_OSVersion","系统64位":"A_Is64bitOS","本地时间":"A_Now"
+			,"年":"A_YYYY","月":"A_MM","星期":"A_WDay","日":"A_DD","时":"A_Hour","分":"A_Min","秒":"A_Sec"}
+		For rName, rFunc in RunCtrlRuleObj
+		{
+			if(!rulefileList[rName]){
+				IniWrite, 0, %RunAnyConfig%, RunCtrlRule, %rName%|%rFunc%
+			}
+		}
+		RunCtrlRuleObj:={"电脑机型":"rule_chassis_types","运行状态":"rule_check_is_run","联网状态":"rule_check_network"}
+		For rName, rFunc in RunCtrlRuleObj
+		{
+			if(!rulefileList[rName]){
+				IniWrite, RunAny.ahk, %RunAnyConfig%, RunCtrlRule, %rName%|%rFunc%
+			}
+		}
+		if(PluginsPathList["RunCtrl_Common.ahk"]){
+			RunCtrlCommonRuleObj:={"开机时长(秒)":"rule_boot_time","内网IP":"rule_ip_internal","WiFi名":"rule_wifi_silence"
+				,"运行过(今天)":"rule_run_today","最近打开文件(今天)":"rule_run_today_file"}
+			For rName, rFunc in RunCtrlCommonRuleObj
+			{
+				if(!rulefileList[rName]){
+					IniWrite, RunCtrl_Common.ahk, %RunAnyConfig%, RunCtrlRule, %rName%|%rFunc%
+				}
+			}
+			ruleDefaultStr.="RunCtrl_Common.ahk"
+		}
+		if(PluginsPathList["RunCtrl_Network.ahk"]){
+			RunCtrlNetworkRuleObj:={"城市":"rule_ip_city","国家":"rule_ip_country","国家代码":"rule_ip_countryCode","省":"rule_ip_region","省缩写":"rule_ip_regionName"
+				,"纬度":"rule_ip_lat","经度":"rule_ip_lon","时区":"rule_ip_timezone","运营商":"rule_ip_isp","外网IP":"rule_ip_external"}
+
+			For rName, rFunc in RunCtrlNetworkRuleObj
+			{
+				if(!rulefileList[rName]){
+					IniWrite, RunCtrl_Network.ahk, %RunAnyConfig%, RunCtrlRule, %rName%|%rFunc%
+				}
+			}
+			ruleDefaultStr.=" RunCtrl_Network.ahk"
+		}
+		if(ruleDefaultStr!=""){
+			Msgbox,64,,请在“插件管理”窗口里设置`n %ruleDefaultStr% 插件为自动启动，`n只有插件运行时规则才会生效
+		}
+		gosub,Rule_Manage_Gui
+	}
 return
 ;~;【规则-编辑Gui】
 RuleConfig_Gui:
@@ -7120,7 +7191,7 @@ Menu_Exe_Icon_Create:
 	cfgFile=%ResourcesExtractDir%\ResourcesExtract.cfg
 	DestFold=%A_Temp%\%RunAnyZz%\RunAnyExeIconTemp
 	if(!ResourcesExtractExist){
-		MsgBox, 请将ResourcesExtract.exe放入%ResourcesExtractDir%
+		MsgBox,64,,请将ResourcesExtract.exe放入%ResourcesExtractDir%
 		return
 	}
 	MsgBox,35,生成所有EXE图标，请稍等片刻, 
@@ -7140,7 +7211,7 @@ Menu_Exe_Icon_Create:
 return
 Menu_Exe_Icon_Extract:
 	if(!FileExist(cfgFile)){
-		MsgBox, 请将ResourcesExtract.cfg放入%ResourcesExtractDir%
+		MsgBox,64,,请将ResourcesExtract.cfg放入%ResourcesExtractDir%
 		return
 	}else{
 		IniWrite,%DestFold%,%cfgFile%,General,DestFolder
@@ -7168,7 +7239,7 @@ Menu_Exe_Icon_Extract:
 	Process,WaitClose,ResourcesExtract.exe,10
 	ToolTip
 	Menu_Exe_Icon_Set()
-	MsgBox, 成功生成%RunAnyZz%内所有EXE图标到 %ExeIconDir%
+	MsgBox,64,,成功生成%RunAnyZz%内所有EXE图标到 %ExeIconDir%
 	Gui,66:Submit, NoHide
 	if(vIconFolderPath){
 		if(!InStr(vIconFolderPath,"ExeIcon"))
@@ -7559,7 +7630,7 @@ class RunCtrlRunRule
 
 ;~;【规则生效】
 Rule_Effect:
-	global runIndex:=Object()
+	global runIndex:=Object(), RuleRunFailList:=Object()
 	try{
 		for n,obj in RunCtrlList
 		{
@@ -7578,7 +7649,11 @@ Rule_Effect:
 				RunCtrl_RunRules(runCtrlObj)
 			}
 		}
-	} catch e { 
+		if(RuleRunFailList.Count() > 0){
+			RuleRunFailStr:=StrJoin("`n",RuleRunFailList)
+			TrayTip,,规则插件脚本没有启动：`n%RuleRunFailStr%,5,1
+		}
+	} catch e {
 		MsgBox,16,规则判断出错,% "规则名：" rcName 
 			. "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 	}
@@ -7598,10 +7673,14 @@ RunCtrl_RunRules(runCtrlObj,show:=0){
 		}else if(show){
 			ToolTip, 规则验证失败
 			SetTimer,RemoveToolTip,3000
+			if(RuleRunFailList.Count() > 0){
+				RuleRunFailStr:=StrJoin("`n",RuleRunFailList)
+				TrayTip,,规则插件脚本没有启动：`n%RuleRunFailStr%,5,1
+			}
 		}
 		return effectResult
 	} catch e {
-		MsgBox,16,启动规则出错,% "启动规则名：" rcName 
+		MsgBox,16,启动规则出错,% "启动规则名：" rcName "`n启动规则脚本：" StrJoin(",",runCtrlObj.ruleFile)
 			. "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 	} finally {
 		runIndex[rcName]++	;规则定时器运行计数+1
@@ -7614,7 +7693,6 @@ RunCtrl_RunRules(runCtrlObj,show:=0){
 ;~;[规则启动应用]
 RunCtrl_RunApps(path,noPath,repeatRun:=0){
 	try {
-		DetectHiddenWindows,On
 		if(noPath){
 			path:=Get_Obj_Transform_Name(Trim(path," `t`n`r"))
 			if(!repeatRun && rule_check_is_run(MenuObj[path])){
@@ -7637,7 +7715,6 @@ RunCtrl_RunApps(path,noPath,repeatRun:=0){
 			. "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 	} finally {
 		SetWorkingDir,%A_ScriptDir%
-		DetectHiddenWindows,Off
 	}
 }
 ;~;[规则判断是否成立]
@@ -7648,7 +7725,11 @@ RunCtrl_RuleEffect(runCtrlObj){
 	for ruleFile,ruleStatus in runCtrlObj.ruleFile
 	{
 		if(ruleStatus && ruleFile!="0" && ruleFile!="RunAny"){
-			PluginsObjRegActive[ruleFile]:=ComObjActive(PluginsObjRegGUID[ruleFile])
+			if(rule_check_is_run(PluginsPathList[ruleFile ".ahk"])){
+				PluginsObjRegActive[ruleFile]:=ComObjActive(PluginsObjRegGUID[ruleFile])
+			}else{
+				RuleRunFailList[ruleFile]:=""
+			}
 		}
 	}
 	for i,rulev in runCtrlObj.ruleList
