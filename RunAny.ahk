@@ -4399,6 +4399,7 @@ listview:
 		gosub,LVApply
     }
 return
+;~;【插件-下载插件】
 LVAdd:
 	global pluginsDownList:=Object()
 	global pluginsNameList:=Object()
@@ -4610,6 +4611,9 @@ LVDown:
 					MsgBox,48,,二维码插件quricol32.dll下载异常，请重新更新或到官网下载！
 					return
 				}
+			}else if(FileName="RunCtrl_Network.ahk"){
+				TrayTip,,RunCtrl_Network.ahk需要下载JSON.ahk，请稍等……,3,1
+				URLDownloadToFile(RunAnyDownDir "/" StrReplace(pluginsDownPath,"\","/") "/Lib/JSON.ahk",A_ScriptDir "\" pluginsDownPath "\Lib\JSON.ahk")
 			}
 			;[下载插件脚本]
 			IfExist,%A_ScriptDir%\%pluginsDownPath%\%FileName%
@@ -4755,7 +4759,7 @@ RunCtrl_Manage_Gui:
 	RunCtrlLVMenu("RunCtrlLVMenu")
 	RunCtrlLVMenu("RunCtrlManageMenu")
 	Gui,RunCtrlManage: Menu, RunCtrlManageMenu
-	Gui,RunCtrlManage:Show, w750 , %RunAnyZz% 启动管理 %RunAny_update_version% %RunAny_update_time%%AdminMode%(双击修改，右键操作)
+	Gui,RunCtrlManage:Show, w750 , RunCtrl 启动管理 %RunAny_update_version% %RunAny_update_time%%AdminMode%(双击修改，右键操作)
 return
 
 RunCtrlListClick:
@@ -5196,7 +5200,7 @@ LVFuncConfig:
 	Gui,RunCtrlFunc:Add, Radio, x+10 yp Checked%FuncBooleanLE% vvFuncBooleanLE, 小于等于　　　
 	Gui,RunCtrlFunc:Add, Radio, xm y+10 Checked%FuncBooleanGT% vvFuncBooleanGT, 大于　　　　　
 	Gui,RunCtrlFunc:Add, Radio, x+10 yp Checked%FuncBooleanLT% vvFuncBooleanLT, 小于　　　　　
-	Gui,RunCtrlFunc:Add, CheckBox, xm y+10 Checked%FuncBreak% vvFuncBreak, 不满足此条件就中断整个规则循环（排在其他规则前面）
+	Gui,RunCtrlFunc:Add, CheckBox, xm y+10 Checked%FuncBreak% vvFuncBreak, 不满足此条件就中断整个规则循环（建议排在其他规则前面）
 	Gui,RunCtrlFunc:Add, Text, xm y+10 w350 vvRuleText, 条件值：（只判断规则真假，可不填写）
 	Gui,RunCtrlFunc:Add, Text, xm yp w350 cblue vvRuleParamText, 条件值：（条件值变为参数传递到规则函数，只判断结果真假）
 	; `n多个参数每行为一个参数，最多支持10个，保存会用|分隔
