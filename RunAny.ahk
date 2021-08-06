@@ -943,12 +943,15 @@ Menu_HotStr_Hint_Run:
 	{
 		if(v["hotStrHint"]=runHotStrHint){
 			hotStrName:=v["hotStrName"]!=""?"`t" v["hotStrName"]:""
+			;将获取到的热字符串中的变量进行转化，比如显示实时时间
+			hotStrFixed:=RegExReplace(v["hotStrAny"],"S);+$")
+			hotStrFlexible:=Get_Transform_Val(hotStrFixed)
 			if(HotStrShowLen<=0){
 				hotStrAny:=""
 			}else if(StrLen(v["hotStrAny"])>HotStrShowLen){
-				hotStrAny:="`t" SubStr(v["hotStrAny"], 1, HotStrShowLen) . "..."
+				hotStrAny:="`t" SubStr(hotStrFlexible, 1, HotStrShowLen) . "..."
 			}else{
-				hotStrAny:="`t" v["hotStrAny"]
+				hotStrAny:="`t" hotStrFlexible
 			}
 			HintTip.=v["hotStrShow"] hotStrName hotStrAny "`n"
 		}
@@ -1529,7 +1532,7 @@ Menu_Run:
 		}
 		;[带选中内容运行]
 		if(getZz!="" && (getZzFlag || AutoGetZz)){
-			firstFile:=RegExReplace(getZz,"(.*)(\n|\r).*","$1")  ;取第一行
+			firstFile:=RegExReplace(getZz,"S)(.*)(\n|\r).*","$1")  ;取第一行
 			if(Candy_isFile=1 || FileExist(getZz) || FileExist(firstFile)){
 				getZzStr:=""
 				Loop, parse, getZz, `n, `r, %A_Space%%A_Tab%
@@ -1704,7 +1707,7 @@ Menu_Key_Run_Run:
 			menuTransNum:=RegExReplace(thisMenuName,"S).*?_:(\d{1,2})$","$1")
 		}
 		if(getZz!="" && (getZzFlag || AutoGetZz)){
-			firstFile:=RegExReplace(getZz,"(.*)(\n|\r).*","$1")  ;取第一行
+			firstFile:=RegExReplace(getZz,"S)(.*)(\n|\r).*","$1")  ;取第一行
 			if(getZzFlag){
 				Run_Any(any)
 			}else if(Candy_isFile=1 || FileExist(getZz) || FileExist(firstFile)){
