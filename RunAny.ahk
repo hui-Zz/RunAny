@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.07.27
+║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.08.06
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.6"     ;~;版本号
-global RunAny_update_time:="2021.07.27"   ;~;更新日期
+global RunAny_update_time:="2021.08.06"   ;~;更新日期
 gosub,Var_Set           ;~;01.参数初始化
 gosub,Menu_Var_Set      ;~;02.自定义变量
 gosub,Icon_Set          ;~;03.图标初始化
@@ -367,7 +367,6 @@ if(iniFlag){
 	gosub,Menu_Show1
 }
 ;提前加载菜单树图标缓存
-Gosub,Plugins_LV_Icon_Set
 global TreeImageListID := IL_Create(11)
 Icon_Image_Set(TreeImageListID)
 Icon_Tree_Image_Set(TreeImageListID)
@@ -998,7 +997,13 @@ Menu_Add(menuName,menuItem,itemContent,itemMode,TREE_NO){
 			return
 		}
 		if(itemMode=8){  ; {脚本插件函数}
-			Menu_Item_Icon(menuName,menuItem,FuncIconS[1],FuncIconS[2])
+			appPlugins:=RegExReplace(itemContent,"iS)(.+?)\[.+?\]%?\(.*?\)$","$1")	;取插件名
+			if(PluginsIconList[appPlugins ".ahk"]){
+				PluginsIconS:=StrSplit(Get_Transform_Val(PluginsIconList[appPlugins ".ahk"]),",")
+				Menu_Item_Icon(menuName,menuItem,PluginsIconS[1],PluginsIconS[2])
+			}else{
+				Menu_Item_Icon(menuName,menuItem,FuncIconS[1],FuncIconS[2])
+			}
 			if(InStr(itemContent,"%getZz%")){
 				MenuGetZzList%TREE_NO%[menuName].=menuItem "`n"	; 添加到GetZz搜索
 			}
@@ -2045,6 +2050,8 @@ Menu_Recent:
 		}catch{}
 	}
 	regMenuItem:=RegExReplace(A_ThisMenuItem,"iS)^运行\(&R\) ")
+	if(regMenuItem="")
+		return
 	;插入到最近运行第一条
 	MenuCommonList.InsertAt(1,"&1" A_Space regMenuItem)
 	MenuCommonNewList:=[]
@@ -3442,7 +3449,9 @@ SetItemIconPath:
 			SplitPath, itemIconFile, iName
 			FileMove,%itemIconFile%,%A_Temp%\%RunAnyZz%\RunIcon\%iName%,1
 		}
-		if(RegExMatch(vitemPath,"iS)([\w-]+://?|www[.]).*")){
+		if(InStr(vitemName,"-")=1){
+			iconCopyDir:=MenuIconDir
+		}else if(RegExMatch(vitemPath,"iS)([\w-]+://?|www[.]).*")){
 			iconCopyDir:=WebIconDir
 		}else{
 			iconCopyDir:=ExeIconDir
@@ -4174,7 +4183,6 @@ WM_NOTIFY(Param*){
 ;══════════════════════════════════════════════════════════════════
 Plugins_Gui:
 	gosub,Plugins_Read
-	gosub,Plugins_LV_Icon_Set
 	;根据网络自动选择对应插件说明网页地址
 	pagesPluginsUrl:=RunAnyGiteePages . "/runany/#/plugins-help"
 	if(!rule_check_network(RunAnyGiteePages)){
@@ -4193,8 +4201,10 @@ Plugins_Gui:
 	Gui,PluginsManage:Default
 	Gui,PluginsManage:+Resize
 	Gui,PluginsManage:Font, s10, Microsoft YaHei
-	Gui,PluginsManage:Add, Listview, xm w710 r22 grid AltSubmit vRunAnyLV glistview, 插件文件|运行状态|自动启动|插件描述|插件说明地址
-	GuiControl,PluginsManage: -Redraw, RunAnyLV
+	Gui,PluginsManage:Add, Listview, xm w710 r22 grid AltSubmit vRunAnyPluginsLV glistview, 插件文件|运行状态|自动启动|插件描述|插件说明地址
+	GuiControl,PluginsManage: -Redraw, RunAnyPluginsLV
+	global PluginsImageListID:=IL_Create(6)
+	Plugins_LV_Icon_Set(PluginsImageListID)
 	LV_SetImageList(PluginsImageListID)
 	For runn, runv in PluginsObjList
 	{
@@ -4202,9 +4212,9 @@ Plugins_Gui:
 		pluginsConfig:=runv ? "自启" : ""
 		if(!PluginsPathList[runn])
 			pluginsConfig:="未找到"
-		LV_Add(LVPluginsIcon(runn), runn, runStatus, pluginsConfig, PluginsTitleList[runn], PluginsHelpList[runn])
+		LV_Add(LVPluginsSetIcon(PluginsImageListID,runn), runn, runStatus, pluginsConfig, PluginsNameList[runn], PluginsHelpList[runn])
 	}
-	GuiControl,PluginsManage: +Redraw, RunAnyLV
+	GuiControl,PluginsManage: +Redraw, RunAnyPluginsLV
 	LVMenu("LVMenu")
 	LVMenu("ahkGuiMenu")
 	Gui,PluginsManage: Menu, ahkGuiMenu
@@ -4214,58 +4224,58 @@ return
 
 LVMenu(addMenu){
 	flag:=addMenu="ahkGuiMenu" ? true : false
-	Menu, %addMenu%, Add,% flag ? "启动" : "启动`tF1", LVRun
+	Menu, %addMenu%, Add,% flag ? "启动" : "启动`tF1", LVPluginsRun
 	try Menu, %addMenu%, Icon,% flag ? "启动" : "启动`tF1", %A_AhkPath%,2
-	Menu, %addMenu%, Add,% flag ? "编辑" : "编辑`tF2", LVEdit
+	Menu, %addMenu%, Add,% flag ? "编辑" : "编辑`tF2", LVPluginsEdit
 	Menu, %addMenu%, Icon,% flag ? "编辑" : "编辑`tF2", SHELL32.dll,134
-	Menu, %addMenu%, Add,% flag ? "自启" : "自启`tF3", LVEnable
+	Menu, %addMenu%, Add,% flag ? "自启" : "自启`tF3", LVPluginsEnable
 	Menu, %addMenu%, Icon,% flag ? "自启" : "自启`tF3", SHELL32.dll,166
-	Menu, %addMenu%, Add,% flag ? "关闭" : "关闭`tF4", LVClose
+	Menu, %addMenu%, Add,% flag ? "关闭" : "关闭`tF4", LVPluginsClose
 	Menu, %addMenu%, Icon,% flag ? "关闭" : "关闭`tF4", SHELL32.dll,28
-	Menu, %addMenu%, Add,% flag ? "挂起" : "挂起`tF5", LVSuspend
+	Menu, %addMenu%, Add,% flag ? "挂起" : "挂起`tF5", LVPluginsSuspend
 	try Menu, %addMenu%, Icon,% flag ? "挂起" : "挂起`tF5", %A_AhkPath%,3
-	Menu, %addMenu%, Add,% flag ? "暂停" : "暂停`tF6", LVPause
+	Menu, %addMenu%, Add,% flag ? "暂停" : "暂停`tF6", LVPluginsPause
 	try Menu, %addMenu%, Icon,% flag ? "暂停" : "暂停`tF6", %A_AhkPath%,4
-	Menu, %addMenu%, Add,% flag ? "移除" : "移除`tF7", LVDel
+	Menu, %addMenu%, Add,% flag ? "移除" : "移除`tF7", LVPluginsDel
 	Menu, %addMenu%, Icon,% flag ? "移除" : "移除`tF7", SHELL32.dll,132
-	Menu, %addMenu%, Add,% flag ? "下载插件" : "下载插件`tF8", LVAdd
-	Menu, %addMenu%, Icon,% flag ? "下载插件" : "下载插件`tF8", SHELL32.dll,194
-	Menu, %addMenu%, Add,% flag ? "插件说明" : "插件说明`tF9", LVHelp
+	Menu, %addMenu%, Add,% flag ? "下载插件" : "下载插件`tF8", LVPluginsAdd
+	Menu, %addMenu%, Icon,% flag ? "下载插件" : "下载插件`tF8", SHELL32.dll,123
+	Menu, %addMenu%, Add,% flag ? "插件说明" : "插件说明`tF9", LVPluginsHelp
 	Menu, %addMenu%, Icon,% flag ? "插件说明" : "插件说明`tF9", SHELL32.dll,92
 	Menu, %addMenu%, Add,% flag ? "插件库" : "插件库`tF10", LVPluginsLib
 	Menu, %addMenu%, Icon,% flag ? "插件库" : "插件库`tF10", SHELL32.dll,42
-	Menu, %addMenu%, Add,% flag ? "新建插件" : "新建插件`tF11", LVCreate
+	Menu, %addMenu%, Add,% flag ? "新建插件" : "新建插件`tF11", LVPluginsCreate
 	Menu, %addMenu%, Icon,% flag ? "新建插件" : "新建插件`tF11", SHELL32.dll,1
 }
-LVRun:
+LVPluginsRun:
 	menuItem:="启动"
 	gosub,LVApply
 	return
-LVEdit:
+LVPluginsEdit:
 	menuItem:="编辑"
 	gosub,LVApply
 	return
-LVEnable:
+LVPluginsEnable:
 	menuItem:="自启"
 	gosub,LVApply
 	return
-LVClose:
+LVPluginsClose:
 	menuItem:="关闭"
 	gosub,LVApply
 	return
-LVSuspend:
+LVPluginsSuspend:
 	menuItem:="挂起"
 	gosub,LVApply
 	return
-LVPause:
+LVPluginsPause:
 	menuItem:="暂停"
 	gosub,LVApply
 	return
-LVDel:
+LVPluginsDel:
 	menuItem:="移除"
 	gosub,LVApply
 	return
-LVHelp:
+LVPluginsHelp:
 	menuItem:="帮助"
 	gosub,LVApply
 	return
@@ -4308,10 +4318,10 @@ LVApply:
 			Plugins_Edit(FilePath)
 		}else if(menuItem="挂起"){
 			PostMessage, 0x111, 65404,,, %FilePath% ahk_class AutoHotkey
-			LVStatusChange(RowNumber,FileStatus,"挂起",FileName)
+			LVStatusChange(PluginsImageListID,RowNumber,FileStatus,"挂起",FileName)
 		}else if(menuItem="暂停"){
 			PostMessage, 0x111, 65403,,, %FilePath% ahk_class AutoHotkey
-			LVStatusChange(RowNumber,FileStatus,"暂停",FileName)
+			LVStatusChange(PluginsImageListID,RowNumber,FileStatus,"暂停",FileName)
 		}else if(menuItem="关闭"){
 			runValue:=RegExReplace(FilePath,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
 			SplitPath, runValue, name,, ext  ; 获取扩展名
@@ -4380,17 +4390,17 @@ Plugins_Edit(FilePath){
 	}
 }
 #If WinActive(RunAnyZz " 插件管理 - 支持拖放 " RunAny_update_version A_Space RunAny_update_time)
-	F1::gosub,LVRun
-	F2::gosub,LVEdit
-	F3::gosub,LVEnable
-	F4::gosub,LVClose
-	F5::gosub,LVSuspend
-	F6::gosub,LVPause
-	F7::gosub,LVDel
-	F8::gosub,LVAdd
-	F9::gosub,LVHelp
+	F1::gosub,LVPluginsRun
+	F2::gosub,LVPluginsEdit
+	F3::gosub,LVPluginsEnable
+	F4::gosub,LVPluginsClose
+	F5::gosub,LVPluginsSuspend
+	F6::gosub,LVPluginsPause
+	F7::gosub,LVPluginsDel
+	F8::gosub,LVPluginsAdd
+	F9::gosub,LVPluginsHelp
 	F10::gosub,LVPluginsLib
-	F11::gosub,LVCreate
+	F11::gosub,LVPluginsCreate
 #If
 listview:
     if A_GuiEvent = DoubleClick
@@ -4400,7 +4410,7 @@ listview:
     }
 return
 ;~;【插件-下载插件】
-LVAdd:
+LVPluginsAdd:
 	global pluginsDownList:=Object()
 	global pluginsNameList:=Object()
 	gosub,PluginsDownVersion
@@ -4410,22 +4420,29 @@ LVAdd:
 	Gui,PluginsDownload:Font, s10, Microsoft YaHei
 	Gui,PluginsDownload:Add, Listview, xm w620 r15 grid AltSubmit Checked vRunAnyDownLV, 插件文件|状态|版本号|最新版本|插件描述
 	GuiControl,PluginsDownload: -Redraw, RunAnyDownLV
+	global PluginsDownImageListID:=IL_Create(6)
+	Plugins_LV_Icon_Set(PluginsDownImageListID)
+	LV_SetImageList(PluginsDownImageListID)
 	For pk, pv in pluginsDownList
 	{
 		runStatus:=PluginsPathList[pk] ? "已下载" : "未下载"
-		pluginsLocalVersion:=Plugins_Read_Version(PluginsPathList[pk])
 		if(runStatus="已下载" && checkGithub)
-			runStatus:=pluginsLocalVersion < pv ? "可更新" : "已最新"
-		LV_Add("", pk, runStatus, pluginsLocalVersion, checkGithub ? pv : "网络异常",checkGithub ? pluginsNameList[pk] : PluginsTitleList[pk])
+			runStatus:=PluginsVersionList[pk] < pv ? "可更新" : "已最新"
+		LV_Add(LVPluginsSetIcon(PluginsDownImageListID,pk), pk, runStatus, PluginsVersionList[pk], checkGithub ? pv : "网络异常",checkGithub ? pluginsNameList[pk] : PluginsNameList[pk])
 	}
 	GuiControl,PluginsDownload: +Redraw, RunAnyDownLV
-	Menu, ahkDownMenu, Add,下载, LVDown
-	Menu, ahkDownMenu, Icon,下载, SHELL32.dll,194
+	Menu, ahkDownMenu, Add,全部勾选, LVPluginsCheck
+	Menu, ahkDownMenu, Icon,全部勾选, SHELL32.dll,145
+	Menu, ahkDownMenu, Add,下载勾选的插件脚本, LVDown
+	Menu, ahkDownMenu, Icon,下载勾选的插件脚本, SHELL32.dll,123
 	Gui,PluginsDownload: Menu, ahkDownMenu
 	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
 	Gui,PluginsDownload:Show, , %RunAnyZz% 插件下载 %RunAny_update_version% %RunAny_update_time%
 return
-LVCreate:
+LVPluginsCheck:
+	LV_Modify(0, "Check Focus")   ; 勾选所有.
+return
+LVPluginsCreate:
 newObjRegCount:=1
 Loop,%A_ScriptDir%\%PluginsDir%\RunAny_NewObjReg_*.ahk
 {
@@ -4523,6 +4540,8 @@ SavePluginsLib:
 	Gui,PluginsManage:Destroy
 	gosub,Plugins_Gui
 return
+
+;[插件检查版本更新]
 PluginsDownVersion:
 	if(!rule_check_network(giteeUrl)){
 		RunAnyDownDir:=githubUrl . RunAnyGithubDir
@@ -4643,15 +4662,14 @@ LVDown:
 	}
 return
 ;[加载插件脚本图标]
-Plugins_LV_Icon_Set:
-	global PluginsImageListID:=IL_Create(6)
+Plugins_LV_Icon_Set(PluginsImageListID){
 	IL_Add(PluginsImageListID, A_AhkPath, 1)
 	IL_Add(PluginsImageListID, A_AhkPath, 2)
 	IL_Add(PluginsImageListID, A_AhkPath, 3)
 	IL_Add(PluginsImageListID, A_AhkPath, 4)
 	IL_Add(PluginsImageListID, A_AhkPath, 5)
 	IL_Add(PluginsImageListID, FuncIconS[1], FuncIconS[2])
-return
+}
 ;[插件管理独立脚本一键关闭]
 Plugins_Alone_Pause:
 	Plugins_Alone("暂停")
@@ -4681,7 +4699,7 @@ Plugins_Alone(r){
 	DetectHiddenWindows,Off
 }
 
-LVPluginsIcon(pname){
+LVPluginsSetIcon(PluginsImageListID,pname){
 	pname_no_ext:=RegExReplace(pname,"iS)\.ahk$")
 	PluginsFile:=RegExReplace(PluginsPathList[pname],"iS)\.ahk$")
 	Loop, Parse,% IconFileSuffix "*.exe;", `;
@@ -4689,8 +4707,14 @@ LVPluginsIcon(pname){
 		suffix:=StrReplace(A_LoopField, "*")
 		if(FileExist(PluginsFile suffix)){
 			addNum:=IL_Add(PluginsImageListID, PluginsFile suffix, 0)
+			PluginsIconList[pname]:=PluginsFile suffix
 			return "Icon" addNum
 		}
+	}
+	if(PluginsIconList[pname]){
+		FileIconS:=StrSplit(Get_Transform_Val(PluginsIconList[pname]),",")
+		addNum:=IL_Add(PluginsImageListID, FileIconS[1], FileIconS[2])
+		return "Icon" addNum
 	}
 	if(PluginsObjRegGUID[pname_no_ext]){
 		return "Icon6"
@@ -4698,7 +4722,7 @@ LVPluginsIcon(pname){
 	return "Icon2"
 }
 ;[判断脚本当前状态]
-LVStatusChange(RowNumber,FileStatus,lvItem,FileName){
+LVStatusChange(PluginsImageListID,RowNumber,FileStatus,lvItem,FileName){
 	item:=lvItem
 	if(FileStatus="挂起" && lvItem="暂停"){
 		LV_Modify(RowNumber, "Icon5", ,"挂起暂停")
@@ -4714,7 +4738,7 @@ LVStatusChange(RowNumber,FileStatus,lvItem,FileName){
 	if(lvItem="")
 		lvItem:="启动"
 	if(lvItem="启动"){
-		LV_Modify(RowNumber, LVPluginsIcon(FileName), ,lvItem)
+		LV_Modify(RowNumber, LVPluginsSetIcon(PluginsImageListID,FileName), ,lvItem)
 	}else if(lvItem="挂起"){
 		LV_Modify(RowNumber, "Icon3", ,lvItem)
 	}else if(lvItem="暂停"){
@@ -4792,7 +4816,7 @@ RunCtrlLVMenu(addMenu){
 	Menu, %addMenu%, Add,% flag ? "启动" : "启动`tF1", RunCtrlLVRun
 	Menu, %addMenu%, Icon,% flag ? "启动" : "启动`tF1",% RunCtrlManageIconS[1],% RunCtrlManageIconS[2]
 	Menu, %addMenu%, Add,% flag ? "添加组" : "添加组`tF3", RunCtrlLVAdd
-	Menu, %addMenu%, Icon,% flag ? "添加组" : "添加组`tF3", SHELL32.dll,42
+	Menu, %addMenu%, Icon,% flag ? "添加组" : "添加组`tF3", SHELL32.dll,22
 	Menu, %addMenu%, Add,% flag ? "添加应用" : "添加应用`tF4", LVCtrlRunAdd
 	Menu, %addMenu%, Icon,% flag ? "添加应用" : "添加应用`tF4",% EXEIconS[1],% EXEIconS[2]
 	Menu, %addMenu%, Add,% flag ? "编辑" : "编辑`tF2", RunCtrlLVEdit
@@ -4800,7 +4824,7 @@ RunCtrlLVMenu(addMenu){
 	Menu, %addMenu%, Add,% flag ? "移除" : "移除`tDel", RunCtrlLVDel
 	Menu, %addMenu%, Icon,% flag ? "移除" : "移除`tDel", SHELL32.dll,132
 	Menu, %addMenu%, Add,% flag ? "规则" : "规则`tF7", Rule_Manage_Gui
-	Menu, %addMenu%, Icon,% flag ? "规则" : "规则`tF7", SHELL32.dll,166
+	Menu, %addMenu%, Icon,% flag ? "规则" : "规则`tF7", imageres.dll,112
 	Menu, %addMenu%, Add,% flag ? "导入" : "导入`tF8", RunCtrlLVImport
 	Menu, %addMenu%, Icon,% flag ? "导入" : "导入`tF8", SHELL32.dll,55
 	Menu, %addMenu%, Add,% flag ? "下移" : "下移`t(F5/PgDn)", RunCtrlLVDown
@@ -4867,7 +4891,7 @@ RunCtrlLVDel:
 		gosub,RunCtrl_Read
 	}
 return
-#If WinActive(RunAnyZz " 启动管理 " RunAny_update_version A_Space RunAny_update_time)
+#If WinActive("RunCtrl 启动管理 " RunAny_update_version A_Space RunAny_update_time)
 	F1::gosub,RunCtrlLVRun
 	F2::gosub,RunCtrlLVEdit
 	F3::gosub,RunCtrlLVAdd
@@ -5041,7 +5065,7 @@ RunCtrlConfig:
 	GuiControl, RunCtrlConfig:+Redraw, FuncLV
 	Gui,RunCtrlConfig:Add,Button,Default xm+150 y+15 w75 GRunCtrlLVSave,保存(&Y)
 	Gui,RunCtrlConfig:Add,Button,x+20 w75 GSetCancel,取消(&C)
-	Gui,RunCtrlConfig:Show, , %RunAnyZz% 规则组 - %menuItem% %RunAny_update_version% %RunAny_update_time%%AdminMode%
+	Gui,RunCtrlConfig:Show, , RunCtrl 规则组 - %menuItem% %RunAny_update_version% %RunAny_update_time%%AdminMode%
 return
 
 RunCtrlLVSave:
@@ -5207,7 +5231,7 @@ LVFuncConfig:
 	Gui,RunCtrlFunc:Add, Edit, xm y+10 w350 r6 vvFuncValue GFuncValueChange, %FuncValue%
 	Gui,RunCtrlFunc:Add, Button,Default xm+80 y+15 w75 GLVFuncSave,保存(&Y)
 	Gui,RunCtrlFunc:Add, Button,x+10 w75 GSetCancel,取消(&C)
-	Gui,RunCtrlFunc:Show, , %RunAnyZz% 修改规则函数 %RunAny_update_version% %RunAny_update_time%%AdminMode%
+	Gui,RunCtrlFunc:Show, , RunCtrl 修改规则函数 %RunAny_update_version% %RunAny_update_time%%AdminMode%
 	gosub,DropDownRuleChoose
 return
 LVFuncRemove:
@@ -5349,7 +5373,7 @@ LVCtrlRunConfig:
 	Gui,CtrlRun:Font
 	Gui,CtrlRun:Add,Button,Default xm+100 y+25 w75 GSaveRunCtrlRunValue,保存(&Y)
 	Gui,CtrlRun:Add,Button,x+20 w75 GSetCancel,取消(&C)
-	Gui,CtrlRun:Show,,%RunAnyZz% - %openExtItem%启动项 %RunAny_update_version% %RunAny_update_time%
+	Gui,CtrlRun:Show,,RunCtrl - %openExtItem%启动项 %RunAny_update_version% %RunAny_update_time%
 return
 SetRunCtrlRunValue:
 	Gui,CtrlRun:Submit, NoHide
@@ -5435,7 +5459,7 @@ Rule_Manage_Gui:
 	Gui,RuleManage:Menu, ruleGuiMenu
 	LV_ModifyCol()  ; 根据内容自动调整每列的大小.
 	LV_ModifyCol(2,"Sort")
-	Gui,RuleManage:Show, , %RunAnyZz% 规则管理 %RunAny_update_version% %RunAny_update_time%%AdminMode%
+	Gui,RuleManage:Show, , RunCtrl 规则管理 %RunAny_update_version% %RunAny_update_time%%AdminMode%
 return
 LVRulePlus:
 	menuRuleItem:="规则新建"
@@ -5526,7 +5550,7 @@ RuleConfig_Gui:
 	Gui,RuleConfig:Add, Edit, xm+60 yp w450 r3 vvRulePath GRulePathChange, %RulePath%
 	Gui,RuleConfig:Add, Button,Default xm+180 y+10 w75 GLVRuleSave,保存(&Y)
 	Gui,RuleConfig:Add, Button,x+10 w75 GSetCancel,取消(&C)
-	Gui,RuleConfig:Show, , %RunAnyZz% 规则编辑 %RunAny_update_version% %RunAny_update_time%%AdminMode%
+	Gui,RuleConfig:Show, , RunCtrl 规则编辑 %RunAny_update_version% %RunAny_update_time%%AdminMode%
 	funcnameStr:=KnowAhkFuncZz(RulePath)
 	GuiControl, RuleConfig:, vRuleDLL, |
 	GuiControl, RuleConfig:, vRuleDLL, %funcnameStr%
@@ -6582,6 +6606,7 @@ SaveItemGuiEscape:
 PluginsManageGuiEscape:
 PluginsDownloadGuiEscape:
 PluginsLibGuiEscape:
+PluginsIconGuiEscape:
 RunCtrlManageGuiEscape:
 RunCtrlConfigGuiEscape:
 RunCtrlFuncGuiEscape:
@@ -6603,7 +6628,7 @@ PluginsDownloadGuiSize:
 	if A_EventInfo = 1
 		return
 	GuiControl, Move, RunAnyTV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
-	GuiControl, Move, RunAnyLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
+	GuiControl, Move, RunAnyPluginsLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 	GuiControl, Move, RuleLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 	GuiControl, Move, RunAnyDownLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 return
@@ -6652,7 +6677,7 @@ PluginsManageGuiContextMenu:
 		TV_Modify(A_EventInfo, "Select Vis")
 		Menu, TVMenu, Show
 	}
-	If (A_GuiControl = "RunAnyLV") {
+	If (A_GuiControl = "RunAnyPluginsLV") {
 		LV_Modify(A_EventInfo, "Select Vis")
 		Menu, LVMenu, Show
 	}
@@ -7314,7 +7339,9 @@ menuItemIconFileName(menuItem){
 Plugins_Read:
 	global PluginsObjList:=Object()
 	global PluginsPathList:=Object()
-	global PluginsTitleList:=Object()
+	global PluginsNameList:=Object()
+	global PluginsVersionList:=Object()
+	global PluginsIconList:=Object()
 	global PluginsContentList:=Object()
 	global PluginsObjNum:=0
 	global PluginsDirList:=[]
@@ -7334,7 +7361,9 @@ Plugins_Read:
 		{
 			PluginsObjList[(A_LoopFileName)]:=0
 			PluginsPathList[(A_LoopFileName)]:=A_LoopFileFullPath
-			PluginsTitleList[(A_LoopFileName)]:=Plugins_Read_Title(A_LoopFileFullPath)
+			PluginsNameList[(A_LoopFileName)]:=Plugins_Read_Name(A_LoopFileFullPath)
+			PluginsVersionList[(A_LoopFileName)]:=Plugins_Read_Version(A_LoopFileFullPath)
+			PluginsIconList[(A_LoopFileName)]:=Plugins_Read_Icon(A_LoopFileFullPath)
 			if(A_LoopField="%A_ScriptDir%\RunPlugins"){
 				FileRead,pluginsContent,%A_LoopFileFullPath%
 				PluginsContentList[(A_LoopFileName)]:=pluginsContent
@@ -7346,7 +7375,9 @@ Plugins_Read:
 			{
 				PluginsObjList[(A_LoopFileName . ".ahk")]:=0
 				PluginsPathList[(A_LoopFileName . ".ahk")]:=A_LoopFileFullPath "\" A_LoopFileName ".ahk"
-				PluginsTitleList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Title(A_LoopFileFullPath "\" A_LoopFileName ".ahk")
+				PluginsNameList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Name(A_LoopFileFullPath "\" A_LoopFileName ".ahk")
+				PluginsVersionList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Version(A_LoopFileFullPath "\" A_LoopFileName ".ahk")
+				PluginsIconList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Icon(A_LoopFileFullPath "\" A_LoopFileName ".ahk")
 				if(A_LoopField="%A_ScriptDir%\RunPlugins"){
 					FileRead,pluginsContent,% A_LoopFileFullPath "\" A_LoopFileName ".ahk"
 					PluginsContentList[(A_LoopFileName . ".ahk")]:=pluginsContent
@@ -7413,9 +7444,25 @@ Plugins_Object_Register:
 			global RunAnyMenuXButton2Flag:=true
 	}
 return
-Plugins_Read_Title(filePath){
+Plugins_Read_Name(filePath){
 	returnStr:=""
-	strReg:="iS).*?【(.*?)】.*"
+	strRegOld:="iS).*?【(.*?)】.*"
+	strRegNew=iS)^\t*\s*global RunAny_Plugins_Name:="(.+?)"
+	Loop, read, %filePath%
+	{
+		if(RegExMatch(A_LoopReadLine,strRegNew)){
+			returnStr:=RegExReplace(A_LoopReadLine,strRegNew,"$1")
+			break
+		}else if(RegExMatch(A_LoopReadLine,strRegOld)){
+			returnStr:=RegExReplace(A_LoopReadLine,strRegOld,"$1")
+			break
+		}
+	}
+	return returnStr
+}
+Plugins_Read_Version(filePath){
+	returnStr:=""
+	strReg=iS)^\t*\s*global RunAny_Plugins_Version:="([\d\.]*)"
 	Loop, read, %filePath%
 	{
 		if(RegExMatch(A_LoopReadLine,strReg)){
@@ -7425,9 +7472,9 @@ Plugins_Read_Title(filePath){
 	}
 	return returnStr
 }
-Plugins_Read_Version(filePath){
+Plugins_Read_Icon(filePath){
 	returnStr:=""
-	strReg=iS)^\t*\s*global RunAny_Plugins_Version:="([\d\.]*)"
+	strReg=iS)^\t*\s*global RunAny_Plugins_Icon:="(.+?)"
 	Loop, read, %filePath%
 	{
 		if(RegExMatch(A_LoopReadLine,strReg)){

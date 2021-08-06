@@ -1,5 +1,5 @@
 ﻿;****************************
-;* 【RunCtrl网络规则函数库(需要RunPlugins\Lib\JSON.ahk)】 *
+;* 【RunCtrl网络规则函数库】 *
 ;****************************
 global RunAny_Plugins_Version:="1.0.0"
 #NoTrayIcon             ;~不显示托盘图标

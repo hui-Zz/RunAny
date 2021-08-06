@@ -2,7 +2,9 @@
 ;* 【ObjReg窗口操作脚本[窗口函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.9"
+global RunAny_Plugins_Name:="ObjReg窗口操作脚本"
+global RunAny_Plugins_Version:="1.1.0"
+global RunAny_Plugins_Icon:="SHELL32.dll,241"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行

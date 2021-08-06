@@ -2,7 +2,9 @@
 ;* 【ObjReg系统操作脚本[系统函数.ini]】 *
 ;*                          by hui-Zz *
 ;**************************************
-global RunAny_Plugins_Version:="1.0.9"
+global RunAny_Plugins_Name:="ObjReg系统操作脚本"
+global RunAny_Plugins_Version:="1.1.0"
+global RunAny_Plugins_Icon:="imageres.dll,61"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
 #WinActivateForce       ;~强制激活窗口
