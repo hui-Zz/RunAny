@@ -28,10 +28,10 @@ class RunAnyObj {
 	;refresh：1-自动刷新生效；0-手动刷新
 	system_hidefile_zz(hide=0,sys=0,ext=0,refresh=1){
 		DetectHiddenWindows,On
-		hideFileRegPath:="Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
-		RegWrite,REG_DWORD,HKEY_CURRENT_USER,%hideFileRegPath%,Hidden,%hide%
-		RegWrite,REG_DWORD,HKEY_CURRENT_USER,%hideFileRegPath%,HideFileExt,%ext%
-		RegWrite,REG_DWORD,HKEY_CURRENT_USER,%hideFileRegPath%,ShowSuperHidden,%sys%
+		hideFileRegPath:="HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
+		RegWrite,REG_DWORD,%hideFileRegPath%,Hidden,%hide%
+		RegWrite,REG_DWORD,%hideFileRegPath%,HideFileExt,%ext%
+		RegWrite,REG_DWORD,%hideFileRegPath%,ShowSuperHidden,%sys%
 		if(refresh){
 			if !WinActive("ahk_class Program Manager") && !WinActive("ahk_class Progman")
 			{
@@ -122,6 +122,17 @@ class RunAnyObj {
 	;注：仅限于右键可以用管理员身份运行的后缀文件
 	system_runas_zz(getZz:=""){
 		Run *RunAs "%getZz%"
+	}
+	;[系统代理一键修改] v1.1.0
+	;参数说明：serverAddress 代理地址:代理端口
+	system_proxy_zz(serverAddress:=""){
+		InternetSettings:="HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings"
+		if(serverAddress!=""){
+			RegWrite,REG_DWORD,%InternetSettings%,ProxyEnable,1
+			RegWrite,REG_SZ,%InternetSettings%,ProxyServer,%serverAddress%
+		}else{
+			RegWrite,REG_DWORD,%InternetSettings%,ProxyEnable,0
+		}
 	}
 
 ;══════════════════════════大括号以上是RunAny菜单调用的函数══════════════════════════
