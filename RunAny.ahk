@@ -353,7 +353,7 @@ For k, v in MenuExeArray
 }
 ;-------------------------------------------------------------------------------------------
 ;~;[20.菜单已经加载完毕，托盘图标变化]
-if(EvNo || EvQueryFlag || EvCommandStr="")
+if(EvNo || EvQueryFlag)
 	try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 t6:=A_TickCount-StartTick
 Menu_Tray_Tip("菜单中exe加载图标：" Round((t6-t5)/1000,3) "s`n","总加载时间：" Round(t6/1000,3) "s")
@@ -1270,14 +1270,15 @@ Menu_Show:
 					}
 				}
 				;一键注册表路径
+				S_LoopField_Reg:=RegExReplace(S_LoopField,"S)^(计算机\\|\\)+")
 				regKeyName:="HKEY_CLASSES_ROOT|HKEY_CURRENT_USER|HKEY_LOCAL_MACHINE|HKEY_USERS|HKEY_CURRENT_CONFIG|"
 				regKeyName.="HKCR\\|HKCU\\|HKLM\\|HKU\\|HKCC\\"
-				if(OneKeyRegedit && RegExMatch(S_LoopField,"i)^(" regKeyName ").*")){
+				if(OneKeyRegedit && RegExMatch(S_LoopField_Reg,"i)^(" regKeyName ").*")){
 					if(WinExist("ahk_exe regedit.exe")){
 						Process,Close,regedit.exe
 					}
 					shell:=ComObjCreate("WScript.Shell")
-					shell.RegWrite("HKCU\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit\LastKey","计算机\" RTrim(S_LoopField,"\"))
+					shell.RegWrite("HKCU\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit\LastKey","计算机\" RTrim(S_LoopField_Reg,"\"))
 					shell.Run("RegEdit.exe")
 					openFlag:=true
 					continue
