@@ -4770,7 +4770,7 @@ RunCtrl_Manage_Gui:
 	Gui,RunCtrlManage:+Resize
 	Gui,RunCtrlManage:Font, s10, Microsoft YaHei
 	Gui,RunCtrlManage:Add, ListBox, x16 w130 vRunCtrlListBox gRunCtrlListClick Choose%RunCtrlListBoxChoose%, %RunCtrlListBoxVar%
-	Gui,RunCtrlManage:Add, Listview,x+15 w570 r15 grid AltSubmit vRunCtrlLV gRunCtrlListView, 启动项|类型|重复运行
+	Gui,RunCtrlManage:Add, Listview,x+15 w570 r15 grid AltSubmit vRunCtrlLV gRunCtrlListView, 启动项|类型|重复运行|最后运行时间
 	GuiControl,RunCtrlManage:-Redraw, RunCtrlLV
 	LVImageListID := IL_Create(11)
 	Icon_Image_Set(LVImageListID)
@@ -4779,15 +4779,16 @@ RunCtrl_Manage_Gui:
 	For runn, runv in RunCtrlList[RunCtrlListBox].runList
 	{
 		LV_Add(Set_Icon(LVImageListID,runv.noPath ? Get_Obj_Path(runv.path) : runv.path,false,false,runv.path)
-			,runv.path,runv.noPath ? "菜单项" : "全路径",runv.repeatRun ? "重复" : "")
+			,runv.path,runv.noPath ? "菜单项" : "全路径",runv.repeatRun ? "重复" : "",runv.lastRunTime)
 	}
 	GuiControl,RunCtrlManage:+Redraw, RunCtrlLV
 	LV_ModifyCol()
-	LV_ModifyCol(1,450)
+	LV_ModifyCol(1,350)
+	LV_ModifyCol(4,150)
 	RunCtrlLVMenu("RunCtrlLVMenu")
 	RunCtrlLVMenu("RunCtrlManageMenu")
 	Gui,RunCtrlManage: Menu, RunCtrlManageMenu
-	Gui,RunCtrlManage:Show, w750 , RunCtrl 启动管理 %RunAny_update_version% %RunAny_update_time%%AdminMode%(双击修改，右键操作)
+	Gui,RunCtrlManage:Show, w755 , RunCtrl 启动管理 %RunAny_update_version% %RunAny_update_time%%AdminMode%(双击修改，右键操作)
 return
 
 RunCtrlListClick:
@@ -4800,7 +4801,7 @@ RunCtrlListClick:
 		For runn, runv in RunCtrlList[RunCtrlListBox].runList
 		{
 			LV_Add(Set_Icon(LVImageListID,runv.noPath ? Get_Obj_Path(runv.path) : runv.path,false,false,runv.path)
-				,runv.path,runv.noPath ? "菜单项" : "全路径",runv.repeatRun ? "重复" : "")
+				,runv.path,runv.noPath ? "菜单项" : "全路径",runv.repeatRun ? "重复" : "",runv.lastRunTime)
 		}
 		GuiControl,RunCtrlManage:+Redraw, RunCtrlLV
 	}else if A_GuiEvent = DoubleClick
@@ -6998,6 +6999,8 @@ Run_Exist:
 	global both:=1
 	global RunABackupDirPath:=Get_Transform_Val(RunABackupDir)
 	global PluginsDir:="RunPlugins"	;~插件目录
+	IfNotExist,%A_AppData%\%RunAnyZz%
+		FileCreateDir, %A_AppData%\%RunAnyZz%
 	IfNotExist %RunABackupDirPath%
 		FileCreateDir,%RunABackupDirPath%
 	IfNotExist %RunABackupDirPath%\%RunAnyConfig%
@@ -7541,6 +7544,7 @@ RunCtrl_Read:
 	;规则名-脚本路径；规则名-脚本插件名；规则名-函数名；规则名-状态；规则名-类型；规则名-是否传参
 	global rulefileList:=Object(),ruleitemList:=Object(),rulefuncList:=Object(),rulestatusList:=Object(),ruletypelist:=Object(),ruleparamList:=Object()
 	global RuleNameStr:=""
+	global RunCtrlLastTimeIni:=A_AppData "\" RunAnyZz "\RunCtrlLastTime.ini"
 	ruleitemVar:=rulefuncVar:=""
 	IniRead,ruleitemVar,%RunAnyConfig%,RunCtrlRule
 	Loop, parse, ruleitemVar, `n, `r
@@ -7594,7 +7598,7 @@ RunCtrl_Read:
 				funcEffect:=Func("RunCtrl_RunRules").Bind(RunCtrlObj,true)
 				Hotkey,% itemList[5],% funcEffect,On
 			}
-		} catch{
+		} catch {
 			MsgBox,16,规则组%runCtrlName%：热键配置不正确,% "热键错误：`n" itemList[5] "`n请设置正确热键后重启RunAny"
 		}
 	}
@@ -7648,6 +7652,8 @@ class RunCtrl
 			}else if(noPathStr="menu"){
 				this.noMenu:=false
 			}
+			IniRead, lastRunTime, %RunCtrlLastTimeIni%, last_run_time,% runObj.path, %A_Space%
+			runObj.lastRunTime:=lastRunTime
 			this.runList.push(runObj)
 		}
 		IniRead,ruleAppsVar,%RunAnyConfig%,%name%_Rule
@@ -7676,6 +7682,7 @@ class RunCtrlRun
 	path:=""
 	noPath:=true		;无路径标记
 	repeatRun:=false	;重复运行
+	lastRunTime:=""		;最后运行时间
 }
 class RunCtrlRunRule
 {
@@ -7749,27 +7756,29 @@ RunCtrl_RunRules(runCtrlObj,show:=0){
 RunCtrl_RunApps(path,noPath,repeatRun:=0){
 	try {
 		if(noPath){
-			path:=Get_Obj_Transform_Name(Trim(path," `t`n`r"))
-			if(!repeatRun && rule_check_is_run(MenuObj[path])){
+			tfPath:=Get_Obj_Transform_Name(Trim(path," `t`n`r"))
+			if(!repeatRun && rule_check_is_run(MenuObj[tfPath])){
 				return
 			}
 			if(EvNo || EvQueryFlag){
-				MenuShowMenuRun:=path
+				MenuShowMenuRun:=tfPath
 				gosub,Menu_Run
+				RunCtrl_LastRunTime(path)
 			}else{
-				RuleRunNoPathList[path]:=true
+				RuleRunNoPathList[tfPath]:=true
 				;定时等待无路径程序可运行后再运行
 				SetTimer,RunCtrl_RunMenu,100
 			}
 		}else{
-			path:=Get_Transform_Val(path)
-			SplitPath,% path, name, dir
-			if(!repeatRun && rule_check_is_run(path)){
+			tfPath:=Get_Transform_Val(path)
+			SplitPath,% tfPath, name, dir
+			if(!repeatRun && rule_check_is_run(tfPath)){
 				return
 			}
 			if(dir && FileExist(dir))
 				SetWorkingDir,%dir%
-			Run_Any(path)
+			Run_Any(tfPath)
+			RunCtrl_LastRunTime(path)
 		}
 	} catch e {
 		MsgBox,16,规则启动应用出错,% "启动应用：" path
@@ -7787,10 +7796,14 @@ RunCtrl_RunMenu:
 				RuleRunNoPathList[path]:=false
 				MenuShowMenuRun:=path
 				gosub,Menu_Run
+				RunCtrl_LastRunTime(path)
 			}
 		}
 	}
 return
+RunCtrl_LastRunTime(path){
+	IniWrite, %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%, %RunCtrlLastTimeIni%, last_run_time, %path%
+}
 ;~;[规则判断是否成立]
 RunCtrl_RuleEffect(runCtrlObj){
 	effectFlag:=false
