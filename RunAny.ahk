@@ -7685,7 +7685,7 @@ class RunCtrlRunRule
 
 ;~;【规则生效】
 Rule_Effect:
-	global runIndex:=Object(), RuleRunFailList:=Object()
+	global runIndex:=Object(), RuleRunFailList:=Object(), RuleRunNoPathList:=Object()
 	try{
 		for n,obj in RunCtrlList
 		{
@@ -7753,8 +7753,14 @@ RunCtrl_RunApps(path,noPath,repeatRun:=0){
 			if(!repeatRun && rule_check_is_run(MenuObj[path])){
 				return
 			}
-			MenuShowMenuRun:=path
-			gosub,Menu_Run
+			if(EvNo || EvQueryFlag){
+				MenuShowMenuRun:=path
+				gosub,Menu_Run
+			}else{
+				RuleRunNoPathList[path]:=true
+				;定时等待无路径程序可运行后再运行
+				SetTimer,RunCtrl_RunMenu,100
+			}
 		}else{
 			path:=Get_Transform_Val(path)
 			SplitPath,% path, name, dir
@@ -7772,6 +7778,19 @@ RunCtrl_RunApps(path,noPath,repeatRun:=0){
 		SetWorkingDir,%A_ScriptDir%
 	}
 }
+RunCtrl_RunMenu:
+	if(EvNo || EvQueryFlag){
+		SetTimer,RunCtrl_RunMenu,Off
+		For path, isRun in RuleRunNoPathList
+		{
+			if(isRun){
+				RuleRunNoPathList[path]:=false
+				MenuShowMenuRun:=path
+				gosub,Menu_Run
+			}
+		}
+	}
+return
 ;~;[规则判断是否成立]
 RunCtrl_RuleEffect(runCtrlObj){
 	effectFlag:=false
