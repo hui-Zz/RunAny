@@ -197,10 +197,10 @@ if(!EvNo){
 		global MenuObjSame:=Object()  ;Everything搜索结果重名程序全径
 		If(evExist){
 			if(EvCheckFlag){
-				RegWrite,REG_SZ,HKEY_CURRENT_USER,SOFTWARE\RunAny,EvTotResults,0
+				RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults,0
 				gosub,everythingCheck
 			}
-			RegRead,EvTotResults,HKEY_CURRENT_USER,SOFTWARE\RunAny,EvTotResults
+			RegRead,EvTotResults,HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults
 			if(EvTotResults>0){
 				everythingQuery(EvCommandStr)
 				EvQueryFlag:=true
@@ -371,9 +371,9 @@ global TreeImageListID := IL_Create(11)
 Icon_Image_Set(TreeImageListID)
 Icon_Tree_Image_Set(TreeImageListID)
 ;如果有需要继续执行的操作
-RegRead, ReloadGosub, HKEY_CURRENT_USER, Software\RunAny, ReloadGosub
+RegRead, ReloadGosub, HKEY_CURRENT_USER\Software\RunAny, ReloadGosub
 if(ReloadGosub){
-	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, ReloadGosub, 0
+	RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny, ReloadGosub, 0
 	gosub,%ReloadGosub%
 }
 ;自动备份配置文件
@@ -386,10 +386,10 @@ if(RunABackupRule && RunABackupDirPath!=A_ScriptDir){
 }
 ;~[记录ini文件修改时间]
 FileGetTime,MTimeIniPath, %iniPath%, M  ; 获取修改时间.
-RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, %iniPath%, %MTimeIniPath%
+RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny, %iniPath%, %MTimeIniPath%
 if(MENU2FLAG){
 	FileGetTime,MTimeIniPath2, %iniPath2%, M  ; 获取修改时间.
-	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, %iniPath2%, %MTimeIniPath2%
+	RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny, %iniPath2%, %MTimeIniPath2%
 }
 if(AutoReloadMTime>0){
 	SetTimer,AutoReloadMTime,%AutoReloadMTime%
@@ -2099,7 +2099,7 @@ Menu_Recent:
 	{
 		commonStr:=commonStr ? commonStr "|" v : v
 	}
-	RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, MenuCommonList, %commonStr%
+	RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny, MenuCommonList, %commonStr%
 return
 ;══════════════════════════════════════════════════════════════════
 ;~;[一键Everything][搜索选中文字][激活][隐藏]
@@ -2574,7 +2574,7 @@ URLDownloadToFile(URL, FilePath, Options:="", RequestHeaders:="")
 Reg_Set(vGui, var, sz){
 	StringCaseSense, On
 	if(vGui!=var){
-		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, %sz%, %vGui%
+		RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny, %sz%, %vGui%
 		IniWrite,%vGui%,%RunAnyConfig%,Config,%sz%
 	}
 	StringCaseSense, Off
@@ -2584,7 +2584,7 @@ Var_Read(rValue,defVar=""){
 	if(IniConfig){
 		IniRead, regVar,%RunAnyConfig%, Config, %rValue%,% defVar ? defVar : A_Space
 	}else{
-		RegRead, regVar, HKEY_CURRENT_USER, SOFTWARE\RunAny, %rValue%
+		RegRead, regVar, HKEY_CURRENT_USER\SOFTWARE\RunAny, %rValue%
 	}
 	if(regVar!=""){
 		if(InStr(regVar,"ZzIcon.dll") && !FileExist(A_ScriptDir "\ZzIcon.dll"))
@@ -3575,8 +3575,8 @@ TVSave:
 	}
 	IfMsgBox No
 	{
+		RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny, ReloadGosub, Menu_Edit%both%
 		gosub,Menu_Save
-		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, ReloadGosub, Menu_Edit%both%
 		gosub,Menu_Reload
 	}
 return
@@ -4656,7 +4656,7 @@ LVDown:
 					MsgBox, 64, ,RunAny插件下载成功，在插件管理界面点击“编辑”按钮可以阅读说明和进行配置
 				}
 			}
-			RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\RunAny, ReloadGosub, Plugins_Gui
+			RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny, ReloadGosub, Plugins_Gui
 			gosub,Menu_Reload
 		}else{
 			ToolTip,请至少选中一项
@@ -6163,9 +6163,9 @@ SetOK:
 	if(vAutoRun!=AutoRun){
 		AutoRun:=vAutoRun
 		if(AutoRun){
-			RegWrite, REG_SZ, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny, %A_ScriptDir%\%Z_ScriptName%
+			RegWrite, REG_SZ, HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run, RunAny, %A_ScriptDir%\%Z_ScriptName%
 		}else{
-			RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
+			RegDelete, HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		}
 	}
 	if(vSendStrEcKey!=SendStrEcKey){
@@ -7050,9 +7050,9 @@ Run_Exist:
 			}
 		}
 		global EvCheckFlag:=false  ;~是否启动Everything搜索检查
-		RegRead,EvTotResults,HKEY_CURRENT_USER,SOFTWARE\RunAny,EvTotResults
-		RegRead,RunAnyTickCount,HKEY_CURRENT_USER,SOFTWARE\RunAny,RunAnyTickCount
-		RegWrite,REG_SZ,HKEY_CURRENT_USER,SOFTWARE\RunAny,RunAnyTickCount,%A_TickCount%
+		RegRead,EvTotResults,HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults
+		RegRead,RunAnyTickCount,HKEY_CURRENT_USER\SOFTWARE\RunAny,RunAnyTickCount
+		RegWrite,REG_SZ,HKEY_CURRENT_USER\SOFTWARE\RunAny,RunAnyTickCount,%A_TickCount%
 		if(!RunAnyTickCount || A_TickCount<RunAnyTickCount || !EvTotResults){
 			EvCheckFlag:=true
 		}
@@ -8082,7 +8082,7 @@ while,`% !ev.GetTotResults()
 	ev.Query()
 }
 val:=ev.GetTotResults(0)
-RegWrite,REG_SZ,HKEY_CURRENT_USER,SOFTWARE\RunAny,EvTotResults,`%val`%
+RegWrite,REG_SZ,HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults,`%val`%
 return
 class everything
 {
