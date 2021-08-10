@@ -3958,13 +3958,13 @@ Set_Icon(ImageListID,itemVar,editVar=true,fullItemFlag=true,itemName=""){
 		if(!FileExist(FileName))
 			FailFlag:=true
 	}
+	diyText:=StrSplit(itemVar,"|",,2)
+	objText:=(diyText[2]) ? diyText[2] : diyText[1]
 	;[优先加载自定义图标]
 	if(itemName!=""){
 		itemIcon:=itemName
 	}else if(InStr(itemVar,"|")){
-		diyText:=StrSplit(itemVar,"|",,2)
 		itemIcon:=diyText[1]
-		objText:=(diyText[2]) ? diyText[2] : diyText[1]
 	}else{
 		itemIcon:=name_no_ext
 	}
@@ -3988,8 +3988,15 @@ Set_Icon(ImageListID,itemVar,editVar=true,fullItemFlag=true,itemName=""){
 		return "Icon9"
 	if(setItemMode=5)
 		return "Icon10"
-	if(setItemMode=8)  ; {脚本插件函数}
+	if(setItemMode=8){  ; {脚本插件函数}
+		appPlugins:=RegExReplace(objText,"iS)(.+?)\[.+?\]%?\(.*?\)$","$1")	;取插件名
+		if(PluginsIconList[appPlugins ".ahk"]){
+			PluginsIconS:=StrSplit(Get_Transform_Val(PluginsIconList[appPlugins ".ahk"]),",")
+			addNum:=IL_Add(ImageListID, PluginsIconS[1], PluginsIconS[2])
+			return "Icon" addNum
+		}
 		return "Icon11"
+	}
 	if(!editVar && FileName="" && FileExt="exe")
 		return "Icon3"
 	;[获取网址图标]
@@ -4704,22 +4711,12 @@ Plugins_Alone(r){
 }
 
 LVPluginsSetIcon(PluginsImageListID,pname){
-	pname_no_ext:=RegExReplace(pname,"iS)\.ahk$")
-	PluginsFile:=RegExReplace(PluginsPathList[pname],"iS)\.ahk$")
-	Loop, Parse,% IconFileSuffix "*.exe;", `;
-	{
-		suffix:=StrReplace(A_LoopField, "*")
-		if(FileExist(PluginsFile suffix)){
-			addNum:=IL_Add(PluginsImageListID, PluginsFile suffix, 0)
-			PluginsIconList[pname]:=PluginsFile suffix
-			return "Icon" addNum
-		}
-	}
 	if(PluginsIconList[pname]){
 		FileIconS:=StrSplit(Get_Transform_Val(PluginsIconList[pname]),",")
 		addNum:=IL_Add(PluginsImageListID, FileIconS[1], FileIconS[2])
 		return "Icon" addNum
 	}
+	pname_no_ext:=RegExReplace(pname,"iS)\.ahk$")
 	if(PluginsObjRegGUID[pname_no_ext]){
 		return "Icon6"
 	}
@@ -7479,6 +7476,7 @@ Plugins_Read_Version(filePath){
 	}
 	return returnStr
 }
+;[获取插件图标的路径]
 Plugins_Read_Icon(filePath){
 	returnStr:=""
 	strReg=iS)^\t*\s*global RunAny_Plugins_Icon:="(.+?)"
@@ -7487,6 +7485,16 @@ Plugins_Read_Icon(filePath){
 		if(RegExMatch(A_LoopReadLine,strReg)){
 			returnStr:=RegExReplace(A_LoopReadLine,strReg,"$1")
 			break
+		}
+	}
+	if(returnStr=""){
+		PluginsFile:=RegExReplace(filePath,"iS)\.ahk$")
+		Loop, Parse,% IconFileSuffix "*.exe;", `;
+		{
+			suffix:=StrReplace(A_LoopField, "*")
+			if(FileExist(PluginsFile suffix)){
+				return PluginsFile suffix ",1"
+			}
 		}
 	}
 	return returnStr
