@@ -28,20 +28,20 @@ gosub,Var_Set           ;~;01.参数初始化
 gosub,Menu_Var_Set      ;~;02.自定义变量
 gosub,Icon_Set          ;~;03.图标初始化
 gosub,Run_Exist         ;~;04.调用环境判断
-gosub,Plugins_Read      ;~;05.插件脚本读取
-gosub,RunCtrl_Read      ;~;06.启动规则读取
 ;══════════════════════════════════════════════════════════════════
-;~;[07.初始化菜单显示热键]
+;~;[05.初始化菜单显示热键]
 HotKeyList:=["MenuHotKey","MenuHotKey2","MenuNoGetHotKey","EvHotKey","OneHotKey"]
 RunHotKeyList:=HotKeyList.Clone()
-HotKeyList.Push("TreeHotKey1","TreeHotKey2","TreeIniHotKey1","TreeIniHotKey2")
-HotKeyList.Push("RunATrayHotKey","RunASetHotKey","RunAReloadHotKey","RunASuspendHotKey","RunAExitHotKey")
-HotKeyList.Push("PluginsManageHotKey","RunCtrlManageHotKey","PluginsAlonePauseHotKey","PluginsAloneSuspendHotKey","PluginsAloneCloseHotKey")
+HotKeyList.Push("TreeHotKey1","TreeHotKey2","TreeIniHotKey1","TreeIniHotKey2"
+	,"RunATrayHotKey","RunASetHotKey","RunAReloadHotKey","RunASuspendHotKey","RunAExitHotKey"
+	,"PluginsManageHotKey","RunCtrlManageHotKey","PluginsAlonePauseHotKey","PluginsAloneSuspendHotKey","PluginsAloneCloseHotKey")
 HotKeyTextList:=["RunAny菜单显示热键","RunAny菜单2热键","RunAny菜单热键(不获取选中内容)","一键Everything热键","一键搜索热键"]
 HotKeyTextList.Push("修改菜单管理(1)","修改菜单管理(2)","修改菜单文件(1)","修改菜单文件(2)")
-HotKeyTextList.Push("RunAny托盘菜单","设置RunAny","重启RunAny","停用RunAny","退出RunAny","插件管理","启动管理","独立插件脚本一键暂停","独立插件脚本挂起热键","独立插件脚本一键关闭")
+HotKeyTextList.Push("RunAny托盘菜单","设置RunAny","重启RunAny","停用RunAny","退出RunAny"
+	,"插件管理","启动管理","独立插件脚本一键暂停","独立插件脚本挂起热键","独立插件脚本一键关闭")
 RunList:=["Menu_Show1","Menu_Show2","Menu_NoGet_Show","Ev_Show","One_Show","Menu_Edit1","Menu_Edit2","Menu_Ini","Menu_Ini2"]
-RunList.Push("Menu_Tray","Settings_Gui","Menu_Reload","Menu_Suspend","Menu_Exit","Plugins_Gui","RunCtrl_Manage_Gui","Plugins_Alone_Pause","Plugins_Alone_Suspend","Plugins_Alone_Close")
+RunList.Push("Menu_Tray","Settings_Gui","Menu_Reload","Menu_Suspend","Menu_Exit"
+	,"Plugins_Gui","RunCtrl_Manage_Gui","Plugins_Alone_Pause","Plugins_Alone_Suspend","Plugins_Alone_Close")
 Hotkey, IfWinNotActive, ahk_group DisableGUI
 For ki, kv in HotKeyList
 {
@@ -73,7 +73,7 @@ For ki, kv in HotKeyList
 		}
 	}
 }
-;~;[08.托盘菜单]
+;~;[06.托盘菜单]
 Gosub,MenuTray
 if(errorKeyStr){
 	gosub,Settings_Gui
@@ -90,20 +90,23 @@ if(A_AhkVersion < 1.1.28){
 }
 ;══════════════════════════════════════════════════════════════════
 t1:=A_TickCount-StartTick
-Menu_Tray_Tip("初始化时间：" Round(t1/1000,3) "s`n","开始运行插件脚本...")
 if(!iniFlag){
-	;~;[09.运行插件脚本]
+	;~;[07.插件脚本读取]
+	gosub,Plugins_Read
+	;~;[08.运行插件脚本]
 	Gosub,AutoClose_Plugins
 	Gosub,AutoRun_Plugins
-	;~;[10.插件对象注册]
+	;~;[09.插件对象注册]
 	Gosub,Plugins_Object_Register
+	;~;[10.启动规则读取]
+	Gosub,RunCtrl_Read
 }
 ;~;[11.后缀图标初始化]
 Gosub,Icon_FileExt_Set
 ;══════════════════════════════════════════════════════════════════
 ;~;[12.创建初始菜单]
 t2:=A_TickCount-StartTick
-Menu_Tray_Tip("运行插件脚本：" Round((t2-t1)/1000,3) "s`n","开始创建无图标菜单...")
+Menu_Tray_Tip("初始化+运行插件：" Round(t2/1000,3) "s`n","开始创建无图标菜单...")
 global MenuObj:=Object()                    ;~程序全路径
 global MenuObjKey:=Object()                 ;~程序热键
 global MenuObjKeyName:=Object()             ;~程序热键关联菜单项名称
@@ -227,23 +230,29 @@ Menu_Tray_Tip("调用Everything搜索应用全路径：" Round((t3-t2)/1000,3) "
 Menu_Read(iniVar1,menuRoot1,"",1)
 
 t4:=t5:=A_TickCount-StartTick
-Menu_Tray_Tip("创建菜单1：" Round((t4-t3)/1000,3) "s`n")
+Menu_Tray_Tip("菜单1：" Round((t4-t3)/1000,3) "s`n")
 ;~;[14.如果有第2菜单则开始加载]
 if(MENU2FLAG){
 	Menu_Tray_Tip("","开始创建菜单2内容...")
 	Menu_Read(iniVar2,menuRoot2,"",2)
 	t5:=A_TickCount-StartTick
-	Menu_Tray_Tip("创建菜单2：" Round((t5-t4)/1000,3) "s`n")
+	Menu_Tray_Tip("菜单2：" Round((t5-t4)/1000,3) "s`n")
 }
 
 ;~;[15.初始菜单加载后操作]
+try Menu,Tray,Icon,% ZzIconS[1],% ZzIconS[2]
 if(SendStrEcKey!="")
 	SendStrDcKey:=SendStrDecrypt(SendStrEcKey,RunAnyZz ConfigDate)
 
-Gosub,Rule_Effect
-try Menu,Tray,Icon,% ZzIconS[1],% ZzIconS[2]
+t6:=t7:=A_TickCount-StartTick
+;~;[16.规则启动程序]
+if(RunCtrlList.Count() > 0){
+	Gosub,Rule_Effect
+	t7:=A_TickCount-StartTick
+	Menu_Tray_Tip("规则启动：" Round((t7-t6)/1000,3) "s`n")
+}
 
-;~;[16.对菜单内容项进行过滤调整]
+;~;[17.对菜单内容项进行过滤调整]
 Loop,%MenuCount%
 {
 	menuDefaultRoot%A_Index%:=[M%A_Index% " "]
@@ -300,7 +309,7 @@ Loop,%MenuCount%
 			}
 		}
 	}
-	;~;[17.最近运行项]
+	;~;[18.最近运行项]
 	if(RecentMax>0){
 		M_Index:=A_Index
 		Menu,% menuDefaultRoot%M_Index%[1],Add
@@ -330,11 +339,11 @@ Loop,%MenuCount%
 		}
 	}
 }
-;~;[18.内部关联后缀打开方式]
+;~;[19.内部关联后缀打开方式]
 Gosub,Open_Ext_Set
 
 Menu_Tray_Tip("","菜单已经可以正常使用`n开始为菜单中exe程序加载图标...")
-;~;[19.菜单中EXE程序加载图标，有ico图标更快]
+;~;[20.菜单中EXE程序加载图标，有ico图标更快]
 For k, v in MenuExeIconArray
 {
 	if(DisableExeIcon){
@@ -352,11 +361,11 @@ For k, v in MenuExeArray
 	}
 }
 ;-------------------------------------------------------------------------------------------
-;~;[20.菜单已经加载完毕，托盘图标变化]
+;~;[21.菜单已经加载完毕，托盘图标变化]
 if(EvNo || EvQueryFlag)
 	try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
-t6:=A_TickCount-StartTick
-Menu_Tray_Tip("菜单中exe加载图标：" Round((t6-t5)/1000,3) "s`n","总加载时间：" Round(t6/1000,3) "s")
+t8:=A_TickCount-StartTick
+Menu_Tray_Tip("菜单中exe加载图标：" Round((t8-t7)/1000,3) "s`n","总加载时间：" Round(t8/1000,3) "s")
 MenuIconFlag:=true
 
 ;#如果是第一次运行#
