@@ -5489,8 +5489,8 @@ LVRuleDefault:
 	IfMsgBox Ok
 	{
 		ruleDefaultStr:=""
-		RunCtrlRuleObj:={"电脑名":"A_ComputerName","用户名":"A_UserName","系统版本":"A_OSVersion","系统64位":"A_Is64bitOS","本地时间":"A_Now"
-			,"年":"A_YYYY","月":"A_MM","星期":"A_WDay","日":"A_DD","时":"A_Hour","分":"A_Min","秒":"A_Sec"}
+		RunCtrlRuleObj:={"电脑名":"A_ComputerName","用户名":"A_UserName","系统版本":"A_OSVersion","系统64位":"A_Is64bitOS","主屏幕宽度":"A_ScreenWidth","主屏幕高度":"A_ScreenHeight"
+			,"本地时间":"A_Now","年":"A_YYYY","月":"A_MM","星期":"A_WDay","日":"A_DD","时":"A_Hour","分":"A_Min","秒":"A_Sec","剪贴板文字":"Clipboard"}
 		For rName, rFunc in RunCtrlRuleObj
 		{
 			if(!rulefileList[rName]){
@@ -5623,6 +5623,8 @@ LVRuleSave:
 	}
 	;[写入配置文件]
 	Gui,RuleManage:Default
+	ruleVar:=vRuleTypeVar ? Get_Transform_Val("%" vRuleFunction "%") : "重启生效"
+	ruleStatus:=!vRuleTypeVar ? "重启生效" : ruleVar!="" ? "正常" : "错误变量"
 	if(menuRuleItem="规则编辑"){
 		if(RuleName!=vRuleName || RuleFunction!=vRuleFunction){
 			IniDelete, %RunAnyConfig%, RunCtrlRule, %RuleName%|%RuleFunction%
@@ -5630,9 +5632,9 @@ LVRuleSave:
 			if(RuleName!=vRuleName)
 				Change_Rule_Name(RuleName,vRuleName)
 		}
-		LV_Modify(RowNumber,"",vRuleName,vRuleFunction,"重启生效",vRuleTypeVar ? "变量" : "插件",ruleparamList[vRuleName] ? "传参" : "",,vRulePath)
+		LV_Modify(RowNumber,"",vRuleName,vRuleFunction,ruleStatus,vRuleTypeVar ? "变量" : "插件",ruleparamList[vRuleName] ? "传参" : "",ruleVar,vRulePath)
 	}else{
-		LV_Add("",vRuleName,vRuleFunction,"重启生效",vRuleTypeVar ? "变量" : "插件",ruleparamList[vRuleName] ? "传参" : "",,vRulePath)
+		LV_Add("",vRuleName,vRuleFunction,ruleStatus,vRuleTypeVar ? "变量" : "插件",ruleparamList[vRuleName] ? "传参" : "",ruleVar,vRulePath)
 	}
 	IniWrite, %vRulePath%, %RunAnyConfig%, RunCtrlRule, %vRuleName%|%vRuleFunction%
 	LV_ModifyCol()  ; 根据内容自动调整每列的大小.
