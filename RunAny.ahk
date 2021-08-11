@@ -4217,28 +4217,48 @@ Plugins_Gui:
 	global ColumnStatus:=2
 	global ColumnAutoRun:=3
 	global ColumnContent:=5
+	global PluginsImageListID:=IL_Create(6)
+	Plugins_LV_Icon_Set(PluginsImageListID)
 	Gui,PluginsManage:Destroy
 	Gui,PluginsManage:Default
 	Gui,PluginsManage:+Resize
 	Gui,PluginsManage:Font, s10, Microsoft YaHei
-	Gui,PluginsManage:Add, Listview, xm w710 r22 grid AltSubmit vRunAnyPluginsLV glistview, 插件文件|运行状态|自动启动|插件描述|插件说明地址
-	GuiControl,PluginsManage: -Redraw, RunAnyPluginsLV
-	global PluginsImageListID:=IL_Create(6)
-	Plugins_LV_Icon_Set(PluginsImageListID)
+	Gui,PluginsManage:Add, Listview, xm w660 r11 grid AltSubmit vRunAnyPluginsLV1 gPluginsListView, 独立插件脚本|运行状态|自动启动|插件描述|插件说明地址
+	GuiControl,PluginsManage: -Redraw, RunAnyPluginsLV1
 	LV_SetImageList(PluginsImageListID)
 	For runn, runv in PluginsObjList
 	{
+		SplitPath,runn,,,,pname_no_ext
+		if(PluginsObjRegGUID[pname_no_ext] || pname_no_ext="RunAny_Menu" || pname_no_ext="RunAny_ObjReg")
+			Continue
 		runStatus:=rule_check_is_run(PluginsPathList[runn]) ? "启动" : ""
 		pluginsConfig:=runv ? "自启" : ""
 		if(!PluginsPathList[runn])
 			pluginsConfig:="未找到"
 		LV_Add(LVPluginsSetIcon(PluginsImageListID,runn), runn, runStatus, pluginsConfig, PluginsNameList[runn], PluginsHelpList[runn])
 	}
-	GuiControl,PluginsManage: +Redraw, RunAnyPluginsLV
+	GuiControl,PluginsManage: +Redraw, RunAnyPluginsLV1
+	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
+
+	Gui,PluginsManage:Add, Listview, xm y+10 w660 r11 grid AltSubmit vRunAnyPluginsLV2 gPluginsListView, RunAny插件脚本|运行状态|自动启动|插件描述|插件说明地址
+	GuiControl,PluginsManage: -Redraw, RunAnyPluginsLV2
+	LV_SetImageList(PluginsImageListID)
+	For runn, runv in PluginsObjList
+	{
+		SplitPath,runn,,,,pname_no_ext
+		if(!PluginsObjRegGUID[pname_no_ext] && pname_no_ext!="RunAny_Menu" && pname_no_ext!="RunAny_ObjReg")
+			Continue
+		runStatus:=rule_check_is_run(PluginsPathList[runn]) ? "启动" : ""
+		pluginsConfig:=runv ? "自启" : ""
+		if(!PluginsPathList[runn])
+			pluginsConfig:="未找到"
+		LV_Add(LVPluginsSetIcon(PluginsImageListID,runn), runn, runStatus, pluginsConfig, PluginsNameList[runn], PluginsHelpList[runn])
+	}
+	GuiControl,PluginsManage: +Redraw, RunAnyPluginsLV2
+	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
 	LVMenu("LVMenu")
 	LVMenu("ahkGuiMenu")
 	Gui,PluginsManage: Menu, ahkGuiMenu
-	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
 	Gui,PluginsManage:Show, , %RunAnyZz% 插件管理 - 支持拖放 %RunAny_update_version% %RunAny_update_time%%AdminMode%
 return
 
@@ -4302,6 +4322,12 @@ LVPluginsHelp:
 return
 LVApply:
 	Gui,PluginsManage:Default
+	GuiControlGet, focusGuiName, FocusV
+	if(focusGuiName="RunAnyPluginsLV1"){
+		Gui, ListView, RunAnyPluginsLV1
+	}else if(focusGuiName="RunAnyPluginsLV2"){
+		Gui, ListView, RunAnyPluginsLV2
+	}
 	DetectHiddenWindows,On      ;~显示隐藏窗口
 	Row:=LV_GetNext(0, "F")
 	RowNumber:=0
@@ -4422,7 +4448,7 @@ Plugins_Edit(FilePath){
 	F10::gosub,LVPluginsLib
 	F11::gosub,LVPluginsCreate
 #If
-listview:
+PluginsListView:
     if A_GuiEvent = DoubleClick
     {
 		menuItem:="启动"
@@ -4725,7 +4751,7 @@ LVPluginsSetIcon(PluginsImageListID,pname){
 		addNum:=IL_Add(PluginsImageListID, FileIconS[1], FileIconS[2])
 		return "Icon" addNum
 	}
-	pname_no_ext:=RegExReplace(pname,"iS)\.ahk$")
+	SplitPath,pname,,,,pname_no_ext
 	if(PluginsObjRegGUID[pname_no_ext]){
 		return "Icon6"
 	}
@@ -6641,7 +6667,8 @@ PluginsDownloadGuiSize:
 	if A_EventInfo = 1
 		return
 	GuiControl, Move, RunAnyTV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
-	GuiControl, Move, RunAnyPluginsLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
+	GuiControl, Move, RunAnyPluginsLV1, % "H" . (A_GuiHeight * 0.50) . " W" . (A_GuiWidth - 20)
+	GuiControl, Move, RunAnyPluginsLV2, % "H" . (A_GuiHeight * 0.48) . " W" . (A_GuiWidth - 20) . " y" . (A_GuiHeight * 0.50 + 10)
 	GuiControl, Move, RuleLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 	GuiControl, Move, RunAnyDownLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 return
@@ -6690,7 +6717,7 @@ PluginsManageGuiContextMenu:
 		TV_Modify(A_EventInfo, "Select Vis")
 		Menu, TVMenu, Show
 	}
-	If (A_GuiControl = "RunAnyPluginsLV") {
+	If (A_GuiControl = "RunAnyPluginsLV1" || A_GuiControl = "RunAnyPluginsLV2") {
 		LV_Modify(A_EventInfo, "Select Vis")
 		Menu, LVMenu, Show
 	}
