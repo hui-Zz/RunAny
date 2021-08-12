@@ -246,7 +246,7 @@ if(SendStrEcKey!="")
 
 t6:=t7:=A_TickCount-StartTick
 ;~;[16.规则启动程序]
-if(RunCtrlList.Count() > 0){
+if(RunCtrlListBoxVar!=""){
 	Gosub,Rule_Effect
 	t7:=A_TickCount-StartTick
 	Menu_Tray_Tip("规则启动：" Round((t7-t6)/1000,3) "s`n")
@@ -4829,8 +4829,8 @@ RunCtrl_Manage_Gui:
 	RunCtrlLVMenu("RunCtrlLVMenu")
 	RunCtrlLVMenu("RunCtrlManageMenu")
 	Gui,RunCtrlManage: Menu, RunCtrlManageMenu
-	Gui,RunCtrlManage:Show, w755 , RunCtrl 启动管理 %RunAny_update_version% %RunAny_update_time%%AdminMode%(右键菜单操作)
-	if(RunCtrlList.Count() <=0 || rulefileList.Count() <=0){
+	Gui,RunCtrlManage:Show, w755 , RunCtrl 启动管理 %RunAny_update_version% %RunAny_update_time%%AdminMode%(双击修改，右键操作)
+	if(RunCtrlListBoxVar="" || RuleNameStr=""){
 		MsgBox,64,,首次使用请阅读：`n1. 先点击“规则”按钮后再点击“添加默认规则”`n2. 然后返回界面点击“添加组”`n3. 最后再点击“添加应用”`n`n这样就可以自动根据不同规则判断来运行不同的程序了
 	}
 return
@@ -7750,6 +7750,7 @@ class RunCtrlRunRule
 ;~;【规则生效】
 Rule_Effect:
 	global runIndex:=Object(), RuleRunFailList:=Object(), RuleRunNoPathList:=Object()
+	global RuleRunFailFlag:=false
 	try{
 		for n,obj in RunCtrlList
 		{
@@ -7768,7 +7769,7 @@ Rule_Effect:
 				RunCtrl_RunRules(runCtrlObj)
 			}
 		}
-		if(RuleRunFailList.Count() > 0){
+		if(RuleRunFailFlag){
 			RuleRunFailStr:=StrJoin("`n",RuleRunFailList)
 			TrayTip,,规则插件脚本没有启动：`n%RuleRunFailStr%,5,1
 		}
@@ -7792,7 +7793,7 @@ RunCtrl_RunRules(runCtrlObj,show:=0){
 		}else if(show){
 			ToolTip, 规则验证失败
 			SetTimer,RemoveToolTip,3000
-			if(RuleRunFailList.Count() > 0){
+			if(RuleRunFailFlag){
 				RuleRunFailStr:=StrJoin("`n",RuleRunFailList)
 				TrayTip,,规则插件脚本没有启动：`n%RuleRunFailStr%,5,1
 			}
@@ -7872,6 +7873,7 @@ RunCtrl_RuleEffect(runCtrlObj){
 			if(rule_check_is_run(PluginsPathList[ruleFile ".ahk"])){
 				PluginsObjRegActive[ruleFile]:=ComObjActive(PluginsObjRegGUID[ruleFile])
 			}else{
+				RuleRunFailFlag:=true
 				RuleRunFailList[ruleFile]:=""
 			}
 		}
