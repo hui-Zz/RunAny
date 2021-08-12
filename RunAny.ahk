@@ -4829,7 +4829,10 @@ RunCtrl_Manage_Gui:
 	RunCtrlLVMenu("RunCtrlLVMenu")
 	RunCtrlLVMenu("RunCtrlManageMenu")
 	Gui,RunCtrlManage: Menu, RunCtrlManageMenu
-	Gui,RunCtrlManage:Show, w755 , RunCtrl 启动管理 %RunAny_update_version% %RunAny_update_time%%AdminMode%(双击修改，右键操作)
+	Gui,RunCtrlManage:Show, w755 , RunCtrl 启动管理 %RunAny_update_version% %RunAny_update_time%%AdminMode%(右键菜单操作)
+	if(RunCtrlList.Count() <=0 || rulefileList.Count() <=0){
+		MsgBox,64,,首次使用请阅读：`n1. 先点击“规则”按钮后再点击“添加默认规则”`n2. 然后返回界面点击“添加组”`n3. 最后再点击“添加应用”`n`n这样就可以自动根据不同规则判断来运行不同的程序了
+	}
 return
 
 RunCtrlListClick:
@@ -5541,7 +5544,7 @@ LVRuleDefault:
 				IniWrite, 0, %RunAnyConfig%, RunCtrlRule, %rName%|%rFunc%
 			}
 		}
-		RunCtrlRuleObj:={"电脑机型":"rule_chassis_types","运行状态":"rule_check_is_run","联网状态":"rule_check_network"}
+		RunCtrlRuleObj:={"开机时长(秒)":"rule_boot_time","电脑机型":"rule_chassis_types","运行状态":"rule_check_is_run","联网状态":"rule_check_network"}
 		For rName, rFunc in RunCtrlRuleObj
 		{
 			if(!rulefileList[rName]){
@@ -5549,8 +5552,7 @@ LVRuleDefault:
 			}
 		}
 		if(PluginsPathList["RunCtrl_Common.ahk"]){
-			RunCtrlCommonRuleObj:={"开机时长(秒)":"rule_boot_time","内网IP":"rule_ip_internal","WiFi名":"rule_wifi_silence"
-				,"运行过(今天)":"rule_run_today","最近打开文件(今天)":"rule_run_today_file"}
+			RunCtrlCommonRuleObj:={"内网IP":"rule_ip_internal","WiFi名":"rule_wifi_silence" ,"运行过(今天)":"rule_run_today","最近打开文件(今天)":"rule_run_today_file"}
 			For rName, rFunc in RunCtrlCommonRuleObj
 			{
 				if(!rulefileList[rName]){
