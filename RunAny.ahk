@@ -2285,6 +2285,15 @@ Variable_Boolean_Reverse(vars*){
 		%v%:=!%v%
 	}
 }
+;时间格式转换
+time_format(t, f:="yyyy-MM-dd HH:mm:ss"){
+	FormatTime, timeVar, %t%, %f%
+	return t!="" ? timeVar : ""
+}
+;~;[电脑开机后的运行时长(秒)-规则]
+rule_boot_time(){
+	return A_TickCount/1000
+}
 /*
 【获取当前电脑机型-规则】
 返回值参考：https://docs.microsoft.com/zh-cn/windows/win32/cimwin32prov/win32-systemenclosure
@@ -4223,7 +4232,7 @@ Plugins_Gui:
 	Gui,PluginsManage:Default
 	Gui,PluginsManage:+Resize
 	Gui,PluginsManage:Font, s10, Microsoft YaHei
-	Gui,PluginsManage:Add, Listview, xm w660 r11 grid AltSubmit vRunAnyPluginsLV1 gPluginsListView, 独立插件脚本|运行状态|自动启动|插件描述|插件说明地址
+	Gui,PluginsManage:Add, Listview, xm w705 r11 grid AltSubmit vRunAnyPluginsLV1 gPluginsListView, 独立插件脚本|运行状态|自动启动|插件描述|插件说明地址
 	GuiControl,PluginsManage: -Redraw, RunAnyPluginsLV1
 	LV_SetImageList(PluginsImageListID)
 	For runn, runv in PluginsObjList
@@ -4240,7 +4249,7 @@ Plugins_Gui:
 	GuiControl,PluginsManage: +Redraw, RunAnyPluginsLV1
 	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
 
-	Gui,PluginsManage:Add, Listview, xm y+10 w660 r11 grid AltSubmit vRunAnyPluginsLV2 gPluginsListView, RunAny插件脚本|运行状态|自动启动|插件描述|插件说明地址
+	Gui,PluginsManage:Add, Listview, xm y+10 w705 r11 grid AltSubmit vRunAnyPluginsLV2 gPluginsListView, RunAny插件脚本|运行状态|自动启动|插件描述|插件说明地址
 	GuiControl,PluginsManage: -Redraw, RunAnyPluginsLV2
 	LV_SetImageList(PluginsImageListID)
 	For runn, runv in PluginsObjList
@@ -4811,11 +4820,11 @@ RunCtrl_Manage_Gui:
 	For runn, runv in RunCtrlList[RunCtrlListBox].runList
 	{
 		LV_Add(Set_Icon(LVImageListID,runv.noPath ? Get_Obj_Path(runv.path) : runv.path,false,false,runv.path)
-			,runv.path,runv.noPath ? "菜单项" : "全路径",runv.repeatRun ? "重复" : "",runv.lastRunTime)
+			,runv.path,runv.noPath ? "菜单项" : "全路径",runv.repeatRun ? "重复" : "", time_format(runv.lastRunTime))
 	}
 	GuiControl,RunCtrlManage:+Redraw, RunCtrlLV
 	LV_ModifyCol()
-	LV_ModifyCol(1,350)
+	LV_ModifyCol(1,345)
 	LV_ModifyCol(4,150)
 	RunCtrlLVMenu("RunCtrlLVMenu")
 	RunCtrlLVMenu("RunCtrlManageMenu")
@@ -4833,7 +4842,7 @@ RunCtrlListClick:
 		For runn, runv in RunCtrlList[RunCtrlListBox].runList
 		{
 			LV_Add(Set_Icon(LVImageListID,runv.noPath ? Get_Obj_Path(runv.path) : runv.path,false,false,runv.path)
-				,runv.path,runv.noPath ? "菜单项" : "全路径",runv.repeatRun ? "重复" : "",runv.lastRunTime)
+				,runv.path,runv.noPath ? "菜单项" : "全路径",runv.repeatRun ? "重复" : "", time_format(runv.lastRunTime))
 		}
 		GuiControl,RunCtrlManage:+Redraw, RunCtrlLV
 	}else if A_GuiEvent = DoubleClick
@@ -7848,7 +7857,7 @@ RunCtrl_RunMenu:
 	}
 return
 RunCtrl_LastRunTime(path){
-	IniWrite, %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%, %RunCtrlLastTimeIni%, last_run_time, %path%
+	IniWrite, %A_Now%, %RunCtrlLastTimeIni%, last_run_time, %path%
 }
 ;~;[规则判断是否成立]
 RunCtrl_RuleEffect(runCtrlObj){

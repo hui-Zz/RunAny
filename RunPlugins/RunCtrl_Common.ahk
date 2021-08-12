@@ -1,7 +1,7 @@
 ﻿;****************************
 ;* 【RunCtrl公共规则函数库】 *
 ;****************************
-global RunAny_Plugins_Version:="1.0.1"
+global RunAny_Plugins_Version:="1.0.2"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
 #SingleInstance,Force   ;~运行替换旧实例
@@ -9,10 +9,7 @@ global RunAny_Plugins_Version:="1.0.1"
 #Include %A_ScriptDir%\RunAny_ObjReg.ahk
 
 class RunAnyObj {
-	;电脑开机后的运行时长(秒)
-	rule_boot_time(){
-		return A_TickCount/1000
-	}
+
 	;当前内网ip地址
 	rule_ip_internal(){
 		ip:=cmdClipReturn("for /f ""tokens=4"" %a in ('route print^|findstr 0.0.0.0.*0.0.0.0') do echo %a")
@@ -32,6 +29,10 @@ class RunAnyObj {
 	runName 启动项名称+后缀
 	*/
 	rule_run_today(runName){
+		RunCtrlLastTimeIni:=A_AppData "\RunAny\RunCtrlLastTime.ini"
+		if(FileExist(RunCtrlLastTimeIni)){
+			IniRead, lastRunTime, %RunCtrlLastTimeIni%, last_run_time,% runName, %A_Space%
+		}
 		cmdResult:=cmdClipReturn("dir %windir%\Prefetch /b/a/o-d |findstr /i """ runName """")
 		flist:=StrSplit(cmdResult,"`r`n")
 		if(flist && flist[1]){
@@ -52,6 +53,10 @@ class RunAnyObj {
 	runName 启动项名称+后缀
 	*/
 	rule_run_today_file(runName){
+		RunCtrlLastTimeIni:=A_AppData "\RunAny\RunCtrlLastTime.ini"
+		if(FileExist(RunCtrlLastTimeIni)){
+			IniRead, lastRunTime, %RunCtrlLastTimeIni%, last_run_time,% runName, %A_Space%
+		}
 		cmdResult:=cmdClipReturn("dir %appdata%\Microsoft\Windows\Recent /b/a/o-d |findstr /i """ runName """")
 		flist:=StrSplit(cmdResult,"`r`n")
 		if(flist && flist[1]){
