@@ -6936,6 +6936,7 @@ Var_Set:
 			}
 		}
 	}
+	OnExit("ExitFunc")
 	;~[定期自动检查更新]
 	global githubUrl:="https://raw.githubusercontent.com"
 	global giteeUrl:="https://gitee.com"
@@ -7593,6 +7594,11 @@ AutoClose_Plugins:
 	}
 	DetectHiddenWindows,Off
 return
+ExitFunc(ExitReason, ExitCode)
+{
+	gosub,AutoClose_Plugins
+    ; 不要调用 ExitApp -- 那会阻止其他 OnExit 函数被调用.
+}
 ;══════════════════════════════════════════════════════════════════
 ;~;【——规则启动——】
 ;══════════════════════════════════════════════════════════════════
@@ -8113,7 +8119,6 @@ Menu_Suspend:
 	Suspend
 return
 Menu_Exit:
-	gosub,AutoClose_Plugins
 	ExitApp
 return
 RemoveToolTip:
@@ -8125,10 +8130,6 @@ RemoveDebugModeToolTip:
 	DebugModeShowText:=""
 	DebugModeShowTextLen:=0
 	ToolTip
-return
-ExitSub:
-	gosub,AutoClose_Plugins
-	ExitApp
 return
 Ini_Run(ini){
 	try{
