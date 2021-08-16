@@ -255,6 +255,7 @@ if(RunCtrlListBoxVar!=""){
 ;~;[17.对菜单内容项进行过滤调整]
 Loop,%MenuCount%
 {
+	M_Index:=A_Index
 	menuDefaultRoot%A_Index%:=[M%A_Index% " "]
 	Menu_Read(iniVar%A_Index%,menuDefaultRoot%A_Index%," ",A_Index)
 
@@ -279,7 +280,7 @@ Loop,%MenuCount%
 	}
 	;设置后缀公共菜单
 	MenuObjExt["public"]:=MenuObjPublic
-	
+
 	;选中文本菜单过滤分类
 	if(MenuObjText%A_Index%.MaxIndex()>0){
 		Menu_Tree_List_Filter(A_Index,"MenuObjText",2)
@@ -291,7 +292,7 @@ Loop,%MenuCount%
 				if(!InStr(v,"%getZz%") && !InStr(v,"%s")){
 					try Menu,%rootName%,Delete,% Get_Obj_Name(v)
 				}else{
-					global MenuObjTextRootFlag:=true
+					MenuObjTextRootFlag%M_Index%:=true
 				}
 			}
 		}
@@ -311,7 +312,6 @@ Loop,%MenuCount%
 	}
 	;~;[18.最近运行项]
 	if(RecentMax>0){
-		M_Index:=A_Index
 		Menu,% menuDefaultRoot%M_Index%[1],Add
 		Menu,% menuWebRoot%M_Index%[1],Add
 		Menu,% menuFileRoot%M_Index%[1],Add
@@ -627,7 +627,9 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 								MenuObjFile%TREE_NO%.Push(menuItem)
 							}else if(RegExMatch(A_LoopField,"iS).+\.exe$")){
 								global MenuObjWindowFlag:=true
-								MenuObjWindow[(A_LoopField)]:=menuItem
+								if(!IsObject(MenuObjWindow[(A_LoopField)]))
+									MenuObjWindow[(A_LoopField)]:=Object()
+								MenuObjWindow[(A_LoopField)].Push(menuItem)
 							}else{
 								MenuObjExt[(A_LoopField)]:=menuItem
 							}
@@ -1126,9 +1128,9 @@ Menu_Show:
 			;#无选中内容
 			;加载顺序：无Everything菜单 -> 无图标菜单 -> 有图标无路径识别菜单
 			if(MenuIconFlag && MenuShowFlag){
-				WinGet,name,ProcessName,A
-				if(MenuObjWindowFlag && MenuObjWindow[name]){
-					Menu_Show_Show(MenuObjWindow[name],"")
+				WinGet,pname,ProcessName,A
+				if(MenuObjWindowFlag && MenuObjWindow[pname]){
+					Menu_Show_Show(MenuObjWindow[pname][1],"")
 				}else{
 					Menu,% menuDefaultRoot%MENU_NO%[1],Show
 				}
@@ -1312,12 +1314,43 @@ Menu_Show:
 				return
 			}
 		}
+		showTheMenuName:=menuWebRoot%MENU_NO%[1]
+		WinGet,pname,ProcessName,A
 		;#选中文本弹出网址菜单#
-		if(!MenuObjTextRootFlag && MenuObjText%MENU_NO%.MaxIndex()=1){
+		if(!MenuObjTextRootFlag%MENU_NO% && MenuObjText%MENU_NO%.MaxIndex()=1
+				&& (!MenuObjWindowFlag || (MenuObjWindow[pname].Length()=1 && MenuObjWindow[pname][1]=MenuObjText%MENU_NO%[1]))){
 			;如果根目录没有%getZz%或%s且text菜单只有1个，直接显示这个text菜单
 			Menu_Show_Show(MenuObjText%MENU_NO%[1],getZz)
-		}else{
-			Menu_Show_Show(menuWebRoot%MENU_NO%[1],getZz)
+			return
+		}
+		if(MenuObjWindowFlag && MenuObjWindow[pname]){
+			;添加自定义软件专属菜单
+			publicMenuMaxNum:=MenuObjWindow[pname].MaxIndex()
+			if(publicMenuMaxNum>0){
+				Loop {
+					menuObjTextStrs:=StrJoin(",",MenuObjText%MENU_NO%)
+					vn:=MenuObjWindow[pname][publicMenuMaxNum]
+					v:=MenuObjTreeLevel[vn] . vn
+					if vn in %menuObjTextStrs%
+					{
+						try Menu,% showTheMenuName,Delete,% vn "  "
+					}
+					Menu,% showTheMenuName,Insert, 1&, %vn%, :%vn%
+					Menu_Item_Icon(showTheMenuName,vn,TreeIconS[1],TreeIconS[2],v)
+					publicMenuMaxNum--
+				} Until % publicMenuMaxNum<1
+				publicMaxNum:=MenuObjWindow[pname].MaxIndex() + 1
+				Menu,% showTheMenuName,Insert, %publicMaxNum%&
+			}
+		}
+		Menu_Show_Show(showTheMenuName,getZz)
+		;删除临时添加的菜单
+		if(MenuObjWindowFlag && MenuObjWindow[pname]){
+			Menu,% showTheMenuName,Delete, %publicMaxNum%&
+			for k,v in MenuObjWindow[pname]
+			{
+				Menu,% showTheMenuName,Delete,%v%
+			}
 		}
 	}catch{}
 return
@@ -2255,17 +2288,14 @@ SkSub_UrlEncode(str, enc="UTF-8")
    Return encoded
 }
 ;[数组拼接字符]
-StrJoin(sep, params*) {
+StrJoin(sep, paramList){
 	str:=""
-    for index,param in params
+	for index,param in paramList
 	{
-		if(IsObject(param)){
-			for i,v in param
-			{
-				str.= i ":" v . sep
-			}
-		}else{
+		if(paramList.HasKey(1)){
 			str.= param . sep
+		}else{
+			str.= index ":" param . sep
 		}
 	}
     return SubStr(str, 1, -StrLen(sep))
