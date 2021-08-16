@@ -1486,8 +1486,10 @@ Menu_Run:
 			Process,Close,%name%
 			return
 		}
-		if(RecentMax>0 && !RegExMatch(Z_ThisMenuItem,"S)^&\d+"))
+		if(RecentMax>0 && !NoRecentFlag && !RegExMatch(Z_ThisMenuItem,"S)^&\d+")){
 			gosub,Menu_Recent
+		}
+		NoRecentFlag:=false
 		;[根据菜单项模式运行]
 		returnFlag:=false
 		gosub,Menu_Run_Mode_Label
@@ -4922,6 +4924,7 @@ RunCtrlLVDel:
 			oldRunRepeat:=RunCtrlRepeatRun="重复" ? "|1" : ""
 			oldStr:=oldRunMenu oldRunRepeat "=" RunCtrlRunValue
 			DelRunValList[oldStr]:=true
+			IniDelete, %RunCtrlLastTimeIni%, last_run_time, %RunCtrlRunValue%
 		}
 	}
 	IfMsgBox Yes
@@ -5465,6 +5468,9 @@ SaveRunCtrlRunValue:
 			runContent.=A_LoopField=oldStr ? newStr "`n" : A_LoopField "`n"
 		}
 		runContent:=SubStr(runContent, 1, -StrLen("`n"))
+		if(RunCtrlRunValue!=vRunCtrlRunValue){
+			IniDelete, %RunCtrlLastTimeIni%, last_run_time, %RunCtrlRunValue%
+		}
 	}else if(menuItem="新建"){
 		runContent:=ctrlAppsVar!="" ? ctrlAppsVar "`n" newStr : newStr
 	}
@@ -7826,6 +7832,7 @@ RunCtrl_RunApps(path,noPath,repeatRun:=0){
 			}
 			if(EvNo || EvQueryFlag){
 				MenuShowMenuRun:=tfPath
+				global NoRecentFlag:=true
 				gosub,Menu_Run
 				RunCtrl_LastRunTime(path)
 			}else{
