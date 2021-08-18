@@ -1452,10 +1452,11 @@ Menu_Add_Del_Temp(addDel=1,TREE_NO=1,mName="",LabelName="",mIcon="",mIconNum="")
 Menu_Run:
 	Z_ThisMenuItem:=A_ThisMenuItem
 	any:=MenuObj[(Z_ThisMenuItem)]
-	if(MenuShowMenuRun){
+	if(MenuShowMenuRun!=""){
 		any:=MenuObj[(MenuShowMenuRun)]
-		if(any="")
+		if(any=""){
 			TrayTip,,%MenuShowMenuRun% 没有找到`n请检查是否存在(在Everything能搜索到)，并重启RunAny重试,3,1
+		}
 		MenuShowMenuRun:=""
 	}
 	MenuRunDebugModeShow()
@@ -5654,7 +5655,7 @@ LVRuleMinus:
 	Row:=LV_GetNext(0, "F")
 	RowNumber:=0
 	if(Row)
-		MsgBox,35,确认删除？(Esc取消),确定删除选中的规则项？`n【注意！】此操作会连带删除所有规则组中用到的这个规则
+		MsgBox,51,确认删除？(Esc取消),确定删除选中的规则项？`n【注意！】此操作会连带删除所有规则组中用到的这个规则
 	Loop
 	{
 		RowNumber := LV_GetNext(RowNumber)  ; 在前一次找到的位置后继续搜索.
@@ -6066,7 +6067,7 @@ Settings_Gui:
 	Gui,66:Add,Link,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%,%RunAnyZz%高级配置列表，请理解说明后修改（双击或按F2进行修改：1或有值=启用，0或空=停用）
 	Gui,66:Add,Listview,xm yp+20 r18 grid AltSubmit -ReadOnly -Multi vAdvancedConfigLV glistviewAdvancedConfig, 配置状态值|单位|配置说明|配置脚本|配置项名
 	AdvancedConfigImageListID:=IL_Create(2)
-	IL_Add(AdvancedConfigImageListID,"shell32.dll",(A_OSVersion="WIN_XP" || A_OSVersion="WIN_7") ? 145 : 297)
+	IL_Add(AdvancedConfigImageListID,(A_OSVersion="WIN_7") ? "imageres.dll" : "shell32.dll",(A_OSVersion="WIN_XP") ? 145 : (A_OSVersion="WIN_7") ? 102 : 297)
 	IL_Add(AdvancedConfigImageListID,"shell32.dll",132)
 	GuiControl, 66:-Redraw, AdvancedConfigLV
 	LV_SetImageList(AdvancedConfigImageListID)
@@ -7049,8 +7050,12 @@ Open_Ext_Set:
 		}
 		if((itemList[2]="folder" && (InStr(itemList[1],"totalcmd.exe") || InStr(itemList[1],"TotalCMD64.exe")))
 			|| MenuObjEv["totalcmd"] || MenuObjEv["TotalCMD64"]){
+			ClipWaitAppStr:="totalcmd.exe,totalcmd64.exe"
+			if(MenuObjEv["dopus"]){
+				ClipWaitAppStr.=",dopus.exe"
+			}
 			ClipWaitTime:=Var_Read("ClipWaitTime",1.5)
-			ClipWaitApp:=Var_Read("ClipWaitApp","totalcmd.exe,totalcmd64.exe")
+			ClipWaitApp:=Var_Read("ClipWaitApp",ClipWaitAppStr)
 		}
 	}
 	Loop,parse,ClipWaitApp,`,
