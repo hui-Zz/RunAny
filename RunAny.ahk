@@ -60,7 +60,7 @@ For ki, kv in HotKeyList
 	StringReplace,winkeyV,kv,Hot,Win
 	if(%keyV%){
 		if(!MENU2FLAG){
-			if ki in 2,6,8
+			if ki in 2,7,9
 			{
 				continue
 			}
@@ -5903,7 +5903,7 @@ Settings_Gui:
 		StringReplace,keyV,kv,Hot
 		StringReplace,winkeyV,kv,Hot,Win
 		if(!MENU2FLAG){
-			if ki in 2,6,8
+			if ki in 2,7,9
 			{
 				continue
 			}
