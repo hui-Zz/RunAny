@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.08.06
+║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.08.18
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.6"     ;~;版本号
-global RunAny_update_time:="2021.08.06"   ;~;更新日期
+global RunAny_update_time:="2021.08.18"   ;~;更新日期
 gosub,Var_Set           ;~;01.参数初始化
 gosub,Menu_Var_Set      ;~;02.自定义变量
 gosub,Icon_Set          ;~;03.图标初始化
@@ -1328,7 +1328,7 @@ Menu_Show:
 			publicMenuMaxNum:=MenuObjWindow[pname].MaxIndex()
 			if(publicMenuMaxNum>0){
 				Loop {
-					menuObjTextStrs:=StrJoin(",",MenuObjText%MENU_NO%)
+					menuObjTextStrs:=StrListJoin(",",MenuObjText%MENU_NO%)
 					vn:=MenuObjWindow[pname][publicMenuMaxNum]
 					v:=MenuObjTreeLevel[vn] . vn
 					if vn in %menuObjTextStrs%
@@ -2288,8 +2288,18 @@ SkSub_UrlEncode(str, enc="UTF-8")
    encoded .= hex
    Return encoded
 }
+;[拼接字符]
+StrJoin(sep, params*) {
+	str:=""
+	for index,param in params
+	{
+		if(param!="")
+			str.= param . sep
+	}
+	return SubStr(str, 1, -StrLen(sep))
+}
 ;[数组拼接字符]
-StrJoin(sep, paramList){
+StrListJoin(sep, paramList){
 	str:=""
 	for index,param in paramList
 	{
@@ -7038,6 +7048,7 @@ Open_Ext_Set:
 	global BrowserPathRun:=Get_Obj_Path_Transform(BrowserPath)
 	global openExtIniList:={}
 	global openExtRunList:={}
+	ClipWaitAppStr:=""
 	IniRead,openExtVar,%RunAnyConfig%,OpenExt
 	Loop, parse, openExtVar, `n, `r
 	{
@@ -7048,15 +7059,21 @@ Open_Ext_Set:
 			extLoopField:=RegExReplace(A_LoopField,"^\.","")
 			openExtRunList[extLoopField]:=Get_Obj_Path_Transform(itemList[1])
 		}
-		if((itemList[2]="folder" && (InStr(itemList[1],"totalcmd.exe") || InStr(itemList[1],"TotalCMD64.exe")))
-			|| MenuObjEv["totalcmd"] || MenuObjEv["TotalCMD64"]){
-			ClipWaitAppStr:="totalcmd.exe,totalcmd64.exe"
-			if(MenuObjEv["dopus"]){
-				ClipWaitAppStr.=",dopus.exe"
-			}
-			ClipWaitTime:=Var_Read("ClipWaitTime",1.5)
-			ClipWaitApp:=Var_Read("ClipWaitApp",ClipWaitAppStr)
+		if(InStr(itemList[1],"dopus.exe") || MenuObjEv["dopus"]){
+			ClipWaitAppStr:=StrJoin(",",ClipWaitAppStr,"dopus.exe")
 		}
+		if(InStr(itemList[1],"totalcmd.exe") || MenuObjEv["totalcmd"]){
+			ClipWaitAppStr:=StrJoin(",",ClipWaitAppStr,"totalcmd.exe")
+		}
+		if(InStr(itemList[1],"TotalCMD64.exe") || MenuObjEv["TotalCMD64"]){
+			ClipWaitAppStr:=StrJoin(",",ClipWaitAppStr,"totalcmd64.exe")
+		}
+	}
+	; 解决指定软件界面剪贴板等待时间过短获取不到选中内容
+	Sort, ClipWaitAppStr ,U D,
+	if(ClipWaitAppStr!=""){
+		ClipWaitTime:=Var_Read("ClipWaitTime", 1.5)
+		ClipWaitApp:=Var_Read("ClipWaitApp", ClipWaitAppStr)
 	}
 	Loop,parse,ClipWaitApp,`,
 	{
@@ -7817,7 +7834,7 @@ Rule_Effect:
 			}
 		}
 		if(RuleRunFailFlag){
-			RuleRunFailStr:=StrJoin("`n",RuleRunFailList)
+			RuleRunFailStr:=StrListJoin("`n",RuleRunFailList)
 			TrayTip,,规则插件脚本没有启动：`n%RuleRunFailStr%,5,1
 		}
 	} catch e {
@@ -7841,13 +7858,13 @@ RunCtrl_RunRules(runCtrlObj,show:=0){
 			ToolTip, 规则验证失败
 			SetTimer,RemoveToolTip,3000
 			if(RuleRunFailFlag){
-				RuleRunFailStr:=StrJoin("`n",RuleRunFailList)
+				RuleRunFailStr:=StrListJoin("`n",RuleRunFailList)
 				TrayTip,,规则插件脚本没有启动：`n%RuleRunFailStr%,5,1
 			}
 		}
 		return effectResult
 	} catch e {
-		MsgBox,16,启动规则出错,% "启动规则名：" rcName "`n启动规则脚本：" StrJoin(",",runCtrlObj.ruleFile)
+		MsgBox,16,启动规则出错,% "启动规则名：" rcName "`n启动规则脚本：" StrListJoin(",",runCtrlObj.ruleFile)
 			. "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 	} finally {
 		runIndex[rcName]++	;规则定时器运行计数+1
