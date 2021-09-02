@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.08.18
+║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.09.02
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.6"     ;~;版本号
-global RunAny_update_time:="2021.08.18"   ;~;更新日期
+global RunAny_update_time:="2021.09.02"   ;~;更新日期
 gosub,Var_Set           ;~;01.参数初始化
 gosub,Menu_Var_Set      ;~;02.自定义变量
 gosub,Icon_Set          ;~;03.图标初始化
@@ -1457,7 +1457,9 @@ Menu_Run:
 		if(any=""){
 			TrayTip,,%MenuShowMenuRun% 没有找到`n请检查是否存在(在Everything能搜索到)，并重启RunAny重试,3,1
 		}
-		MenuShowMenuRun:=""
+		if(RunCtrlRunFlag)
+			Z_ThisMenuItem:=MenuShowMenuRun
+		RunCtrlRunFlag:=MenuShowMenuRun:=""
 	}
 	MenuRunDebugModeShow()
 	if(any="")
@@ -1548,34 +1550,8 @@ Menu_Run:
 				return
 			}
 		}
-		menuKeys:=StrSplit(Z_ThisMenuItem,"`t")
-		thisMenuName:=menuKeys[1]
-		;[管理员身份运行]
-		if(menuholdkey=HoldKeyRun11 || M_ThisMenuItem="管理员权限运行(&A)"){
-			anyRun.="*RunAs "
-		}
-		;[最小化、最大化、隐藏运行模式]
-		if(menuholdkey=HoldKeyRun12 || M_ThisMenuItem="最小化运行(&I)"){
-			mode:="Min"
-		}else if(menuholdkey=HoldKeyRun13 || M_ThisMenuItem="最大化运行(&P)"){
-			mode:="Max"
-		}else if(menuholdkey=HoldKeyRun14 || M_ThisMenuItem="隐藏运行(&H)"){
-			mode:="Hide"
-		}else{
-			mode:=""
-		}
-		;[透明运行模式]
-		menuTransNum:=100
-		if(thisMenuName && RegExMatch(thisMenuName,"S).*?_:(\d{1,2})$")){
-			menuTransNum:=RegExReplace(thisMenuName,"S).*?_:(\d{1,2})$","$1")
-		}else if(RegExMatch(M_ThisMenuItem,"S)^透明运行:&\d{1,2}%")){
-			menuTransNum:=RegExReplace(M_ThisMenuItem,"S)^透明运行:&(\d{1,2})%$","$1")
-		}
-		;[置顶运行模式]
-		topFlag:=false
-		if(M_ThisMenuItem="置顶运行(&T)"){
-			topFlag:=true
-		}
+		;判断软件运行方式
+		gosub,MenuRunWay
 		;[带选中内容运行]
 		if(getZz!="" && (getZzFlag || AutoGetZz)){
 			firstFile:=RegExReplace(getZz,"S)(.*)(\n|\r).*","$1")  ;取第一行
@@ -1593,12 +1569,12 @@ Menu_Run:
 					return
 				}
 				if(getZzFlag || InStr(FileExist(any), "D")){
-					Run_Any(any,mode)
+					Run_Any(any, way)
 				}else{
-					Run_Any(any . A_Space . getZzStr,mode)
+					Run_Any(any . A_Space . getZzStr, way)
 				}
 				if(topFlag || menuTransNum<100){
-					Run_Wait(any,false,menuTransNum)
+					Run_Wait(any, topFlag, menuTransNum)
 				}
 				return
 			}
@@ -1607,26 +1583,62 @@ Menu_Run:
 			}else{
 				anyRun=%anyRun%%any%%A_Space%%getZz%
 			}
-			Run_Any(anyRun,mode)
+			Run_Any(anyRun, way)
 			if(topFlag || menuTransNum<100){
-				Run_Wait(any,false,menuTransNum)
+				Run_Wait(any, topFlag, menuTransNum)
 			}
 			return
 		}
-		
-		if(ext && openExtRunList[ext]){
-			Run_Any(openExtRunList[ext] . A_Space . """" any """",mode)
-		}else{
-			Run_Any(anyRun . any,mode)
-		}
-		if(topFlag || menuTransNum<100){
-			Run_Wait(any,false,menuTransNum)
-		}
+		Gosub, MenuRunAny
 	} catch e {
 		MsgBox,16,%Z_ThisMenuItem%运行出错,% "运行路径：" any "`n出错命令：" e.What 
 			. "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 	}finally{
 		SetWorkingDir,%A_ScriptDir%
+	}
+return
+;[软件运行方式]
+MenuRunWay:
+	menuKeys:=StrSplit(Z_ThisMenuItem,"`t")
+	thisMenuName:=menuKeys[1]
+	;[管理员身份运行]
+	if((!RunCtrlRunFlag && (menuholdkey=HoldKeyRun11 || M_ThisMenuItem="管理员权限运行(&A)")) || RunCtrlAdminRunVal){
+		anyRun.="*RunAs "
+	}
+	;[最小化、最大化、隐藏运行方式]
+	if((!RunCtrlRunFlag && (menuholdkey=HoldKeyRun12 || M_ThisMenuItem="最小化运行(&I)")) || RunCtrlRunWayVal=3){
+		way:="Min"
+	}else if((!RunCtrlRunFlag && (menuholdkey=HoldKeyRun13 || M_ThisMenuItem="最大化运行(&P)")) || RunCtrlRunWayVal=4){
+		way:="Max"
+	}else if((!RunCtrlRunFlag && (menuholdkey=HoldKeyRun14 || M_ThisMenuItem="隐藏运行(&H)")) || RunCtrlRunWayVal=5){
+		way:="Hide"
+	}else{
+		way:=""
+	}
+	;[透明运行方式]
+	menuTransNum:=100
+	if(thisMenuName && RegExMatch(thisMenuName,"S).*?_:(\d{1,2})$")){
+		menuTransNum:=RegExReplace(thisMenuName,"S).*?_:(\d{1,2})$","$1")
+	}else if(RegExMatch(M_ThisMenuItem,"S)^透明运行:&\d{1,2}%")){
+		menuTransNum:=RegExReplace(M_ThisMenuItem,"S)^透明运行:&(\d{1,2})%$","$1")
+	}
+	;[置顶运行方式]
+	topFlag:=false
+	if((!RunCtrlRunFlag && M_ThisMenuItem="置顶运行(&T)") || RunCtrlRunWayVal=2){
+		topFlag:=true
+	}
+	RunCtrlAdminRunVal:=false
+	RunCtrlRunWayVal:=1
+return
+MenuRunAny:
+	if(ext && openExtRunList[ext]){
+		Run_Any(openExtRunList[ext] . A_Space . """" any """", way)
+	}else{
+		Run_Any(anyRun . any, way)
+	}
+	;运行后进行置顶或透明操作
+	if(topFlag || menuTransNum<100){
+		Run_Wait(any, topFlag, menuTransNum)
 	}
 return
 ;判断运行软件时按住的键
@@ -1779,7 +1791,7 @@ Menu_Key_Run_Run:
 			}
 		}
 		if(menuTransNum<100){
-			Run_Wait(any,false,menuTransNum)
+			Run_Wait(any, false, menuTransNum)
 		}
 	} catch e {
 		MsgBox,16,%thisMenuName%热键运行出错,% "运行路径：" any "`n出错命令：" e.What 
@@ -1860,13 +1872,13 @@ MenuRunDebugModeShow(key:=0){
 		}
 	}
 }
-Run_Any(any,mode:=""){
+Run_Any(any,way:=""){
 	Menu_Debug_Mode("[运行路径]`n" any "`n")
 	if(MenuIconFlag){
 		Menu_Run_Tray_Tip(any "`n")
 	}
-	if(mode!=""){
-		Run,%any%,,%mode%
+	if(way!=""){
+		Run,%any%,,%way%
 	}else{
 		Run,%any%
 	}
@@ -3135,7 +3147,8 @@ TVEdit:
 	selIDTVEdit:=""
 	if(RunCtrlMenuItemFlag){
 		Gui, MenuEdit:Destroy
-		GuiControlSet("CtrlRun","vRunCtrlRunValue",itemName!="" ? itemName : itemPath)
+		GuiControlSet("CtrlRun","vRunCtrlRunValue"
+			,(itemName!="" && itemTrNum!="") ? itemName "_:" itemTrNum : (itemName!="") ? itemName : itemPath)
 		RunCtrlMenuItemFlag:=false
 	}else{
 		gosub,Menu_Item_Edit
@@ -4856,8 +4869,7 @@ RunCtrl_Manage_Gui:
 	Gui,RunCtrlManage:+Resize
 	Gui,RunCtrlManage:Font, s10, Microsoft YaHei
 	Gui,RunCtrlManage:Add, ListBox, x16 w130 vRunCtrlListBox gRunCtrlListClick Choose%RunCtrlListBoxChoose%, %RunCtrlListBoxVar%
-	Gui,RunCtrlManage:Add, Listview,x+15 w570 r15 grid AltSubmit vRunCtrlLV gRunCtrlListView, 启动项|类型|重复运行|最后运行时间
-	GuiControl,RunCtrlManage:-Redraw, RunCtrlLV
+	Gui,RunCtrlManage:Add, Listview,x+15 w570 r15 grid AltSubmit vRunCtrlLV gRunCtrlListView, 启动项|类型|重复运行|管理员运行|运行方式|最后运行时间
 	LVImageListID := IL_Create(11)
 	Icon_Image_Set(LVImageListID)
 	LV_SetImageList(LVImageListID)
@@ -4866,7 +4878,8 @@ RunCtrl_Manage_Gui:
 	RunCtrlLVMenu("RunCtrlManageMenu")
 	Gui,RunCtrlManage: Menu, RunCtrlManageMenu
 	Gui,RunCtrlManage:Show, w755 , RunCtrl 启动管理 %RunAny_update_version% %RunAny_update_time%%AdminMode%(双击修改，右键操作)
-	if(RunCtrlListBoxVar="" || RuleNameStr=""){
+	Sleep,200
+	if(RuleNameStr="" || RunCtrlListBoxVar=""){
 		MsgBox,64,,首次使用请阅读：`n1. 先点击“规则”按钮后再点击“添加默认规则”`n2. 然后返回界面点击“添加组”`n3. 最后再点击“添加应用”`n`n这样就可以自动根据不同规则判断来运行不同的程序了
 	}
 return
@@ -4881,7 +4894,8 @@ RunCtrlListClick:
 		For runn, runv in RunCtrlList[RunCtrlListBox].runList
 		{
 			LV_Add(Set_Icon(LVImageListID,runv.noPath ? Get_Obj_Path(runv.path) : runv.path,false,false,runv.path)
-				,runv.path,runv.noPath ? "菜单项" : "全路径",runv.repeatRun ? "重复" : "", time_format(runv.lastRunTime))
+				, runv.path, runv.noPath ? "菜单项" : "全路径", runv.repeatRun ? "重复" : "", runv.adminRun ? "管理员" : ""
+				, StrReplace(RunCtrlRunWayList[runv.runWay],"启动"), time_format(runv.lastRunTime))
 		}
 		GuiControl,RunCtrlManage:+Redraw, RunCtrlLV
 		LV_ModifyCol()
@@ -4954,12 +4968,13 @@ RunCtrlLVDel:
 		LV_GetText(RunCtrlRunValue, RowNumber, 1)
 		LV_GetText(RunCtrlNoPath, RowNumber, 2)
 		LV_GetText(RunCtrlRepeatRun, RowNumber, 3)
+		LV_GetText(RunCtrlAdminRun, RowNumber, 4)
+		LV_GetText(RunCtrlRunWay, RowNumber, 5)
 		IfMsgBox Yes
 		{
 			DelRowList := RowNumber . ":" . DelRowList
-			oldRunMenu:=RunCtrlNoPath="菜单项" ? "menu" : "path"
-			oldRunRepeat:=RunCtrlRepeatRun="重复" ? "|1" : ""
-			oldStr:=oldRunMenu oldRunRepeat "=" RunCtrlRunValue
+			oldStr:=RunCtrlRunIniKeyJoin(RunCtrlNoPath="菜单项", RunCtrlRepeatRun="重复", RunCtrlAdminRun="管理员"
+				, GetKeyByVal(RunCtrlRunWayList, RunCtrlRunWay "启动")) "=" RunCtrlRunValue
 			DelRunValList[oldStr]:=true
 			IniDelete, %RunCtrlLastTimeIni%, last_run_time, %RunCtrlRunValue%
 		}
@@ -5045,13 +5060,21 @@ RunCtrlLVDown:
 	LV_GetText(RunCtrlRunValue1, RunRowNumber1, 1)
 	LV_GetText(RunCtrlNoPath1, RunRowNumber1, 2)
 	LV_GetText(RunCtrlRepeatRun1, RunRowNumber1, 3)
+	LV_GetText(RunCtrlAdminRun1, RunRowNumber1, 4)
+	LV_GetText(RunCtrlRunWay1, RunRowNumber1, 5)
+	LV_GetText(RunCtrlLastRunTime1, RunRowNumber1, 6)
+
 	LV_GetText(RunCtrlRunValue2, RunRowNumber2, 1)
 	LV_GetText(RunCtrlNoPath2, RunRowNumber2, 2)
 	LV_GetText(RunCtrlRepeatRun2, RunRowNumber2, 3)
+	LV_GetText(RunCtrlAdminRun2, RunRowNumber2, 4)
+	LV_GetText(RunCtrlRunWay2, RunRowNumber2, 5)
+	LV_GetText(RunCtrlLastRunTime2, RunRowNumber2, 6)
+
 	LV_Modify(RunRowNumber1,Set_Icon(LVImageListID,RunCtrlNoPath2 ? Get_Obj_Path(RunCtrlRunValue2) : RunCtrlRunValue2,false,false,RunCtrlRunValue2)
-		,RunCtrlRunValue2,RunCtrlNoPath2,RunCtrlRepeatRun2)
+		,RunCtrlRunValue2,RunCtrlNoPath2,RunCtrlRepeatRun2,RunCtrlAdminRun2,RunCtrlRunWay2,RunCtrlLastRunTime2)
 	LV_Modify(RunRowNumber2,Set_Icon(LVImageListID,RunCtrlNoPath1 ? Get_Obj_Path(RunCtrlRunValue1) : RunCtrlRunValue1,false,false,RunCtrlRunValue1)
-		,RunCtrlRunValue1,RunCtrlNoPath1,RunCtrlRepeatRun1)
+		,RunCtrlRunValue1,RunCtrlNoPath1,RunCtrlRepeatRun1,RunCtrlAdminRun1,RunCtrlRunWay1,RunCtrlLastRunTime1)
 	;顺序改变后写入配置文件
 	runContent=
 	Gui, ListView, RunCtrlLV
@@ -5060,9 +5083,10 @@ RunCtrlLVDown:
 		LV_GetText(RunCtrlRunValue, A_Index, 1)
 		LV_GetText(RunCtrlNoPath, A_Index, 2)
 		LV_GetText(RunCtrlRepeatRun, A_Index, 3)
-		runNoPath:=RunCtrlNoPath="菜单项" ? "menu" : "path"
-		runRepeat:=RunCtrlRepeatRun="重复" ? "|1" : ""
-		runContent.=runNoPath runRepeat "=" RunCtrlRunValue "`n"
+		LV_GetText(RunCtrlAdminRun, A_Index, 4)
+		LV_GetText(RunCtrlRunWay, A_Index, 5)
+		runContent.=RunCtrlRunIniKeyJoin(RunCtrlNoPath="菜单项", RunCtrlRepeatRun="重复", RunCtrlAdminRun="管理员"
+			, GetKeyByVal(RunCtrlRunWayList, RunCtrlRunWay "启动")) "=" RunCtrlRunValue "`n"
 	}
 	runContent:=SubStr(runContent, 1, -StrLen("`n"))
 	IniWrite, %runContent%, %RunAnyConfig%, %RunCtrlListBox%_Run
@@ -5227,9 +5251,7 @@ RunCtrlLVSave:
 	if(RunCtrlList[RuleGroupName]){
 		For runn, runv in RunCtrlList[RuleGroupName].runList
 		{
-			runNoPath:=runv.noPath ? "menu" : "path"
-			runRepeat:=runv.repeatRun ? "|1" : ""
-			runContent.=runNoPath runRepeat "=" runv.path "`n"
+			runContent.=RunCtrlRunIniKeyJoin(runv.noPath,runv.repeatRun,runv.adminRun,runv.runWay) "=" runv.path "`n"
 		}
 		runContent:=SubStr(runContent, 1, -StrLen("`n"))
 	}
@@ -5416,7 +5438,7 @@ return
 ;~;【启动控制-启动项Gui】
 LVCtrlRunAdd:
 	menuItem:="新建"
-	RunCtrlRepeatRun:=RunCtrlRunValue:=""
+	RunCtrlRepeatRun:=RunCtrlAdminRun:=RunCtrlRunWay:=RunCtrlRunValue:=""
 	RunCtrlNoPath:="菜单项"
 	gosub,LVCtrlRunConfig
 return
@@ -5433,7 +5455,10 @@ LVCtrlRunRun:
 		LV_GetText(RunCtrlRunValue, RowNumber, 1)
 		LV_GetText(RunCtrlNoPath, RowNumber, 2)
 		LV_GetText(RunCtrlRepeatRun, RowNumber, 3)
-		RunCtrl_RunApps(RunCtrlRunValue, RunCtrlNoPath="菜单项" ? 1 : 0, 1)
+		LV_GetText(RunCtrlAdminRun, RowNumber, 4)
+		LV_GetText(RunCtrlRunWay, RowNumber, 5)
+		RunCtrl_RunApps(RunCtrlRunValue, RunCtrlNoPath="菜单项" ? 1 : 0, 1
+			, RunCtrlAdminRun="管理员" ? 1 : 0, GetKeyByVal(RunCtrlRunWayList, RunCtrlRunWay "启动"))
 	}
 return
 LVCtrlRunConfig:
@@ -5445,20 +5470,27 @@ LVCtrlRunConfig:
 		LV_GetText(RunCtrlRunValue, RunRowNumber, 1)
 		LV_GetText(RunCtrlNoPath, RunRowNumber, 2)
 		LV_GetText(RunCtrlRepeatRun, RunRowNumber, 3)
+		LV_GetText(RunCtrlAdminRun, RunRowNumber, 4)
+		LV_GetText(RunCtrlRunWay, RunRowNumber, 5)
 	}
 	RunCtrlNoPath1:=RunCtrlNoPath="菜单项" ? 1 : 0
 	RunCtrlNoPath2:=RunCtrlNoPath1 ? 0 : 1
 	RunCtrlRepeatRun:=RunCtrlRepeatRun="重复" ? 1 : 0
+	RunCtrlAdminRun:=RunCtrlAdminRun="管理员" ? 1 : 0
+	RunCtrlRunWay:=GetKeyByVal(RunCtrlRunWayList, RunCtrlRunWay "启动")
 	Gui,CtrlRun:Destroy
 	Gui,CtrlRun:Default
 	Gui,CtrlRun:+OwnerRunCtrlManage
 	Gui,CtrlRun:Margin,20,20
 	Gui,CtrlRun:Font,,Microsoft YaHei
-	Gui,CtrlRun:Add, Radio, xm+10 yp+25 Checked%RunCtrlNoPath1% vvRunCtrlNoPath1, 菜单项(&Z)
-	Gui,CtrlRun:Add, Radio, x+10 yp Checked%RunCtrlNoPath2% vvRunCtrlNoPath2, 全路径(&A)
-	Gui,CtrlRun:Add, CheckBox, x+30 yp Checked%RunCtrlRepeatRun% vvRunCtrlRepeatRun, 重复启动(&R)
-	Gui,CtrlRun:Add, Button, xm+5 y+15 w60 GSetRunCtrlRunValue,运行软件路径`n或菜单项
-	Gui,CtrlRun:Add, Edit, x+12 yp w300 r3 -WantReturn vvRunCtrlRunValue, %RunCtrlRunValue%
+	Gui,CtrlRun:Add, Radio, xm+10 yp+20 Checked%RunCtrlNoPath1% vvRunCtrlNoPath1, 菜单项(&Z)
+	Gui,CtrlRun:Add, Radio, x+42 yp Checked%RunCtrlNoPath2% vvRunCtrlNoPath2, 全路径(&A)
+	Gui,CtrlRun:Add, GroupBox, xm y+5 w410 h50
+	Gui,CtrlRun:Add, CheckBox, xm+10 yp+20 Checked%RunCtrlRepeatRun% vvRunCtrlRepeatRun, 重复启动(&R)
+	Gui,CtrlRun:Add, CheckBox, x+30 yp Checked%RunCtrlAdminRun% vvRunCtrlAdminRun, 管理员启动(&G)
+	Gui,CtrlRun:Add, DropDownList, x+30 yp-3 Choose%RunCtrlRunWay% AltSubmit GDropDownRunWayChoose vvRunCtrlRunWay, % StrListJoin("|",RunCtrlRunWayList)
+	Gui,CtrlRun:Add, Button, xm y+20 w100 h60 GSetRunCtrlRunValue,运行软件路径`n或%RunAnyZz%菜单项
+	Gui,CtrlRun:Add, Edit, x+12 yp+1 w300 r3 -WantReturn vvRunCtrlRunValue, %RunCtrlRunValue%
 	Gui,CtrlRun:Font
 	Gui,CtrlRun:Add,Button,Default xm+100 y+25 w75 GSaveRunCtrlRunValue,保存(&Y)
 	Gui,CtrlRun:Add,Button,x+20 w75 GSetCancel,取消(&C)
@@ -5476,18 +5508,19 @@ SetRunCtrlRunValue:
 		}
 	}
 return
+DropDownRunWayChoose:
+	Gui,CtrlRun:Submit, NoHide
+	if(!A_IsAdmin && vRunCtrlRunWay=2 && vRunCtrlAdminRun)
+		MsgBox,48,权限不允许！, %RunAnyZz% 没有管理员权限！无法置顶操作 勾选了“管理员启动”的软件`n%vRunCtrlRunValue%
+return
 SaveRunCtrlRunValue:
 	Gui,CtrlRun:Submit, NoHide
 	if(RunCtrlListBox=""){
 		Gui,CtrlRun:Destroy
 		return
 	}
-	oldRunMenu:=RunCtrlNoPath1 ? "menu" : "path"
-	oldRunRepeat:=RunCtrlRepeatRun ? "|1" : ""
-	oldStr:=oldRunMenu oldRunRepeat "=" RunCtrlRunValue
-	newRunMenu:=vRunCtrlNoPath1 ? "menu" : "path"
-	newRunRepeat:=vRunCtrlRepeatRun ? "|1" : ""
-	newStr:=newRunMenu newRunRepeat "=" vRunCtrlRunValue
+	oldStr:=RunCtrlRunIniKeyJoin(RunCtrlNoPath1,RunCtrlRepeatRun,RunCtrlAdminRun,RunCtrlRunWay) "=" RunCtrlRunValue
+	newStr:=RunCtrlRunIniKeyJoin(vRunCtrlNoPath1,vRunCtrlRepeatRun,vRunCtrlAdminRun,vRunCtrlRunWay) "=" vRunCtrlRunValue
 	if(oldStr=newStr){
 		Gui,CtrlRun:Destroy
 		return
@@ -5514,6 +5547,14 @@ SaveRunCtrlRunValue:
 	IniWrite,%runContent%,%RunAnyConfig%,%RunCtrlListBox%_Run
 	gosub,RunCtrl_Manage_Gui
 return
+RunCtrlRunIniKeyJoin(runNoPath,runRepeat,runAdminRun,runRunWay){
+	newNoPath:=runNoPath ? "menu" : "path"
+	newRunRepeat:=runRepeat ? "|1" : "|"
+	newAdminRun:=runAdminRun ? "|1" : "|"
+	newRunWay:=(runRunWay!="" && runRunWay!="1") ? "|" runRunWay : ""
+	newRunStr:=(newRunRepeat="|" && newAdminRun="|" && newRunWay="") ? "" : newRunRepeat newAdminRun newRunWay
+	return newNoPath newRunStr
+}
 ;══════════════════════════════════════════════════════════════════════════════════════════════════════
 ;~;【——规则Gui——】
 ;══════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -7693,6 +7734,7 @@ RunCtrl_Read:
 	;---规则启动项---
 	global RunCtrlList:=Object(),RunCtrlListBoxList:=Object(),RunCtrlListContentList:=Object()
 	global RunCtrlLogicEnum:={"eq":"相等","ne":"不相等","ge":"大于等于","le":"小于等于","gt":"大于","lt":"小于"}
+	global RunCtrlRunWayList:=["启动","置顶启动","最小化启动","最大化启动","隐藏启动"]
 	global RunCtrlListBoxVar:=""
 	IniRead,runCtrlListVar,%RunAnyConfig%,RunCtrlList
 	Loop, parse, runCtrlListVar, `n, `r
@@ -7752,9 +7794,11 @@ class RunCtrl
 			runObj:=new RunCtrlRun
 			runObj.path:=varList[2]
 
-			itemList:=StrSplit(varList[1],"|",,2)
+			itemList:=StrSplit(varList[1],"|",,4)
 			noPathStr:=itemList[1]
 			runObj.repeatRun:=itemList[2]!="" ? itemList[2] : 0
+			runObj.adminRun:=itemList[3]!="" ? itemList[3] : 0
+			runObj.runWay:=itemList[4]!="" ? itemList[4] : 1
 			if(noPathStr="path"){
 				this.noPath:=false
 				runObj.noPath:=false
@@ -7789,9 +7833,11 @@ class RunCtrlRun
 {
 	num:=0
 	path:=""
-	noPath:=true		;无路径标记
-	repeatRun:=false	;重复运行
-	lastRunTime:=""		;最后运行时间
+	noPath:=true        ;无路径标记
+	repeatRun:=false    ;重复运行
+	adminRun:=false     ;管理员运行
+	runWay:=1           ;运行方式
+	lastRunTime:=""     ;最后运行时间
 }
 class RunCtrlRunRule
 {
@@ -7839,7 +7885,7 @@ RunCtrl_RunRules(runCtrlObj,show:=0){
 			for i,runv in runCtrlObj.runList
 			{
 				if(!runCtrlObj.noPath || !runCtrlObj.noMenu){
-					RunCtrl_RunApps(runv.path, runv.noPath, runv.repeatRun)
+					RunCtrl_RunApps(runv.path, runv.noPath, runv.repeatRun, runv.adminRun, runv.runWay)
 				}
 			}
 		}else if(show){
@@ -7863,8 +7909,11 @@ RunCtrl_RunRules(runCtrlObj,show:=0){
 	}
 }
 ;~;[规则启动应用]
-RunCtrl_RunApps(path,noPath,repeatRun:=0){
+RunCtrl_RunApps(path,noPath,repeatRun:=0,adminRun:=0,runWay:=1){
 	try {
+		global RunCtrlRunFlag:=true
+		global RunCtrlAdminRunVal:=adminRun
+		global RunCtrlRunWayVal:=runWay
 		if(noPath){
 			tfPath:=Get_Obj_Transform_Name(Trim(path," `t`n`r"))
 			if(!repeatRun && rule_check_is_run(MenuObj[tfPath])){
@@ -7873,22 +7922,28 @@ RunCtrl_RunApps(path,noPath,repeatRun:=0){
 			if(EvNo || EvQueryFlag){
 				MenuShowMenuRun:=tfPath
 				global NoRecentFlag:=true
-				gosub,Menu_Run
+				Gosub, Menu_Run
 				RunCtrl_LastRunTime(path)
 			}else{
 				RuleRunNoPathList[tfPath]:=true
+				RuleRunAdminRunList[tfPath]:=adminRun
+				RuleRunRunWayList[tfPath]:=runWay
 				;定时等待无路径程序可运行后再运行
 				SetTimer,RunCtrl_RunMenu,100
 			}
 		}else{
-			tfPath:=Get_Transform_Val(path)
-			SplitPath,% tfPath, name, dir
-			if(!repeatRun && rule_check_is_run(tfPath)){
+			global any:=Get_Transform_Val(path)
+			SplitPath,% any, name, dir
+			if(!repeatRun && rule_check_is_run(any)){
 				return
 			}
 			if(dir && FileExist(dir))
 				SetWorkingDir,%dir%
-			Run_Any(tfPath)
+			global anyRun:=""
+			global way:=""
+			Gosub, MenuRunWay
+			Gosub, MenuRunAny
+			RunCtrlRunFlag:=false
 			RunCtrl_LastRunTime(path)
 		}
 	} catch e {
@@ -7905,6 +7960,10 @@ RunCtrl_RunMenu:
 		{
 			if(isRun){
 				RuleRunNoPathList[path]:=false
+				global RunCtrlRunFlag:=true
+				global RunCtrlAdminRunVal:=RuleRunAdminRunList[path]
+				global RunCtrlRunWayVal:=RuleRunRunWayList[path]
+				global NoRecentFlag:=true
 				MenuShowMenuRun:=path
 				gosub,Menu_Run
 				RunCtrl_LastRunTime(path)
