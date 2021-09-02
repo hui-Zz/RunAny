@@ -2311,6 +2311,14 @@ StrListJoin(sep, paramList){
 	}
     return SubStr(str, 1, -StrLen(sep))
 }
+;[反向获取val对应的key]
+GetKeyByVal(obj, val){
+	for k,v in obj
+	{
+		if(val=v)
+			return k
+	}
+}
 ;~;[获取变量展开转换后的值]
 Get_Transform_Val(var){
 	try{
@@ -4841,13 +4849,7 @@ RunCtrl_Manage_Gui:
 	gosub,RunCtrl_Read
 	RunCtrlListBoxChoose:=1
 	if(RunCtrlListBox!=""){
-		for i,v in RunCtrlListBoxList
-		{
-			if(RunCtrlListBox=v){
-				RunCtrlListBoxChoose:=i
-				break
-			}
-		}
+		RunCtrlListBoxChoose:=GetKeyByVal(RunCtrlListBoxList, RunCtrlListBox)
 	}
 	Gui,RunCtrlManage:Destroy
 	Gui,RunCtrlManage:Default
@@ -4859,16 +4861,7 @@ RunCtrl_Manage_Gui:
 	LVImageListID := IL_Create(11)
 	Icon_Image_Set(LVImageListID)
 	LV_SetImageList(LVImageListID)
-	Gui,RunCtrlManage:Submit, NoHide
-	For runn, runv in RunCtrlList[RunCtrlListBox].runList
-	{
-		LV_Add(Set_Icon(LVImageListID,runv.noPath ? Get_Obj_Path(runv.path) : runv.path,false,false,runv.path)
-			,runv.path,runv.noPath ? "菜单项" : "全路径",runv.repeatRun ? "重复" : "", time_format(runv.lastRunTime))
-	}
-	GuiControl,RunCtrlManage:+Redraw, RunCtrlLV
-	LV_ModifyCol()
-	LV_ModifyCol(1,345)
-	LV_ModifyCol(4,150)
+	gosub,RunCtrlListClick
 	RunCtrlLVMenu("RunCtrlLVMenu")
 	RunCtrlLVMenu("RunCtrlManageMenu")
 	Gui,RunCtrlManage: Menu, RunCtrlManageMenu
@@ -4879,7 +4872,7 @@ RunCtrl_Manage_Gui:
 return
 
 RunCtrlListClick:
-	if A_GuiEvent = Normal
+	if (A_GuiEvent = "Normal" || A_GuiEvent = "")
 	{
 		Gui,RunCtrlManage:Default
 		Gui,RunCtrlManage:Submit, NoHide
@@ -4891,6 +4884,9 @@ RunCtrlListClick:
 				,runv.path,runv.noPath ? "菜单项" : "全路径",runv.repeatRun ? "重复" : "", time_format(runv.lastRunTime))
 		}
 		GuiControl,RunCtrlManage:+Redraw, RunCtrlLV
+		LV_ModifyCol()
+		LV_ModifyCol(1,245)
+		LV_ModifyCol(6,150)
 	}else if A_GuiEvent = DoubleClick
 	{
 		gosub,RunCtrlLVEdit
@@ -5202,7 +5198,7 @@ RunCtrlLVSave:
 		LV_GetText(FuncBreak, A_Index, 2)
 		LV_GetText(FuncBoolean, A_Index, 3)
 		LV_GetText(FuncValue, A_Index, 4)
-		FuncBoolean:=RunCtrlLogicEnumGetKey(FuncBoolean)
+		FuncBoolean:=GetKeyByVal(RunCtrlLogicEnum, FuncBoolean)
 		FuncBoolean:=FuncBoolean="eq" ? 1 : FuncBoolean="ne" ? 0 : FuncBoolean
 		FuncBreak:=FuncBreak ? "|" FuncBreak : ""
 		ruleContent.=RuleName . "|" . FuncBoolean . FuncBreak . "=" . FuncValue . "`n"
@@ -5311,8 +5307,8 @@ LVFuncConfig:
 	Gui,RunCtrlFunc:Add, Text, xm y+10 w60, 规则名：
 	Gui,RunCtrlFunc:Add, DropDownList, xm+60 yp-3 Choose%RuleNameChoose% GDropDownRuleChoose vvRuleName, %RuleNameStr%
 	Gui,RunCtrlFunc:Add, Text, x+10 yp+3 cblue w150 vvRuleResultText, 
-	Gui,RunCtrlFunc:Add, Radio, xm y+10 Checked%FuncBooleanEQ% vvFuncBooleanEQ, 相等 ( 真 &True 1)
-	Gui,RunCtrlFunc:Add, Radio, x+4 yp Checked%FuncBooleanNE% vvFuncBooleanNE, 不相等 ( 假 &False 0)
+	Gui,RunCtrlFunc:Add, Radio, xm y+10 Checked%FuncBooleanEQ% vvFuncBooleanEQ, 相等 ( 真 &True 1 )
+	Gui,RunCtrlFunc:Add, Radio, x+4 yp Checked%FuncBooleanNE% vvFuncBooleanNE, 不相等 ( 假 &False 0 )
 	Gui,RunCtrlFunc:Add, Radio, xm y+10 Checked%FuncBooleanGE% vvFuncBooleanGE, 大于等于　　　
 	Gui,RunCtrlFunc:Add, Radio, x+10 yp Checked%FuncBooleanLE% vvFuncBooleanLE, 小于等于　　　
 	Gui,RunCtrlFunc:Add, Radio, xm y+10 Checked%FuncBooleanGT% vvFuncBooleanGT, 大于　　　　　
@@ -7725,14 +7721,6 @@ RunCtrl_Read:
 	}
 	RunCtrlListBoxVar:=SubStr(RunCtrlListBoxVar, 1, -StrLen("|"))
 return
-
-RunCtrlLogicEnumGetKey(val){
-	for k,v in RunCtrlLogicEnum
-	{
-		if(val=v)
-			return k
-	}
-}
 
 class RunCtrl
 {
