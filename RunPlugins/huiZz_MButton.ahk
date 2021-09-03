@@ -1,10 +1,10 @@
 ﻿;*****************************
 ;*【鼠标中键任意位置拖拽窗口】 *
-;*    网页中键后台打开页面    *
-;*    双击中键置顶窗口状态    *
+;*   鼠标不移动保留中键功能    *
+;*   双击中键置顶窗口状态      *
 ;*             by hui-Zz     *
 ;*****************************
-global RunAny_Plugins_Version:="1.06.26"
+global RunAny_Plugins_Version:="1.1.0"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #WinActivateForce       ;~强制激活窗口
@@ -27,12 +27,12 @@ GroupAdd,browserApp,ahk_exe QQBrowser.exe
 	MButton:: ; 如不屏蔽中键原功能在前缀加~，但这样拖拽窗口时会实时激活
 		CoordMode,Mouse ; 切换到屏幕绝对坐标
 		MouseGetPos,Zz_MouseStartX,Zz_MouseStartY,Zz_MouseWin
+		Zz_OldMouseX:=Zz_MouseStartX
+		Zz_OldMouseY:=Zz_MouseStartY
 		WinGet,winstat,MinMax,ahk_id %Zz_MouseWin%
 		if(winstat<>1){
 			WinGetPos,Zz_OldPosX,Zz_OldPosY,,,ahk_id %Zz_MouseWin%
 			SetTimer,Zz_WatchMouse,10 ; 跟踪鼠标拖拽
-		}else if(WinActive("ahk_group browserApp")){ ; 浏览器不最大化中键仍为拖拽
-			SendInput,^{LButton} ; 【网页中键后台打开】(默认为浏览器最大化时)
 		}
 ;		KeyWait,MButton,,t0.2 ; 双击判断，等待第二次按键
 ;		if(errorlevel<>1){
@@ -47,6 +47,9 @@ GroupAdd,browserApp,ahk_exe QQBrowser.exe
 		if Zz_MButtonState=U ; 释放则完成
 		{
 			SetTimer,Zz_WatchMouse,off
+			if(Zz_OldMouseX=Zz_MouseStartX && Zz_OldMouseY=Zz_MouseStartY){
+				SendInput,{MButton}
+			}
 			return
 		}
 		GetKeyState,Zz_EscapeState,Escape,P
