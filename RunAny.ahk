@@ -591,7 +591,7 @@ RunABackupClear(RunABackupDir,RunABackupFile){
 	}
 }
 ;══════════════════════════════════════════════════════════════════
-;~;【读取配置并开始创建菜单】
+;~;【创建菜单-读取配置】
 ;══════════════════════════════════════════════════════════════════
 Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 	MenuObjName:=Object()    ;~程序菜单项名称
@@ -606,7 +606,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				continue
 			}
 			TREE_TYPE_FLAG:=(TREE_TYPE="" || TREE_TYPE="    ")
-			;~;[生成节点树层级结构]
+			;[生成节点树层级结构]
 			if(InStr(Z_LoopField,"-")=1){
 				menuItem:=RegExReplace(Z_LoopField,"S)^-+")
 				treeLevel:=RegExReplace(Z_LoopField,"S)(^-+).*","$1")
@@ -699,7 +699,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 			flagEXE:=false			;~添加exe菜单项目
 			flagSys:=false			;~添加系统项目文件
 			IconFail:=false		;~是否显示无效项图标
-			;~;[生成有前缀备注的应用]
+			;[生成有前缀备注的应用]
 			if(InStr(Z_LoopField,"|")){
 				menuDiy:=StrSplit(Z_LoopField,"|",,2)
 				menuItemDiy:=menuDiy[1]
@@ -817,7 +817,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				MenuBar:=""
 				continue
 			}
-			;~;[生成完全路径的应用]
+			;[生成完全路径的应用]
 			if(RegExMatch(Z_LoopField,"iS)^(\\\\|.:\\).*?\.exe($| .*)")){
 				appParm:=RegExReplace(Z_LoopField,"iS).*?\.exe($| .*)","$1")	;去掉应用名，取参数
 				Z_LoopField:=RegExReplace(Z_LoopField,"iS)(.*?\.exe)($| .*)","$1")
@@ -844,7 +844,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				MenuBar:=""
 				continue
 			}
-			;~;[生成通过Everything取到的无路径应用]
+			;[生成通过Everything取到的无路径应用]
 			if(RegExMatch(Z_LoopField,"iS)\.exe($| .*)")){
 				appParm:=RegExReplace(Z_LoopField,"iS).*?\.exe($| .*)","$1")	;去掉应用名，取参数
 				Z_LoopField:=RegExReplace(Z_LoopField,"iS)(.*?\.exe)($| .*)","$1")
@@ -899,7 +899,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 		Menu,% menuRootFn[1],Icon,%RUNANY_SELF_MENU_ITEM2%,% AnyIconS[1],% AnyIconS[2],%MenuIconSize%
 	}
 }
-;~;[统一集合菜单中软件运行项]
+;[统一集合菜单中软件运行项]
 MenuExeArrayPush(menuName,menuItem,itemFile,itemAny,TREE_NO){
 	MenuObjEXE:=Object()	;~软件对象
 	MenuObjEXE["menuName"]:=menuName
@@ -914,7 +914,7 @@ MenuExeArrayPush(menuName,menuItem,itemFile,itemAny,TREE_NO){
 			MenuExeList%TREE_NO%[menuName].=menuItem "`n"
 	}
 }
-;~;[读取热字串用作提示文字]
+;[读取热字串用作提示文字]
 Menu_HotStr_Hint_Read(hotstr,hotStrName,itemParam){
 	menuHotStrShow:=RegExReplace(hotstr,"^:[^:]*?X[^:]*?:")
 	menuHotStrLen:=StrLen(menuHotStrShow)
@@ -1069,7 +1069,7 @@ MenuObjTree_Delete_NoFind(MenuObjTreeNum,menuName,menuItem){
 		}
 	}
 }
-;~;[统一设置菜单项图标]
+;[统一设置菜单项图标]
 Menu_Item_Icon(menuName,menuItem,iconPath,iconNo=0,treeLevel=""){
 	try{
 		menuItemSet:=treeLevel ? treeLevel : menuItem
@@ -1430,7 +1430,7 @@ return
 Menu_Show_Select_Translate:
 	Run,https://translate.google.cn/#%GetZzTranslateSource%/%GetZzTranslateTarget%/%getZz%
 return
-;~;[所有菜单(添加/删除)临时项]
+;[所有菜单(添加/删除)临时项]
 Menu_Add_Del_Temp(addDel=1,TREE_NO=1,mName="",LabelName="",mIcon="",mIconNum=""){
 	if(!mName)
 		return
@@ -1957,7 +1957,7 @@ Run_Search(any,getZz="",browser=""){
 		Run,%browserRun%"%any%"
 	}
 }
-;~;[执行批量搜索]
+;~;【执行批量搜索】
 Web_Run:
 	webName:=RegExReplace(A_ThisMenuItem,"iS)^" RUNANY_SELF_MENU_ITEM1)
 	if(webName){
@@ -2007,7 +2007,7 @@ SendStrEncrypt(any,key:=""){
 	} catch {}
 	return any
 }
-;~;[脚本插件函数运行]
+;~;【脚本插件函数运行】
 Menu_Run_Plugins_ObjReg:
 	appPlugins:=RegExReplace(any,"iS)(.+?)\[.+?\]%?\(.*?\)$","$1")	;取插件名
 	appFunc:=RegExReplace(any,"iS).+?\[(.+?)\]%?\(.*?\)$","$1")	;取函数名
@@ -2083,7 +2083,7 @@ Menu_Run_Plugins_ObjReg:
 		SetTimer,RemoveToolTip,8000
 	}
 return
-;~;[菜单最近运行]
+;~;【菜单最近运行】
 Menu_Recent:
 	recentAny:=any
 	escapeList:=StrSplit("\.*?+[{|()^$")
@@ -2160,7 +2160,7 @@ Menu_Recent:
 	RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny, MenuCommonList, %commonStr%
 return
 ;══════════════════════════════════════════════════════════════════
-;~;[一键Everything][搜索选中文字][激活][隐藏]
+;~;【一键Everything】[搜索选中文字][激活][隐藏]
 Ev_Show:
 	getZz:=Get_Zz()
 	evSearch:=""
@@ -2195,7 +2195,7 @@ Ev_Show:
 		Run % EvPathRun (evSearch ? " -search """ evSearch """" : "")
 	DetectHiddenWindows,Off
 return
-;~;[一键搜索]
+;~;【一键搜索】
 One_Show:
 	getZz:=Get_Zz()
 	gosub,One_Search
