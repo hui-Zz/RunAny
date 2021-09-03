@@ -1569,9 +1569,9 @@ Menu_Run:
 					return
 				}
 				if(getZzFlag || InStr(FileExist(any), "D")){
-					Run_Any(any, way)
+					Run_Any(any,, way)
 				}else{
-					Run_Any(any . A_Space . getZzStr, way)
+					Run_Any(any . A_Space . getZzStr,, way)
 				}
 				if(topFlag || menuTransNum<100){
 					Run_Wait(any, topFlag, menuTransNum)
@@ -1583,7 +1583,7 @@ Menu_Run:
 			}else{
 				anyRun=%anyRun%%any%%A_Space%%getZz%
 			}
-			Run_Any(anyRun, way)
+			Run_Any(anyRun,, way)
 			if(topFlag || menuTransNum<100){
 				Run_Wait(any, topFlag, menuTransNum)
 			}
@@ -1632,9 +1632,9 @@ MenuRunWay:
 return
 MenuRunAny:
 	if(ext && openExtRunList[ext]){
-		Run_Any(openExtRunList[ext] . A_Space . """" any """", way)
+		Run_Any(openExtRunList[ext] . A_Space . """" any """",, way)
 	}else{
-		Run_Any(anyRun . any, way)
+		Run_Any(anyRun . any,, way)
 	}
 	;运行后进行置顶或透明操作
 	if(topFlag || menuTransNum<100){
@@ -1872,13 +1872,13 @@ MenuRunDebugModeShow(key:=0){
 		}
 	}
 }
-Run_Any(any,way:=""){
+Run_Any(any,dir:="",way:=""){
 	Menu_Debug_Mode("[运行路径]`n" any "`n")
 	if(MenuIconFlag){
 		Menu_Run_Tray_Tip(any "`n")
 	}
-	if(way!=""){
-		Run,%any%,,%way%
+	if(dir!="" || way!=""){
+		Run,%any%,%dir%,%way%
 	}else{
 		Run,%any%
 	}
@@ -2013,7 +2013,7 @@ Menu_Run_Plugins_ObjReg:
 	appFunc:=RegExReplace(any,"iS).+?\[(.+?)\]%?\(.*?\)$","$1")	;取函数名
 	appParmStr:=RegExReplace(any,"iS).+?\[.+?\]%?\((.*?)\)$","$1")	;取函数参数
 	appParmErrorStr:=(appParmStr="") ? "空" : appParmStr
-	if(!PluginsObjRegGUID[appPlugins]){
+	if(!PluginsObjRegGUID[appPlugins] && appPlugins!="runany"){
 		ToolTip,脚本插件：%appPlugins%`n脚本函数：%appFunc%`n函数参数：%appParmErrorStr%`n插件%appPlugins%没有找到！`n【请检查修改后重启RunAny重试】
 		SetTimer,RemoveToolTip,8000
 		return
@@ -2021,10 +2021,14 @@ Menu_Run_Plugins_ObjReg:
 	if(RegExMatch(any,"iS).+?\[.+?\]%\(.*?\)")){  ;动态函数执行
 		DynaExpr_ObjRegisterActive(PluginsObjRegGUID[appPlugins],appFunc,appParmStr,getZz)
 	}else{
-		try {
-			PluginsObjRegActive[appPlugins]:=ComObjActive(PluginsObjRegGUID[appPlugins])
-		} catch {
-			TrayTip,,%appPlugins% 外接脚本失败`n请检查是否已经启动(在插件管理中设为自动启动)，并重启RunAny重试,3,1
+		if(appPlugins!="runany"){
+			try {
+				PluginsObjRegActive[appPlugins]:=ComObjActive(PluginsObjRegGUID[appPlugins])
+			} catch {
+				TrayTip,,%appPlugins% 外接脚本失败`n请检查是否已经启动(在插件管理中设为自动启动)，并重启RunAny重试,3,1
+			}
+		}else if(!IsFunc(appFunc)){
+			TrayTip,,没有在%appPlugins%.ahk中找到%appFunc%函数,3,1
 		}
 		appParmStr:=StrReplace(appParmStr,"``,",Chr(3))
 		appParms:=StrSplit(appParmStr,",")
@@ -2047,6 +2051,18 @@ Menu_Run_Plugins_ObjReg:
 				}
 			}
 			appParms[A_Index]:=Get_Transform_Val(appParms[A_Index])
+		}
+		if(appPlugins="runany"){
+			if(appParmStr=""){
+				Send_Or_Show(Func(appFunc).Call(),false)
+			}else if(appParms.MaxIndex()=1){
+				Send_Or_Show(Func(appFunc).Call(appParms[1]),false)
+			}else if(appParms.MaxIndex()=2){
+				Send_Or_Show(Func(appFunc).Call(appParms[1],appParms[2]),false)
+			}else if(appParms.MaxIndex()=3){
+				Send_Or_Show(Func(appFunc).Call(appParms[1],appParms[2],appParms[3]),false)
+			}
+			return
 		}
 		if(appParmStr=""){	;没有传参，直接执行函数
 			PluginsObjRegActive[appPlugins][appFunc]()
