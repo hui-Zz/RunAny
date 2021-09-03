@@ -25,7 +25,8 @@ class RunAnyObj {
 	;[文本多行合并]
 	;参数说明：getZz：选中的文本内容
 	;splitStr：换行符替换的分隔文本(默认空格，逗号为特殊字符，转义写成`,)
-	text_merge_zz(getZz:="",splitStr:=" "){
+	;isSend：0-显示并保存到剪贴板；1-输出结果
+	text_merge_zz(getZz:="",splitStr:=" ",isSend=1){
 		textResult:=""
 		Loop, parse, getZz, `n, `r
 		{
@@ -34,7 +35,7 @@ class RunAnyObj {
 				textResult.=str . splitStr
 		}
 		StringTrimRight, textResult, textResult, 1
-		Send_Str_Zz(textResult)
+		Send_Or_Show(textResult,isSend)
 	}
 	;[文本替换]
 	;参数说明：getZz：选中的文本内容
