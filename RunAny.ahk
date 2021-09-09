@@ -5657,7 +5657,8 @@ LVRuleDefault:
 			}
 		}
 		if(PluginsPathList["RunCtrl_Common.ahk"]){
-			RunCtrlCommonRuleObj:={"内网IP":"rule_ip_internal","WiFi名":"rule_wifi_silence" ,"运行过(今天)":"rule_run_today","最近打开文件(今天)":"rule_run_today_file"}
+			RunCtrlCommonRuleObj:={"内网IP":"rule_ip_internal","WiFi名":"rule_wifi_silence","验证注册表的值":"rule_check_regedit","验证ini配置的值":"rule_check_ini" 
+				,"运行过(今天)":"rule_run_today","最近打开文件(今天)":"rule_run_today_file"}
 			For rName, rFunc in RunCtrlCommonRuleObj
 			{
 				if(!rulefileList[rName]){

@@ -1,7 +1,7 @@
 ﻿;****************************
 ;* 【RunCtrl公共规则函数库】 *
 ;****************************
-global RunAny_Plugins_Version:="1.0.2"
+global RunAny_Plugins_Version:="1.0.3"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
 #SingleInstance,Force   ;~运行替换旧实例
@@ -22,7 +22,23 @@ class RunAnyObj {
 	*/
 	rule_wifi_silence(ssid){
 		cmdResult:=cmdClipReturn("netsh wlan show interface | findstr ""`\<SSID""")
-		return RegExMatch(cmdResult, "\s*SSID\s*:\s" . ssid . "$") ? true : false
+		return RegExMatch(cmdResult, "\s*SSID\s*:\s" . ssid . "$")
+	}
+	/*
+	【验证注册表的值】
+	path 注册表路径； key 注册表键； value 注册表键值
+	*/
+	rule_check_regedit(path, key, value){
+		RegRead, regVar, %path%, %key%
+		return regVar=value
+	}
+	/*
+	【验证ini配置文件的值】
+	path ini文件路径； section 段落名； key ini键； value ini键值
+	*/
+	rule_check_ini(path, section, key, value){
+		IniRead, regVar, %path%, %section%, %key%, %A_Space%
+		return regVar=value
 	}
 	/*
 	【判断exe程序今天是否运行过】
