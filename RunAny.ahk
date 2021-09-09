@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.09.02
+║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.09.09
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.6"     ;~;版本号
-global RunAny_update_time:="2021.09.02"   ;~;更新日期
+global RunAny_update_time:="2021.09.09"   ;~;更新日期
 gosub,Var_Set           ;~;01.参数初始化
 gosub,Menu_Var_Set      ;~;02.自定义变量
 gosub,Icon_Set          ;~;03.图标初始化
@@ -2064,32 +2064,7 @@ Menu_Run_Plugins_ObjReg:
 			}
 			return
 		}
-		if(appParmStr=""){	;没有传参，直接执行函数
-			PluginsObjRegActive[appPlugins][appFunc]()
-		}else if(appParms.MaxIndex()=1){
-			PluginsObjRegActive[appPlugins][appFunc](appParms[1])
-		}else if(appParms.MaxIndex()=2){
-			PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2])
-		}else if(appParms.MaxIndex()=3){
-			PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3])
-		}else if(appParms.MaxIndex()=4){
-			PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4])
-		}else if(appParms.MaxIndex()=5){
-			PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5])
-		}else if(appParms.MaxIndex()=6){
-			PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6])
-		}else if(appParms.MaxIndex()=7){
-			PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7])
-		}else if(appParms.MaxIndex()=8){
-			PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8])
-		}else if(appParms.MaxIndex()=9){
-			PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8],appParms[9])
-		}else if(appParms.MaxIndex()=10){
-			PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8],appParms[9],appParms[10])
-		}else if(appParms.MaxIndex()>10){
-			ToolTip,脚本插件：%appPlugins%`n脚本函数：%appFunc%`n函数参数：%appParmErrorStr% 参数数量最多为10个，请修改后重试！
-			SetTimer,RemoveToolTip,8000
-		}
+		PluginsObjRegRun(appPlugins, appFunc, appParms)
 	}
 	if(!InStr(PluginsContentList[(appPlugins ".ahk")],appFunc "(")){
 		ToolTip,脚本插件：%appPlugins%`n脚本函数：%appFunc%`n函数参数：%appParmErrorStr%`n
@@ -2099,6 +2074,35 @@ Menu_Run_Plugins_ObjReg:
 		SetTimer,RemoveToolTip,8000
 	}
 return
+PluginsObjRegRun(appPlugins, appFunc, appParms){
+	if(appParms.Length()=0){	;没有传参，直接执行函数
+		effectResult:=PluginsObjRegActive[appPlugins][appFunc]()
+	}else if(appParms.MaxIndex()=1){
+		effectResult:=PluginsObjRegActive[appPlugins][appFunc](appParms[1])
+	}else if(appParms.MaxIndex()=2){
+		effectResult:=PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2])
+	}else if(appParms.MaxIndex()=3){
+		effectResult:=PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3])
+	}else if(appParms.MaxIndex()=4){
+		effectResult:=PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4])
+	}else if(appParms.MaxIndex()=5){
+		effectResult:=PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5])
+	}else if(appParms.MaxIndex()=6){
+		effectResult:=PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6])
+	}else if(appParms.MaxIndex()=7){
+		effectResult:=PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7])
+	}else if(appParms.MaxIndex()=8){
+		effectResult:=PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8])
+	}else if(appParms.MaxIndex()=9){
+		effectResult:=PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8],appParms[9])
+	}else if(appParms.MaxIndex()=10){
+		effectResult:=PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8],appParms[9],appParms[10])
+	}else if(appParms.MaxIndex()>10){
+		ToolTip,脚本插件：%appPlugins%`n脚本函数：%appFunc%`n函数参数：%appParmErrorStr% 参数数量最多为10个，请修改后重试！
+		SetTimer,RemoveToolTip,8000
+	}
+	return effectResult
+}
 ;~;【菜单最近运行】
 Menu_Recent:
 	recentAny:=any
@@ -3164,7 +3168,7 @@ TVEdit:
 	if(RunCtrlMenuItemFlag){
 		Gui, MenuEdit:Destroy
 		GuiControlSet("CtrlRun","vRunCtrlRunValue"
-			,(itemName!="" && itemTrNum!="") ? itemName "_:" itemTrNum : (itemName!="") ? itemName : itemPath)
+			,(itemName!="" && itemTrNum!="" && itemTrNum!=0) ? itemName "_:" itemTrNum : (itemName!="") ? itemName : itemPath)
 		RunCtrlMenuItemFlag:=false
 	}else{
 		gosub,Menu_Item_Edit
@@ -5389,6 +5393,7 @@ LVFuncSave:
 		SetTimer,RemoveToolTip,3000
 		return
 	}
+	vFuncValue:=RTrim(vFuncValue,"`n")
 	vFuncValue:=StrReplace(vFuncValue,"`t","``t")
 	vFuncValue:=StrReplace(vFuncValue,"`n","``n")
 	;[写入配置文件]
@@ -5659,7 +5664,7 @@ LVRuleDefault:
 					IniWrite, RunCtrl_Common.ahk, %RunAnyConfig%, RunCtrlRule, %rName%|%rFunc%
 				}
 			}
-			ruleDefaultStr.="RunCtrl_Common.ahk"
+			ruleDefaultStr.="`nRunCtrl_Common.ahk"
 		}
 		if(PluginsPathList["RunCtrl_Network.ahk"]){
 			RunCtrlNetworkRuleObj:={"城市":"rule_ip_city","国家":"rule_ip_country","国家代码":"rule_ip_countryCode","省":"rule_ip_region","省缩写":"rule_ip_regionName"
@@ -5671,10 +5676,10 @@ LVRuleDefault:
 					IniWrite, RunCtrl_Network.ahk, %RunAnyConfig%, RunCtrlRule, %rName%|%rFunc%
 				}
 			}
-			ruleDefaultStr.=" RunCtrl_Network.ahk"
+			ruleDefaultStr.="`nRunCtrl_Network.ahk"
 		}
 		if(ruleDefaultStr!=""){
-			Msgbox,64,,请在“插件管理”窗口里设置`n %ruleDefaultStr% 插件为自动启动，`n只有插件运行时规则才会生效
+			Msgbox,64,,请在“插件管理”窗口里设置 %ruleDefaultStr% `n插件为自动启动，`n只有插件运行时规则才会生效`n
 		}
 		gosub,Rule_Manage_Gui
 	}
@@ -7892,7 +7897,7 @@ Rule_Effect:
 			. "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 	}
 return
-;~;【规则启动-应用】
+;~;【规则启动】
 RunCtrl_RunRules(runCtrlObj,show:=0){
 	try {
 		rcName:=runCtrlObj.name
@@ -7924,7 +7929,7 @@ RunCtrl_RunRules(runCtrlObj,show:=0){
 		}
 	}
 }
-;~;[规则启动应用]
+;~;【规则应用启动】
 RunCtrl_RunApps(path,noPath,repeatRun:=0,adminRun:=0,runWay:=1){
 	try {
 		global RunCtrlRunFlag:=true
@@ -8073,7 +8078,8 @@ RunCtrl_RuleResult(ruleName,ruleFile,ruleValue:=""){
 		if(ruleFile=RunAnyZz && IsFunc(rulefuncList[ruleName])){
 			effectResult:=Func(rulefuncList[ruleName]).Call(ruleValue)
 		}else{
-			effectResult:=PluginsObjRegActive[ruleFile][(rulefuncList[ruleName])](ruleValue)
+			appParms:=StrSplit(ruleValue,"``n")
+			effectResult:=PluginsObjRegRun(ruleFile, rulefuncList[ruleName], appParms)
 		}
 	}else{
 		if(ruletypelist[ruleName]){
