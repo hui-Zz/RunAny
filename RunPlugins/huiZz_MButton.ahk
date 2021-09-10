@@ -4,7 +4,7 @@
 ;*   双击中键置顶窗口状态      *
 ;*             by hui-Zz     *
 ;*****************************
-global RunAny_Plugins_Version:="1.1.0"
+global RunAny_Plugins_Version:="1.1.1"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #WinActivateForce       ;~强制激活窗口
@@ -33,6 +33,8 @@ GroupAdd,browserApp,ahk_exe QQBrowser.exe
 		if(winstat<>1){
 			WinGetPos,Zz_OldPosX,Zz_OldPosY,,,ahk_id %Zz_MouseWin%
 			SetTimer,Zz_WatchMouse,10 ; 跟踪鼠标拖拽
+		}else{
+			SendInput,{MButton}
 		}
 ;		KeyWait,MButton,,t0.2 ; 双击判断，等待第二次按键
 ;		if(errorlevel<>1){
