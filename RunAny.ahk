@@ -4312,18 +4312,24 @@ Plugins_Gui:
 	global ColumnContent:=5
 	global PluginsImageListID:=IL_Create(6)
 	Plugins_LV_Icon_Set(PluginsImageListID)
+	listViewColumnName1:=!PluginsListViewSwap ? "独立" : RunAnyZz
+	listViewColumnName2:=!PluginsListViewSwap ? RunAnyZz : "独立"
 	Gui,PluginsManage:Destroy
 	Gui,PluginsManage:Default
 	Gui,PluginsManage:+Resize
 	Gui,PluginsManage:Font, s10, Microsoft YaHei
-	Gui,PluginsManage:Add, Listview, xm w705 r11 grid AltSubmit vRunAnyPluginsLV1 gPluginsListView, 独立插件脚本|运行状态|自动启动|插件描述|插件说明地址
+	Gui,PluginsManage:Add, Listview, xm w720 r11 grid AltSubmit vRunAnyPluginsLV1 gPluginsListView, %listViewColumnName1%插件脚本|运行状态|自动启动|插件描述|插件说明地址
 	GuiControl,PluginsManage: -Redraw, RunAnyPluginsLV1
 	LV_SetImageList(PluginsImageListID)
 	For runn, runv in PluginsObjList
 	{
 		SplitPath,runn,,,,pname_no_ext
-		if(PluginsObjRegGUID[pname_no_ext] || pname_no_ext="RunAny_Menu" || pname_no_ext="RunAny_ObjReg")
+		if(!PluginsListViewSwap){
+			if(PluginsObjRegGUID[pname_no_ext] || pname_no_ext="RunAny_Menu" || pname_no_ext="RunAny_ObjReg")
+				Continue
+		}else if(!PluginsObjRegGUID[pname_no_ext] && pname_no_ext!="RunAny_Menu" && pname_no_ext!="RunAny_ObjReg"){
 			Continue
+		}
 		runStatus:=rule_check_is_run(PluginsPathList[runn]) ? "启动" : ""
 		pluginsConfig:=runv ? "自启" : ""
 		if(!PluginsPathList[runn])
@@ -4333,14 +4339,18 @@ Plugins_Gui:
 	GuiControl,PluginsManage: +Redraw, RunAnyPluginsLV1
 	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
 
-	Gui,PluginsManage:Add, Listview, xm y+10 w705 r11 grid AltSubmit vRunAnyPluginsLV2 gPluginsListView, RunAny插件脚本|运行状态|自动启动|插件描述|插件说明地址
+	Gui,PluginsManage:Add, Listview, xm y+10 w720 r11 grid AltSubmit vRunAnyPluginsLV2 gPluginsListView,  %listViewColumnName2%插件脚本|运行状态|自动启动|插件描述|插件说明地址
 	GuiControl,PluginsManage: -Redraw, RunAnyPluginsLV2
 	LV_SetImageList(PluginsImageListID)
 	For runn, runv in PluginsObjList
 	{
 		SplitPath,runn,,,,pname_no_ext
-		if(!PluginsObjRegGUID[pname_no_ext] && pname_no_ext!="RunAny_Menu" && pname_no_ext!="RunAny_ObjReg")
+		if(!PluginsListViewSwap){
+			if(!PluginsObjRegGUID[pname_no_ext] && pname_no_ext!="RunAny_Menu" && pname_no_ext!="RunAny_ObjReg")
+				Continue
+		}else if(PluginsObjRegGUID[pname_no_ext] || pname_no_ext="RunAny_Menu" || pname_no_ext="RunAny_ObjReg"){
 			Continue
+		}
 		runStatus:=rule_check_is_run(PluginsPathList[runn]) ? "启动" : ""
 		pluginsConfig:=runv ? "自启" : ""
 		if(!PluginsPathList[runn])
@@ -4379,39 +4389,43 @@ LVMenu(addMenu){
 	Menu, %addMenu%, Icon,% flag ? "插件库" : "插件库`tF10", SHELL32.dll,42
 	Menu, %addMenu%, Add,% flag ? "新建插件" : "新建插件`tF11", LVPluginsCreate
 	Menu, %addMenu%, Icon,% flag ? "新建插件" : "新建插件`tF11", SHELL32.dll,1
+	Menu, %addMenu%, Add,% flag ? "" :"上下交换", LVPluginsSwap
 }
 LVPluginsRun:
 	menuItem:="启动"
 	gosub,LVApply
-	return
+return
 LVPluginsEdit:
 	menuItem:="编辑"
 	gosub,LVApply
-	return
+return
 LVPluginsEnable:
 	menuItem:="自启"
 	gosub,LVApply
-	return
+return
 LVPluginsClose:
 	menuItem:="关闭"
 	gosub,LVApply
-	return
+return
 LVPluginsSuspend:
 	menuItem:="挂起"
 	gosub,LVApply
-	return
+return
 LVPluginsPause:
 	menuItem:="暂停"
 	gosub,LVApply
-	return
+return
 LVPluginsDel:
 	menuItem:="移除"
 	gosub,LVApply
-	return
+return
 LVPluginsHelp:
 	menuItem:="帮助"
 	gosub,LVApply
-	return
+return
+LVPluginsSwap:
+	IniWrite,% !PluginsListViewSwap,%RunAnyConfig%,Config,PluginsListViewSwap
+	gosub,Plugins_Gui
 return
 LVApply:
 	Gui,PluginsManage:Default
@@ -7517,6 +7531,7 @@ Plugins_Read:
 	global PluginsDirList:=[]
 	global PluginsEditor:=Var_Read("PluginsEditor")
 	global PluginsDirPath:=Var_Read("PluginsDirPath")
+	global PluginsListViewSwap:=Var_Read("PluginsListViewSwap",0)
 	global PluginsDirPathList:="%A_ScriptDir%\RunPlugins|" PluginsDirPath
 	FileRead,pluginsContent,%A_ScriptFullPath%
 	PluginsContentList[RunAnyZz ".ahk"]:=pluginsContent
