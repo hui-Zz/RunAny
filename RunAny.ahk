@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.6 @2021.09.09
+║【RunAny】一劳永逸的快速启动工具 v5.7.7 @2021.09.10
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -22,8 +22,8 @@ global StartTick:=A_TickCount             ;~;评估RunAny初始化时间
 global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
-global RunAny_update_version:="5.7.6"     ;~;版本号
-global RunAny_update_time:="2021.09.09"   ;~;更新日期
+global RunAny_update_version:="5.7.7"     ;~;版本号
+global RunAny_update_time:="2021.09.10"   ;~;更新日期
 gosub,Var_Set           ;~;01.参数初始化
 gosub,Menu_Var_Set      ;~;02.自定义变量
 gosub,Icon_Set          ;~;03.图标初始化
@@ -6257,7 +6257,9 @@ vHtml =
 )
 	oWB.document.write(vHtml)
 	oWB.Refresh()
-	Gui,99:Font,s11 Bold,Microsoft YaHei
+	Gui,99:Font,s11 Bold cRed,Microsoft YaHei
+	Gui,99:Add,Link,xm+18 y+10,赞助支持作者：<a href="https://hui-zz.gitee.io/runany/#/ABOUT">https://hui-zz.gitee.io/runany/#/ABOUT</a>
+	Gui,99:Font,s11 Bold cBlack,Microsoft YaHei
 	Gui,99:Add,Link,xm+18 y+10,国内Gitee文档：<a href="https://hui-zz.gitee.io/RunAny">https://hui-zz.gitee.io/RunAny</a>
 	Gui,99:Add,Link,xm+18 y+10,Github文档：<a href="https://hui-zz.github.io/RunAny">https://hui-zz.github.io/RunAny</a>
 	Gui,99:Add,Link,xm+18 y+10,Github地址：<a href="https://github.com/hui-Zz/RunAny">https://github.com/hui-Zz/RunAny</a>
