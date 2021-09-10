@@ -4550,8 +4550,6 @@ PluginsListView:
 return
 ;~;【插件-下载插件】
 LVPluginsAdd:
-	global pluginsDownList:=Object()
-	global pluginsNameList:=Object()
 	gosub,PluginsDownVersion
 	Gui,PluginsDownload:Destroy
 	Gui,PluginsDownload:Default
@@ -7511,6 +7509,7 @@ Plugins_Read:
 	global PluginsObjList:=Object()
 	global PluginsPathList:=Object()
 	global PluginsNameList:=Object()
+	global pluginsDownList:=Object()
 	global PluginsVersionList:=Object()
 	global PluginsIconList:=Object()
 	global PluginsContentList:=Object()
@@ -8126,28 +8125,50 @@ Auto_Update:
 		}
 	}
 	if(versionStr){
-		if(RunAny_update_version<versionStr){
-			MsgBox,33,RunAny检查更新,检测到RunAny有新版本`n`n%RunAny_update_version%`t版本更新后=>`t%versionStr%`n`n
+		gosub,PluginsDownVersion
+		runAnyUpdateStr:=pluginUpdateStr:=""
+		For pk, pv in pluginsDownList
+		{
+			if(PluginsVersionList[pk] < pv){
+				pluginUpdateStr.=pk A_Tab PluginsVersionList[pk] "`t版本更新后=>`t" pv "`n"
+			}
+		}
+		if(RunAny_update_version<versionStr || pluginUpdateStr!=""){
+			runAnyUpdateStr:=RunAny_update_version<versionStr ? "检测到RunAny有新版本`n`n" RunAny_update_version "`t版本更新后=>`t" versionStr "`n" : ""
+			pluginUpdateStr:=pluginUpdateStr!="" ? "`n检测到插件有新版本`n" pluginUpdateStr : ""
+			MsgBox,33,RunAny检查更新,%runAnyUpdateStr%%pluginUpdateStr%`n%A_Temp%\%RunAnyZz%`n
 (
 是否更新到最新版本？
-覆盖老版本文件，如有修改过RunAny.ahk请注意备份！
+将移动老版本文件到临时目录，如有修改过请注意备份！`n
 )
 			IfMsgBox Ok
 			{
-				TrayTip,,RunAny下载最新版本并替换老版本...,5,1
+				TrayTip,,RunAny开始下载最新版本并替换老版本...,5,1
 				gosub,Config_Update
-				URLDownloadToFile(RunAnyDownDir "/RunAny.exe",A_Temp "\temp_RunAny.exe")
-				gosub,RunAny_Update
-				shell := ComObjCreate("WScript.Shell")
-				shell.run(A_Temp "\RunAny_Update.bat",0)
-				ExitApp
+				;[下载插件脚本]
+				if(pluginUpdateStr!=""){
+					For pk, pv in pluginsDownList
+					{
+						if(PluginsVersionList[pk] < pv && FileExist(A_ScriptDir "\" PluginsDir "\" pk)){
+							FileMove,%A_ScriptDir%\%PluginsDir%\%pk%,%A_Temp%\%RunAnyZz%\%PluginsDir%\%pk%,1
+							URLDownloadToFile(RunAnyDownDir "/" StrReplace(PluginsDir,"\","/") "/" pk, A_ScriptDir "\" PluginsDir "\" pk)
+						}
+					}
+					TrayTip,,插件脚本已经更新到最新版本。,5,1
+				}
+				;[下载新版本]
+				if(RunAny_update_version<versionStr){
+					URLDownloadToFile(RunAnyDownDir "/RunAny.exe",A_Temp "\temp_RunAny.exe")
+					gosub,RunAny_Update
+					shell := ComObjCreate("WScript.Shell")
+					shell.run(A_Temp "\RunAny_Update.bat",0)
+					ExitApp
+				}
 			}
 		}else if(checkUpdateFlag){
 			FileDelete, %A_Temp%\temp_RunAny.ahk
 			TrayTip,,RunAny已经是最新版本。,5,1
 			checkUpdateFlag:=false
-		}else if(A_DD!=01 && A_DD!=15){
-			FileDelete, %A_Temp%\temp_RunAny.ahk
 		}
 	}
 return
