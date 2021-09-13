@@ -4318,7 +4318,7 @@ Plugins_Gui:
 	Gui,PluginsManage:Default
 	Gui,PluginsManage:+Resize
 	Gui,PluginsManage:Font, s10, Microsoft YaHei
-	Gui,PluginsManage:Add, Listview, xm w720 r11 grid AltSubmit vRunAnyPluginsLV1 gPluginsListView, %listViewColumnName1%插件脚本|运行状态|自动启动|插件描述|插件说明地址
+	Gui,PluginsManage:Add, Listview, xm w730 r11 grid AltSubmit vRunAnyPluginsLV1 gPluginsListView, %listViewColumnName1%插件脚本|运行状态|自动启动|插件描述|插件说明地址
 	GuiControl,PluginsManage: -Redraw, RunAnyPluginsLV1
 	LV_SetImageList(PluginsImageListID)
 	For runn, runv in PluginsObjList
@@ -4339,7 +4339,7 @@ Plugins_Gui:
 	GuiControl,PluginsManage: +Redraw, RunAnyPluginsLV1
 	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
 
-	Gui,PluginsManage:Add, Listview, xm y+10 w720 r11 grid AltSubmit vRunAnyPluginsLV2 gPluginsListView,  %listViewColumnName2%插件脚本|运行状态|自动启动|插件描述|插件说明地址
+	Gui,PluginsManage:Add, Listview, xm y+10 w730 r11 grid AltSubmit vRunAnyPluginsLV2 gPluginsListView,  %listViewColumnName2%插件脚本|运行状态|自动启动|插件描述|插件说明地址
 	GuiControl,PluginsManage: -Redraw, RunAnyPluginsLV2
 	LV_SetImageList(PluginsImageListID)
 	For runn, runv in PluginsObjList
@@ -4912,7 +4912,7 @@ RunCtrl_Manage_Gui:
 	Gui,RunCtrlManage:Show, w755 , RunCtrl 启动管理 %RunAny_update_version% %RunAny_update_time%%AdminMode%(双击修改，右键操作)
 	Sleep,200
 	if(RuleNameStr="" || RunCtrlListBoxVar=""){
-		MsgBox,64,,首次使用请阅读：`n1. 先点击“规则”按钮后再点击“添加默认规则”`n2. 然后返回界面点击“添加组”`n3. 最后再点击“添加应用”`n`n这样就可以自动根据不同规则判断来运行不同的程序了
+		MsgBox,64,,首次使用请阅读：`n1. 先点击“规则管理”按钮后再点击“添加默认规则”`n2. 然后返回界面点击“添加规则组”`n3. 最后再点击“添加启动应用”`n`n这样就可以自动根据不同规则判断来运行不同的程序了
 	}
 return
 
@@ -4949,16 +4949,16 @@ RunCtrlLVMenu(addMenu){
 	flag:=addMenu="RunCtrlManageMenu" ? true : false
 	Menu, %addMenu%, Add,% flag ? "启动" : "启动`tF1", RunCtrlLVRun
 	Menu, %addMenu%, Icon,% flag ? "启动" : "启动`tF1",% RunCtrlManageIconS[1],% RunCtrlManageIconS[2]
-	Menu, %addMenu%, Add,% flag ? "添加组" : "添加组`tF3", RunCtrlLVAdd
-	Menu, %addMenu%, Icon,% flag ? "添加组" : "添加组`tF3", SHELL32.dll,22
-	Menu, %addMenu%, Add,% flag ? "添加应用" : "添加应用`tF4", LVCtrlRunAdd
-	Menu, %addMenu%, Icon,% flag ? "添加应用" : "添加应用`tF4",% EXEIconS[1],% EXEIconS[2]
+	Menu, %addMenu%, Add,% flag ? "添加规则组" : "添加规则组`tF3", RunCtrlLVAdd
+	Menu, %addMenu%, Icon,% flag ? "添加规则组" : "添加规则组`tF3", SHELL32.dll,22
+	Menu, %addMenu%, Add,% flag ? "添加启动应用" : "添加启动应用`tF4", LVCtrlRunAdd
+	Menu, %addMenu%, Icon,% flag ? "添加启动应用" : "添加启动应用`tF4",% EXEIconS[1],% EXEIconS[2]
 	Menu, %addMenu%, Add,% flag ? "编辑" : "编辑`tF2", RunCtrlLVEdit
 	Menu, %addMenu%, Icon,% flag ? "编辑" : "编辑`tF2", SHELL32.dll,134
 	Menu, %addMenu%, Add,% flag ? "移除" : "移除`tDel", RunCtrlLVDel
 	Menu, %addMenu%, Icon,% flag ? "移除" : "移除`tDel", SHELL32.dll,132
-	Menu, %addMenu%, Add,% flag ? "规则" : "规则`tF7", Rule_Manage_Gui
-	Menu, %addMenu%, Icon,% flag ? "规则" : "规则`tF7", imageres.dll,112
+	Menu, %addMenu%, Add,% flag ? "规则管理" : "规则管理`tF7", Rule_Manage_Gui
+	Menu, %addMenu%, Icon,% flag ? "规则管理" : "规则管理`tF7", imageres.dll,112
 	Menu, %addMenu%, Add,% flag ? "导入" : "导入`tF8", RunCtrlLVImport
 	Menu, %addMenu%, Icon,% flag ? "导入" : "导入`tF8", SHELL32.dll,55
 	Menu, %addMenu%, Add,% flag ? "下移" : "下移`t(F5/PgDn)", RunCtrlLVDown
@@ -4973,7 +4973,7 @@ RunCtrlLVDel:
 		return
 	GuiControlGet, focusGuiName, Focus
 	if(focusGuiName="ListBox1"){
-		MsgBox,35,确认移除规则组 %RunCtrlListBox%？(Esc取消),确定移除规则组：%RunCtrlListBox% ？`n【注意!】：同时会移除 %RunCtrlListBox% 下的所有运行项和规则条件！
+		MsgBox,35,确认移除规则组 %RunCtrlListBox%？(Esc取消),确定移除规则组：%RunCtrlListBox% ？`n【注意!】：同时会移除 %RunCtrlListBox% 下的所有启动项和规则条件！
 		IfMsgBox Yes
 		{
 			IniDelete,%RunAnyConfig%,RunCtrlList,%RunCtrlListBox%
@@ -5259,14 +5259,9 @@ RunCtrlLVSave:
 		FuncBreak:=FuncBreak ? "|" FuncBreak : ""
 		ruleContent.=RuleName . "|" . FuncBoolean . FuncBreak . "=" . FuncValue . "`n"
 	}
-	;~ ;[写入配置文件]
+	;[写入配置文件]
 	Gui,RunCtrlManage:Default
 	ruleLogicVal:=vRuleGroupLogic1=1 ? 1 : 0
-	if(RuleGroupName!=vRuleGroupName){
-		IniDelete, %RunAnyConfig%, RunCtrlList, %RuleGroupName%
-		IniDelete, %RunAnyConfig%, %RuleGroupName%_Rule
-		IniDelete, %RunAnyConfig%, %RuleGroupName%_Run
-	}
 	ruleRunListVal=%vRuleEnable%|%ruleLogicVal%
 	if(vRuleMostRun!=""){
 		ruleRunListVal.="|" vRuleMostRun "|" vRuleIntervalTime
@@ -5278,7 +5273,29 @@ RunCtrlLVSave:
 		vRuleGroupKey:=vRuleGroupWinKey ? "#" . vRuleGroupKey : vRuleGroupKey
 		ruleRunListVal.="|" vRuleGroupKey
 	}
-	IniWrite, %ruleRunListVal%, %RunAnyConfig%, RunCtrlList, %vRuleGroupName%
+
+	if(menuItem="编辑"){
+		runCtrlListNo:=GetKeyByVal(RunCtrlListBoxList, RuleGroupName)
+		;如果是修改规则组，先删除老规则组
+		if(!(RuleGroupName==vRuleGroupName)){
+			IniDelete, %RunAnyConfig%, RunCtrlList, %RuleGroupName%
+			IniDelete, %RunAnyConfig%, %RuleGroupName%_Rule
+			IniDelete, %RunAnyConfig%, %RuleGroupName%_Run
+		}
+		RunCtrlListContent:=""
+		for i,v in RunCtrlListBoxList
+		{
+			if(i=runCtrlListNo){
+				RunCtrlListContent.=vRuleGroupName "=" ruleRunListVal "`n"
+			}else{
+				RunCtrlListContent.=v "=" RunCtrlListContentList[v] "`n"
+			}
+		}
+		RunCtrlListContent:=SubStr(RunCtrlListContent, 1, -StrLen("`n"))
+		IniWrite, %RunCtrlListContent%, %RunAnyConfig%, RunCtrlList
+	}else{
+		IniWrite, %ruleRunListVal%, %RunAnyConfig%, RunCtrlList, %vRuleGroupName%
+	}
 
 	if(RunCtrlList[RuleGroupName]){
 		For runn, runv in RunCtrlList[RuleGroupName].runList
@@ -5363,10 +5380,10 @@ LVFuncConfig:
 	Gui,RunCtrlFunc:Add, Text, x+10 yp+3 cblue w150 vvRuleResultText, 
 	Gui,RunCtrlFunc:Add, Radio, xm y+10 Checked%FuncBooleanEQ% vvFuncBooleanEQ, 相等 ( 真 &True 1 )
 	Gui,RunCtrlFunc:Add, Radio, x+4 yp Checked%FuncBooleanNE% vvFuncBooleanNE, 不相等 ( 假 &False 0 )
-	Gui,RunCtrlFunc:Add, Radio, xm y+10 Checked%FuncBooleanGE% vvFuncBooleanGE, 大于等于　　　
-	Gui,RunCtrlFunc:Add, Radio, x+10 yp Checked%FuncBooleanLE% vvFuncBooleanLE, 小于等于　　　
-	Gui,RunCtrlFunc:Add, Radio, xm y+10 Checked%FuncBooleanGT% vvFuncBooleanGT, 大于　　　　　
-	Gui,RunCtrlFunc:Add, Radio, x+10 yp Checked%FuncBooleanLT% vvFuncBooleanLT, 小于　　　　　
+	Gui,RunCtrlFunc:Add, Radio, xm y+10 Checked%FuncBooleanGE% vvFuncBooleanGE, 大于等于　　　　
+	Gui,RunCtrlFunc:Add, Radio, x+6 yp Checked%FuncBooleanLE% vvFuncBooleanLE, 小于等于　　　　
+	Gui,RunCtrlFunc:Add, Radio, xm y+10 Checked%FuncBooleanGT% vvFuncBooleanGT, 大于　　　　　　
+	Gui,RunCtrlFunc:Add, Radio, x+6 yp Checked%FuncBooleanLT% vvFuncBooleanLT, 小于　　　　　　
 	Gui,RunCtrlFunc:Add, CheckBox, xm y+10 Checked%FuncBreak% vvFuncBreak, 不满足此条件就中断整个规则循环（建议排在其他规则前面）
 	Gui,RunCtrlFunc:Add, Text, xm y+10 w350 vvRuleText, 条件值：（只判断规则真假，可不填写）
 	Gui,RunCtrlFunc:Add, Text, xm yp w350 cblue vvRuleParamText, 条件值：（条件值变为参数传递到规则函数，只判断结果真假）
