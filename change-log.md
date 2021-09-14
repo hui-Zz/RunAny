@@ -2,7 +2,7 @@
 ![RunAny公众号-白色版](/assets/images/RunAny公众号-白色版.jpg ':size=50%x50%')
 
 ### **你的支持是我最大的动力！(金额随意，都是心意)：[【赞助列表】](/ABOUT)**
-![logo](/assets/images/支持RunAny.jpg ':size=280x280')![logo](/assets/images/支持RunAny.png ':size=280x280')
+![logo](/assets/images/支持RunAny.jpg ':size=250x250')![logo](/assets/images/支持RunAny.png ':size=250x250')
 
 
 # RunAny已更新最新版本！感谢一直以来的支持！
