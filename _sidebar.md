@@ -3,6 +3,7 @@
 - [**功能库**](run-lib.md)
 - [**插件列表**](plugins-list.md)
 - [**插件库**](plugins-help.md)
+- [**规则启动**](rule-run.md)
 - [**其他功能**](other-features.md)
 - [**常见问题**](FAQ.md)
 - [**版本历史**](change-log.md)

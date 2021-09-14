@@ -8,9 +8,10 @@ __多台电脑你只需配置一套软件列表(RunAny.ini)，就能到处运行
 - ☑ 一键菜单分类界面，找应用零记忆负担
 - ☑ 分类定位，三键启动，简单迅速
 - ☑ 一次配置，到处运行，永久使用
+- ☑ <font color="red">[规则判断自动启动软件](/rule-run) 重磅新功能！</font>
 - ☑ [一键直达](/README?id=一键直达)，[一键公式计算](/README?id=一键公式计算)，[一键批量搜索](/README?id=批量搜索)
 - ☑ [全局热键](/README?id=全局热键)，[热键映射](/README?id=热键映射)，[热字符串](/README?id=热字符串)，多样快捷
-- ☑ [短语输出](/README?id=短语输出)，[透明化启动](/quick-config?id=半透明启动程序)，[快捷打开文件方式](/README?id=快捷打开文件方式)
+- ☑ [短语输出](/README?id=短语输出)，[透明化启动](/CONFIG?id=半透明启动程序)，[快捷打开文件方式](/README?id=快捷打开文件方式)
 - ☑ [外接脚本，个性函数](/plugins-list)，[自由定制](/plugins-help?id=新建自定义objreg插件)
 
 
@@ -308,7 +309,7 @@ RunAny可以储存邮箱、手机号，想用时就快捷输出，更支持AHK�
 末尾双分号`;;`识别为模拟打字短语，会模拟键盘按键来输出短语
 
 > \`r 或 \`n 或 \`r\`n 都为回车键<kbd>Enter</kbd>功能 <br>
-> \`t 为 制表键<kbd>Capslock</kbd>功能 <br>
+> \`t 为 制表键<kbd>Tab</kbd>功能 <br>
 > \`b 为退格键<kbd>Backspace</kbd>功能
 
 ```ini
