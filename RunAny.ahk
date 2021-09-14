@@ -4297,15 +4297,18 @@ WM_NOTIFY(Param*){
 Plugins_Gui:
 	gosub,Plugins_Read
 	;根据网络自动选择对应插件说明网页地址
-	pagesPluginsUrl:=RunAnyGiteePages . "/runany/#/plugins-help"
+	pagesPluginsUrl:=RunAnyGiteePages . "/runany/#"
 	if(!rule_check_network(RunAnyGiteePages)){
-		pagesPluginsUrl:=RunAnyGiteePages . "/RunAny/#/plugins-help"
+		pagesPluginsUrl:=RunAnyGithubPages . "/RunAny/#"
 	}
-	pagesHash:=pagesPluginsUrl . "?id="
-	global PluginsHelpList:={"huiZz_QRCode.ahk":pagesHash "huizz_qrcode二维码脚本使用方法"}
-	PluginsHelpList["huiZz_Window.ahk"]:=pagesHash "huizz_window窗口操作插件使用方法"
-	PluginsHelpList["huiZz_System.ahk"]:=pagesHash "huizz_system系统操作插件使用方法"
-	PluginsHelpList["huiZz_Text.ahk"]:=pagesHash "huizz_text文本操作插件使用方法"
+	pagesPlugins:=pagesPluginsUrl . "/plugins-help?id="
+	pagesRunCtrl:=pagesPluginsUrl . "/run-ctrl?id="
+	global PluginsHelpList:={"huiZz_QRCode.ahk":pagesPlugins "huizz_qrcode二维码脚本使用方法"}
+	PluginsHelpList["huiZz_Window.ahk"]:=pagesPlugins "huizz_window窗口操作插件使用方法"
+	PluginsHelpList["huiZz_System.ahk"]:=pagesPlugins "huizz_system系统操作插件使用方法"
+	PluginsHelpList["huiZz_Text.ahk"]:=pagesPlugins "huizz_text文本操作插件使用方法"
+	PluginsHelpList["RunCtrl_Common.ahk"]:=pagesRunCtrl "runctrl_commonahk插件-公共规则函数库"
+	PluginsHelpList["RunCtrl_Network.ahk"]:=pagesRunCtrl "runctrl_networkahk插件-网络规则函数库"
 	global ColumnName:=1
 	global ColumnStatus:=2
 	global ColumnAutoRun:=3
@@ -8223,9 +8226,9 @@ Config_Update:
 return
 RunAny_Update:
 if(rule_check_network(RunAnyGiteePages)){
-	Run,%RunAnyGiteePages%/runany/#/change-log
+	Run,%RunAnyGiteePages%/runany/#/change-log?id=runany已更新最新版本！感谢一直以来的支持！
 }else{
-	Run,%RunAnyGithubPages%/RunAny/#/change-log
+	Run,%RunAnyGithubPages%/RunAny/#/change-log?id=runany已更新最新版本！感谢一直以来的支持！
 }
 TrayTip,,RunAny已经更新到最新版本。,5,1
 FileAppend,
