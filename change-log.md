@@ -1,13 +1,15 @@
-# RunAny已更新最新版本！感谢使用和支持！[![HitCount](http://hits.dwyl.io/hui-Zz/RunAny.svg)](http://hits.dwyl.io/hui-Zz/RunAny)
 #### 📢 关注RunAny一劳永逸微信公众号，分享【一劳永逸】的效率软件和解决方案！
-![RunAny公众号-白色版](/assets/images/RunAny公众号-白色版.jpg ':size=70%x70%')
-**你的支持是我最大的动力！(金额随意，都是心意)：**
+![RunAny公众号-白色版](/assets/images/RunAny公众号-白色版.jpg ':size=50%x50%')
+
+### **你的支持是我最大的动力！(金额随意，都是心意)：**
 ![logo](/assets/images/支持RunAny.jpg ':size=280x280')![logo](/assets/images/支持RunAny.png ':size=280x280')
 
 
+# RunAny已更新最新版本！感谢一直以来的支持！
+
 ## 【RunAny】v5.7.6 ~ v5.7.7
 
-+ **`新增重磅功能` [【规则判断自动启动软件】](/rule-run)：** 点击链接详细查看
++ **`新增重磅功能` [【规则判断自动启动软件】](/run-ctrl)：** 点击链接详细查看
   + 全面整合了我原来`RunAnyCtrl`的所有功能
   + `新增`启动类型：菜单项，至此实现自动启动无路径软件，让开机必启软件跟随RunAny在每台电脑上
   + `新增`规则类型：变量规则，完美兼容使用RunAny原有的 菜单变量 功能
