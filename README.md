@@ -36,7 +36,7 @@ RunAny启动软件就跟五笔打字一样高效方便，3键直达（如<kbd>Es
 ## 下载地址
 
 - Github最新版下载：https://github.com/hui-Zz/RunAny/archive/master.zip
-- 蓝奏云稳定版下载：https://www.lanzous.com/b902490/
+- 蓝奏云稳定版下载：https://www.lanzoui.com/b902490/
 - 百度云稳定版下载：https://pan.baidu.com/s/1qxbYAx0UA-u1dkoY-RXZJg
 
 ---
