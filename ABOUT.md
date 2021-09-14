@@ -1,6 +1,5 @@
-
+[![Stargazers over time](https://starchart.cc/hui-Zz/RunAny.svg)](https://starchart.cc/hui-Zz/RunAny)
 ---
-
 【国内Gitee文档】[https://hui-zz.gitee.io/RunAny](https://hui-zz.gitee.io/RunAny)  
 【国内Gitee代码】[https://gitee.com/hui-Zz/RunAny](https://gitee.com/hui-Zz/RunAny)  
 
