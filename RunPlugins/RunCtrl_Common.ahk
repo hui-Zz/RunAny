@@ -15,7 +15,6 @@ class RunAnyObj {
 		ip:=cmdClipReturn("for /f ""tokens=4"" %a in ('route print^|findstr 0.0.0.0.*0.0.0.0') do echo %a")
 		return StrReplace(ip," `r`n")
 	}
-
 	/*
 	【验证当前连接的Wifi名称】（后台静默）
 	ssid wifi名称
@@ -25,19 +24,19 @@ class RunAnyObj {
 		return RegExMatch(cmdResult, "\s*SSID\s*:\s" . ssid . "$")
 	}
 	/*
-	【验证注册表的值】
-	path 注册表路径； key 注册表键； value 注册表键值
-	*/
-	rule_check_regedit(path, key, value){
-		RegRead, regVar, %path%, %key%
-		return regVar=value
-	}
-	/*
 	【验证ini配置文件的值】
 	path ini文件路径； section 段落名； key ini键； value ini键值
 	*/
 	rule_check_ini(path, section, key, value){
 		IniRead, regVar, %path%, %section%, %key%, %A_Space%
+		return regVar=value
+	}
+	/*
+	【验证注册表的值】
+	path 注册表路径； key 注册表键； value 注册表键值
+	*/
+	rule_check_regedit(path, key, value){
+		RegRead, regVar, %path%, %key%
 		return regVar=value
 	}
 	/*

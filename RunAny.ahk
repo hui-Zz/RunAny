@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.7 @2021.09.10
+║【RunAny】一劳永逸的快速启动工具 v5.7.7 @2021.09.14
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.7"     ;~;版本号
-global RunAny_update_time:="2021.09.10"   ;~;更新日期
+global RunAny_update_time:="2021.09.14"   ;~;更新日期
 gosub,Var_Set           ;~;01.参数初始化
 gosub,Menu_Var_Set      ;~;02.自定义变量
 gosub,Icon_Set          ;~;03.图标初始化
@@ -4389,7 +4389,8 @@ LVMenu(addMenu){
 	Menu, %addMenu%, Icon,% flag ? "插件库" : "插件库`tF10", SHELL32.dll,42
 	Menu, %addMenu%, Add,% flag ? "新建插件" : "新建插件`tF11", LVPluginsCreate
 	Menu, %addMenu%, Icon,% flag ? "新建插件" : "新建插件`tF11", SHELL32.dll,1
-	Menu, %addMenu%, Add,% flag ? "" :"上下交换", LVPluginsSwap
+	if(!flag)
+		Menu, %addMenu%, Add, 上下交换, LVPluginsSwap
 }
 LVPluginsRun:
 	menuItem:="启动"
@@ -5636,8 +5637,8 @@ Rule_Manage_Gui:
 	Menu, ruleGuiMenu, Icon, 修改, SHELL32.dll,134
 	Menu, ruleGuiMenu, Add, 减少, LVRuleMinus
 	Menu, ruleGuiMenu, Icon, 减少, SHELL32.dll,132
-	Menu, ruleGuiMenu, Add, 添加默认规则, LVRuleDefault
-	Menu, ruleGuiMenu, Icon, 添加默认规则, SHELL32.dll,194
+	Menu, ruleGuiMenu, Add, 添加最新默认规则, LVRuleDefault
+	Menu, ruleGuiMenu, Icon, 添加最新默认规则, SHELL32.dll,194
 	Menu, ruleGuiMenu, Add, 全选, LVRuleSelect
 	Gui,RuleManage:Menu, ruleGuiMenu
 	LV_ModifyCol()  ; 根据内容自动调整每列的大小.
@@ -5666,17 +5667,23 @@ LVRuleSelect:
 	LV_Modify(0, "Select Focus")   ; 选择所有.
 return
 LVRuleDefault:
-	MsgBox,33,添加默认规则,需要添加最新版本的默认规则吗？（重复的规则不会添加）
+	MsgBox,33,添加默认规则,需要添加最新版本的默认规则吗？`n（不影响原有规则，重复的规则不会添加）
 	IfMsgBox Ok
 	{
-		ruleDefaultStr:=""
+		ruleWriteStr:=ruleDefaultStr:=""
 		RunCtrlRuleObj:={"电脑名":"A_ComputerName","用户名":"A_UserName","系统版本":"A_OSVersion","系统64位":"A_Is64bitOS","主屏幕宽度":"A_ScreenWidth","主屏幕高度":"A_ScreenHeight"
 			,"本地时间":"A_Now","年":"A_YYYY","月":"A_MM","星期":"A_WDay","日":"A_DD","时":"A_Hour","分":"A_Min","秒":"A_Sec","剪贴板文字":"Clipboard"}
 		For rName, rFunc in RunCtrlRuleObj
 		{
-			if(!rulefileList[rName]){
-				IniWrite, 0, %RunAnyConfig%, RunCtrlRule, %rName%|%rFunc%
+			if(rulefileList[rName]!="0"){
+				ruleWriteStr.=rName "|" rFunc "`n"
 			}
+		}
+		ruleWriteStr:=SubStr(ruleWriteStr, 1, -StrLen("`n"))
+		Sort, ruleWriteStr, CL
+		Loop, Parse, ruleWriteStr, `n
+		{
+			IniWrite, 0, %RunAnyConfig%, RunCtrlRule, %A_LoopField%
 		}
 		RunCtrlRuleObj:={"开机时长(秒)":"rule_boot_time","电脑机型":"rule_chassis_types","运行状态":"rule_check_is_run","联网状态":"rule_check_network"}
 		For rName, rFunc in RunCtrlRuleObj
