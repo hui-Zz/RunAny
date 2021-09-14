@@ -1318,8 +1318,9 @@ Menu_Show:
 		WinGet,pname,ProcessName,A
 		;#选中文本弹出网址菜单#
 		if(!MenuObjTextRootFlag%MENU_NO% && MenuObjText%MENU_NO%.MaxIndex()=1
-				&& (!MenuObjWindowFlag || (MenuObjWindow[pname].Length()=1 && MenuObjWindow[pname][1]=MenuObjText%MENU_NO%[1]))){
-			;如果根目录没有%getZz%或%s且text菜单只有1个，直接显示这个text菜单
+				&& (!MenuObjWindowFlag || !MenuObjWindow[pname]
+				|| (MenuObjWindowFlag && MenuObjWindow[pname].Length()=1 && MenuObjWindow[pname][1]=MenuObjText%MENU_NO%[1]))){
+			;如果根目录没有%getZz%或%s且text菜单只有1个+没有软件专属菜单或与软件专属菜单相同，直接显示这个text菜单
 			Menu_Show_Show(MenuObjText%MENU_NO%[1],getZz)
 			return
 		}
@@ -1352,7 +1353,9 @@ Menu_Show:
 				Menu,% showTheMenuName,Delete,%v%
 			}
 		}
-	}catch{}
+	}catch e{
+		TrayTip,,% "显示菜单出错：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,5,1
+	}
 return
 ;~;【显示菜单-热键】
 Menu_Key_Show:
@@ -8156,7 +8159,7 @@ Auto_Update:
 		}
 	}
 	URLDownloadToFile(RunAnyDownDir "/RunAny.ahk",A_Temp "\temp_RunAny.ahk")
-	versionReg=iS)^\t*\s*global RunAny_update_version:="([\d\.]*)"
+	versionReg=iS)^\t*\s*global RunAny_update_version:="([\d\.]*)".*
 	Loop, read, %A_Temp%\temp_RunAny.ahk
 	{
 		if(RegExMatch(A_LoopReadLine,versionReg)){
@@ -8180,10 +8183,10 @@ Auto_Update:
 		if(RunAny_update_version<versionStr || pluginUpdateStr!=""){
 			runAnyUpdateStr:=RunAny_update_version<versionStr ? "检测到RunAny有新版本`n`n" RunAny_update_version "`t版本更新后=>`t" versionStr "`n" : ""
 			pluginUpdateStr:=pluginUpdateStr!="" ? "`n检测到插件有新版本`n" pluginUpdateStr : ""
-			MsgBox,33,RunAny检查更新,%runAnyUpdateStr%%pluginUpdateStr%`n%A_Temp%\%RunAnyZz%`n
+			MsgBox,33,RunAny检查更新,%runAnyUpdateStr%%pluginUpdateStr%`n
 (
 是否更新到最新版本？
-将移动老版本文件到临时目录，如有修改过请注意备份！`n
+将移动老版本文件到临时目录，如有修改过请注意备份！`n%A_Temp%\%RunAnyZz%`n
 )
 			IfMsgBox Ok
 			{
