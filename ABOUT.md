@@ -1,4 +1,4 @@
-[![Stargazers over time](https://starchart.cc/hui-Zz/RunAny.svg)](https://starchart.cc/hui-Zz/RunAny)
+
 ---
 【国内Gitee文档】[https://hui-zz.gitee.io/RunAny](https://hui-zz.gitee.io/RunAny)  
 【国内Gitee代码】[https://gitee.com/hui-Zz/RunAny](https://gitee.com/hui-Zz/RunAny)  
@@ -57,3 +57,5 @@
 ![RunAny公众号-白色版](/assets/images/RunAny公众号-白色版.jpg)
 
 ## 📢 关注RunAny一劳永逸微信公众号，分享【一劳永逸】的效率软件和解决方案！
+
+[![Stargazers over time](https://starchart.cc/hui-Zz/RunAny.svg)](https://starchart.cc/hui-Zz/RunAny)
