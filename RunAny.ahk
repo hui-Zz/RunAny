@@ -5342,7 +5342,7 @@ return
 LVFuncAdd:
 	menuFuncItem:="新建规则函数"
 	RuleName:=FuncBoolean:=FuncValue:=""
-	FuncBooleanNE:=FuncBooleanGE:=FuncBooleanLE:=FuncBooleanGT:=FuncBooleanLT:=FuncBreak:=false
+	FuncBooleanNE:=FuncBooleanGE:=FuncBooleanLE:=FuncBooleanGT:=FuncBooleanLT:=FuncBooleanRegEx:=FuncBreak:=false
 	FuncBooleanEQ:=true
 	RuleNameChoose:=1
 	gosub,LVFuncConfig
@@ -5379,6 +5379,7 @@ return
 ;~;【启动控制-运行规则Gui】
 LVFuncConfig:
 	Gui,RunCtrlFunc:Destroy
+	Gui,RunCtrlFunc:+Resize
 	Gui,RunCtrlFunc:+OwnerRunCtrlConfig
 	Gui,RunCtrlFunc:Font,,Microsoft YaHei
 	Gui,RunCtrlFunc:Margin,20,10
@@ -5391,6 +5392,7 @@ LVFuncConfig:
 	Gui,RunCtrlFunc:Add, Radio, x+6 yp Checked%FuncBooleanLE% vvFuncBooleanLE, 小于等于　　　　
 	Gui,RunCtrlFunc:Add, Radio, xm y+10 Checked%FuncBooleanGT% vvFuncBooleanGT, 大于　　　　　　
 	Gui,RunCtrlFunc:Add, Radio, x+6 yp Checked%FuncBooleanLT% vvFuncBooleanLT, 小于　　　　　　
+	Gui,RunCtrlFunc:Add, Radio, x+6 yp Checked%FuncBooleanRegEx% vvFuncBooleanRegEx, 正则表达式
 	Gui,RunCtrlFunc:Add, CheckBox, xm y+10 Checked%FuncBreak% vvFuncBreak, 不满足此条件就中断整个规则循环（建议排在其他规则前面）
 	Gui,RunCtrlFunc:Add, Text, xm y+10 w350 vvRuleText, 条件值：（只判断规则真假，可不填写）
 	Gui,RunCtrlFunc:Add, Text, xm yp w350 cblue vvRuleParamText, 条件值：（条件值变为参数传递到规则函数，只判断结果真假）
@@ -5472,6 +5474,7 @@ DropDownRuleChoose:
 		GuiControl, RunCtrlFunc:Disable, vFuncBooleanLE
 		GuiControl, RunCtrlFunc:Disable, vFuncBooleanGT
 		GuiControl, RunCtrlFunc:Disable, vFuncBooleanLT
+		GuiControl, RunCtrlFunc:Disable, vFuncBooleanRegEx
 	}else{
 		GuiControl, RunCtrlFunc:show, vRuleText
 		GuiControl, RunCtrlFunc:hide, vRuleParamText
@@ -5479,6 +5482,7 @@ DropDownRuleChoose:
 		GuiControl, RunCtrlFunc:enable, vFuncBooleanLE
 		GuiControl, RunCtrlFunc:enable, vFuncBooleanGT
 		GuiControl, RunCtrlFunc:enable, vFuncBooleanLT
+		GuiControl, RunCtrlFunc:enable, vFuncBooleanRegEx
 	}
 	GuiControl, RunCtrlFunc:,vRuleResultText,% RunCtrl_RuleResult(vRuleName, ruleitemList[vRuleName], vFuncValue)
 return
@@ -6823,6 +6827,7 @@ return
 ;[GuiSize]
 MenuEditGuiSize:
 RuleManageGuiSize:
+RunCtrlFuncGuiSize:
 PluginsManageGuiSize:
 PluginsDownloadGuiSize:
 	if A_EventInfo = 1
@@ -6832,6 +6837,7 @@ PluginsDownloadGuiSize:
 	GuiControl, Move, RunAnyPluginsLV2, % "H" . (A_GuiHeight * 0.48) . " W" . (A_GuiWidth - 20) . " y" . (A_GuiHeight * 0.50 + 10)
 	GuiControl, Move, RuleLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 	GuiControl, Move, RunAnyDownLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
+	GuiControl, Move, vFuncValue, % " W" . (A_GuiWidth - 40)
 return
 66GuiSize:
 	if A_EventInfo = 1
@@ -7801,7 +7807,7 @@ RunCtrl_Read:
 	RuleNameStr:=SubStr(RuleNameStr, 1, -StrLen("|"))
 	;---规则启动项---
 	global RunCtrlList:=Object(),RunCtrlListBoxList:=Object(),RunCtrlListContentList:=Object()
-	global RunCtrlLogicEnum:={"eq":"相等","ne":"不相等","ge":"大于等于","le":"小于等于","gt":"大于","lt":"小于"}
+	global RunCtrlLogicEnum:={"eq":"相等","ne":"不相等","ge":"大于等于","le":"小于等于","gt":"大于","lt":"小于","regex":"正则表达式"}
 	global RunCtrlRunWayList:=["启动","置顶启动","最小化启动","最大化启动","隐藏启动"]
 	global RunCtrlListBoxVar:=""
 	IniRead,runCtrlListVar,%RunAnyConfig%,RunCtrlList
@@ -8093,6 +8099,8 @@ RunCtrl_RuleEffect(runCtrlObj){
 				effectFlag:=effectResult < rulev.value
 			}else if(rulev.logic="le"){
 				effectFlag:=effectResult <= rulev.value
+			}else if(rulev.logic="regex"){
+				effectFlag:=RegExMatch(effectResult, rulev.value)
 			}else{
 				effectFlag:=effectResult
 			}
