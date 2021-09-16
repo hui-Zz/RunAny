@@ -1174,7 +1174,7 @@ Menu_Show:
 							Menu,%extMenuName%,Insert, %publicMaxNum%&
 						}
 						;[显示自定义后缀菜单]
-						Menu_Show_Show(extMenuName,FileName)
+						Menu_Show_Show(extMenuName, FileName, Candy_isFile)
 						;删除临时添加的菜单
 						if(MenuObjExt["public"].MaxIndex()>0){
 							Menu,%extMenuName%,Delete, %publicMaxNum%&
@@ -1199,7 +1199,7 @@ Menu_Show:
 						}
 						try Menu,% menuFileRoot%MENU_NO%[1],Default,%RUNANY_SELF_MENU_ITEM3%
 					}
-					Menu_Show_Show(menuFileRoot%MENU_NO%[1],FileName)
+					Menu_Show_Show(menuFileRoot%MENU_NO%[1], FileName, Candy_isFile)
 					if(!HideAddItem){
 						try Menu,% menuFileRoot%MENU_NO%[1],Delete, %RUNANY_SELF_MENU_ITEM3%
 						Menu_Add_Del_Temp(0,MENU_NO,RUNANY_SELF_MENU_ITEM3)
@@ -1209,7 +1209,7 @@ Menu_Show:
 				menuName:=extMenuName!="" ? extMenuName : menuFileRoot%MENU_NO%[1]
 				TrayTip,,% "[显示菜单]：" menuName "`n出错命令：" e.What 
 			. "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,5,1
-				Menu_Show_Show(menuFileRoot%MENU_NO%[1],FileName)
+				Menu_Show_Show(menuFileRoot%MENU_NO%[1], FileName, Candy_isFile)
 			}
 			return
 		}
@@ -1367,9 +1367,9 @@ return
 Menu_All_Show:
 	Menu_Show_Show(menuDefaultRoot%MENU_NO%[1],getZz)
 return
-Menu_Show_Show(menuName,itemName){
+Menu_Show_Show(menuName, itemName, Candy_isFile:=0){
 	selectCheck:=Trim(itemName," `t`n`r")
-	if(!HideSelectZz && selectCheck!=""){
+	if(!HideSelectZz && !Candy_isFile && selectCheck!=""){
 		;[选中内容翻译]
 		translate:=Menu_Show_Translate(selectCheck)
 		if(StrLen(itemName)>ShowGetZzLen)
@@ -1389,7 +1389,7 @@ Menu_Show_Show(menuName,itemName){
 	}
 	;[显示菜单]
 	Menu,%menuName%,Show
-	if(!HideSelectZz && selectCheck!=""){
+	if(!HideSelectZz && !Candy_isFile && selectCheck!=""){
 		if(translate!=""){
 			Menu,%menuName%,Delete, 4&
 			Menu,%menuName%,Delete, 3&
