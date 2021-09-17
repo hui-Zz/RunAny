@@ -3,7 +3,7 @@
 ;*                          by hui-Zz *
 ;**************************************
 global RunAny_Plugins_Name:="ObjReg文本操作脚本"
-global RunAny_Plugins_Version:="1.2.3"
+global RunAny_Plugins_Version:="1.2.4"
 global RunAny_Plugins_Icon:="SHELL32.dll,270"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
@@ -193,10 +193,29 @@ class RunAnyObj {
 		Sleep,200
 		Clipboard:=getZz
 	}
-	;[百度剪贴板内容]
-	text_baidu_zz(){
-		Run,https://www.baidu.com/s?wd=%Clipboard%
+	;[剪贴板内容清空]
+	text_clipboard_clear(){
+		Clipboard=
 	}
+	;[百度网盘链接智能打开]
+	text_baidu_pan(getZz:=""){
+		if(getZz!=""){
+			panreg:="(pan\.baidu\.com\/s\/)?(?=\S*\d)(?=\S*[A-Z])(?=\S*[a-z])([a-z-\dA-Z])"
+			RegExMatch(getZz,"i)" panreg "`{23`}",url)
+			if(url=""){
+				RegExMatch(getZz,"i)" panreg "`{8`}",url)
+			}
+			if(url!=""){
+				url:=RegExReplace(url,"i)^pan\.baidu\.com\/s\/")
+				Run,https://pan.baidu.com/s/%url%
+			}
+			RegExMatch(getZz,"i)(?<![0-9a-zA-Z])([0-9a-zA-Z]{4})(?![0-9a-zA-Z:])",code)
+			if(code!=""){
+				Clipboard:=code
+			}
+		}
+	}
+
 	;[复制或输出文件文本的内容]
 	;参数说明：getZz：选中的文件 或 传递文件路径(可使用无路径)
 	;isSend：0-显示并保存到剪贴板；1-输出结果
