@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.7 @2021.09.14
+║【RunAny】一劳永逸的快速启动工具 v5.7.7 @2021.09.20
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.7"     ;~;版本号
-global RunAny_update_time:="2021.09.14"   ;~;更新日期
+global RunAny_update_time:="2021.09.20"   ;~;更新日期
 gosub,Var_Set           ;~;01.参数初始化
 gosub,Menu_Var_Set      ;~;02.自定义变量
 gosub,Icon_Set          ;~;03.图标初始化
@@ -146,9 +146,20 @@ Loop,%MenuCount%
 MenuShowFlag:=true
 ;══════════════════════════════════════════════════════════════════
 ;~;[13.判断有无路径应用则需要使用Everything]
+global EvQueryFlag:=false                  ;是否拿到无路径搜索结果
+global MenuObjEv:=Object()                 ;Everything搜索结果程序全径
+global MenuObjSame:=Object()               ;Everything搜索结果重名程序全径
+IniRead, evFullPathIniVar, %RunAnyEvFullPathIni%, FullPath
+Loop, parse, evFullPathIniVar, `n, `r
+{
+	varList:=StrSplit(A_LoopField,"=",,2)
+	objFileNameNoExeExt:=RegExReplace(varList[1],"iS)\.exe$","")
+	MenuObj[objFileNameNoExeExt]:=varList[2]
+	MenuObjEv:=MenuObj.Clone()
+	EvQueryFlag:=true
+}
 EvPath:=Var_Read("EvPath")
-if(!EvNo){
-	global EvQueryFlag:=false  ;~Everything是否可以搜索到结果
+if(!EvQueryFlag && !EvNo){
 	EvCommandStr:=EvDemandSearch ? everythingCommandStr() : ""
 	if(!EvDemandSearch || (EvDemandSearch && EvCommandStr!="")){
 		evAdminRun:=A_IsAdmin ? "-admin" : ""
@@ -196,8 +207,6 @@ if(!EvNo){
 			WinGet, EvPath, ProcessPath, ahk_exe Everything.exe
 		}
 		;使用everything补全无路径exe的全路径
-		global MenuObjEv:=Object()    ;Everything搜索结果程序全径
-		global MenuObjSame:=Object()  ;Everything搜索结果重名程序全径
 		If(evExist){
 			if(EvCheckFlag){
 				RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults,0
@@ -209,11 +218,6 @@ if(!EvNo){
 				EvQueryFlag:=true
 			}else{
 				SetTimer,everythingCheckResults,100
-			}
-			for k,v in MenuObjEv
-			{
-				MenuObj:=MenuObjEv.Clone()
-				break
 			}
 		}
 		;如果需要自动关闭everything
@@ -6938,6 +6942,7 @@ return
 Var_Set:
 	;[RunAny设置参数]
 	global Z_ScriptName:=FileExist(RunAnyZz ".exe") ? RunAnyZz ".exe" : A_ScriptName
+	global RunAnyEvFullPathIni:=A_AppData "\" RunAnyZz "\RunAnyEvFullPath.ini"
 	RegRead, AutoRun, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 	AutoRun:=AutoRun=A_ScriptDir "\" Z_ScriptName ? 1 : 0
 	;优先读取配置文件，后读注册表
@@ -8454,8 +8459,16 @@ everythingQuery(EvCommandStr){
 				FileGetVersion,objFullPathNameVersionNew,% objFullPathName
 				if(objFullPathNameVersionOld<objFullPathNameVersionNew){
 					MenuObjEv[objFileNameNoExeExt]:=objFullPathName
+					if(MenuObj.HasKey(objFileNameNoExeExt)){
+						MenuObj[objFileNameNoExeExt]:=objFullPathName
+						IniWrite, %objFullPathName%, %RunAnyEvFullPathIni%, FullPath, %objFileName%
+					}
 				}else if(chooseNewFlag && objFullPathNameVersionOld=objFullPathNameVersionNew){
 					MenuObjEv[objFileNameNoExeExt]:=objFullPathName
+					if(MenuObj.HasKey(objFileNameNoExeExt)){
+						MenuObj[objFileNameNoExeExt]:=objFullPathName
+						IniWrite, %objFullPathName%, %RunAnyEvFullPathIni%, FullPath, %objFileName%
+					}
 				}
 				continue
 			}
@@ -8465,6 +8478,10 @@ everythingQuery(EvCommandStr){
 			}
 		}
 		MenuObjEv[objFileNameNoExeExt]:=objFullPathName
+		if(MenuObj.HasKey(objFileNameNoExeExt)){
+			MenuObj[objFileNameNoExeExt]:=objFullPathName
+			IniWrite, %objFullPathName%, %RunAnyEvFullPathIni%, FullPath, %objFileName%
+		}
 	}
 }
 everythingCommandStr(){
@@ -8496,6 +8513,8 @@ everythingCommandStr(){
 			}else{
 				EvCommandStr.=outVar . "|"
 			}
+			outVarNoExeExt:=RegExReplace(outVar,"iS)\.exe$","")
+			MenuObj[outVarNoExeExt]:=""
 		}
 	}
 	EvCommandStr:=RegExReplace(EvCommandStr,"\|$")
@@ -8537,6 +8556,13 @@ class everything
 	{
 		this.eMatchWholeWord := aValue
 		dllcall(everyDLL "\Everything_SetMatchWholeWord",int,aValue)
+		return
+	}
+	;设置正则表达式搜索
+	SetRegex(aValue)
+	{
+		this.eMatchWholeWord := aValue
+		dllcall(everyDLL "\Everything_SetRegex",int,aValue)
 		return
 	}
 	;执行搜索动作
