@@ -5953,7 +5953,7 @@ Settings_Gui:
 		return
 	}
 	HotKeyFlag:=MenuVarFlag:=OpenExtFlag:=AdvancedConfigFlag:=false
-	GUI_WIDTH_66=640
+	GUI_WIDTH_66=700
 	TAB_WIDTH_66=620
 	GROUP_WIDTH_66=590
 	GROUP_LISTVIEW_WIDTH_66=580
@@ -5966,7 +5966,7 @@ Settings_Gui:
 	Gui,66:+Resize
 	Gui,66:Margin,30,20
 	Gui,66:Font,,Microsoft YaHei
-	Gui,66:Add,Tab3,x10 y10 w%TAB_WIDTH_66% h475 vConfigTab +Theme -Background,RunAny设置|热键配置|菜单变量|搜索Everything|一键直达|内部关联|热字符串|图标设置|高级配置
+	Gui,66:Add,Tab3,x10 y10 w%TAB_WIDTH_66% h475 vConfigTab +Theme -Background,RunAny设置|热键配置|菜单变量|无路径缓存|搜索Everything|一键直达|内部关联|热字符串|图标设置|高级配置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+%MARGIN_TOP_66% vvAutoRun,开机自动启动
 	Gui,66:Add,Checkbox,Checked%AdminRun% x+25 vvAdminRun,管理员权限运行所有软件和插件
@@ -6069,6 +6069,26 @@ Settings_Gui:
 	}
 	LV_ModifyCol()
 	GuiControl, 66:+Redraw, RunAnyMenuVarLV
+
+	Gui,66:Tab,无路径缓存,,Exact
+	Gui,66:Add,Text,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%,RunAny菜单中无路径exe的全路径
+	Gui,66:Add,Button, xm yp+30 w50 GLVMenuObjPathAdd, + 增加
+	Gui,66:Add,Button, x+10 yp w50 GLVMenuObjPathEdit, · 修改
+	Gui,66:Add,Button, x+10 yp w50 GLVMenuObjPathRemove, - 减少
+	Gui,66:Add,Text, x+15 yp-5,无路径说明：每次新增和编辑无路径菜单项，`n会使用Everything获得它的实际运行全路径
+	Gui,66:Add,Listview,xm yp+40 r16 grid AltSubmit vRunAnyMenuObjPathLV glistviewMenuObjPath, 无路径名|运行全路径（来自Everything）
+	RunAnyMenuObjPathImageListID := IL_Create(11)
+	Icon_Image_Set(RunAnyMenuObjPathImageListID)
+	GuiControl, 66:-Redraw, RunAnyMenuObjPathLV
+	LV_SetImageList(RunAnyMenuObjPathImageListID)
+	IniRead, evFullPathIniVar, %RunAnyEvFullPathIni%, FullPath
+	Loop, parse, evFullPathIniVar, `n, `r
+	{
+		varList:=StrSplit(A_LoopField,"=",,2)
+		LV_Add(Set_Icon(RunAnyMenuObjPathImageListID,varList[2],false,false,varList[2]), varList[1], varList[2])
+	}
+	LV_ModifyCol()
+	GuiControl, 66:+Redraw, RunAnyMenuObjPathLV
 	
 	Gui,66:Tab,搜索Everything,,Exact
 	EvIsAdmin:=ev.GetIsAdmin()
@@ -6435,6 +6455,18 @@ SetOK:
 			IniWrite,%menuVarVal%,%RunAnyConfig%,MenuVar,%menuVarName%
 		}
 	}
+	;[保存无路径缓存]
+	if(MenuObjPathFlag){
+		Gui, ListView, RunAnyMenuObjPathLV
+		IniWrite, delete=1, %RunAnyEvFullPathIni%, FullPath
+		IniDelete, %RunAnyEvFullPathIni%, FullPath, delete
+		Loop % LV_GetCount()
+		{
+			LV_GetText(menuObjPathName, A_Index, 1)
+			LV_GetText(menuObjPathVal, A_Index, 2)
+			IniWrite,%menuObjPathVal%,%RunAnyEvFullPathIni%,FullPath,%menuObjPathName%
+		}
+	}
 	;[保存高级配置]
 	if(AdvancedConfigFlag){
 		Gui, ListView, AdvancedConfigLV
@@ -6677,7 +6709,7 @@ Menu_Var_Edit:
 	Gui,SaveVar:+Owner66
 	Gui,SaveVar:Margin,20,20
 	Gui,SaveVar:Font,,Microsoft YaHei
-	Gui,SaveVar:Add, GroupBox,xm y+10 w400 h145 vvmenuVarType,%menuVarType%
+	Gui,SaveVar:Add, GroupBox,xm y+10 w400 h135 vvmenuVarType,%menuVarType%
 	Gui,SaveVar:Add, Text, xm+5 y+35 y35 w60,菜单变量名
 	Gui,SaveVar:Add, Edit, x+5 yp w300 vvmenuVarName gSetMenuVarVal, %menuVarName%
 	Gui,SaveVar:Add, Text, xm+5 y+15 w60,菜单变量值
@@ -6768,6 +6800,80 @@ SaveMenuVar:
 	LV_ModifyCol()  ; 根据内容自动调整每列的大小.
 	Gui,SaveVar:Destroy
 return
+;--------------------------------------无路径缓存设置界面--------------------------------------
+Menu_Obj_Path_Edit:
+	Gui, ListView, RunAnyMenuObjPathLV
+	if(menuObjPathItem="编辑"){
+		RunRowNumber := LV_GetNext(0, "F")
+		if not RunRowNumber
+			return
+		LV_GetText(menuObjPathName, RunRowNumber, 1)
+		LV_GetText(menuObjPathVal, RunRowNumber, 2)
+	}
+	Gui,SavePath:Destroy
+	Gui,SavePath:Default
+	Gui,SavePath:+Owner66
+	Gui,SavePath:Margin,20,20
+	Gui,SavePath:Font,,Microsoft YaHei
+	Gui,SavePath:Add, GroupBox,xm y+10 w400 h135, 无路径缓存
+	Gui,SavePath:Add, Text, xm+5 y+35 y35 w60,无路径名
+	Gui,SavePath:Add, Edit, x+5 yp w300 vvmenuObjPathName, %menuObjPathName%
+	Gui,SavePath:Add, Text, xm+5 y+15 w60,运行全路径
+	Gui,SavePath:Add, Edit, x+5 yp w300 r3 -WantReturn vvmenuObjPathVal, %menuObjPathVal%
+	Gui,SavePath:Font
+	Gui,SavePath:Add,Button,Default xm+100 y+25 w75 GSaveMenuObjPath,保存(&S)
+	Gui,SavePath:Add,Button,x+20 w75 GSetCancel,取消(&C)
+	Gui,SavePath:Show,,%RunAnyZz% - %menuObjPathItem%菜单无路径缓存 %RunAny_update_version% %RunAny_update_time%
+return
+listviewMenuObjPath:
+    if A_GuiEvent = DoubleClick
+    {
+		menuObjPathItem:="编辑"
+		gosub,Menu_Obj_Path_Edit
+    }
+return
+LVMenuObjPathAdd:
+	menuObjPathItem:="新建"
+	menuObjPathName:=menuObjPathVal:=""
+	gosub,Menu_Obj_Path_Edit
+return
+LVMenuObjPathEdit:
+	menuObjPathItem:="编辑"
+	gosub,Menu_Obj_Path_Edit
+return
+LVMenuObjPathRemove:
+	Gui, ListView, RunAnyMenuObjPathLV
+	MenuObjPathFlag:=true
+	RunRowNumber := LV_GetNext(0, "F")
+	if not RunRowNumber
+		return
+	LV_Delete(RunRowNumber)
+return
+SaveMenuObjPath:
+	MenuObjPathFlag:=true
+	Gui,SavePath:Submit, NoHide
+	if(vmenuObjPathName=""){
+		ToolTip, 请填入无路径缓存名,195,35
+		SetTimer,RemoveToolTip,3000
+		return
+	}
+	Gui,66:Default
+	if(menuObjPathItem="新建"){
+		if(MenuObjEv[vmenuObjPathName]){
+			ToolTip, 已有相同无路径缓存名！,195,35
+			SetTimer,RemoveToolTip,3000
+			return
+		}
+		LV_Add("",vmenuObjPathName,vmenuObjPathVal)
+	}else{
+		LV_Modify(RunRowNumber,"",vmenuObjPathName,vmenuObjPathVal)
+	}
+	LV_ModifyCol()  ; 根据内容自动调整每列的大小.
+	LV_ModifyCol(1, "Sort")  ; 排序
+	Gui,SavePath:Destroy
+return
+
+;--------------------------------------------------------------------------------------------
 listviewAdvancedConfig:
 	if A_GuiEvent = DoubleClick
 	{
@@ -6851,6 +6957,7 @@ return
 	GuiControl, Move, vDisableApp, % "H" . (A_GuiHeight * 0.25) . " W" . (A_GuiWidth - 60)
 	GuiControl, Move, RunAnyHotkeyLV, % " W" . (A_GuiWidth - 60)
 	GuiControl, Move, RunAnyMenuVarLV, % "H" . (A_GuiHeight * 0.68) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, RunAnyMenuObjPathLV, % "H" . (A_GuiHeight * 0.68) . " W" . (A_GuiWidth - 60)
 	GuiControl, Move, vEvCommandGroup, % "H" . (A_GuiHeight * 0.52) . " W" . (A_GuiWidth - 40)
 	GuiControl, Move, vEvCommand, % "H" . (A_GuiHeight * 0.32) . " W" . (A_GuiWidth - 60)
 	GuiControl, Move, vOneKeyUrlGroup, % " W" . (A_GuiWidth - 40)
