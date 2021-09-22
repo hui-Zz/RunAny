@@ -6071,11 +6071,13 @@ Settings_Gui:
 	GuiControl, 66:+Redraw, RunAnyMenuVarLV
 
 	Gui,66:Tab,无路径缓存,,Exact
-	Gui,66:Add,Text,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%,RunAny菜单中无路径exe的全路径
-	Gui,66:Add,Button, xm yp+30 w50 GLVMenuObjPathAdd, + 增加
+	Gui,66:Add,Text,xm y+%MARGIN_TOP_66%,RunAny菜单中无路径的缓存全路径
+	Gui,66:Add,Button,x+10 yp-5 GSetRunAEvFullPathIniDir,无路径缓存文件目录
+	Gui,66:Add,Edit,x+11 yp+2 w300 r1 GSetRunAEvFullPathIniDirHint vvRunAEvFullPathIniDir,%RunAEvFullPathIniDir%
+	Gui,66:Add,Button, xm yp+35 w50 GLVMenuObjPathAdd, + 增加
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuObjPathEdit, · 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuObjPathRemove, - 减少
-	Gui,66:Add,Text, x+15 yp-5,无路径说明：每次新增和编辑无路径菜单项，`n会使用Everything获得它的实际运行全路径
+	Gui,66:Add,Text, x+25 yp-5,无路径说明：每次新增和编辑无路径菜单项`n会使用Everything获得它的实际运行全路径
 	Gui,66:Add,Listview,xm yp+40 r16 grid AltSubmit vRunAnyMenuObjPathLV glistviewMenuObjPath, 无路径名|运行全路径（来自Everything）
 	RunAnyMenuObjPathImageListID := IL_Create(11)
 	Icon_Image_Set(RunAnyMenuObjPathImageListID)
@@ -6346,10 +6348,21 @@ SetIconFolderPath:
 return
 SetRunABackupDir:
 	Gui,66:Submit, NoHide
-	FileSelectFolder, RunABackupDir, , 0
-	if(RunABackupDir){
-		GuiControl,, vRunABackupDir, %RunABackupDir%
+	FileSelectFolder, dir, , 0
+	if(dir){
+		GuiControl,, vRunABackupDir, %dir%
 	}
+return
+SetRunAEvFullPathIniDir:
+	Gui,66:Submit, NoHide
+	FileSelectFolder, dir, , 0
+	if(dir){
+		GuiControl,, vRunAEvFullPathIniDir, %dir%
+	}
+return
+SetRunAEvFullPathIniDirHint:
+	ToolTip, 无路径缓存文件请不要设置在同步网盘内，防止在不同电脑上路径混乱, 300, 100
+	SetTimer,RemoveToolTip,5000
 return
 SetBrowserPath:
 	FileSelectFile, browserFilePath, 3, , 程序路径, (*.exe)
@@ -6398,7 +6411,7 @@ SetOK:
 	}else{
 		vSendStrEcKey:=SendStrEncrypt(SendStrDcKey,RunAnyZz vConfigDate)
 	}
-	SetValueList.Push("ConfigDate","AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupFormat","RunABackupDir","DisableApp")
+	SetValueList.Push("ConfigDate","AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupFormat","RunABackupDir","RunAEvFullPathIniDir","DisableApp")
 	SetValueList.Push("EvPath","EvCommand","EvAutoClose","EvShowExt","EvShowFolder","EvExeVerNew","EvExeMTimeNew","EvDemandSearch")
 	SetValueList.Push("HideFail","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideSelectZz","RecentMax")
 	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyRegedit","OneKeyFile","OneKeyMenu","BrowserPath","IconFolderPath")
@@ -6505,7 +6518,7 @@ SetEvReindex:
 	Run,% Get_Transform_Val(vEvPath) " -reindex"
 return
 SetReSet:
-	MsgBox,49,重置RunAny配置,此操作会删除RunAny所有注册表配置，以及删除本地配置文件%RunAnyConfig%，确认删除重置吗？
+	MsgBox,49,重置RunAny配置,此操作会删除RunAny所有注册表配置`n以及删除本地配置文件%RunAnyConfig%！`n还有所有的规则启动配置！`n确认删除重置吗？
 	IfMsgBox Ok
 	{
 		RegDelete, HKEY_CURRENT_USER, SOFTWARE\RunAny
@@ -7049,7 +7062,6 @@ return
 Var_Set:
 	;[RunAny设置参数]
 	global Z_ScriptName:=FileExist(RunAnyZz ".exe") ? RunAnyZz ".exe" : A_ScriptName
-	global RunAnyEvFullPathIni:=A_AppData "\" RunAnyZz "\RunAnyEvFullPath.ini"
 	RegRead, AutoRun, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 	AutoRun:=AutoRun=A_ScriptDir "\" Z_ScriptName ? 1 : 0
 	;优先读取配置文件，后读注册表
@@ -7324,6 +7336,9 @@ Run_Exist:
 	global iniVar1:=""
 	global both:=1
 	global RunABackupDirPath:=Get_Transform_Val(RunABackupDir)
+	global RunAEvFullPathIniDir:=Var_Read("RunAEvFullPathIniDir","`%AppData`%\" RunAnyZz)
+	global RunAEvFullPathIniDirPath:=Get_Transform_Val(RunAEvFullPathIniDir)
+	global RunAnyEvFullPathIni:=RunAEvFullPathIniDirPath "\RunAnyEvFullPath.ini"
 	global PluginsDir:="RunPlugins"	;~插件目录
 	IfNotExist,%A_AppData%\%RunAnyZz%
 		FileCreateDir, %A_AppData%\%RunAnyZz%
@@ -7331,6 +7346,8 @@ Run_Exist:
 		FileCreateDir,%RunABackupDirPath%
 	IfNotExist %RunABackupDirPath%\%RunAnyConfig%
 		FileCreateDir,%RunABackupDirPath%\%RunAnyConfig%
+	IfNotExist %RunAEvFullPathIniDirPath%
+		FileCreateDir,%RunAEvFullPathIniDirPath%
 	IfNotExist,%A_ScriptDir%\%PluginsDir%\Lib
 		FileCreateDir, %A_ScriptDir%\%PluginsDir%\Lib
 	if(RunAEncoding){
