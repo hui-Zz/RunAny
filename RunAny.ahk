@@ -2380,6 +2380,13 @@ time_format(t, f:="yyyy-MM-dd HH:mm:ss"){
 	FormatTime, timeVar, %t%, %f%
 	return t!="" ? timeVar : ""
 }
+;获取运行进程的路径
+get_process_path(process){
+	DetectHiddenWindows,On
+	WinGet, processPath, ProcessPath,ahk_exe %process%
+	DetectHiddenWindows,Off
+	return processPath
+}
 ;~;[电脑开机后的运行时长(秒)-规则]
 rule_boot_time(){
 	return A_TickCount/1000
@@ -5954,11 +5961,11 @@ Settings_Gui:
 	}
 	HotKeyFlag:=MenuVarFlag:=OpenExtFlag:=AdvancedConfigFlag:=false
 	GUI_WIDTH_66=700
-	TAB_WIDTH_66=620
-	GROUP_WIDTH_66=590
-	GROUP_LISTVIEW_WIDTH_66=580
-	GROUP_CHOOSE_EDIT_WIDTH_66=510
-	GROUP_ICON_EDIT_WIDTH_66=480
+	TAB_WIDTH_66=680
+	GROUP_WIDTH_66=660
+	GROUP_LISTVIEW_WIDTH_66=650
+	GROUP_CHOOSE_EDIT_WIDTH_66=580
+	GROUP_ICON_EDIT_WIDTH_66=550
 	MARGIN_TOP_66=15
 	ev := new everything
 	Gui,66:Destroy
@@ -6006,7 +6013,7 @@ Settings_Gui:
 	Gui,66:Add,Button,xm yp+25 GSetRunABackupDir,RunAny.ini自动备份目录
 	Gui,66:Add,Edit,x+11 yp+2 w400 r1 vvRunABackupDir,%RunABackupDir%
 	
-	Gui,66:Add,GroupBox,xm-10 y+15 vvDisableAppGroup,屏蔽RunAny程序列表（逗号分隔）
+	Gui,66:Add,GroupBox,xm-10 y+15 w%GROUP_WIDTH_66% vvDisableAppGroup,屏蔽RunAny程序列表（逗号分隔）
 	Gui,66:Font,,Consolas
 	Gui,66:Add,Edit,xm yp+25 r4 -WantReturn vvDisableApp,%DisableApp%
 	Gui,66:Font,,Microsoft YaHei
@@ -6104,9 +6111,10 @@ Settings_Gui:
 	Gui,66:Add,Checkbox,Checked%EvShowExt% x+23 vvEvShowExt,搜索带文件后缀
 	Gui,66:Add,Checkbox,Checked%EvShowFolder% x+5 vvEvShowFolder,搜索选中文件夹内部
 	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h80,Everything安装路径（支持菜单变量和相对路径 \..\代表上一级目录）
-	Gui,66:Add,Button,xm yp+30 w50 GSetEvPath,选择
-	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r2 -WantReturn vvEvPath,%EvPath%
-	Gui,66:Add,GroupBox,xm-10 y+20 vvEvCommandGroup,RunAny调用Everything搜索参数（搜索结果可在RunAny无路径运行，Everything异常请尝试重建索引）
+	Gui,66:Add,Button,xm yp+20 w50 GSetEvPath,选择
+	Gui,66:Add,Edit,xm+60 yp+2 w%GROUP_CHOOSE_EDIT_WIDTH_66% vvEvPath,%EvPath%
+	Gui,66:Add,Text,xm yp+30,% "当前运行Everything路径：" get_process_path("Everything.exe")
+	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% vvEvCommandGroup,RunAny调用Everything搜索参数（搜索结果可在RunAny无路径运行，Everything异常请尝试重建索引）
 	Gui,66:Add,Checkbox,Checked%EvDemandSearch% xm yp+25 vvEvDemandSearch gSetEvDemandSearch,按需搜索模式（只搜索RunAny菜单的无路径文件，非全磁盘搜索后再匹配）
 	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+20 vvEvExeVerNew gSetEvExeVerNew,搜索结果优先最新版本的同名exe
 	Gui,66:Add,Checkbox,Checked%EvExeMTimeNew% x+10 vvEvExeMTimeNew gSetEvExeVerNew,搜索结果优先最新修改时间的同名文件
@@ -6114,7 +6122,7 @@ Settings_Gui:
 	Gui,66:Add,Text,xm+60 yp,!C:\*Windows*为排除系统缓存和系统程序，注意空格间隔
 	Gui,66:Add,Text,xm+60 yp+15,file:*.exe|*.lnk|后面类推增加想要的后缀
 	Gui,66:Font,,Consolas
-	Gui,66:Add,Edit,ReadOnly xm yp+25 r7 -WantReturn vvEvCommand,%EvCommand%
+	Gui,66:Add,Edit,ReadOnly xm yp+25 r6 -WantReturn vvEvCommand,%EvCommand%
 	Gui,66:Font,,Microsoft YaHei
 	
 	Gui,66:Tab,一键直达,,Exact
@@ -6125,7 +6133,7 @@ Settings_Gui:
 	Gui,66:Add,Checkbox,Checked%OneKeyFolder% x+10 yp vvOneKeyFolder,文件夹路径
 	Gui,66:Add,Checkbox,Checked%OneKeyMagnet% x+10 yp vvOneKeyMagnet,磁力链接
 	Gui,66:Add,Checkbox,Checked%OneKeyRegedit% x+10 yp vvOneKeyRegedit,注册表路径
-	Gui,66:Add,GroupBox,xm-10 y+20 h310 vvOneKeyUrlGroup,一键搜索选中文字 %OneHotKey%
+	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h310 vvOneKeyUrlGroup,一键搜索选中文字 %OneHotKey%
 	Gui,66:Add,Hotkey,xm yp+30 w150 vvOneKey,%OneKey%
 	Gui,66:Add,Checkbox,Checked%OneWinKey% xm+155 yp+3 vvOneWinKey,Win
 	Gui,66:Add,Checkbox,Checked%OneKeyMenu% x+38 vvOneKeyMenu,绑定菜单1热键为一键搜索
