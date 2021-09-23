@@ -145,87 +145,67 @@ Loop,%MenuCount%
 }
 MenuShowFlag:=true
 ;══════════════════════════════════════════════════════════════════
-;~;[13.判断有无路径应用则需要使用Everything]
 global EvQueryFlag:=false                  ;是否拿到无路径搜索结果
-global MenuObjEv:=Object()                 ;Everything搜索结果程序全径
-global MenuObjSame:=Object()               ;Everything搜索结果重名程序全径
+global MenuObjEv:=Object()                 ;Everything搜索结果程序全路径
+global MenuObjSame:=Object()               ;Everything搜索结果重名程序全路径
+global MenuObjSearch:=Object()             ;Everything搜索无路径菜单项
+global MenuObjCache:=Object()              ;Everything搜索无路径缓存
+global MenuObjNew:=Object()                ;Everything搜索新增加
+EvCommandStr:=EvDemandSearch ? EverythingCommandStr() : ""
+;~;[13.获取无路径的运行全路径缓存文件]
 IniRead, evFullPathIniVar, %RunAnyEvFullPathIni%, FullPath
 Loop, parse, evFullPathIniVar, `n, `r
 {
 	varList:=StrSplit(A_LoopField,"=",,2)
 	objFileNameNoExeExt:=RegExReplace(varList[1],"iS)\.exe$","")
 	MenuObj[objFileNameNoExeExt]:=varList[2]
-	MenuObjEv:=MenuObj.Clone()
+	MenuObjCache[(varList[1])]:=varList[2]
 	EvQueryFlag:=true
+	if(varList[2]!="" && !FileExist(varList[2])){
+		MenuObjNew.push((InStr(varList[1],A_Space) || InStr(varList[1],"!")) ? """" varList[1] """" : varList[1])
+	}
 }
+;发现有新增的无路径菜单项
+for k,v in MenuObjSearch
+{
+	if(!MenuObjCache.HasKey(k)){
+		MenuObjNew.push((InStr(k,A_Space) || InStr(k,"!")) ? """" k """" : k)
+	}else{
+		MenuObjSearch[k]:=MenuObjCache[k]
+	}
+}
+if(MenuObjNew.Length()>0){
+	EvQueryFlag:=false
+	EvCommandStr:=StrListJoin("|",MenuObjNew)
+}
+MenuObjEv:=MenuObj.Clone()
 EvPath:=Var_Read("EvPath")
+;~;[14.判断有无路径应用则需要使用Everything]
 if(!EvQueryFlag && !EvNo){
-	EvCommandStr:=EvDemandSearch ? everythingCommandStr() : ""
 	if(!EvDemandSearch || (EvDemandSearch && EvCommandStr!="")){
-		evAdminRun:=A_IsAdmin ? "-admin" : ""
-		;获取everything路径
-		evExist:=true
-		DetectHiddenWindows,On
-		if(WinExist("ahk_exe Everything.exe")){
-			WinGet, EvPathRun, ProcessPath, ahk_exe Everything.exe
-			ev := new everything
-			;RunAny管理员权限运行后发现Everything非管理员权限则重新以管理员权限运行
-			if(!ev.GetIsAdmin() && A_IsAdmin && EvPathRun){
-				Run,%EvPathRun% -exit
-				Run,%EvPathRun% -startup %evAdminRun%
-				Sleep,500
-				gosub,Menu_Reload
-			}
-		}
-		while !WinExist("ahk_exe Everything.exe")
-		{
-			if(A_Index>10){
-				EvPathRun:=Get_Transform_Val(EvPath)
-				if(EvPathRun && FileExist(EvPathRun) && !InStr(FileExist(EvPathRun), "D")){
-					Run,%EvPathRun% -startup %evAdminRun%
-					Sleep,500
-					break
-				}else if(FileExist(A_ScriptDir "\Everything\Everything.exe")){
-					Run,%A_ScriptDir%\Everything\Everything.exe -startup %evAdminRun%
-					EvPath=%A_ScriptDir%\Everything\Everything.exe
-					Sleep,500
-					break
-				}else{
-					TrayTip,,RunAny需要Everything快速识别无路径程序`n
-					(
-* 运行Everything后再重启RunAny
-* 或在RunAny设置中配置Everything正确安装路径`n* 或www.voidtools.com下载安装
-					),5,1
-					evExist:=false
-					break
-				}
-			}
-			Sleep,100
-		}
-		if(Trim(EvPath," `t`n`r")=""){
-			;>>发现Everything已运行则取到路径
-			WinGet, EvPath, ProcessPath, ahk_exe Everything.exe
-		}
-		;使用everything补全无路径exe的全路径
-		If(evExist){
-			if(EvCheckFlag){
-				RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults,0
-				gosub,everythingCheck
-			}
+		if(EverythingIsRun()){
 			RegRead,EvTotResults,HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults
 			if(EvTotResults>0){
-				everythingQuery(EvCommandStr)
+				EverythingQuery(EvCommandStr)
 				EvQueryFlag:=true
 			}else{
-				SetTimer,everythingCheckResults,100
+				gosub,EverythingCheck
+				Loop, 30
+				{
+					RegRead,EvTotResults,HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults
+					if(EvTotResults>0){
+						EverythingQuery(EvCommandStr)
+						EvQueryFlag:=true
+						break
+					}
+					Sleep, 100
+				}
+				RegRead,EvTotResults,HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults
+				if(!EvTotResults){
+					SetTimer,EverythingCheckResults,100
+				}
 			}
 		}
-		;如果需要自动关闭everything
-		if(EvAutoClose && EvPath && EvQueryFlag){
-			EvPathRun:=Get_Transform_Val(EvPath)
-			Run,%EvPathRun% -exit
-		}
-		DetectHiddenWindows,Off
 	}
 }
 ;══════════════════════════════════════════════════════════════════
@@ -235,7 +215,7 @@ Menu_Read(iniVar1,menuRoot1,"",1)
 
 t4:=t5:=A_TickCount-StartTick
 Menu_Tray_Tip("菜单1：" Round((t4-t3)/1000,3) "s`n")
-;~;[14.如果有第2菜单则开始加载]
+;~;[15.如果有第2菜单则开始加载]
 if(MENU2FLAG){
 	Menu_Tray_Tip("","开始创建菜单2内容...")
 	Menu_Read(iniVar2,menuRoot2,"",2)
@@ -243,20 +223,20 @@ if(MENU2FLAG){
 	Menu_Tray_Tip("菜单2：" Round((t5-t4)/1000,3) "s`n")
 }
 
-;~;[15.初始菜单加载后操作]
+;~;[16.初始菜单加载后操作]
 try Menu,Tray,Icon,% ZzIconS[1],% ZzIconS[2]
 if(SendStrEcKey!="")
 	SendStrDcKey:=SendStrDecrypt(SendStrEcKey,RunAnyZz ConfigDate)
 
 t6:=t7:=A_TickCount-StartTick
-;~;[16.规则启动程序]
+;~;[17.规则启动程序]
 if(RunCtrlListBoxVar!=""){
 	Gosub,Rule_Effect
 	t7:=A_TickCount-StartTick
 	Menu_Tray_Tip("规则启动：" Round((t7-t6)/1000,3) "s`n")
 }
 
-;~;[17.对菜单内容项进行过滤调整]
+;~;[18.对菜单内容项进行过滤调整]
 Loop,%MenuCount%
 {
 	M_Index:=A_Index
@@ -314,7 +294,7 @@ Loop,%MenuCount%
 			}
 		}
 	}
-	;~;[18.最近运行项]
+	;~;[19.最近运行项]
 	if(RecentMax>0){
 		Menu,% menuDefaultRoot%M_Index%[1],Add
 		Menu,% menuWebRoot%M_Index%[1],Add
@@ -343,11 +323,11 @@ Loop,%MenuCount%
 		}
 	}
 }
-;~;[19.内部关联后缀打开方式]
+;~;[20.内部关联后缀打开方式]
 Gosub,Open_Ext_Set
 
 Menu_Tray_Tip("","菜单已经可以正常使用`n开始为菜单中exe程序加载图标...")
-;~;[20.菜单中EXE程序加载图标，有ico图标更快]
+;~;[21.菜单中EXE程序加载图标，有ico图标更快]
 For k, v in MenuExeIconArray
 {
 	if(DisableExeIcon){
@@ -365,7 +345,7 @@ For k, v in MenuExeArray
 	}
 }
 ;-------------------------------------------------------------------------------------------
-;~;[21.菜单已经加载完毕，托盘图标变化]
+;~;[22.菜单已经加载完毕，托盘图标变化]
 if(EvNo || EvQueryFlag)
 	try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 t8:=A_TickCount-StartTick
@@ -595,7 +575,7 @@ RunABackupClear(RunABackupDir,RunABackupFile){
 	}
 }
 ;══════════════════════════════════════════════════════════════════
-;~;【创建菜单-读取配置】
+;~;【——创建菜单——】
 ;══════════════════════════════════════════════════════════════════
 Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 	MenuObjName:=Object()    ;~程序菜单项名称
@@ -982,7 +962,7 @@ Menu_HotStr_Hint_Run:
 	SetTimer,RemoveToolTip,%HotStrShowTime%
 return
 ;══════════════════════════════════════════════════════════════════
-;~;【生成菜单(判断后缀创建图标)】
+;~;【生成菜单项(判断后缀创建图标)】
 ;══════════════════════════════════════════════════════════════════
 Menu_Add(menuName,menuItem,itemContent,itemMode,TREE_NO){
 	if(!menuName || !itemContent)
@@ -2559,7 +2539,7 @@ DynaExpr_ObjRegisterActive(GUID,appFunc,appParms:="",getZz:="")
 	sScript:="
 	(
 		#NoTrayIcon
-		get_zz = " getZz "
+		getZz = " getZz "
 		try appPlugins := ComObjActive(""" GUID """)
 		appPlugins[""" appFunc """](" appParms ")
 	)"
@@ -2573,7 +2553,7 @@ DynaExpr_EvalToVar(sExpr,getZz:="")
 	(
 		#NoTrayIcon
 		FileDelete " sTmpFile "
-		get_zz = " getZz "
+		getZz = " getZz "
 		val := " sExpr "
 		FileAppend %val%, " sTmpFile "
 	)"
@@ -6084,7 +6064,7 @@ Settings_Gui:
 	Gui,66:Add,Button, xm yp+35 w50 GLVMenuObjPathAdd, + 增加
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuObjPathEdit, · 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuObjPathRemove, - 减少
-	Gui,66:Add,Text, x+25 yp-5,无路径说明：每次新增和编辑无路径菜单项`n会使用Everything获得它的实际运行全路径
+	Gui,66:Add,Text, x+25 yp-5,无路径说明：每次新增或移动无路径文件后`n会使用Everything获得它最新的运行全路径
 	Gui,66:Add,Listview,xm yp+40 r16 grid AltSubmit vRunAnyMenuObjPathLV glistviewMenuObjPath, 无路径名|运行全路径（来自Everything）
 	RunAnyMenuObjPathImageListID := IL_Create(11)
 	Icon_Image_Set(RunAnyMenuObjPathImageListID)
@@ -6094,9 +6074,10 @@ Settings_Gui:
 	Loop, parse, evFullPathIniVar, `n, `r
 	{
 		varList:=StrSplit(A_LoopField,"=",,2)
-		LV_Add(Set_Icon(RunAnyMenuObjPathImageListID,varList[2],false,false,varList[2]), varList[1], varList[2])
+		LV_Add(varList[2]="" ? "Icon3" : Set_Icon(RunAnyMenuObjPathImageListID,varList[2],false,false,varList[2]), varList[1], varList[2])
 	}
 	LV_ModifyCol()
+	LV_ModifyCol(1, "Sort")  ; 排序
 	GuiControl, 66:+Redraw, RunAnyMenuObjPathLV
 	
 	Gui,66:Tab,搜索Everything,,Exact
@@ -6105,19 +6086,19 @@ Settings_Gui:
 	Gui,66:Add,Text,xm y+%MARGIN_TOP_66%,Everything当前权限：【%EvIsAdminStatus%】
 	Gui,66:Add,Checkbox,Checked%EvAutoClose% x+20 yp vvEvAutoClose,Everything自动关闭(不常驻后台)
 	Gui,66:Add,Button,x+10 w80 h20 gSetEvReindex,重建索引
+	Gui,66:Add,Text,xm yp+25,% "Everything当前运行路径：" get_process_path("Everything.exe")
 	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h55,一键Everything [搜索选中文字，支持多选文件、再按为隐藏/激活] %EvHotKey%
 	Gui,66:Add,Hotkey,xm+10 yp+20 w130 vvEvKey,%EvKey%
 	Gui,66:Add,Checkbox,Checked%EvWinKey% xm+150 yp+3 vvEvWinKey,Win
-	Gui,66:Add,Checkbox,Checked%EvShowExt% x+23 vvEvShowExt,搜索带文件后缀
+	Gui,66:Add,Checkbox,Checked%EvShowExt% x+27 vvEvShowExt,搜索带文件后缀
 	Gui,66:Add,Checkbox,Checked%EvShowFolder% x+5 vvEvShowFolder,搜索选中文件夹内部
-	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h80,Everything安装路径（支持菜单变量和相对路径 \..\代表上一级目录）
+	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h60,Everything安装路径（支持菜单变量和相对路径 \..\代表上一级目录）
 	Gui,66:Add,Button,xm yp+20 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp+2 w%GROUP_CHOOSE_EDIT_WIDTH_66% vvEvPath,%EvPath%
-	Gui,66:Add,Text,xm yp+30,% "当前运行Everything路径：" get_process_path("Everything.exe")
 	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% vvEvCommandGroup,RunAny调用Everything搜索参数（搜索结果可在RunAny无路径运行，Everything异常请尝试重建索引）
-	Gui,66:Add,Checkbox,Checked%EvDemandSearch% xm yp+25 vvEvDemandSearch gSetEvDemandSearch,按需搜索模式（只搜索RunAny菜单的无路径文件，非全磁盘搜索后再匹配）
+	Gui,66:Add,Checkbox,Checked%EvDemandSearch% xm yp+25 Disabled vvEvDemandSearch gSetEvDemandSearch,按需搜索模式（只搜索RunAny菜单的无路径文件，非全磁盘搜索后再匹配）
 	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+20 vvEvExeVerNew gSetEvExeVerNew,搜索结果优先最新版本的同名exe
-	Gui,66:Add,Checkbox,Checked%EvExeMTimeNew% x+10 vvEvExeMTimeNew gSetEvExeVerNew,搜索结果优先最新修改时间的同名文件
+	Gui,66:Add,Checkbox,Checked%EvExeMTimeNew% x+23 vvEvExeMTimeNew gSetEvExeVerNew,搜索结果优先最新修改时间的同名文件
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvCommand,修改
 	Gui,66:Add,Text,xm+60 yp,!C:\*Windows*为排除系统缓存和系统程序，注意空格间隔
 	Gui,66:Add,Text,xm+60 yp+15,file:*.exe|*.lnk|后面类推增加想要的后缀
@@ -7404,12 +7385,11 @@ Run_Exist:
 				gosub,Menu_Reload
 			}
 		}
-		global EvCheckFlag:=false  ;~是否启动Everything搜索检查
-		RegRead,EvTotResults,HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults
-		RegRead,RunAnyTickCount,HKEY_CURRENT_USER\SOFTWARE\RunAny,RunAnyTickCount
+		;~Everything搜索检查准备
 		RegWrite,REG_SZ,HKEY_CURRENT_USER\SOFTWARE\RunAny,RunAnyTickCount,%A_TickCount%
-		if(!RunAnyTickCount || A_TickCount<RunAnyTickCount || !EvTotResults){
-			EvCheckFlag:=true
+		RegRead,RunAnyTickCount,HKEY_CURRENT_USER\SOFTWARE\RunAny,RunAnyTickCount
+		if(!RunAnyTickCount || A_TickCount<RunAnyTickCount){
+			RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults,0
 		}
 	}
 return
@@ -8484,11 +8464,47 @@ Ini_Run(ini){
 	}
 }
 ;══════════════════════════════════════════════════════════════════
-;~;【使用everything搜索所有exe程序】
+;~;【Everything搜索所有exe程序】
 ;══════════════════════════════════════════════════════════════════
-;[校验everything是否可正常返回搜索结果]
-everythingCheck:
-FileDelete,%A_Temp%\RunAnyEv.ahk
+EverythingIsRun(){
+	evExist:=true
+	evAdminRun:=A_IsAdmin ? "-admin" : ""
+	DetectHiddenWindows,On
+	;获取everything路径
+	if(WinExist("ahk_exe Everything.exe")){
+		WinGet, EvPathRun, ProcessPath, ahk_exe Everything.exe
+		ev := new everything
+		;RunAny管理员权限运行后发现Everything非管理员权限则重新以管理员权限运行
+		if(!ev.GetIsAdmin() && A_IsAdmin && EvPathRun){
+			Run,%EvPathRun% -exit
+			Run,%EvPathRun% -startup %evAdminRun%
+			Sleep,500
+			gosub,Menu_Reload
+		}
+	}else{
+		EvPathRun:=Get_Transform_Val(EvPath)
+		if(EvPathRun && FileExist(EvPathRun) && !InStr(FileExist(EvPathRun), "D")){
+			Run,%EvPathRun% -startup %evAdminRun%
+			Sleep,500
+		}else if(FileExist(A_ScriptDir "\Everything\Everything.exe")){
+			Run,%A_ScriptDir%\Everything\Everything.exe -startup %evAdminRun%
+			EvPath=%A_ScriptDir%\Everything\Everything.exe
+			Sleep,500
+		}else{
+			TrayTip,,RunAny需要Everything快速识别无路径程序`n
+			(
+* 运行Everything后再重启RunAny
+* 或在RunAny设置中配置Everything正确安装路径`n* 或www.voidtools.com下载安装
+			),5,1
+			evExist:=false
+		}
+	}
+	DetectHiddenWindows,Off
+	return evExist
+}
+;[校验Everything是否可正常返回搜索结果]
+EverythingCheck:
+FileDelete,%A_Temp%\%RunAnyZz%\RunAnyEv.ahk
 FileAppend,
 (
 #NoTrayIcon
@@ -8546,17 +8562,17 @@ class everything
 		return dllcall(everyDLL "\Everything_GetTotResults")
 	}
 }
-),%A_Temp%\RunAnyEv.ahk
-Run,%A_AhkPath%%A_Space%"%A_Temp%\RunAnyEv.ahk"
+),%A_Temp%\%RunAnyZz%\RunAnyEv.ahk
+Run,%A_AhkPath%%A_Space%"%A_Temp%\%RunAnyZz%\RunAnyEv.ahk"
 return
-everythingCheckResults:
+EverythingCheckResults:
 	RegRead,EvTotResults,HKEY_CURRENT_USER,SOFTWARE\RunAny,EvTotResults
 	if(EvTotResults>0){
-		SetTimer,everythingCheckResults,Off
+		SetTimer,EverythingCheckResults,Off
 		gosub,Menu_Reload
 	}
 return
-everythingQuery(EvCommandStr){
+EverythingQuery(EvCommandStr){
 	ev := new everything
 	if(EvCommandStr!=""){
 		ev.SetMatchWholeWord(true)
@@ -8593,13 +8609,13 @@ everythingQuery(EvCommandStr){
 					MenuObjEv[objFileNameNoExeExt]:=objFullPathName
 					if(MenuObj.HasKey(objFileNameNoExeExt)){
 						MenuObj[objFileNameNoExeExt]:=objFullPathName
-						IniWrite, %objFullPathName%, %RunAnyEvFullPathIni%, FullPath, %objFileName%
+						MenuObjSearch[objFileName]:=objFullPathName
 					}
 				}else if(chooseNewFlag && objFullPathNameVersionOld=objFullPathNameVersionNew){
 					MenuObjEv[objFileNameNoExeExt]:=objFullPathName
 					if(MenuObj.HasKey(objFileNameNoExeExt)){
 						MenuObj[objFileNameNoExeExt]:=objFullPathName
-						IniWrite, %objFullPathName%, %RunAnyEvFullPathIni%, FullPath, %objFileName%
+						MenuObjSearch[objFileName]:=objFullPathName
 					}
 				}
 				continue
@@ -8612,11 +8628,20 @@ everythingQuery(EvCommandStr){
 		MenuObjEv[objFileNameNoExeExt]:=objFullPathName
 		if(MenuObj.HasKey(objFileNameNoExeExt)){
 			MenuObj[objFileNameNoExeExt]:=objFullPathName
-			IniWrite, %objFullPathName%, %RunAnyEvFullPathIni%, FullPath, %objFileName%
+			MenuObjSearch[objFileName]:=objFullPathName
 		}
 	}
+	for k,v in MenuObjSearch
+	{
+		IniWrite, %v%, %RunAnyEvFullPathIni%, FullPath, %k%
+	}
+	;如果需要自动关闭everything
+	if(EvAutoClose && EvPath){
+		EvPathRun:=Get_Transform_Val(EvPath)
+		Run,%EvPathRun% -exit
+	}
 }
-everythingCommandStr(){
+EverythingCommandStr(){
 	Loop,%MenuCount%
 	{
 		Loop, parse, iniVar%A_Index%, `n, `r, %A_Space%%A_Tab%
@@ -8631,7 +8656,7 @@ everythingCommandStr(){
 			if(InStr(EvCommandStr,"|" outVar "|") || (itemMode!=1 && itemMode!=8)){
 				continue
 			}else if(itemMode=1 && (RegExMatch(outVar,"S)\\|\/|\:|\*|\?|\""|\<|\>|\|")
-					|| FileExist(A_WinDir "\" outVar) || FileExist(A_WinDir "\system32\" outVar))){
+					|| RegExMatch(outVar,"S)^%.*?%$") || FileExist(A_WinDir "\" outVar) || FileExist(A_WinDir "\system32\" outVar))){
 				continue
 			}else if(itemMode=8){
 				if(RegExMatch(itemVar,"iS).+?\[.+?\]%?\(.*?%"".+?""%.*?\)")){
@@ -8647,6 +8672,7 @@ everythingCommandStr(){
 			}
 			outVarNoExeExt:=RegExReplace(outVar,"iS)\.exe$","")
 			MenuObj[outVarNoExeExt]:=""
+			MenuObjSearch[outVar]:=""
 		}
 	}
 	EvCommandStr:=RegExReplace(EvCommandStr,"\|$")
