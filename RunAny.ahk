@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.7 @2021.09.20
+║【RunAny】一劳永逸的快速启动工具 v5.7.7 @2021.09.24
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.7"     ;~;版本号
-global RunAny_update_time:="2021.09.20"   ;~;更新日期
+global RunAny_update_time:="2021.09.24"   ;~;更新日期
 gosub,Var_Set           ;~;01.参数初始化
 gosub,Menu_Var_Set      ;~;02.自定义变量
 gosub,Icon_Set          ;~;03.图标初始化
@@ -149,10 +149,10 @@ global EvQueryFlag:=false                  ;是否拿到无路径搜索结果
 global MenuObjEv:=Object()                 ;Everything搜索结果程序全路径
 global MenuObjSame:=Object()               ;Everything搜索结果重名程序全路径
 global MenuObjSearch:=Object()             ;Everything搜索无路径菜单项
-global MenuObjCache:=Object()              ;Everything搜索无路径缓存
+global MenuObjCache:=Object()              ;Everything搜索无路径应用缓存
 global MenuObjNew:=Object()                ;Everything搜索新增加
 EvCommandStr:=EvDemandSearch ? EverythingCommandStr() : ""
-;~;[13.获取无路径的运行全路径缓存文件]
+;~;[13.获取无路径应用的运行全路径缓存]
 IniRead, evFullPathIniVar, %RunAnyEvFullPathIni%, FullPath
 Loop, parse, evFullPathIniVar, `n, `r
 {
@@ -188,6 +188,10 @@ if(!EvQueryFlag && !EvNo){
 			if(EvTotResults>0){
 				EverythingQuery(EvCommandStr)
 				EvQueryFlag:=true
+				for k,v in MenuObjSearch
+				{
+					IniWrite, %v%, %RunAnyEvFullPathIni%, FullPath, %k%
+				}
 			}else{
 				gosub,EverythingCheck
 				Loop, 30
@@ -196,6 +200,10 @@ if(!EvQueryFlag && !EvNo){
 					if(EvTotResults>0){
 						EverythingQuery(EvCommandStr)
 						EvQueryFlag:=true
+						for k,v in MenuObjSearch
+						{
+							IniWrite, %v%, %RunAnyEvFullPathIni%, FullPath, %k%
+						}
 						break
 					}
 					Sleep, 100
@@ -359,6 +367,24 @@ if(iniFlag){
 	gosub,Menu_About
 	gosub,Menu_Show1
 }
+
+;检查无路径应用缓存是否有新的版本
+if(!EvNo && EvQueryFlag && Trim(evFullPathIniVar," `t`n`r")!="" && rule_check_is_run("Everything.exe")){
+	MenuObjUpdateList:=Object(),MenuObjEv:=Object(),MenuObjSearch:=Object()
+	EverythingQuery(EvCommandStr)
+	for k,v in MenuObjCache
+	{
+		if(v!=MenuObjSearch[k]){
+			IniWrite, % MenuObjSearch[k], %RunAnyEvFullPathIni%, FullPath, %k%
+			MenuObjUpdateList.Push(k)
+		}
+	}
+	if(MenuObjUpdateList.Length()>0){
+		TrayTip,,% "以下无路径应用缓存替换为最新版路径`n" StrListJoin("`n",MenuObjUpdateList),5,1
+		gosub,Menu_Reload
+	}
+}
+
 ;提前加载菜单树图标缓存
 global TreeImageListID := IL_Create(11)
 Icon_Image_Set(TreeImageListID)
@@ -1089,22 +1115,22 @@ Menu_NoGet_Show:
 	gosub,Menu_Show
 	noGetZz:=false
 return
-MenuShowTime:
-	MenuShowTimeFlag:=true
-	if(MenuShowFlag){
-		SetTimer,MenuShowTime,Off
-		gosub,Menu_Show
-	}
-return
+; MenuShowTime:
+; 	MenuShowTimeFlag:=true
+; 	if(MenuShowFlag){
+; 		SetTimer,MenuShowTime,Off
+; 		gosub,Menu_Show
+; 	}
+; return
 ;══════════════════════════════════════════════════════════════════
 ;~;【——显示菜单——】
 ;══════════════════════════════════════════════════════════════════
 Menu_Show:
 	try{
-		if(!MenuShowFlag && !MenuShowTimeFlag){
-			SetTimer,MenuShowTime,20
-			return
-		}
+		; if(!MenuShowFlag && !MenuShowTimeFlag){
+		; 	SetTimer,MenuShowTime,20
+		; 	return
+		; }
 		if(!extMenuHideFlag && !noGetZz)
 			getZz:=Get_Zz()
 		selectCheck:=Trim(getZz," `t`n`r")
@@ -6064,8 +6090,8 @@ Settings_Gui:
 	Gui,66:Add,Button, xm yp+35 w50 GLVMenuObjPathAdd, + 增加
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuObjPathEdit, · 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuObjPathRemove, - 减少
-	Gui,66:Add,Text, x+25 yp-5,无路径说明：每次新增或移动无路径文件后`n会使用Everything获得它最新的运行全路径
-	Gui,66:Add,Listview,xm yp+40 r16 grid AltSubmit vRunAnyMenuObjPathLV glistviewMenuObjPath, 无路径名|运行全路径（来自Everything）
+	Gui,66:Add,Text, x+25 yp-5,无路径说明：每次新增或移动无路径应用文件后`n会使用Everything获得它最新的运行全路径
+	Gui,66:Add,Listview,xm yp+40 r16 grid AltSubmit vRunAnyMenuObjPathLV glistviewMenuObjPath, 无路径应用名|运行全路径（来自Everything）
 	RunAnyMenuObjPathImageListID := IL_Create(11)
 	Icon_Image_Set(RunAnyMenuObjPathImageListID)
 	GuiControl, 66:-Redraw, RunAnyMenuObjPathLV
@@ -6097,13 +6123,13 @@ Settings_Gui:
 	Gui,66:Add,Edit,xm+60 yp+2 w%GROUP_CHOOSE_EDIT_WIDTH_66% vvEvPath,%EvPath%
 	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% vvEvCommandGroup,RunAny调用Everything搜索参数（搜索结果可在RunAny无路径运行，Everything异常请尝试重建索引）
 	Gui,66:Add,Checkbox,Checked%EvDemandSearch% xm yp+25 Disabled vvEvDemandSearch gSetEvDemandSearch,按需搜索模式（只搜索RunAny菜单的无路径文件，非全磁盘搜索后再匹配）
-	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+20 vvEvExeVerNew gSetEvExeVerNew,搜索结果优先最新版本的同名exe
-	Gui,66:Add,Checkbox,Checked%EvExeMTimeNew% x+23 vvEvExeMTimeNew gSetEvExeVerNew,搜索结果优先最新修改时间的同名文件
+	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+20 vvEvExeVerNew,搜索结果优先最新版本的同名exe
+	Gui,66:Add,Checkbox,Checked%EvExeMTimeNew% x+23 vvEvExeMTimeNew,搜索结果优先最新修改时间的同名文件
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvCommand,修改
-	Gui,66:Add,Text,xm+60 yp,!C:\*Windows*为排除系统缓存和系统程序，注意空格间隔
-	Gui,66:Add,Text,xm+60 yp+15,file:*.exe|*.lnk|后面类推增加想要的后缀
+	Gui,66:Add,Text,xm+60 yp,!C:\Windows* !?:\$RECYCLE.BIN* 为排除系统程序和回收站，注意中间空格间隔
+	; Gui,66:Add,Text,xm+60 yp+15,file:*.exe|*.lnk|后面类推增加想要的后缀
 	Gui,66:Font,,Consolas
-	Gui,66:Add,Edit,ReadOnly xm yp+25 r6 -WantReturn vvEvCommand,%EvCommand%
+	Gui,66:Add,Edit,xm yp+35 r6 -WantReturn ReadOnly vvEvCommand,%EvCommand%
 	Gui,66:Font,,Microsoft YaHei
 	
 	Gui,66:Tab,一键直达,,Exact
@@ -6457,7 +6483,7 @@ SetOK:
 			IniWrite,%menuVarVal%,%RunAnyConfig%,MenuVar,%menuVarName%
 		}
 	}
-	;[保存无路径缓存]
+	;[保存无路径应用缓存]
 	if(MenuObjPathFlag){
 		Gui, ListView, RunAnyMenuObjPathLV
 		IniWrite, delete=1, %RunAnyEvFullPathIni%, FullPath
@@ -6514,17 +6540,6 @@ SetReSet:
 		RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		FileDelete, %RunAnyConfig%
 		gosub,Menu_Reload
-	}
-return
-SetEvExeVerNew:
-	Gui,66:Submit, NoHide
-	if(vEvExeVerNew){
-		MsgBox,64,Everything搜索结果优先最新版本或修改时间的同名exe全路径, %RunAnyZz%会比较电脑上所有同名exe的版本号、修改时间`n
-		(
-如果电脑同名程序过多会延长开机后%RunAnyZz%初始化速度`n
-建议同时开启上边“按需搜索模式”（只搜索%RunAnyZz%菜单的无路径文件）
-只比较%RunAnyZz%菜单中的同名程序版本号、修改时间，大大加快速度
-		)
 	}
 return
 SetEvDemandSearch:
@@ -6802,7 +6817,7 @@ SaveMenuVar:
 	LV_ModifyCol()  ; 根据内容自动调整每列的大小.
 	Gui,SaveVar:Destroy
 return
-;--------------------------------------无路径缓存设置界面--------------------------------------
+;-----------------------------------无路径应用缓存设置界面-----------------------------------
 Menu_Obj_Path_Edit:
 	Gui, ListView, RunAnyMenuObjPathLV
 	if(menuObjPathItem="编辑"){
@@ -6817,7 +6832,7 @@ Menu_Obj_Path_Edit:
 	Gui,SavePath:+Owner66
 	Gui,SavePath:Margin,20,20
 	Gui,SavePath:Font,,Microsoft YaHei
-	Gui,SavePath:Add, GroupBox,xm y+10 w400 h135, 无路径缓存
+	Gui,SavePath:Add, GroupBox,xm y+10 w400 h135, 无路径应用缓存
 	Gui,SavePath:Add, Text, xm+5 y+35 y35 w60,无路径名
 	Gui,SavePath:Add, Edit, x+5 yp w300 vvmenuObjPathName, %menuObjPathName%
 	Gui,SavePath:Add, Text, xm+5 y+15 w60,运行全路径
@@ -6825,7 +6840,7 @@ Menu_Obj_Path_Edit:
 	Gui,SavePath:Font
 	Gui,SavePath:Add,Button,Default xm+100 y+25 w75 GSaveMenuObjPath,保存(&S)
 	Gui,SavePath:Add,Button,x+20 w75 GSetCancel,取消(&C)
-	Gui,SavePath:Show,,%RunAnyZz% - %menuObjPathItem%菜单无路径缓存 %RunAny_update_version% %RunAny_update_time%
+	Gui,SavePath:Show,,%RunAnyZz% - %menuObjPathItem%菜单无路径应用缓存 %RunAny_update_version% %RunAny_update_time%
 return
 listviewMenuObjPath:
     if A_GuiEvent = DoubleClick
@@ -6855,14 +6870,14 @@ SaveMenuObjPath:
 	MenuObjPathFlag:=true
 	Gui,SavePath:Submit, NoHide
 	if(vmenuObjPathName=""){
-		ToolTip, 请填入无路径缓存名,195,35
+		ToolTip, 请填入无路径应用缓存名,195,35
 		SetTimer,RemoveToolTip,3000
 		return
 	}
 	Gui,66:Default
 	if(menuObjPathItem="新建"){
 		if(MenuObjEv[vmenuObjPathName]){
-			ToolTip, 已有相同无路径缓存名！,195,35
+			ToolTip, 已有相同无路径应用缓存名！,195,35
 			SetTimer,RemoveToolTip,3000
 			return
 		}
@@ -7119,7 +7134,7 @@ Var_Set:
 	global EvExeVerNew:=Var_Read("EvExeVerNew",0)
 	global EvExeMTimeNew:=Var_Read("EvExeMTimeNew",0)
 	global EvDemandSearch:=Var_Read("EvDemandSearch",1)
-	EvCommandDefault:="!C:\Windows* !?:\$RECYCLE.BIN* !?:\Users\*\AppData\Local\Temp"
+	EvCommandDefault:="!C:\Windows* !?:\$RECYCLE.BIN* !?:\Users\*\AppData\Local\Temp\* !?:\Users\*\AppData\Roaming\*"
 	try EnvGet, scoopPath, scoop
 	if(scoopPath)
 		EvCommandDefault.=" !?:\Users\*\scoop\shims\*"
@@ -7675,13 +7690,8 @@ menuItemIconFileName(menuItem){
 ;══════════════════════════════════════════════════════════════════
 ;~;【AHK插件脚本Read】
 Plugins_Read:
-	global PluginsObjList:=Object()
-	global PluginsPathList:=Object()
-	global PluginsNameList:=Object()
-	global pluginsDownList:=Object()
-	global PluginsVersionList:=Object()
-	global PluginsIconList:=Object()
-	global PluginsContentList:=Object()
+	global PluginsObjList:=Object(),PluginsPathList:=Object(),PluginsNameList:=Object(),pluginsDownList:=Object()
+	global PluginsVersionList:=Object(),PluginsIconList:=Object(),PluginsContentList:=Object()
 	global PluginsObjNum:=0
 	global PluginsDirList:=[]
 	global PluginsEditor:=Var_Read("PluginsEditor")
@@ -8479,6 +8489,7 @@ EverythingIsRun(){
 			Run,%EvPathRun% -exit
 			Run,%EvPathRun% -startup %evAdminRun%
 			Sleep,500
+			TrayTip,,RunAny与Everything权限不一致进行重新启动,3,1
 			gosub,Menu_Reload
 		}
 	}else{
@@ -8491,7 +8502,7 @@ EverythingIsRun(){
 			EvPath=%A_ScriptDir%\Everything\Everything.exe
 			Sleep,500
 		}else{
-			TrayTip,,RunAny需要Everything快速识别无路径程序`n
+			TrayTip,,RunAny需要Everything快速识别无路径应用`n
 			(
 * 运行Everything后再重启RunAny
 * 或在RunAny设置中配置Everything正确安装路径`n* 或www.voidtools.com下载安装
@@ -8569,6 +8580,7 @@ EverythingCheckResults:
 	RegRead,EvTotResults,HKEY_CURRENT_USER,SOFTWARE\RunAny,EvTotResults
 	if(EvTotResults>0){
 		SetTimer,EverythingCheckResults,Off
+		TrayTip,,Everything索引创建完成,3,1
 		gosub,Menu_Reload
 	}
 return
@@ -8577,7 +8589,6 @@ EverythingQuery(EvCommandStr){
 	if(EvCommandStr!=""){
 		ev.SetMatchWholeWord(true)
 	}
-	Menu_Tray_Tip("","开始调用Everything搜索菜单内应用全路径...")
 	evSearchStr:=EvCommandStr ? EvCommand " " EvCommandStr : EvCommand
 	;查询字串设为everything
 	ev.SetSearch("file: " evSearchStr)
@@ -8630,10 +8641,6 @@ EverythingQuery(EvCommandStr){
 			MenuObj[objFileNameNoExeExt]:=objFullPathName
 			MenuObjSearch[objFileName]:=objFullPathName
 		}
-	}
-	for k,v in MenuObjSearch
-	{
-		IniWrite, %v%, %RunAnyEvFullPathIni%, FullPath, %k%
 	}
 	;如果需要自动关闭everything
 	if(EvAutoClose && EvPath){
