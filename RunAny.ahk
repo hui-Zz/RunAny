@@ -241,9 +241,7 @@ if(MENU2FLAG){
 	t5:=A_TickCount-StartTick
 	Menu_Tray_Tip("菜单2：" Round((t5-t4)/1000,3) "s`n")
 }
-
 ;~;[16.初始菜单加载后操作]
-try Menu,Tray,Icon,% ZzIconS[1],% ZzIconS[2]
 if(SendStrEcKey!="")
 	SendStrDcKey:=SendStrDecrypt(SendStrEcKey,RunAnyZz ConfigDate)
 
@@ -374,28 +372,31 @@ MenuIconFlag:=true
 ;#如果是第一次运行#
 if(iniFlag){
 	iniFlag:=false
-	TrayTip,,RunAny菜单初始化完成`n右击任务栏图标设置,3,1
+	TrayTip,,RunAny菜单初始化完成`n右击任务栏图标设置,5,1
 	gosub,Menu_About
 	gosub,Menu_Show1
 }
-
-;检查无路径应用缓存是否有新的版本
+;~;[检查无路径应用缓存是否有新的版本]
 if(!EvNo && EvQueryFlag && Trim(evFullPathIniVar," `t`n`r")!="" && rule_check_is_run("Everything.exe")){
 	MenuObjUpdateList:=Object(),MenuObjEv:=Object(),MenuObjSearch:=Object()
 	EverythingQuery(EvCommandStr)
 	for k,v in MenuObjCache
 	{
-		if(v!=MenuObjSearch[k]){
+		if(MenuObjSearch[k] && v!=MenuObjSearch[k]){
 			IniWrite, % MenuObjSearch[k], %RunAnyEvFullPathIni%, FullPath, %k%
 			MenuObjUpdateList.Push(k)
 		}
 	}
 	if(MenuObjUpdateList.Length()>0){
-		TrayTip,,% "以下无路径应用缓存替换为最新版路径`n" StrListJoin("`n",MenuObjUpdateList),5,1
+		ShowTrayTip("","以下无路径应用缓存替换为最新版路径``n" StrListJoin("、",MenuObjUpdateList),5,17)
 		gosub,Menu_Reload
 	}
 }
-
+;如果需要自动关闭everything
+if(EvAutoClose && EvPath){
+	EvPathRun:=Get_Transform_Val(EvPath)
+	Run,%EvPathRun% -exit
+}
 ;提前加载菜单树图标缓存
 global TreeImageListID := IL_Create(11)
 Icon_Image_Set(TreeImageListID)
@@ -428,7 +429,7 @@ return
 
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
-;~[菜单项过滤不同内容类型]
+;~;[菜单项过滤不同内容类型]
 Menu_Item_List_Filter(M_Index,MenuTypeList,HideFlag,MenuType:=1){
 	if(!HideFlag)
 		return
@@ -485,33 +486,57 @@ Menu_Tree_List_Filter(M_Index,MenuTypeList,MenuType){
 		}
 	}
 }
-;~[鼠标悬停在托盘图标上时显示初始化信息]
-Menu_Tray_Tip(tText,tmpText:=""){
-	MenuTrayTipText.=tText
-	Menu,Tray,Tip,% MenuTrayTipText tmpText
-	return MenuTrayTipText
-}
-;~[鼠标悬停在托盘图标上时显示运行路径信息]
-Menu_Run_Tray_Tip(tText,tmpText:=""){
-	if(Menu_Tray_Tip(tText,tmpText)!=A_IconTip){
-		MenuTrayTipText:="运行路径`n" tText tmpText
-		Menu,Tray,Tip,%MenuTrayTipText%
+;[修改RunAny.ini文件自动重启]
+AutoReloadMTime:
+	RegRead, MTimeIniPathReg, HKEY_CURRENT_USER, Software\RunAny, %iniPath%
+	FileGetTime,MTimeIniPath, %iniPath%, M  ; 获取修改时间.
+	if(MTimeIniPathReg!=MTimeIniPath){
+		gosub,Menu_Reload
+	}
+	if(MENU2FLAG){
+		RegRead, MTimeIniPath2, HKEY_CURRENT_USER, Software\RunAny, %iniPath2%
+		FileGetTime,MTimeIniPath2Reg, %iniPath2%, M  ; 获取修改时间.
+		if(MTimeIniPath2!=MTimeIniPath2Reg){
+			gosub,Menu_Reload
+		}
+	}
+return
+;[RunAny自动备份配置文件]
+RunABackup(RunABackupDir,RunABackupFile,RunABackupFileContent,RunABackupFileCopy,RunABackupFileTarget){
+	ConfigBackupNum:=0
+	ConfigBackupFlag:=true
+	Loop,%RunABackupDir%%RunABackupFile%
+	{
+		FileRead, iniVarBak, %A_LoopFileFullPath%
+		if(RunABackupFileContent=iniVarBak){
+			ConfigBackupFlag:=false
+		}
+		ConfigBackupNum++
+	}
+	if(ConfigBackupFlag){
+		FileCopy, %RunABackupFileCopy%, %RunABackupDir%%RunABackupFileTarget%, 1
+	}
+	if(ConfigBackupNum>RunABackupMax){
+		RunABackupClear(RunABackupDir,RunABackupFile)
 	}
 }
-;~[菜单调试模式下的调试信息]
-Menu_Debug_Mode(tText,tmpText:=""){
-	if(DebugMode){
-		DebugModeShowText.=tText
-		if(StrLen(tText)>DebugModeShowTextLen)
-			DebugModeShowTextLen:=StrLen(tText)
-		CoordMode, ToolTip
-		ToolTip,%DebugModeShowText%`n%tmpText%,A_ScreenWidth-DebugModeShowTextLen,0,1
-		SetTimer,RemoveDebugModeToolTip,%DebugModeShowTime%
-		WinSet, Transparent, % DebugModeShowTrans/100*255, ahk_class tooltips_class32
+RunABackupClear(RunABackupDir,RunABackupFile){
+	if(RunABackupMax>0){
+		oldFile:=A_Now
+		Loop,%RunABackupDir%%RunABackupFile%
+		{
+			if(oldFile>A_LoopFileTimeCreated){
+				oldFile:=A_LoopFileTimeCreated
+				oldPath:=A_LoopFileLongPath
+			}
+		}
+		if(RegExMatch(oldPath, "iS).*?\.bak$")){
+			FileDelete, %oldPath%
+		}
 	}
 }
 ;══════════════════════════════════════════════════════════════════
-;~;[多种启动菜单热键]
+;~;【多种启动菜单热键】
 #If MenuDoubleCtrlKey=1
 Ctrl::
 	KeyWait,Ctrl
@@ -563,54 +588,6 @@ XButton2::gosub,Menu_Show1
 #If MenuMButtonKey=1 && !WinActive("ahk_group DisableGUI")
 ~MButton::gosub,Menu_Show1
 #If
-AutoReloadMTime:
-	RegRead, MTimeIniPathReg, HKEY_CURRENT_USER, Software\RunAny, %iniPath%
-	FileGetTime,MTimeIniPath, %iniPath%, M  ; 获取修改时间.
-	if(MTimeIniPathReg!=MTimeIniPath){
-		gosub,Menu_Reload
-	}
-	if(MENU2FLAG){
-		RegRead, MTimeIniPath2, HKEY_CURRENT_USER, Software\RunAny, %iniPath2%
-		FileGetTime,MTimeIniPath2Reg, %iniPath2%, M  ; 获取修改时间.
-		if(MTimeIniPath2!=MTimeIniPath2Reg){
-			gosub,Menu_Reload
-		}
-	}
-return
-;~;[RunAny自动备份配置文件]
-RunABackup(RunABackupDir,RunABackupFile,RunABackupFileContent,RunABackupFileCopy,RunABackupFileTarget){
-	ConfigBackupNum:=0
-	ConfigBackupFlag:=true
-	Loop,%RunABackupDir%%RunABackupFile%
-	{
-		FileRead, iniVarBak, %A_LoopFileFullPath%
-		if(RunABackupFileContent=iniVarBak){
-			ConfigBackupFlag:=false
-		}
-		ConfigBackupNum++
-	}
-	if(ConfigBackupFlag){
-		FileCopy, %RunABackupFileCopy%, %RunABackupDir%%RunABackupFileTarget%, 1
-	}
-	if(ConfigBackupNum>RunABackupMax){
-		RunABackupClear(RunABackupDir,RunABackupFile)
-	}
-}
-RunABackupClear(RunABackupDir,RunABackupFile){
-	if(RunABackupMax>0){
-		oldFile:=A_Now
-		Loop,%RunABackupDir%%RunABackupFile%
-		{
-			if(oldFile>A_LoopFileTimeCreated){
-				oldFile:=A_LoopFileTimeCreated
-				oldPath:=A_LoopFileLongPath
-			}
-		}
-		if(RegExMatch(oldPath, "iS).*?\.bak$")){
-			FileDelete, %oldPath%
-		}
-	}
-}
 ;══════════════════════════════════════════════════════════════════
 ;~;【——创建菜单——】
 ;══════════════════════════════════════════════════════════════════
@@ -1229,7 +1206,7 @@ Menu_Show:
 			}catch e{
 				menuName:=extMenuName!="" ? extMenuName : menuFileRoot%MENU_NO%[1]
 				TrayTip,,% "[显示菜单]：" menuName "`n出错命令：" e.What 
-			. "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,5,1
+					. "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,10,3
 				Menu_Show_Show(menuFileRoot%MENU_NO%[1], FileName, Candy_isFile)
 			}
 			return
@@ -1375,7 +1352,7 @@ Menu_Show:
 			}
 		}
 	}catch e{
-		TrayTip,,% "显示菜单出错：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,5,1
+		TrayTip,,% "显示菜单出错：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,10,3
 	}
 return
 ;~;【显示菜单-热键】
@@ -1479,7 +1456,7 @@ Menu_Run:
 	if(MenuShowMenuRun!=""){
 		any:=MenuObj[(MenuShowMenuRun)]
 		if(any=""){
-			TrayTip,,%MenuShowMenuRun% 没有找到`n请检查是否存在(在Everything能搜索到)，并重启RunAny重试,3,1
+			TrayTip,,%MenuShowMenuRun% 没有找到`n请检查是否存在(在Everything能搜索到)，并重启RunAny重试,5,2
 		}
 		if(RunCtrlRunFlag)
 			Z_ThisMenuItem:=MenuShowMenuRun
@@ -2049,10 +2026,10 @@ Menu_Run_Plugins_ObjReg:
 			try {
 				PluginsObjRegActive[appPlugins]:=ComObjActive(PluginsObjRegGUID[appPlugins])
 			} catch {
-				TrayTip,,%appPlugins% 外接脚本失败`n请检查是否已经启动(在插件管理中设为自动启动)，并重启RunAny重试,3,1
+				TrayTip,,%appPlugins% 外接脚本失败`n请检查是否已经启动(在插件管理中设为自动启动)，并重启RunAny重试,5,2
 			}
 		}else if(!IsFunc(appFunc)){
-			TrayTip,,没有在%appPlugins%.ahk中找到%appFunc%函数,3,1
+			TrayTip,,没有在%appPlugins%.ahk中找到%appFunc%函数,5,2
 		}
 		appParmStr:=StrReplace(appParmStr,"``,",Chr(3))
 		appParms:=StrSplit(appParmStr,",")
@@ -2255,7 +2232,7 @@ One_Search:
 	}
 return
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-;~;【——函数方法——】
+;~;【——通用函数方法——】
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 ;[检查后缀名]
 Ext_Check(name,len,ext){
@@ -2706,9 +2683,9 @@ URLDownloadToFile(URL, FilePath, Options:="", RequestHeaders:="")
 	return, 1
 }
 ;══════════════════════════════════════════════════════════════════
-;~;【函数方法-内部】
+;~;【——内部函数方法——】
 ;══════════════════════════════════════════════════════════════════
-;~;[写入注册表]
+;~;[写入配置]
 Reg_Set(vGui, var, sz){
 	StringCaseSense, On
 	if(vGui!=var){
@@ -2717,7 +2694,7 @@ Reg_Set(vGui, var, sz){
 	}
 	StringCaseSense, Off
 }
-;~;[读取注册表]
+;~;[读取配置]
 Var_Read(rValue,defVar=""){
 	if(IniConfig){
 		IniRead, regVar,%RunAnyConfig%, Config, %rValue%,% defVar ? defVar : A_Space
@@ -2731,6 +2708,59 @@ Var_Read(rValue,defVar=""){
 			return regVar
 	}else{
 		return defVar
+	}
+}
+;~;[控制提示信息的显示时长]
+RemoveToolTip:
+	SetTimer,RemoveToolTip,Off
+	ToolTip
+return
+RemoveDebugModeToolTip:
+	SetTimer,RemoveDebugModeToolTip,Off
+	DebugModeShowText:=""
+	DebugModeShowTextLen:=0
+	ToolTip
+return
+HideTrayTip(){
+    TrayTip
+}
+;[临时脚本显示提示信息，不受主脚本重启影响]
+ShowTrayTip(title,text,seconds,options){
+	FileDelete,%A_Temp%\%RunAnyZz%\RunAnyTrayTip.ahk
+	FileAppend,
+	(
+#NoEnv
+TrayTip, %title%, %text%, %seconds%, %options%
+SetTimer, HideTrayTip, -%seconds%000
+HideTrayTip() {
+    TrayTip
+}
+	),%A_Temp%\%RunAnyZz%\RunAnyTrayTip.ahk
+	Run,%A_AhkPath%%A_Space%"%A_Temp%\%RunAnyZz%\RunAnyTrayTip.ahk"
+}
+;~[鼠标悬停在托盘图标上时显示初始化信息]
+Menu_Tray_Tip(tText,tmpText:=""){
+	MenuTrayTipText.=tText
+	Menu,Tray,Tip,% MenuTrayTipText tmpText
+	return MenuTrayTipText
+}
+;~[鼠标悬停在托盘图标上时显示运行路径信息]
+Menu_Run_Tray_Tip(tText,tmpText:=""){
+	if(Menu_Tray_Tip(tText,tmpText)!=A_IconTip){
+		MenuTrayTipText:="运行路径`n" tText tmpText
+		Menu,Tray,Tip,%MenuTrayTipText%
+	}
+}
+;~[菜单调试模式下的调试信息]
+Menu_Debug_Mode(tText,tmpText:=""){
+	if(DebugMode){
+		DebugModeShowText.=tText
+		if(StrLen(tText)>DebugModeShowTextLen)
+			DebugModeShowTextLen:=StrLen(tText)
+		CoordMode, ToolTip
+		ToolTip,%DebugModeShowText%`n%tmpText%,A_ScreenWidth-DebugModeShowTextLen,0,1
+		SetTimer,RemoveDebugModeToolTip,%DebugModeShowTime%
+		WinSet, Transparent, % DebugModeShowTrans/100*255, ahk_class tooltips_class32
 	}
 }
 ;~;{获取菜单项启动模式}
@@ -4155,7 +4185,7 @@ Set_Icon(ImageListID,itemVar,editVar=true,fullItemFlag=true,itemName=""){
 	}
 	;[编辑后图标重新加载]
 	if(editVar && FailFlag){
-		;~;[编辑后通过everything重新添加应用图标]
+		;[编辑后通过everything重新添加应用图标]
 		if(FileExt="exe"){
 			if(!EvNo)
 				exeQueryPath:=exeQuery(FileName="" ? objText : FileName)
@@ -4737,7 +4767,7 @@ PluginsDownVersion:
 	if(!rule_check_network(giteeUrl)){
 		RunAnyDownDir:=githubUrl . RunAnyGithubDir
 		if(!rule_check_network(githubUrl)){
-			TrayTip,,网络异常，无法连接网络读取最新版本文件，请手动下载,5,1
+			TrayTip,,网络异常，无法连接网络读取最新版本文件，请手动下载,5,2
 			pluginsDownList:=PluginsObjList
 			checkGithub:=false
 			return
@@ -4795,7 +4825,8 @@ LVDown:
 			LV_GetText(FileName, RowNumber, ColumnName)
 			LV_GetText(FileStatus, RowNumber, ColumnStatus)
 			LV_GetText(FileContent, RowNumber, ColumnContent)
-			TrayTip,,RunAny开始下载%FileName%，请稍等……,3,1
+			TrayTip,,RunAny开始下载%FileName%，请稍等……,3,17
+			SetTimer, HideTrayTip, -3000
 			pluginsDownPath=%PluginsDir%
 			;如果插件需要创建目录
 			if(RegExMatch(FileContent,"iS)\{\}$")){
@@ -4806,7 +4837,8 @@ LVDown:
 			}
 			;特殊插件下载依赖
 			if(FileName="huiZz_QRCode.ahk"){
-				TrayTip,,huiZz_QRCode需要下载quricol32.dll，请稍等……,3,1
+				TrayTip,,huiZz_QRCode需要下载quricol32.dll，请稍等……,3,17
+				SetTimer, HideTrayTip, -3000
 				URLDownloadToFile(RunAnyDownDir "/" PluginsDir "/" name_no_ext "/quricol32.dll",A_ScriptDir "\" pluginsDownPath "\quricol32.dll")
 				if(A_Is64bitOS){
 					URLDownloadToFile(RunAnyDownDir "/" PluginsDir "/" name_no_ext "/quricol64.dll",A_ScriptDir "\" pluginsDownPath "\quricol64.dll")
@@ -4822,7 +4854,8 @@ LVDown:
 					return
 				}
 			}else if(FileName="RunCtrl_Network.ahk"){
-				TrayTip,,RunCtrl_Network.ahk需要下载JSON.ahk，请稍等……,3,1
+				TrayTip,,RunCtrl_Network.ahk需要下载JSON.ahk，请稍等……,3,17
+				SetTimer, HideTrayTip, -3000
 				URLDownloadToFile(RunAnyDownDir "/" StrReplace(pluginsDownPath,"\","/") "/Lib/JSON.ahk",A_ScriptDir "\" pluginsDownPath "\Lib\JSON.ahk")
 			}
 			;[下载插件脚本]
@@ -7385,7 +7418,8 @@ Run_Exist:
 	}
 	FileGetSize,iniFileSize,%iniFile%
 	If(!FileExist(iniFile) || iniFileSize=0){
-		TrayTip,,RunAny初始化中...,2,1
+		TrayTip,,RunAny初始化中...,2,17
+		SetTimer, HideTrayTip, -2000
 		gosub,First_Run
 	}
 	FileRead, iniVar1, %iniPath%
@@ -8091,7 +8125,7 @@ Rule_Effect:
 		}
 		if(RuleRunFailFlag){
 			RuleRunFailStr:=StrListJoin("`n",RuleRunFailList)
-			TrayTip,,规则插件脚本没有启动：`n%RuleRunFailStr%,5,1
+			TrayTip,,规则插件脚本没有启动：`n%RuleRunFailStr%,5,2
 		}
 	} catch e {
 		MsgBox,16,规则判断出错,% "规则名：" rcName 
@@ -8115,7 +8149,7 @@ RunCtrl_RunRules(runCtrlObj,show:=0){
 			SetTimer,RemoveToolTip,3000
 			if(RuleRunFailFlag){
 				RuleRunFailStr:=StrListJoin("`n",RuleRunFailList)
-				TrayTip,,规则插件脚本没有启动：`n%RuleRunFailStr%,5,1
+				TrayTip,,规则插件脚本没有启动：`n%RuleRunFailStr%,5,2
 			}
 		}
 		return effectResult
@@ -8300,7 +8334,8 @@ RunCtrl_RuleResult(ruleName,ruleFile,ruleValue:=""){
 ;══════════════════════════════════════════════════════════════════
 Check_Update:
 	checkUpdateFlag:=true
-	TrayTip,,RunAny检查更新中……,2,1
+	TrayTip,,RunAny检查更新中……,2,17
+	SetTimer, HideTrayTip, -2000
 	gosub,Auto_Update
 return
 Auto_Update:
@@ -8310,7 +8345,7 @@ Auto_Update:
 	if(!rule_check_network(giteeUrl)){
 		RunAnyDownDir:=githubUrl . RunAnyGithubDir
 		if(!rule_check_network(githubUrl)){
-			TrayTip,,网络异常，无法连接网络读取最新版本文件,3,1
+			TrayTip,,网络异常，无法连接网络读取最新版本文件,5,2
 			return
 		}
 	}
@@ -8323,7 +8358,7 @@ Auto_Update:
 			break
 		}
 		if(A_LoopReadLine="404: Not Found"){
-			TrayTip,,文件下载异常，更新失败！,3,1
+			TrayTip,,文件下载异常，更新失败！,5,2
 			return
 		}
 	}
@@ -8346,7 +8381,8 @@ Auto_Update:
 )
 			IfMsgBox Ok
 			{
-				TrayTip,,RunAny开始下载最新版本并替换老版本...,5,1
+				TrayTip,,RunAny开始下载最新版本并替换老版本...,3,17
+				SetTimer, HideTrayTip, -3000
 				gosub,Config_Update
 				;[下载插件脚本]
 				if(pluginUpdateStr!=""){
@@ -8357,7 +8393,8 @@ Auto_Update:
 							URLDownloadToFile(RunAnyDownDir "/" StrReplace(PluginsDir,"\","/") "/" pk, A_ScriptDir "\" PluginsDir "\" pk)
 						}
 					}
-					TrayTip,,插件脚本已经更新到最新版本。,5,1
+					TrayTip,,插件脚本已经更新到最新版本。,3,1
+					SetTimer, HideTrayTip, -3000
 				}
 				;[下载新版本]
 				if(RunAny_update_version<versionStr){
@@ -8474,16 +8511,6 @@ return
 Menu_Exit:
 	ExitApp
 return
-RemoveToolTip:
-	SetTimer,RemoveToolTip,Off
-	ToolTip
-return
-RemoveDebugModeToolTip:
-	SetTimer,RemoveDebugModeToolTip,Off
-	DebugModeShowText:=""
-	DebugModeShowTextLen:=0
-	ToolTip
-return
 Ini_Run(ini){
 	try{
 		if(!FileExist(ini)){
@@ -8510,7 +8537,7 @@ EverythingIsRun(){
 			Run,%EvPathRun% -exit
 			Run,%EvPathRun% -startup %evAdminRun%
 			Sleep,500
-			TrayTip,,RunAny与Everything权限不一致进行重新启动,3,1
+			ShowTrayTip("","RunAny与Everything权限不一致进行重新启动",5,17)
 			gosub,Menu_Reload
 		}
 	}else{
@@ -8527,7 +8554,7 @@ EverythingIsRun(){
 			(
 * 运行Everything后再重启RunAny
 * 或在RunAny设置中配置Everything正确安装路径`n* 或www.voidtools.com下载安装
-			),5,1
+			),10,2
 			evExist:=false
 		}
 	}
@@ -8601,7 +8628,7 @@ EverythingCheckResults:
 	RegRead,EvTotResults,HKEY_CURRENT_USER,SOFTWARE\RunAny,EvTotResults
 	if(EvTotResults>0){
 		SetTimer,EverythingCheckResults,Off
-		TrayTip,,Everything索引创建完成,3,1
+		ShowTrayTip("","Everything索引创建完成",3,17)
 		gosub,Menu_Reload
 	}
 return
@@ -8660,11 +8687,6 @@ EverythingQuery(EvCommandStr){
 			MenuObjSearch[objFileName]:=objFullPathName
 		}
 	}
-	;如果需要自动关闭everything
-	if(EvAutoClose && EvPath){
-		EvPathRun:=Get_Transform_Val(EvPath)
-		Run,%EvPathRun% -exit
-	}
 }
 EverythingNoPathSearchStr(){
 	Loop,%MenuCount%
@@ -8679,7 +8701,8 @@ EverythingNoPathSearchStr(){
 			itemMode:=Get_Menu_Item_Mode(itemVar)
 			outVar:=RegExReplace(itemVar,"iS)^([^|]+?\.[a-zA-Z0-9-_]+)($| .*)","$1")	;去掉参数
 			;[过滤掉所有不是无路径的菜单项]
-			if(InStr(EvCommandStr,"|^" outVar "$|") || (itemMode!=1 && itemMode!=8)){
+			if(InStr(EvCommandStr,"|^" outVar "$|") || (itemMode!=1 && itemMode!=8) 
+				|| outVar="iexplore.exe" || outVar="msedge.exe"){
 				continue
 			}else if(itemMode=1 && (InStr(outVar,"..\")
 					|| RegExMatch(outVar,"S)\\|\/|\:|\*|\?|\""|\<|\>|\|") 
