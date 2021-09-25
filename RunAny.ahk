@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.7"     ;~;版本号
-global RunAny_update_time:="2021.09.24"   ;~;更新日期
+global RunAny_update_time:="尝鲜版 2021.09.24"   ;~;更新日期
 gosub,Var_Set           ;~;01.参数初始化
 gosub,Menu_Var_Set      ;~;02.自定义变量
 gosub,Icon_Set          ;~;03.图标初始化
@@ -151,7 +151,7 @@ global MenuObjSame:=Object()               ;Everything搜索结果重名程序�
 global MenuObjSearch:=Object()             ;Everything搜索无路径菜单项
 global MenuObjCache:=Object()              ;Everything搜索无路径应用缓存
 global MenuObjNew:=Object()                ;Everything搜索新增加
-EvCommandStr:=EvDemandSearch ? EverythingCommandStr() : ""
+EvCommandStr:=EvDemandSearch ? EverythingNoPathSearchStr() : ""
 ;~;[13.获取无路径应用的运行全路径缓存]
 IniRead, evFullPathIniVar, %RunAnyEvFullPathIni%, FullPath
 Loop, parse, evFullPathIniVar, `n, `r
@@ -162,24 +162,35 @@ Loop, parse, evFullPathIniVar, `n, `r
 	MenuObjCache[(varList[1])]:=varList[2]
 	EvQueryFlag:=true
 	if(varList[2]!="" && !FileExist(varList[2])){
-		MenuObjNew.push((InStr(varList[1],A_Space) || InStr(varList[1],"!")) ? """" varList[1] """" : varList[1])
+		outVarStr:=varList[1]
+		if(RegExMatch(outVarStr, RegexEscapeNoPointStr)){
+			outVarStr:=StrListEscapeReplace(outVarStr, RegexEscapeNoPointList, "\")
+		}
+		outVarStr:=StrReplace(outVarStr,".","\.")
+		MenuObjNew.push("^" outVarStr "$")
 	}
 }
 ;发现有新增的无路径菜单项
-for k,v in MenuObjSearch
-{
-	if(!MenuObjCache.HasKey(k)){
-		MenuObjNew.push((InStr(k,A_Space) || InStr(k,"!")) ? """" k """" : k)
-	}else{
-		MenuObjSearch[k]:=MenuObjCache[k]
+if(Trim(evFullPathIniVar," `t`n`r")!=""){
+	for k,v in MenuObjSearch
+	{
+		if(!MenuObjCache.HasKey(k)){
+			if(RegExMatch(k, RegexEscapeNoPointStr)){
+				k:=StrListEscapeReplace(k, RegexEscapeNoPointList, "\")
+			}
+			k:=StrReplace(k,".","\.")
+			MenuObjNew.push("^" k "$")
+		}else{
+			MenuObjSearch[k]:=MenuObjCache[k]
+		}
+	}
+	if(MenuObjNew.Length()>0){
+		EvQueryFlag:=false
+		EvCommandStr:=StrListJoin("|",MenuObjNew)
+		EvCommandStr:="regex:""" EvCommandStr """"
 	}
 }
-if(MenuObjNew.Length()>0){
-	EvQueryFlag:=false
-	EvCommandStr:=StrListJoin("|",MenuObjNew)
-}
 MenuObjEv:=MenuObj.Clone()
-EvPath:=Var_Read("EvPath")
 ;~;[14.判断有无路径应用则需要使用Everything]
 if(!EvQueryFlag && !EvNo){
 	if(!EvDemandSearch || (EvDemandSearch && EvCommandStr!="")){
@@ -713,7 +724,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 			if(InStr(Z_LoopField,"|")){
 				menuDiy:=StrSplit(Z_LoopField,"|",,2)
 				menuItemDiy:=menuDiy[1]
-				appName:=RegExReplace(menuDiy[2],"iS)(.*?\.[a-zA-Z0-9]+)($| .*)","$1")	;去掉参数，取应用名
+				appName:=RegExReplace(menuDiy[2],"iS)(.*?\.[a-zA-Z0-9-_]+)($| .*)","$1")	;去掉参数，取应用名
 				appName:=RegExReplace(appName,"iS)\.exe$")	;去掉exe后缀，取应用名
 				;[分割Tab获取应用自定义热键]
 				menuKeyStr:=RegExReplace(menuDiy[1], "S)\t+", A_Tab)
@@ -2119,12 +2130,9 @@ PluginsObjRegRun(appPlugins, appFunc, appParms){
 ;~;【菜单最近运行】
 Menu_Recent:
 	recentAny:=any
-	escapeList:=StrSplit("\.*?+[{|()^$")
 	regMenuItem:=A_ThisMenuItem
-	For k, v in escapeList
-	{
-		regMenuItem:=StrReplace(regMenuItem,v,"\" v)
-	}
+	;正则转义特殊字符
+	regMenuItem:=StrListEscapeReplace(regMenuItem, RegexEscapeList, "\")
 	Loop,% MenuCommonList.MaxIndex()
 	{
 		if(RegExMatch(MenuCommonList[A_Index],"S)&\d+\s" regMenuItem)){
@@ -2212,7 +2220,7 @@ Ev_Show:
 			}
 			evSearch.=S_LoopField "|"
 		}
-		evSearch:=RegExReplace(evSearch,"\|$")
+		evSearch:=SubStr(evSearch, 1, -StrLen("|"))
 	}
 	EvPathRun:=Get_Transform_Val(EvPath)
 	DetectHiddenWindows,On
@@ -2355,6 +2363,14 @@ StrListJoin(sep, paramList){
 		}
 	}
     return SubStr(str, 1, -StrLen(sep))
+}
+;[批量替换数组字符]
+StrListEscapeReplace(str, paramList, replaceStr:="\"){
+	For k, v in paramList
+	{
+		str:=StrReplace(str, v, replaceStr v)
+	}
+	return str
 }
 ;[反向获取val对应的key]
 GetKeyByVal(obj, val){
@@ -2784,7 +2800,7 @@ Get_Obj_Path(z_item){
 		menuDiy:=StrSplit(z_item,"|",,2)
 		obj_path:=MenuObj[menuDiy[1]]
 	}else{
-		z_item:=RegExReplace(z_item,"iS)(.*?\.[a-zA-Z0-9]+)($| .*)","$1")	;去掉参数，取路径
+		z_item:=RegExReplace(z_item,"iS)(.*?\.[a-zA-Z0-9-_]+)($| .*)","$1")	;去掉参数，取路径
 		if(RegExMatch(z_item,"iS)^(\\\\|.:\\).*?\.exe$")){
 			obj_path:=z_item
 		}else{
@@ -2792,8 +2808,8 @@ Get_Obj_Path(z_item){
 			obj_path:=MenuObj[appName]="" ? z_item : MenuObj[appName]
 		}
 	}
-	if(RegExMatch(obj_path,"iS).*?\.[a-zA-Z0-9]+($| .*)")){
-		obj_path:=RegExReplace(obj_path,"iS)(\.[a-zA-Z0-9]+)($| .*)","$1")
+	if(RegExMatch(obj_path,"iS).*?\.[a-zA-Z0-9-_]+($| .*)")){
+		obj_path:=RegExReplace(obj_path,"iS)(\.[a-zA-Z0-9-_]+)($| .*)","$1")
 	}
 	if(obj_path!="" && !InStr(obj_path,"\")){
 		if(FileExist(A_WinDir "\" obj_path))
@@ -2837,7 +2853,7 @@ Get_Item_Run_Path(z_item_path){
 ;~;[检查文件后缀是否支持无路径查找]
 Check_Obj_Ext(filePath){
 	EvExtFlag:=false
-	fileValue:=RegExReplace(filePath,"iS)(.*?\..*?)($| .*)","$1")	;去掉参数
+	fileValue:=RegExReplace(filePath,"iS)(.*?\.[a-zA-Z0-9-_]+)($| .*)","$1")	;去掉参数
 	SplitPath, fileValue, fName,, fExt  ; 获取扩展名
 	Loop,% EvCommandExtList.MaxIndex()
 	{
@@ -3424,7 +3440,7 @@ EditItemPathChange:
 			}else{
 				GuiControl, SaveItem:Show, vExtPrompt
 			}
-			fileValue:=RegExReplace(filePath,"iS)(.*?\..*?)($| .*)","$1")	;去掉参数
+			fileValue:=RegExReplace(filePath,"iS)(.*?\.[a-zA-Z0-9-_]+)($| .*)","$1")	;去掉参数
 			SplitPath, fileValue, fName,, fExt  ; 获取扩展名
 			if(fExt="exe" || fExt="lnk"){
 				GuiControlShow("SaveItem","vTextTransparent","vitemTrNum")
@@ -7088,6 +7104,10 @@ Var_Set:
 	global getZz:=""
 	global MenuShowMenuRun:=""
 	global MENU_NO:=1
+	global RegexEscapeStr:="\\|\.|\*|\?|\+|\[|\{|\||\(|\)|\^|\$"
+	global RegexEscapeNoPointStr:="\\|\*|\?|\+|\[|\{|\||\(|\)|\^|\$"
+	global RegexEscapeList:=StrSplit("\.*?+[{|()^$")
+	global RegexEscapeNoPointList:=StrSplit("\*?+[{|()^$")
 	global HideMenuTrayIcon:=Var_Read("HideMenuTrayIcon",0)
 	if(HideMenuTrayIcon)
 		Menu, Tray, NoIcon
@@ -7128,6 +7148,7 @@ Var_Set:
 	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
 	OneKeyUrl:=StrReplace(OneKeyUrl, "|", "`n")
 	;[搜索Everything]
+	global EvPath:=Var_Read("EvPath")
 	global EvShowExt:=Var_Read("EvShowExt",1)
 	global EvShowFolder:=Var_Read("EvShowFolder",1)
 	global EvAutoClose:=Var_Read("EvAutoClose",0)
@@ -8586,9 +8607,6 @@ EverythingCheckResults:
 return
 EverythingQuery(EvCommandStr){
 	ev := new everything
-	if(EvCommandStr!=""){
-		ev.SetMatchWholeWord(true)
-	}
 	evSearchStr:=EvCommandStr ? EvCommand " " EvCommandStr : EvCommand
 	;查询字串设为everything
 	ev.SetSearch("file: " evSearchStr)
@@ -8648,7 +8666,7 @@ EverythingQuery(EvCommandStr){
 		Run,%EvPathRun% -exit
 	}
 }
-EverythingCommandStr(){
+EverythingNoPathSearchStr(){
 	Loop,%MenuCount%
 	{
 		Loop, parse, iniVar%A_Index%, `n, `r, %A_Space%%A_Tab%
@@ -8659,30 +8677,44 @@ EverythingCommandStr(){
 			itemVars:=StrSplit(A_LoopField,"|",,2)
 			itemVar:=itemVars[2] ? itemVars[2] : itemVars[1]
 			itemMode:=Get_Menu_Item_Mode(itemVar)
-			outVar:=RegExReplace(itemVar,"iS)^([^|]+?\.[^ ]+)($| .*)","$1")	;去掉参数
-			if(InStr(EvCommandStr,"|" outVar "|") || (itemMode!=1 && itemMode!=8)){
+			outVar:=RegExReplace(itemVar,"iS)^([^|]+?\.[a-zA-Z0-9-_]+)($| .*)","$1")	;去掉参数
+			;[过滤掉所有不是无路径的菜单项]
+			if(InStr(EvCommandStr,"|^" outVar "$|") || (itemMode!=1 && itemMode!=8)){
 				continue
-			}else if(itemMode=1 && (RegExMatch(outVar,"S)\\|\/|\:|\*|\?|\""|\<|\>|\|")
-					|| RegExMatch(outVar,"S)^%.*?%$") || FileExist(A_WinDir "\" outVar) || FileExist(A_WinDir "\system32\" outVar))){
+			}else if(itemMode=1 && (InStr(outVar,"..\")
+					|| RegExMatch(outVar,"S)\\|\/|\:|\*|\?|\""|\<|\>|\|") 
+					|| RegExMatch(outVar,"S)^%.*?%$") 
+					|| FileExist(A_WinDir "\" outVar) || FileExist(A_WinDir "\system32\" outVar))){
 				continue
 			}else if(itemMode=8){
 				if(RegExMatch(itemVar,"iS).+?\[.+?\]%?\(.*?%"".+?""%.*?\)")){
 					outVar:=RegExReplace(itemVar,"iS).+?\[.+?\]%?\(.*?%""(.+?)""%.*?\)","$1")
+					if(InStr(outVar,"..\")
+						|| RegExMatch(outVar,"S)\\|\/|\:|\*|\?|\""|\<|\>|\|") 
+						|| RegExMatch(outVar,"S)^%.*?%$") 
+						|| FileExist(A_WinDir "\" outVar) || FileExist(A_WinDir "\system32\" outVar)){
+						continue
+					}
 				}else{
 					continue
 				}
 			}
-			if(InStr(outVar,A_Space) || InStr(outVar,"!")){
-				EvCommandStr.="""" outVar . """|"
-			}else{
-				EvCommandStr.=outVar . "|"
+			outVarStr:=outVar
+			;正则转义特殊字符
+			if(RegExMatch(outVarStr, RegexEscapeNoPointStr)){
+				outVarStr:=StrListEscapeReplace(outVarStr, RegexEscapeNoPointList, "\")
 			}
+			outVarStr:=StrReplace(outVarStr,".","\.")
+			EvCommandStr.="^" outVarStr "$|"
 			outVarNoExeExt:=RegExReplace(outVar,"iS)\.exe$","")
 			MenuObj[outVarNoExeExt]:=""
 			MenuObjSearch[outVar]:=""
 		}
 	}
-	EvCommandStr:=RegExReplace(EvCommandStr,"\|$")
+	if(EvCommandStr!=""){
+		EvCommandStr:=SubStr(EvCommandStr, 1, -StrLen("|"))
+		EvCommandStr:="regex:""" EvCommandStr """"
+	}
 	return EvCommandStr
 }
 ;~;[使用everything搜索单个exe程序]
