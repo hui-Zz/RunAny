@@ -3,7 +3,7 @@
 ;*                          by hui-Zz *
 ;**************************************
 global RunAny_Plugins_Name:="ObjReg文本操作脚本"
-global RunAny_Plugins_Version:="1.2.4"
+global RunAny_Plugins_Version:="1.2.6"
 global RunAny_Plugins_Icon:="SHELL32.dll,270"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
@@ -197,22 +197,77 @@ class RunAnyObj {
 	text_clipboard_clear(){
 		Clipboard=
 	}
-	;[百度网盘链接智能打开]
-	text_baidu_pan(getZz:=""){
-		if(getZz!=""){
-			panreg:="(pan\.baidu\.com\/s\/)?(?=\S*\d)(?=\S*[A-Z])(?=\S*[a-z])([a-z-\dA-Z])"
-			RegExMatch(getZz,"i)" panreg "`{23`}",url)
-			if(url=""){
-				RegExMatch(getZz,"i)" panreg "`{8`}",url)
-			}
-			if(url!=""){
-				url:=RegExReplace(url,"i)^pan\.baidu\.com\/s\/")
-				Run,https://pan.baidu.com/s/%url%
-			}
-			RegExMatch(getZz,"i)(?<![0-9a-zA-Z])([0-9a-zA-Z]{4})(?![0-9a-zA-Z:])",code)
-			if(code!=""){
-				Clipboard:=code
-			}
+	;[网盘链接智能打开]
+	text_pan_open(getZz:="",autoClear:=0){
+		if(Trim(getZz," `t`n`r")=""){
+			return
+		}
+		;百度网盘
+		RegExMatch(getZz,"i)((?:yun|pan)\.baidu\.com\/s\/)?(?![a-zA-Z]{23})(?![0-9]{23})(?!-{23})([a-z-\dA-Z])`{23`}",url)
+		if(url=""){
+			RegExMatch(getZz,"i)(?:yun|pan)\.baidu\.com\/s\/[A-Za-z0-9_\-]+",url)
+		}
+		if(url!=""){
+			url:=RegExReplace(url,"i)^(yun|pan)\.baidu\.com\/s\/")
+			Run,https://pan.baidu.com/s/%url%
+			this.text_pan_code(getZz,autoClear)
+			return
+		}
+		;蓝奏云
+		RegExMatch(getZz,"i)(?:[A-Za-z0-9\-.]+)?lanzou[six]\.com\/[A-Za-z0-9_\-]+",url)
+		if(url!=""){
+			Run,https://%url%
+			this.text_pan_code(getZz,autoClear)
+			return
+		}
+		;阿里云盘
+		RegExMatch(getZz,"i)(?:www\.aliyundrive\.com\/s|alywp\.net)\/[A-Za-z0-9]+",url)
+		if(url!=""){
+			Run,https://%url%
+			this.text_pan_code(getZz,autoClear)
+			return
+		}
+		;微云
+		RegExMatch(getZz,"i)share\.weiyun\.com\/[A-Za-z0-9]+",url)
+		if(url!=""){
+			Run,https://%url%
+			this.text_pan_code(getZz,autoClear)
+			return
+		}
+		;天翼云
+		RegExMatch(getZz,"i)cloud\.189\.cn\/(?:t\/|web\/share\?code=)?[A-Za-z0-9]+",url)
+		if(url!=""){
+			Run,https://%url%
+			this.text_pan_code(getZz,autoClear)
+			return
+		}
+		;和彩云
+		RegExMatch(getZz,"i)caiyun\.139\.com\/m\/i\?[A-Za-z0-9]+",url)
+		if(url!=""){
+			Run,https://%url%
+			this.text_pan_code(getZz,autoClear)
+			return
+		}
+		;迅雷云盘
+		RegExMatch(getZz,"i)pan\.xunlei\.com\/s\/[\w-]{10,}",url)
+		if(url!=""){
+			Run,https://%url%
+			this.text_pan_code(getZz,autoClear)
+			return
+		}
+	}
+	;[网盘链接智能获取密码]
+	text_pan_code(getZz:="",autoClear:=0){
+		codereg:="(?:\s*(密|取|看|问|問|证|證|key|password|pwd)[码碼]?[：:]?\s*)"
+		RegExMatch(getZz, codereg "[A-Za-z0-9]{3,8}", code)
+		if(code!=""){
+			code:=RegExReplace(code, codereg)
+		}
+		if(code=""){
+			RegExMatch(getZz,"i)(?<![0-9a-zA-Z])([0-9a-zA-Z]{4,5})(?![0-9a-zA-Z:])",code)
+		}
+		if(code!="" || autoClear){
+			Clipboard:=code
 		}
 	}
 
