@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.7 @2021.09.24
+║【RunAny】一劳永逸的快速启动工具 v5.7.7 @2021.09.25
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.7"     ;~;版本号
-global RunAny_update_time:="尝鲜版 2021.09.24"   ;~;更新日期
+global RunAny_update_time:="尝鲜版 2021.09.25"   ;~;更新日期
 gosub,Var_Set           ;~;01.参数初始化
 gosub,Menu_Var_Set      ;~;02.自定义变量
 gosub,Icon_Set          ;~;03.图标初始化
@@ -2726,7 +2726,8 @@ HideTrayTip(){
 }
 ;[临时脚本显示提示信息，不受主脚本重启影响]
 ShowTrayTip(title,text,seconds,options){
-	FileDelete,%A_Temp%\%RunAnyZz%\RunAnyTrayTip.ahk
+	if(FileExist(A_Temp "\" RunAnyZz "\RunAnyTrayTip.ahk"))
+		FileDelete,%A_Temp%\%RunAnyZz%\RunAnyTrayTip.ahk
 	FileAppend,
 	(
 #NoEnv
@@ -8563,7 +8564,8 @@ EverythingIsRun(){
 }
 ;[校验Everything是否可正常返回搜索结果]
 EverythingCheck:
-FileDelete,%A_Temp%\%RunAnyZz%\RunAnyEv.ahk
+if(FileExist(A_Temp "\" RunAnyZz "\RunAnyEv.ahk"))
+	FileDelete,%A_Temp%\%RunAnyZz%\RunAnyEv.ahk
 FileAppend,
 (
 #NoTrayIcon
@@ -8701,8 +8703,10 @@ EverythingNoPathSearchStr(){
 			itemMode:=Get_Menu_Item_Mode(itemVar)
 			outVar:=RegExReplace(itemVar,"iS)^([^|]+?\.[a-zA-Z0-9-_]+)($| .*)","$1")	;去掉参数
 			;[过滤掉所有不是无路径的菜单项]
-			if(InStr(EvCommandStr,"|^" outVar "$|") || (itemMode!=1 && itemMode!=8) 
-				|| outVar="iexplore.exe" || outVar="msedge.exe"){
+			if(InStr(EvCommandStr,"|^" outVar "$|") || (itemMode!=1 && itemMode!=8)){
+				continue
+			}else if(outVar="iexplore.exe" && FileExist(A_ProgramFiles "\Internet Explorer\iexplore.exe")){
+				MenuObj["iexplore"]:=A_ProgramFiles "\Internet Explorer\iexplore.exe"
 				continue
 			}else if(itemMode=1 && (InStr(outVar,"..\")
 					|| RegExMatch(outVar,"S)\\|\/|\:|\*|\?|\""|\<|\>|\|") 
