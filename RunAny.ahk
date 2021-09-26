@@ -143,7 +143,6 @@ Loop,%MenuCount%
 	;菜单级别：初始为根菜单RunAny
 	menuRoot%A_Index%:=[M%A_Index%]
 }
-MenuShowFlag:=true
 ;══════════════════════════════════════════════════════════════════
 global EvQueryFlag:=false                  ;是否拿到无路径搜索结果
 global MenuObjEv:=Object()                 ;Everything搜索结果程序全路径
@@ -231,26 +230,24 @@ if(!EvQueryFlag && !EvNo){
 t3:=A_TickCount-StartTick
 Menu_Tray_Tip("调用Everything搜索应用全路径：" Round((t3-t2)/1000,3) "s`n","开始加载完整菜单功能...")
 Menu_Read(iniVar1,menuRoot1,"",1)
-
-t4:=t5:=A_TickCount-StartTick
-Menu_Tray_Tip("菜单1：" Round((t4-t3)/1000,3) "s`n")
 ;~;[15.如果有第2菜单则开始加载]
 if(MENU2FLAG){
 	Menu_Tray_Tip("","开始创建菜单2内容...")
 	Menu_Read(iniVar2,menuRoot2,"",2)
-	t5:=A_TickCount-StartTick
-	Menu_Tray_Tip("菜单2：" Round((t5-t4)/1000,3) "s`n")
 }
+MenuShowFlag:=true
+t4:=A_TickCount-StartTick
+Menu_Tray_Tip("菜单创建：" Round((t4-t3)/1000,3) "s`n")
 ;~;[16.初始菜单加载后操作]
 if(SendStrEcKey!="")
 	SendStrDcKey:=SendStrDecrypt(SendStrEcKey,RunAnyZz ConfigDate)
 
-t6:=t7:=A_TickCount-StartTick
+t5:=t6:=A_TickCount-StartTick
 ;~;[17.规则启动程序]
 if(RunCtrlListBoxVar!=""){
 	Gosub,Rule_Effect
-	t7:=A_TickCount-StartTick
-	Menu_Tray_Tip("规则启动：" Round((t7-t6)/1000,3) "s`n")
+	t6:=A_TickCount-StartTick
+	Menu_Tray_Tip("规则启动：" Round((t6-t5)/1000,3) "s`n")
 }
 
 ;~;[18.对菜单内容项进行过滤调整]
@@ -320,7 +317,7 @@ Loop,%MenuCount%
 		{
 			if(A_Index>RecentMax)
 				break
-			obj:=RegExReplace(mcItem,"&\d+ ")
+			obj:=RegExReplace(mcItem,"^&\d+ ")
 			MenuObj[mcItem]:=MenuObj[obj]
 			Menu,% menuDefaultRoot%M_Index%[1],Add,%mcItem%,Menu_Run
 			Menu,% menuWebRoot%M_Index%[1],Add,%mcItem%,Menu_Run
@@ -340,6 +337,9 @@ Loop,%MenuCount%
 		}
 	}
 }
+t7:=A_TickCount-StartTick
+Menu_Tray_Tip("菜单加载：" Round((t7-t6)/1000,3) "s`n")
+
 ;~;[20.内部关联后缀打开方式]
 Gosub,Open_Ext_Set
 
@@ -366,7 +366,7 @@ For k, v in MenuExeArray
 if(EvNo || EvQueryFlag)
 	try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 t8:=A_TickCount-StartTick
-Menu_Tray_Tip("菜单中exe加载图标：" Round((t8-t7)/1000,3) "s`n","总加载时间：" Round(t8/1000,3) "s")
+Menu_Tray_Tip("菜单加载exe图标：" Round((t8-t7)/1000,3) "s`n","总加载时间：" Round(t8/1000,3) "s")
 MenuIconFlag:=true
 
 ;#如果是第一次运行#
@@ -1103,22 +1103,22 @@ Menu_NoGet_Show:
 	gosub,Menu_Show
 	noGetZz:=false
 return
-; MenuShowTime:
-; 	MenuShowTimeFlag:=true
-; 	if(MenuShowFlag){
-; 		SetTimer,MenuShowTime,Off
-; 		gosub,Menu_Show
-; 	}
-; return
+MenuShowTime:
+	MenuShowTimeFlag:=true
+	if(MenuShowFlag){
+		SetTimer,MenuShowTime,Off
+		gosub,Menu_Show
+	}
+return
 ;══════════════════════════════════════════════════════════════════
 ;~;【——显示菜单——】
 ;══════════════════════════════════════════════════════════════════
 Menu_Show:
 	try{
-		; if(!MenuShowFlag && !MenuShowTimeFlag){
-		; 	SetTimer,MenuShowTime,20
-		; 	return
-		; }
+		if(!MenuShowFlag && !MenuShowTimeFlag){
+			SetTimer,MenuShowTime,20
+			return
+		}
 		if(!extMenuHideFlag && !noGetZz)
 			getZz:=Get_Zz()
 		selectCheck:=Trim(getZz," `t`n`r")
@@ -1477,7 +1477,7 @@ Menu_Run:
 		itemMode:=Get_Menu_Item_Mode(any)
 		;[从最近运行项中记录的右键多功能项]
 		M_ThisMenuItem:=""
-		R_ThisMenuItem:=RegExReplace(Z_ThisMenuItem,"&\d+ ","")
+		R_ThisMenuItem:=RegExReplace(Z_ThisMenuItem,"^&\d+ ","")
 		menuRunNameStr:="运行(&R) " Z_ThisMenuItem "," MENU_RUN_NAME_STR
 		menuRunNameNoFileStr:="运行(&R) " Z_ThisMenuItem "," MENU_RUN_NAME_NOFILE_STR
 		if R_ThisMenuItem in %menuRunNameStr%
@@ -2112,7 +2112,7 @@ Menu_Recent:
 	regMenuItem:=StrListEscapeReplace(regMenuItem, RegexEscapeList, "\")
 	Loop,% MenuCommonList.MaxIndex()
 	{
-		if(RegExMatch(MenuCommonList[A_Index],"S)&\d+\s" regMenuItem)){
+		if(RegExMatch(MenuCommonList[A_Index],"S)^&\d+\s" regMenuItem)){
 			return
 		}
 	}
@@ -2142,7 +2142,7 @@ Menu_Recent:
 			if(A_Index<=RecentMax){
 				if(A_Index>1){
 					recentAny:=MenuObj[MenuCommonList[A_Index]]  ;获取原顺序下运行路径
-					MenuCommonNewList[A_Index]:=RegExReplace(MenuCommonList[A_Index],"&\d+","&" A_Index)  ;修改序号
+					MenuCommonNewList[A_Index]:=RegExReplace(MenuCommonList[A_Index],"^&\d+","&" A_Index)  ;修改序号
 				}
 				menuItem:=MenuCommonNewList[A_Index]
 				MenuObj[menuItem]:=recentAny
@@ -6176,7 +6176,7 @@ Settings_Gui:
 	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+20 vvEvExeVerNew,搜索结果优先最新版本的同名exe
 	Gui,66:Add,Checkbox,Checked%EvExeMTimeNew% x+23 vvEvExeMTimeNew,搜索结果优先最新修改时间的同名文件
 	Gui,66:Add,Button,xm yp+30 w50 GSetEvCommand,修改
-	Gui,66:Add,Text,xm+60 yp,!C:\Windows* !?:\$RECYCLE.BIN* 为排除系统程序和回收站，注意中间空格间隔
+	Gui,66:Add,Text,xm+60 yp,!C:\Windows* !?:\$RECYCLE.BIN*  表示排除搜索系统目录程序和回收站，注意中间空格间隔
 	; Gui,66:Add,Text,xm+60 yp+15,file:*.exe|*.lnk|后面类推增加想要的后缀
 	Gui,66:Font,,Consolas
 	Gui,66:Add,Edit,xm yp+35 r6 -WantReturn ReadOnly vvEvCommand,%EvCommand%
@@ -6633,6 +6633,7 @@ SetHideMenuTrayIcon:
 		)
 	}
 return
+;~;[编辑设置Gui]
 ;-------------------------------------RunAny热键配置界面-------------------------------------
 RunA_Hotkey_Edit:
 	Gui, ListView, RunAnyHotkeyLV
@@ -6651,9 +6652,9 @@ RunA_Hotkey_Edit:
 	Gui,key:+Owner66
 	Gui,key:Margin,20,20
 	Gui,key:Font,,Microsoft YaHei
-	Gui,key:Add,GroupBox,xm-10 y+20 w225 h55,%RunAHotKeyText%：%RunAHotKey%
-	Gui,key:Add,Hotkey,xm yp+20 w150 vvkeyV,%v_keyV%
-	Gui,key:Add,Checkbox,Checked%v_winkeyV% xm+155 yp+3 vvwinkeyV,Win
+	Gui,key:Add,GroupBox,xm-10 y+20 w255 h55,%RunAHotKeyText%：%RunAHotKey%
+	Gui,key:Add,Hotkey,xm yp+20 w180 vvkeyV,%v_keyV%
+	Gui,key:Add,Checkbox,Checked%v_winkeyV% xm+185 yp+3 vvwinkeyV,Win
 	Gui,key:Font
 	Gui,key:Add,Button,Default xm+20 y+25 w75 GSaveRunAHotkey,保存
 	Gui,key:Add,Button,x+20 w75 GSetCancel,取消
@@ -6695,11 +6696,11 @@ Open_Ext_Edit:
 	Gui,SaveExt:+Owner66
 	Gui,SaveExt:Margin,20,20
 	Gui,SaveExt:Font,,Microsoft YaHei
-	Gui,SaveExt:Add, GroupBox,xm y+10 w400 h145,%openExtItem%内部关联后缀打开方式
+	Gui,SaveExt:Add, GroupBox,xm y+10 w450 h145,%openExtItem%内部关联后缀打开方式
 	Gui,SaveExt:Add, Text, xm+10 y+35 y35 w62, 文件后缀    (空格分隔)
-	Gui,SaveExt:Add, Edit, x+5 yp+5 w300 vvopenExtName, %openExtName%
+	Gui,SaveExt:Add, Edit, x+5 yp+5 w350 vvopenExtName, %openExtName%
 	Gui,SaveExt:Add, Button, xm+5 y+15 w60 GSetOpenExtRun,打开方式软件路径
-	Gui,SaveExt:Add, Edit, x+12 yp w300 r3 -WantReturn vvopenExtRun, %openExtRun%
+	Gui,SaveExt:Add, Edit, x+12 yp w350 r3 -WantReturn vvopenExtRun, %openExtRun%
 	Gui,SaveExt:Font
 	Gui,SaveExt:Add,Button,Default xm+100 y+25 w75 GSaveOpenExt,保存(&Y)
 	Gui,SaveExt:Add,Button,x+20 w75 GSetCancel,取消(&C)
@@ -6776,11 +6777,11 @@ Menu_Var_Edit:
 	Gui,SaveVar:+Owner66
 	Gui,SaveVar:Margin,20,20
 	Gui,SaveVar:Font,,Microsoft YaHei
-	Gui,SaveVar:Add, GroupBox,xm y+10 w400 h135 vvmenuVarType,%menuVarType%
+	Gui,SaveVar:Add, GroupBox,xm y+10 w450 h135 vvmenuVarType,%menuVarType%
 	Gui,SaveVar:Add, Text, xm+5 y+35 y35 w60,菜单变量名
-	Gui,SaveVar:Add, Edit, x+5 yp w300 vvmenuVarName gSetMenuVarVal, %menuVarName%
+	Gui,SaveVar:Add, Edit, x+5 yp w350 vvmenuVarName gSetMenuVarVal, %menuVarName%
 	Gui,SaveVar:Add, Text, xm+5 y+15 w60,菜单变量值
-	Gui,SaveVar:Add, Edit, x+5 yp w300 r3 -WantReturn vvmenuVarVal, %menuVarVal%
+	Gui,SaveVar:Add, Edit, x+5 yp w350 r3 -WantReturn vvmenuVarVal, %menuVarVal%
 	Gui,SaveVar:Font
 	Gui,SaveVar:Add,Button,Default xm+100 y+25 w75 GSaveMenuVar,保存(&S)
 	Gui,SaveVar:Add,Button,x+20 w75 GSetCancel,取消(&C)
@@ -6882,11 +6883,11 @@ Menu_Obj_Path_Edit:
 	Gui,SavePath:+Owner66
 	Gui,SavePath:Margin,20,20
 	Gui,SavePath:Font,,Microsoft YaHei
-	Gui,SavePath:Add, GroupBox,xm y+10 w400 h135, 无路径应用缓存
+	Gui,SavePath:Add, GroupBox,xm y+10 w450 h135, 无路径应用缓存
 	Gui,SavePath:Add, Text, xm+5 y+35 y35 w60,无路径名
-	Gui,SavePath:Add, Edit, x+5 yp w300 vvmenuObjPathName, %menuObjPathName%
+	Gui,SavePath:Add, Edit, x+5 yp w350 vvmenuObjPathName, %menuObjPathName%
 	Gui,SavePath:Add, Text, xm+5 y+15 w60,运行全路径
-	Gui,SavePath:Add, Edit, x+5 yp w300 r3 -WantReturn vvmenuObjPathVal, %menuObjPathVal%
+	Gui,SavePath:Add, Edit, x+5 yp w350 r3 -WantReturn vvmenuObjPathVal, %menuObjPathVal%
 	Gui,SavePath:Font
 	Gui,SavePath:Add,Button,Default xm+100 y+25 w75 GSaveMenuObjPath,保存(&S)
 	Gui,SavePath:Add,Button,x+20 w75 GSetCancel,取消(&C)
@@ -7267,7 +7268,7 @@ Var_Set:
 		if(MenuCommonListReg){
 			Loop, parse, MenuCommonListReg, |
 			{
-				R_ThisMenuItem:=RegExReplace(A_LoopField,"&\d+ ","")
+				R_ThisMenuItem:=RegExReplace(A_LoopField,"^&\d+ ","")
 				if R_ThisMenuItem not in %MENU_RUN_NAME_STR%
 				{
 					MenuCommonList.Push(A_LoopField)
