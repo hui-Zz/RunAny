@@ -1137,7 +1137,6 @@ Menu_Show:
 			}
 			return
 		}
-		getZz:=Get_Transform_Val(getZz)
 		if(Candy_isFile){
 			SplitPath, getZz,FileName,, FileExt  ; 获取文件扩展名.
 			if(InStr(FileExist(getZz), "D")){  ; {目录}
@@ -1211,6 +1210,7 @@ Menu_Show:
 			}
 			return
 		}
+		getZz:=Get_Transform_Val(getZz)
 		if(MENU_NO=1){
 			openFlag:=false
 			calcFlag:=false
