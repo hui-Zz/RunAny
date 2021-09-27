@@ -1367,19 +1367,12 @@ Menu_All_Show:
 return
 Menu_Show_Show(menuName, itemName, Candy_isFile:=0){
 	selectCheck:=Trim(itemName," `t`n`r")
-	if(!HideSelectZz && !Candy_isFile && selectCheck!=""){
-		;[选中内容翻译]
-		translate:=Menu_Show_Translate(selectCheck)
+	if(!HideSelectZz && selectCheck!=""){
 		if(StrLen(itemName)>ShowGetZzLen)
 			itemName:=SubStr(itemName, 1, ShowGetZzLen) . "..."
 		Menu,%menuName%,Insert, 1&,%itemName%,Menu_Show_Select_Clipboard
 		Menu,%menuName%,ToggleCheck, 1&
 		Menu,%menuName%,Insert, 2&
-		if(translate!=""){
-			Menu,%menuName%,Insert, 3&,%translate%,Menu_Show_Select_Translate,+Radio
-			Menu,%menuName%,ToggleCheck, 3&
-			Menu,%menuName%,Insert, 4&
-		}
 	}
 	if(menuName!=menuDefaultRoot%MENU_NO%[1]){
 		Menu,%menuName%,Insert, ,%RUNANY_SELF_MENU_ITEM4%,Menu_All_Show
@@ -1387,11 +1380,7 @@ Menu_Show_Show(menuName, itemName, Candy_isFile:=0){
 	}
 	;[显示菜单]
 	Menu,%menuName%,Show
-	if(!HideSelectZz && !Candy_isFile && selectCheck!=""){
-		if(translate!=""){
-			Menu,%menuName%,Delete, 4&
-			Menu,%menuName%,Delete, 3&
-		}
+	if(!HideSelectZz && selectCheck!=""){
 		Menu,%menuName%,Delete, 2&
 		Menu,%menuName%,Delete,%itemName%
 	}
@@ -1399,37 +1388,8 @@ Menu_Show_Show(menuName, itemName, Candy_isFile:=0){
 		try Menu,%menuName%,Delete,%RUNANY_SELF_MENU_ITEM4%
 	}
 }
-Menu_Show_Translate(selectCheck){
-	translate:=""
-	if(translateFlag && GetZzTranslate && (!GetZzTranslateMenu || GetZzTranslateMenu=MENU_NO)
-			&& !RegExMatch(selectCheck,"iS)^([\w-]+://?|www[.]).*")){
-		if(GetZzTranslateAuto){
-			if(!RegExMatch(selectCheck,"S)[\p{Han}]+")){
-				GetZzTranslateTarget:="zh-CN"
-			}else if(!RegExMatch(selectCheck,"S)[a-zA-Z]+")){
-				GetZzTranslateTarget:="en"
-			}else{
-				return ""
-			}
-		}else{
-			if(GetZzTranslateSource="en" && !RegExMatch(selectCheck,"S)[a-zA-Z]+"))
-				return ""
-			if(GetZzTranslateSource="zh-CN" && !RegExMatch(selectCheck,"S)[\p{Han}]+"))
-				return ""
-		}
-		PluginsObjRegActive["huiZz_Text"]:=ComObjActive(PluginsObjRegGUID["huiZz_Text"])
-		translate:=PluginsObjRegActive["huiZz_Text"]["runany_google_translate"](selectCheck,GetZzTranslateSource,GetZzTranslateTarget)
-		translate:=RegExReplace(translate,"[+].*")
-		if(StrLen(translate)>ShowGetZzLen)
-			translate:=SubStr(translate, 1, ShowGetZzLen) . "..."
-	}
-	return translate
-}
 Menu_Show_Select_Clipboard:
 	Clipboard:=Candy_Select
-return
-Menu_Show_Select_Translate:
-	Run,https://translate.google.cn/#%GetZzTranslateSource%/%GetZzTranslateTarget%/%getZz%
 return
 ;[所有菜单(添加/删除)临时项]
 Menu_Add_Del_Temp(addDel=1,TREE_NO=1,mName="",LabelName="",mIcon="",mIconNum=""){
@@ -6281,13 +6241,6 @@ Settings_Gui:
 	LV_Add(ShowGetZzLen ? "Icon1" : "Icon2", ShowGetZzLen,"字", "[选中] 菜单第一行显示选中文字最大截取字数","","ShowGetZzLen")
 	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitApp,, "[选中] 指定软件解决剪贴板等待时间过短获取不到选中内容（多个用,分隔）","","ClipWaitApp")
 	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitTime,"秒", "[选中] 指定软件获取选中目标到剪贴板等待时间，全局其他软件默认0.1秒","","ClipWaitTime")
-	if(translateFlag){
-		LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslate,"", "[选中翻译] 菜单第二行谷歌翻译选中内容","huiZz_Text.ahk","GetZzTranslate")
-		LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateMenu,"菜单", "[选中翻译] 1：仅菜单1显示翻译；2：仅菜单2显示翻译；0：所有菜单均显示","huiZz_Text.ahk","GetZzTranslateMenu")
-		LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateSource,"", "[选中翻译] 翻译源语言，默认auto","huiZz_Text.ahk","GetZzTranslateSource")
-		LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateTarget,"", "[选中翻译] 翻译目标语言，英文：en，中文：zh-CN，具体语言查看谷歌翻译网址","huiZz_Text.ahk","GetZzTranslateTarget")
-		LV_Add(GetZzTranslate ? "Icon1" : "Icon2", GetZzTranslateAuto,"", "[选中翻译] 翻译目标语言自动判断切换中英文","huiZz_Text.ahk","GetZzTranslateAuto")
-	}
 	LV_Add(HoldCtrlRun ? "Icon1" : "Icon2", HoldCtrlRun,"", "[按住Ctrl键] 回车或点击菜单项（选项数字可互用） 2:打开该软件所在目录","","HoldCtrlRun")
 	LV_Add(HoldShiftRun ? "Icon1" : "Icon2", HoldShiftRun,"", "[按住Shift键] 回车或点击菜单项（选项数字可互用） 5:打开多功能菜单运行方式","","HoldShiftRun")
 	LV_Add(HoldCtrlShiftRun ? "Icon1" : "Icon2", HoldCtrlShiftRun,"", "[按住Ctrl+Shift键] 回车或点击菜单项（选项数字可互用） 3:编辑该菜单项","","HoldCtrlShiftRun")
@@ -6317,7 +6270,7 @@ Settings_Gui:
 	LV_Add(DisableExeIcon ? "Icon1" : "Icon2", DisableExeIcon,, "菜单中exe程序不加载本身图标","","DisableExeIcon")
 	LV_Add(RunAEncoding ? "Icon1" : "Icon2", RunAEncoding,, "使用指定编码读取RunAny.ini（默认ANSI）","","RunAEncoding")
 	LV_Add(AutoGetZz ? "Icon1" : "Icon2", AutoGetZz,, "【慎改】菜单程序运行自动带上当前选中文件，关闭后需要手动加%getZz%才可以获取到","","AutoGetZz")
-	LV_Add(EvNo ? "Icon1" : "Icon2", EvNo,, "【慎改】不使用Everything模式，所有无路径配置都会失效！","","EvNo")
+	LV_Add(EvNo ? "Icon1" : "Icon2", EvNo,, "【慎改】不使用Everything模式，所有无路径应用缓存需要手动新增修改","","EvNo")
 	LV_ModifyCol(2,"Auto Center")
 	LV_ModifyCol(3,"Auto")
 	LV_ModifyCol(4,"Auto")
@@ -6426,8 +6379,8 @@ SetRunAEvFullPathIniDir:
 	}
 return
 SetRunAEvFullPathIniDirHint:
-	ToolTip, 无路径缓存文件请不要设置在同步网盘内，防止在不同电脑上路径混乱, 300, 100
-	SetTimer,RemoveToolTip,5000
+	ToolTip, 无路径缓存文件 请不要设置在网盘同步文件夹里面！`n防止把其他电脑上的软件路径同步过来造成混乱, 370, 102
+	SetTimer,RemoveToolTip,15000
 return
 SetBrowserPath:
 	FileSelectFile, browserFilePath, 3, , 程序路径, (*.exe)
@@ -7207,11 +7160,6 @@ Var_Set:
 	global SendStrDcKey:=Var_Read("SendStrDcKey")
 	;[高级配置]开始
 	global ShowGetZzLen:=Var_Read("ShowGetZzLen",50)
-	global GetZzTranslate:=Var_Read("GetZzTranslate",0)
-	global GetZzTranslateMenu:=Var_Read("GetZzTranslateMenu",0)
-	global GetZzTranslateSource:=Var_Read("GetZzTranslateSource","auto")
-	global GetZzTranslateTarget:=Var_Read("GetZzTranslateSource","zh-CN")
-	global GetZzTranslateAuto:=Var_Read("GetZzTranslateAuto",0)
 	global DebugMode:=Var_Read("DebugMode",0)
 	global DebugModeShowTime:=Var_Read("DebugModeShowTime",8000)
 	global DebugModeShowTrans:=Var_Read("DebugModeShowTrans",70)
@@ -7825,10 +7773,6 @@ Plugins_Object_Register:
 		}
 	}
 	if(PluginsObjRegGUID["huiZz_Text"] && PluginsObjList["huiZz_Text.ahk"]){
-		;#判断huiZz_Text插件是否可以文字翻译
-		if(InStr(PluginsContentList["huiZz_Text.ahk"],"runany_google_translate(getZz,from,to){")){
-			global translateFlag:=true
-		}
 		;#判断huiZz_Text插件是否可以文字加解密
 		if(InStr(PluginsContentList["huiZz_Text.ahk"],"runany_encrypt(text,key){")
 				&& InStr(PluginsContentList["huiZz_Text.ahk"],"runany_decrypt(text,key){")){
