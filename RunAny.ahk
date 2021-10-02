@@ -386,7 +386,6 @@ if(!EvNo && EvQueryFlag && Trim(evFullPathIniVar," `t`n`r")!="" && rule_check_is
 }
 ;如果需要自动关闭everything
 if(EvAutoClose && EvPath){
-	EvPathRun:=Get_Transform_Val(EvPath)
 	Run,%EvPathRun% -exit
 }
 ;提前加载菜单树图标缓存
@@ -2133,6 +2132,7 @@ return
 ;~;【一键Everything】[搜索选中文字][激活][隐藏]
 Ev_Show:
 	getZz:=Get_Zz()
+	EverythingIsRun()
 	evSearch:=""
 	if(Trim(getZz," `t`n`r")!=""){
 		getZzLength:=StrSplit(getZz,"`n").Length()
@@ -2151,19 +2151,14 @@ Ev_Show:
 		}
 		evSearch:=SubStr(evSearch, 1, -StrLen("|"))
 	}
-	EvPathRun:=Get_Transform_Val(EvPath)
-	DetectHiddenWindows,On
-	IfWinExist ahk_class EVERYTHING
-		if evSearch
-			Run % EvPathRun " -search """ evSearch """"
-		else
-			IfWinNotActive
-				WinActivate
-			else
-				WinMinimize
+	if evSearch
+		Run % EvPathRun " -search """ evSearch """"
 	else
-		Run % EvPathRun (evSearch ? " -search """ evSearch """" : "")
-	DetectHiddenWindows,Off
+		IfWinNotActive
+			WinActivate
+		else
+			WinMinimize
+
 return
 ;~;【一键搜索】
 One_Show:
@@ -7386,6 +7381,7 @@ Run_Exist:
 		IniWrite,%IniConfig%,%RunAnyConfig%,Config,IniConfig
 	}
 	global iniFileVar:=iniVar1
+	global EvPathRun:=Get_Transform_Val(EvPath)
 	;#判断Everything拓展DLL文件#
 	if(!EvNo){
 		global everyDLL:="Everything.dll"
