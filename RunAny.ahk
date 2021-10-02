@@ -149,7 +149,6 @@ EvCommandStr:=EvDemandSearch ? EverythingNoPathSearchStr() : ""
 IniRead, evFullPathIniVar, %RunAnyEvFullPathIni%, FullPath
 Loop, parse, evFullPathIniVar, `n, `r
 {
-	EvQueryFlag:=true
 	varList:=StrSplit(A_LoopField,"=",,2)
 	objFileNameNoExeExt:=RegExReplace(varList[1],"iS)\.exe$","")
 	MenuObj[objFileNameNoExeExt]:=varList[2]
@@ -165,6 +164,7 @@ Loop, parse, evFullPathIniVar, `n, `r
 }
 ;发现有新增的无路径菜单项
 if(Trim(evFullPathIniVar," `t`n`r")!=""){
+	EvQueryFlag:=true
 	for k,v in MenuObjSearch
 	{
 		if(!MenuObjCache.HasKey(k)){
@@ -336,7 +336,6 @@ Menu_Tray_Tip("菜单加载：" Round((t7-t6)/1000,3) "s`n")
 
 ;~;[21.内部关联后缀打开方式]
 Gosub,Open_Ext_Set
-
 Menu_Tray_Tip("","菜单已经可以正常使用`n开始为菜单中exe程序加载图标...")
 ;~;[22.菜单中EXE程序加载图标，有ico图标更快]
 For k, v in MenuExeIconArray
@@ -5968,6 +5967,11 @@ Settings_Gui:
 		Gosub,Menu_Config
 		return
 	}
+	if(GuiShowFlag){  ;防止短时间内打开多次界面出现问题
+		GuiShowFlag:=false
+		return
+	}
+	GuiShowFlag:=true
 	HotKeyFlag:=MenuVarFlag:=OpenExtFlag:=AdvancedConfigFlag:=false
 	GUI_WIDTH_66=700
 	TAB_WIDTH_66=680
@@ -6292,7 +6296,8 @@ Settings_Gui:
 			SetValueList.Push(winkeyV)
 		}
 	}
-	return
+	GuiShowFlag:=false
+return
 ;~;【关于Gui】
 Menu_About:
 	Gui,99:Destroy
@@ -7399,15 +7404,17 @@ Run_Exist:
 			}
 		}
 		;~Everything搜索检查准备
-		RegWrite,REG_SZ,HKEY_CURRENT_USER\SOFTWARE\RunAny,RunAnyTickCount,%A_TickCount%
 		RegRead,RunAnyTickCount,HKEY_CURRENT_USER\SOFTWARE\RunAny,RunAnyTickCount
+		RegWrite,REG_SZ,HKEY_CURRENT_USER\SOFTWARE\RunAny,RunAnyTickCount,%A_TickCount%
 		if(!RunAnyTickCount || A_TickCount<RunAnyTickCount){
+			try Menu,Tray,Icon,% ZzIconS[1],% ZzIconS[2]
 			RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults,0
 		}
 	}
 return
 ;~;【图标初始化】
 Icon_Set:
+	Menu,exeTestMenu,add,SetCancel	;只用于测试应用图标正常添加
 	global RunIconDir:=A_ScriptDir "\RunIcon"
 	global WebIconDir:=RunIconDir "\WebIcon"
 	global ExeIconDir:=RunIconDir "\ExeIcon"
@@ -7485,23 +7492,6 @@ Icon_Set:
 	global RunCtrlManageIconS:=StrSplit(RunCtrlManageIcon,",")
 	global CheckUpdateIcon:=Var_Read("CheckUpdateIcon","shell32.dll,14")
 	global CheckUpdateIconS:=StrSplit(CheckUpdateIcon,",")
-return
-;~;[后缀图标初始化]
-Icon_FileExt_Set:
-	Menu,exeTestMenu,add,SetCancel	;只用于测试应用图标正常添加
-	FolderIcon:=Var_Read("FolderIcon","shell32.dll,4")
-	global FolderIconS:=StrSplit(Get_Transform_Val(FolderIcon),",")
-	UrlIcon:=Var_Read("UrlIcon","shell32.dll,44")
-	global UrlIconS:=StrSplit(Get_Transform_Val(UrlIcon),",")
-	EXEIcon:=Var_Read("EXEIcon","shell32.dll,3")
-	global EXEIconS:=StrSplit(Get_Transform_Val(EXEIcon),",")
-	LNKIcon:="shell32.dll,264"
-	if(A_OSVersion="WIN_XP"){
-		LNKIcon:="shell32.dll,30"
-	}
-	global LNKIconS:=StrSplit(LNKIcon,",")
-	FuncIcon:=Var_Read("FuncIcon","shell32.dll,131")
-	global FuncIconS:=StrSplit(Get_Transform_Val(FuncIcon),",")
 	try{
 		Menu,exeTestMenu,Icon,SetCancel,ZzIcon.dll,7
 		ZzIconPath:="ZzIcon.dll,7"
@@ -7509,22 +7499,22 @@ Icon_FileExt_Set:
 		ZzIconPath:="ZzIcon.dll,1"
 	}
 	global ZzIconS:=StrSplit(ZzIconPath,",")
-	;[RunAny菜单图标初始化]
-	try {
-		Menu,Tray,Icon,显示菜单(&Z)`t%MenuHotKey%,% ZzIconS[1],% ZzIconS[2],%MenuTrayIconSize%
-		Menu,Tray,Icon,修改菜单(&E)`t%TreeHotKey1%,% TreeIconS[1],% TreeIconS[2],%MenuTrayIconSize%
-		Menu,Tray,Icon,修改文件(&F)`t%TreeIniHotKey1%,% EditFileIconS[1],% EditFileIconS[2],%MenuTrayIconSize%
-		If(MENU2FLAG){
-			Menu,Tray,Icon,显示菜单2(&2)`t%MenuHotKey2%,% ZzIconS[1],% ZzIconS[2],%MenuTrayIconSize%
-			Menu,Tray,Icon,修改菜单2(&W)`t%TreeHotKey2%,% TreeIconS[1],% TreeIconS[2],%MenuTrayIconSize%
-			Menu,Tray,Icon,修改文件2(&G)`t%TreeIniHotKey2%,% EditFileIconS[1],% EditFileIconS[2],%MenuTrayIconSize%
-		}
-		Menu,Tray,Icon,插件管理(&C)`t%PluginsManageHotKey%,% PluginsManageIconS[1],% PluginsManageIconS[2],%MenuTrayIconSize%
-		Menu,Tray,Icon,启动管理(&Q)`t%RunCtrlManageHotKey%,% RunCtrlManageIconS[1],% RunCtrlManageIconS[2],%MenuTrayIconSize%
-		Menu,Tray,Icon,设置RunAny(&D)`t%RunASetHotKey%,% MenuIconS[1],% MenuIconS[2],%MenuTrayIconSize%
-		Menu,Tray,Icon,关于RunAny(&A)...,% AnyIconS[1],% AnyIconS[2],%MenuTrayIconSize%
-		Menu,Tray,Icon,检查更新(&U),% CheckUpdateIconS[1],% CheckUpdateIconS[2],%MenuTrayIconSize%
-	} catch {}
+return
+;~;[后缀图标初始化]
+Icon_FileExt_Set:
+	global FolderIcon:=Var_Read("FolderIcon","shell32.dll,4")
+	global FolderIconS:=StrSplit(Get_Transform_Val(FolderIcon),",")
+	global UrlIcon:=Var_Read("UrlIcon","shell32.dll,44")
+	global UrlIconS:=StrSplit(Get_Transform_Val(UrlIcon),",")
+	global EXEIcon:=Var_Read("EXEIcon","shell32.dll,3")
+	global EXEIconS:=StrSplit(Get_Transform_Val(EXEIcon),",")
+	global LNKIcon:="shell32.dll,264"
+	if(A_OSVersion="WIN_XP"){
+		LNKIcon:="shell32.dll,30"
+	}
+	global LNKIconS:=StrSplit(LNKIcon,",")
+	FuncIcon:=Var_Read("FuncIcon","shell32.dll,131")
+	global FuncIconS:=StrSplit(Get_Transform_Val(FuncIcon),",")
 	;~;[引入菜单项图标识别库]
 	global IconFolderPath:=Var_Read("IconFolderPath","%A_ScriptDir%\RunIcon\ExeIcon|%A_ScriptDir%\RunIcon\WebIcon|%A_ScriptDir%\RunIcon\MenuIcon")
 	global IconFolderList:={}
@@ -7888,6 +7878,7 @@ AutoClose_Plugins:
 return
 ExitFunc(ExitReason, ExitCode)
 {
+	RegWrite,REG_SZ,HKEY_CURRENT_USER\SOFTWARE\RunAny,RunAnyTickCount,%A_TickCount%
 	Gosub,AutoClose_Plugins
     ; 不要调用 ExitApp -- 那会阻止其他 OnExit 函数被调用.
 }
@@ -8426,6 +8417,22 @@ Menu_Tray_Add:
 	Menu,Tray,add,退出(&X)`t%RunAExitHotKey%,Menu_Exit
 	Menu,Tray,Default,显示菜单(&Z)`t%MenuHotKey%
 	Menu,Tray,Click,1
+	;[RunAny菜单图标初始化]
+	try {
+		Menu,Tray,Icon,显示菜单(&Z)`t%MenuHotKey%,% ZzIconS[1],% ZzIconS[2],%MenuTrayIconSize%
+		Menu,Tray,Icon,修改菜单(&E)`t%TreeHotKey1%,% TreeIconS[1],% TreeIconS[2],%MenuTrayIconSize%
+		Menu,Tray,Icon,修改文件(&F)`t%TreeIniHotKey1%,% EditFileIconS[1],% EditFileIconS[2],%MenuTrayIconSize%
+		If(MENU2FLAG){
+			Menu,Tray,Icon,显示菜单2(&2)`t%MenuHotKey2%,% ZzIconS[1],% ZzIconS[2],%MenuTrayIconSize%
+			Menu,Tray,Icon,修改菜单2(&W)`t%TreeHotKey2%,% TreeIconS[1],% TreeIconS[2],%MenuTrayIconSize%
+			Menu,Tray,Icon,修改文件2(&G)`t%TreeIniHotKey2%,% EditFileIconS[1],% EditFileIconS[2],%MenuTrayIconSize%
+		}
+		Menu,Tray,Icon,插件管理(&C)`t%PluginsManageHotKey%,% PluginsManageIconS[1],% PluginsManageIconS[2],%MenuTrayIconSize%
+		Menu,Tray,Icon,启动管理(&Q)`t%RunCtrlManageHotKey%,% RunCtrlManageIconS[1],% RunCtrlManageIconS[2],%MenuTrayIconSize%
+		Menu,Tray,Icon,设置RunAny(&D)`t%RunASetHotKey%,% MenuIconS[1],% MenuIconS[2],%MenuTrayIconSize%
+		Menu,Tray,Icon,关于RunAny(&A)...,% AnyIconS[1],% AnyIconS[2],%MenuTrayIconSize%
+		Menu,Tray,Icon,检查更新(&U),% CheckUpdateIconS[1],% CheckUpdateIconS[2],%MenuTrayIconSize%
+	} catch {}
 return
 Menu_Tray:
 	Menu,Tray,Show
