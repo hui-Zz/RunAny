@@ -5962,11 +5962,7 @@ Settings_Gui:
 		Gosub,Menu_Config
 		return
 	}
-	if(GuiShowFlag){  ;防止短时间内打开多次界面出现问题
-		GuiShowFlag:=false
-		return
-	}
-	GuiShowFlag:=true
+	Critical  ;防止短时间内打开多次界面出现问题
 	HotKeyFlag:=MenuVarFlag:=OpenExtFlag:=AdvancedConfigFlag:=false
 	GUI_WIDTH_66=700
 	TAB_WIDTH_66=680
@@ -6291,7 +6287,6 @@ Settings_Gui:
 			SetValueList.Push(winkeyV)
 		}
 	}
-	GuiShowFlag:=false
 return
 ;~;【关于Gui】
 Menu_About:
