@@ -2181,6 +2181,11 @@ return
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 ;~;【——通用函数方法——】
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+;[创建文件夹]
+CreateDir(dir){
+	if(!InStr(FileExist(dir), "D"))
+		FileCreateDir, %dir%
+}
 ;[检查后缀名]
 Ext_Check(name,len,ext){
 	len_ext:=StrLen(ext)
@@ -3564,10 +3569,9 @@ SetItemIconPath:
 		itemIconName:=vitemName ? vitemName : name_no_ext
 		itemIconName:=menuItemIconFileName(itemIconName)
 		if(FileExist(itemIconFile) && iconSelPath!=itemIconFile){
-			IfNotExist %A_Temp%\%RunAnyZz%\RunIcon
-				FileCreateDir,%A_Temp%\%RunAnyZz%\RunIcon
+			CreateDir(A_Temp "\" RunAnyZz "\" RunIcon)
 			SplitPath, itemIconFile, iName
-			FileMove,%itemIconFile%,%A_Temp%\%RunAnyZz%\RunIcon\%iName%,1
+			FileMove, %itemIconFile%, %A_Temp%\%RunAnyZz%\RunIcon\%iName%,1
 		}
 		if(InStr(vitemName,"-")=1){
 			iconCopyDir:=MenuIconDir
@@ -3792,8 +3796,6 @@ TVImportFolder:
 	}
 return
 Website_Icon:
-	IfNotExist %WebIconDir%
-		FileCreateDir,%WebIconDir%
 	selText:=""
 	selTextList:=Object()
 	CheckID = 0
@@ -4622,7 +4624,7 @@ loop
 	InputBox, newObjRegInput, ObjReg新建插件脚本名称,`n  新建插件脚本（默认自动启动），名称建议为`n`n  作者名_功能.ahk,,,,,,,,RunAny_NewObjReg_%newObjRegCount%.ahk
 	if !ErrorLevel
 	{
-		IfNotExist,%A_ScriptDir%\%PluginsDir%\%newObjRegInput%
+		if(!FileExist(A_ScriptDir "\" PluginsDir "\" newObjRegInput))
 			break
 		else
 			MsgBox, 48, 文件重名, 已有同名的脚本存在，请重新输入
@@ -4721,8 +4723,7 @@ PluginsDownVersion:
 			return
 		}
 	}
-	IfNotExist %A_Temp%\%RunAnyZz%\%PluginsDir%
-		FileCreateDir,%A_Temp%\%RunAnyZz%\%PluginsDir%
+	CreateDir(A_Temp "\" RunAnyZz "\" PluginsDir)
 	ObjRegIniPath=%A_Temp%\%RunAnyZz%\%PluginsDir%\RunAny_ObjReg.ini
 	URLDownloadToFile(RunAnyDownDir "/" PluginsDir "/RunAny_ObjReg.ini",ObjRegIniPath)
 	IfExist,%ObjRegIniPath%
@@ -4780,8 +4781,7 @@ LVDown:
 			if(RegExMatch(FileContent,"iS)\{\}$")){
 				SplitPath, FileName, fName,, fExt, name_no_ext
 				pluginsDownPath.="\" name_no_ext
-				IfNotExist %A_ScriptDir%\%pluginsDownPath%
-					FileCreateDir,%A_ScriptDir%\%pluginsDownPath%
+				CreateDir(A_ScriptDir "\" pluginsDownPath)
 			}
 			;特殊插件下载依赖
 			if(FileName="huiZz_QRCode.ahk"){
@@ -7336,16 +7336,11 @@ Run_Exist:
 	global RunAEvFullPathIniDirPath:=Get_Transform_Val(RunAEvFullPathIniDir)
 	global RunAnyEvFullPathIni:=RunAEvFullPathIniDirPath "\RunAnyEvFullPath.ini"
 	global PluginsDir:="RunPlugins"	;~插件目录
-	IfNotExist,%A_AppData%\%RunAnyZz%
-		FileCreateDir, %A_AppData%\%RunAnyZz%
-	IfNotExist %RunABackupDirPath%
-		FileCreateDir,%RunABackupDirPath%
-	IfNotExist %RunABackupDirPath%\%RunAnyConfig%
-		FileCreateDir,%RunABackupDirPath%\%RunAnyConfig%
-	IfNotExist %RunAEvFullPathIniDirPath%
-		FileCreateDir,%RunAEvFullPathIniDirPath%
-	IfNotExist,%A_ScriptDir%\%PluginsDir%\Lib
-		FileCreateDir, %A_ScriptDir%\%PluginsDir%\Lib
+	CreateDir(A_ScriptDir "\" PluginsDir "\" Lib)
+	CreateDir(A_AppData "\" RunAnyZz)
+	CreateDir(RunABackupDirPath "\" RunAnyConfig)
+	CreateDir(RunAEvFullPathIniDirPath)
+	CreateDir(A_Temp "\" RunAnyZz)
 	if(RunAEncoding){
 		try{
 			FileEncoding,%RunAEncoding%
@@ -7368,8 +7363,7 @@ Run_Exist:
 		global iniVar2:=""
 		MENU2FLAG:=true
 		FileRead, iniVar2, %iniPath2%
-		IfNotExist %RunABackupDirPath%\%RunAnyZz%2.ini
-			FileCreateDir,%RunABackupDirPath%\%RunAnyZz%2.ini
+		CreateDir(RunABackupDirPath "\" RunAnyZz "2.ini")
 	}
 	;#判断配置文件
 	if(!FileExist(RunAnyConfig)){
@@ -7385,8 +7379,7 @@ Run_Exist:
 		}else if(FileExist(A_ScriptDir "\Everything64.dll")){
 			everyDLL:=DllCall("LoadLibrary", str, "Everything64.dll") ? "Everything64.dll" : "Everything.dll"
 		}
-		IfNotExist,%A_ScriptDir%\%everyDLL%
-		{
+		if(!FileExist(A_ScriptDir "\" everyDLL)){
 			MsgBox,17,,没有找到%everyDLL%，将不能识别菜单中程序的路径`n需要将%everyDLL%放到【%A_ScriptDir%】目录下`n是否需要从网上下载%everyDLL%？
 			IfMsgBox Ok
 			{
@@ -7413,8 +7406,7 @@ Icon_Set:
 	IconDirs:="ExeIcon,WebIcon,MenuIcon"
 	Loop, Parse, IconDirs, `,
 	{
-		IfNotExist %RunIconDir%\%A_LoopField%
-			FileCreateDir,%RunIconDir%\%A_LoopField%
+		CreateDir(RunIconDir "\" A_LoopField)
 	}
 	global IconFileSuffix:="*.ico;*.bmp;*.png;*.gif;*.jpg;*.jpeg;*.jpe;*.jfif;*.dib;*.tif;*.tiff;*.heic"
 		. ";*.cur;*.ani,*.cpl,*.scr"
@@ -7613,8 +7605,6 @@ Menu_Exe_Icon_Extract:
 return
 ;~;[循环提取菜单中EXE程序的正确图标]
 Menu_Exe_Icon_Set(){
-	IfNotExist,%ExeIconDir%
-		FileCreateDir, %ExeIconDir%
 	For k, v in MenuExeArray
 	{
 		exePath:=v["itemFile"]
@@ -8262,8 +8252,8 @@ Check_Update:
 	Gosub,Auto_Update
 return
 Auto_Update:
-	if(FileExist(A_Temp "\RunAny_Update.bat"))
-		FileDelete, %A_Temp%\RunAny_Update.bat
+	if(FileExist(A_Temp "\" RunAnyZz "\RunAny_Update.bat"))
+		FileDelete, %A_Temp%\%RunAnyZz%\RunAny_Update.bat
 	;[下载最新的更新脚本]
 	if(!rule_check_network(giteeUrl)){
 		RunAnyDownDir:=githubUrl . RunAnyGithubDir
@@ -8324,7 +8314,7 @@ Auto_Update:
 					URLDownloadToFile(RunAnyDownDir "/RunAny.exe",A_Temp "\temp_RunAny.exe")
 					Gosub,RunAny_Update
 					shell := ComObjCreate("WScript.Shell")
-					shell.run(A_Temp "\RunAny_Update.bat",0)
+					shell.run(A_Temp "\" RunAnyZz "\RunAny_Update.bat",0)
 					ExitApp
 				}
 			}
@@ -8379,7 +8369,7 @@ if exist "%A_Temp%\temp_RunAny.exe" `(
 `)
 start "" "%A_ScriptDir%\%A_ScriptName%"
 exit
-),%A_Temp%\RunAny_Update.bat
+),%A_Temp%\%RunAnyZz%\RunAny_Update.bat
 return
 ;══════════════════════════════════════════════════════════════════
 ;~;【托盘菜单】
@@ -8562,6 +8552,7 @@ class everything
 	}
 }
 ),%A_Temp%\%RunAnyZz%\RunAnyEv.ahk
+Sleep, 200
 Run,%A_AhkPath%%A_Space%"%A_Temp%\%RunAnyZz%\RunAnyEv.ahk"
 return
 EverythingCheckResults:
