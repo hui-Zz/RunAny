@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.7 @2021.09.28
+║【RunAny】一劳永逸的快速启动工具 v5.7.7 @2021.10.03
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.7"     ;~;版本号
-global RunAny_update_time:="尝鲜版 2021.09.28"   ;~;更新日期
+global RunAny_update_time:="尝鲜版 2021.10.03"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -302,7 +302,7 @@ Loop,%MenuCount%
 			}
 		}
 	}
-	;~;[19.最近运行项]
+	;~;[20.最近运行项]
 	if(RecentMax>0){
 		Menu,% menuDefaultRoot%M_Index%[1],Add
 		Menu,% menuWebRoot%M_Index%[1],Add
@@ -356,9 +356,9 @@ For k, v in MenuExeArray
 }
 ;-------------------------------------------------------------------------------------------
 ;~;[23.菜单已经加载完毕，托盘图标变化]
-try Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 t8:=A_TickCount-StartTick
 Menu_Tray_Tip("菜单加载exe图标：" Round((t8-t7)/1000,3) "s`n","总加载时间：" Round(t8/1000,3) "s")
+Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 MenuIconFlag:=true
 
 ;#如果是第一次运行#
@@ -416,6 +416,7 @@ if(MENU2FLAG){
 if(AutoReloadMTime>0){
 	SetTimer,AutoReloadMTime,%AutoReloadMTime%
 }
+Critical,Off
 return
 
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -2693,6 +2694,7 @@ HideTrayTip() {
 }
 ;~[鼠标悬停在托盘图标上时显示初始化信息]
 Menu_Tray_Tip(tText,tmpText:=""){
+	Critical
 	MenuTrayTipText.=tText
 	Menu,Tray,Tip,% MenuTrayTipText tmpText
 	return MenuTrayTipText
