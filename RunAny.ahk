@@ -8430,10 +8430,8 @@ Menu_Config:
 	Ini_Run(RunAnyConfig)
 return
 Menu_Reload:
-	try Reload
-	Sleep,1000
-	Run,%A_AhkPath%%A_Space%"%A_ScriptFullPath%"
-	ExitApp
+	Critical
+	Reload
 return
 Menu_Suspend:
 	Menu,tray,ToggleCheck,停用(&S)`t%RunASuspendHotKey%
