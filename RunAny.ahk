@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.7 @2021.10.03
+║【RunAny】一劳永逸的快速启动工具 v5.7.7 @2021.10.06
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.7"     ;~;版本号
-global RunAny_update_time:="尝鲜版 2021.10.03"   ;~;更新日期
+global RunAny_update_time:="尝鲜版 2021.10.06"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -384,10 +384,6 @@ if(!EvNo && EvQueryFlag && Trim(evFullPathIniVar," `t`n`r")!="" && rule_check_is
 		Gosub,Menu_Reload
 	}
 }
-;如果需要自动关闭everything
-if(EvAutoClose && EvPath){
-	Run,%EvPathRun% -exit
-}
 ;提前加载菜单树图标缓存
 global TreeImageListID := IL_Create(11)
 Icon_Image_Set(TreeImageListID)
@@ -416,7 +412,10 @@ if(MENU2FLAG){
 if(AutoReloadMTime>0){
 	SetTimer,AutoReloadMTime,%AutoReloadMTime%
 }
-Critical,Off
+;如果需要自动关闭everything
+if(EvAutoClose && EvPathRun){
+	Run,%EvPathRun% -exit
+}
 return
 
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -2152,14 +2151,18 @@ Ev_Show:
 		}
 		evSearch:=SubStr(evSearch, 1, -StrLen("|"))
 	}
-	if evSearch
-		Run % EvPathRun " -search """ evSearch """"
-	else
-		IfWinNotActive
-			WinActivate
+	DetectHiddenWindows,On
+	IfWinExist ahk_class EVERYTHING
+		if evSearch
+			Run % EvPathRun " -search """ evSearch """"
 		else
-			WinMinimize
-
+			IfWinNotActive
+				WinActivate
+			else
+				WinMinimize
+	else
+		Run % EvPathRun (evSearch ? " -search """ evSearch """" : "")
+	DetectHiddenWindows,Off
 return
 ;~;【一键搜索】
 One_Show:
