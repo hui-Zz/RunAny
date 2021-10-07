@@ -2700,6 +2700,7 @@ Menu_Tray_Tip(tText,tmpText:=""){
 	Critical
 	MenuTrayTipText.=tText
 	Menu,Tray,Tip,% MenuTrayTipText tmpText
+	Critical,Off
 	return MenuTrayTipText
 }
 ;~[鼠标悬停在托盘图标上时显示运行路径信息]
