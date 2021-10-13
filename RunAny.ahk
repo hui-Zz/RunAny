@@ -7675,8 +7675,6 @@ Plugins_Read:
 	global PluginsDirPath:=Var_Read("PluginsDirPath")
 	global PluginsListViewSwap:=Var_Read("PluginsListViewSwap",0)
 	global PluginsDirPathList:="%A_ScriptDir%\RunPlugins|" PluginsDirPath
-	FileRead,pluginsContent,%A_ScriptFullPath%
-	PluginsContentList[RunAnyZz ".ahk"]:=pluginsContent
 	Loop, parse, PluginsDirPathList, |
 	{
 		PluginsFolder:=Get_Transform_Val(A_LoopField)
@@ -7731,8 +7729,8 @@ Plugins_Read:
 return
 ;~;【AHK脚本对象注册】
 Plugins_Object_Register:
-	global PluginsObjRegGUID:=Object()	;~插件对象注册GUID列表
-	global PluginsObjRegActive:=Object()	;~插件对象注册Active列表
+	global PluginsObjRegGUID:=Object()      ;~插件对象注册GUID列表
+	global PluginsObjRegActive:=Object()    ;~插件对象注册Active列表
 	global RunAny_ObjReg_Path
 	RunAny_ObjReg_Path=%A_ScriptDir%\%PluginsDir%\%RunAny_ObjReg%
 	IfExist,%RunAny_ObjReg_Path%
@@ -7820,22 +7818,22 @@ Plugins_Read_Icon(filePath){
 }
 ;~;【自动启动插件】
 AutoRun_Plugins:
+	if(!A_AhkPath)
+		return
 	try {
-		if(A_AhkPath){
-			For runn, runv in PluginsPathList	;循环启动项
-			{
-				;需要自动启动的项
-				if(PluginsObjList[runn]){
-					runValue:=RegExReplace(runv,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
-					SplitPath, runValue, name, dir, ext  ; 获取扩展名
-					if(dir && FileExist(dir)){
-						SetWorkingDir,%dir%
-					}
-					if(ext="ahk"){
-						Run,%A_AhkPath%%A_Space%"%runv%"
-					}else{
-						Run,%runv%
-					}
+		For runn, runv in PluginsPathList	;循环启动项
+		{
+			;需要自动启动的项
+			if(PluginsObjList[runn]){
+				runValue:=RegExReplace(runv,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
+				SplitPath, runValue, name, dir, ext  ; 获取扩展名
+				if(dir && FileExist(dir)){
+					SetWorkingDir,%dir%
+				}
+				if(ext="ahk"){
+					Run,%A_AhkPath%%A_Space%"%runv%"
+				}else{
+					Run,%runv%
 				}
 			}
 		}
@@ -7891,6 +7889,7 @@ RunCtrl_Read:
 		rulefileList[(rulefileList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=varList[2]
 		SplitPath,% varList[2],fileName,,,nameNotExt
 		ruleitemList[itemList[1]]:=nameNotExt
+		;判断规则状态
 		if(varList[2]=RunAnyZz ".ahk"){
 			rulestatusList[(rulestatusList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=IsFunc(itemList[2])
 		}else if(varList[2]="0"){
@@ -7901,11 +7900,17 @@ RunCtrl_Read:
 		}else{
 			rulestatusList[(rulestatusList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=InStr(PluginsContentList[(varList[2])],itemList[2] "(") ? 1 : 0
 		}
-		if(varList[2]!="0" && !InStr(PluginsContentList[(varList[2])],itemList[2] "()")){
+		;判断规则是否需要传参
+		if(varList[2]=RunAnyZz ".ahk"){
+			ruleparamList[(ruleparamList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=IsFunc(itemList[2]) > 1
+		}else if(varList[2]!="0" && !InStr(PluginsContentList[(varList[2])],itemList[2] "()")){
 			ruleparamList[(ruleparamList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=true
 		}
 	}
 	RuleNameStr:=SubStr(RuleNameStr, 1, -StrLen("|"))
+	if(ruleparamList.HasKey("联网状态")){
+		ruleparamList["联网状态"]:=1
+	}
 	;---规则启动项---
 	global RunCtrlList:=Object(),RunCtrlListBoxList:=Object(),RunCtrlListContentList:=Object()
 	global RunCtrlLogicEnum:={"eq":"相等","ne":"不相等","ge":"大于等于","le":"小于等于","gt":"大于","lt":"小于","regex":"正则表达式"}
