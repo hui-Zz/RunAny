@@ -3,7 +3,7 @@
 ;*                          by hui-Zz *
 ;**************************************
 global RunAny_Plugins_Name:="ObjReg文本操作脚本"
-global RunAny_Plugins_Version:="1.2.6"
+global RunAny_Plugins_Version:="1.2.8"
 global RunAny_Plugins_Icon:="SHELL32.dll,270"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
@@ -34,7 +34,7 @@ class RunAnyObj {
 			if(str!="")
 				textResult.=str . splitStr
 		}
-		StringTrimRight, textResult, textResult, 1
+		textResult:=RegExReplace(textResult,splitStr "$")
 		Send_Or_Show(textResult,isSend)
 	}
 	;[文本替换]
@@ -209,8 +209,12 @@ class RunAnyObj {
 		}
 		if(url!=""){
 			url:=RegExReplace(url,"i)^(yun|pan)\.baidu\.com\/s\/")
-			Run,https://pan.baidu.com/s/%url%
-			this.text_pan_code(getZz,autoClear)
+			code:=this.text_pan_code(getZz,autoClear)
+			if(code!=""){
+				Run,https://pan.baidu.com/s/%url%?pwd=%code%#%code%
+			}else{
+				Run,https://pan.baidu.com/s/%url%
+			}
 			return
 		}
 		;蓝奏云
@@ -269,6 +273,7 @@ class RunAnyObj {
 		if(code!="" || autoClear){
 			Clipboard:=code
 		}
+		return code
 	}
 
 	;[复制或输出文件文本的内容]
