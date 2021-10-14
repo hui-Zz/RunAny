@@ -3,7 +3,7 @@
 ;*                          by hui-Zz *
 ;**************************************
 global RunAny_Plugins_Name:="ObjReg系统操作脚本"
-global RunAny_Plugins_Version:="1.1.0"
+global RunAny_Plugins_Version:="1.1.1"
 global RunAny_Plugins_Icon:="imageres.dll,61"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
@@ -133,6 +133,22 @@ class RunAnyObj {
 		}else{
 			RegWrite,REG_DWORD,%InternetSettings%,ProxyEnable,0
 		}
+	}
+	;[清空回收站]
+	;参数说明：drive 如果省略，则清空所有驱动器的回收站，否则，指定多个驱动器字母
+	;保存到RunAny.ini为：
+	;清空回收站CD区|huiZz_System[system_recycle_empty](c,d)
+	system_recycle_empty(drives*){
+		str:=""
+		for index,drive in drives
+		{
+			if(drive!=""){
+				FileRecycleEmpty, %drive%:\
+				str.= drive
+			}
+		}
+		if(str="")
+			FileRecycleEmpty
 	}
 
 ;══════════════════════════大括号以上是RunAny菜单调用的函数══════════════════════════
