@@ -5228,7 +5228,11 @@ RunCtrlConfig:
 	For k, v in RunCtrlList[RunCtrlListBox].ruleList
 	{
 		funcBoolean:=v.logic="1" ? "相等" : v.logic="0" ? "不相等" : RunCtrlLogicEnum[v.logic]
-		funcBoolean:=rulestatusList[v.name] ? funcBoolean : "规则失效"
+		if(!rulestatusList[v.name]){
+			funcBoolean:="规则函数未找到"
+		}else if(!ruletypelist[v.name] && v.file!="RunAny" && !rule_check_is_run(PluginsPathList[v.file ".ahk"])){
+			funcBoolean:="规则插件未启动"
+		}
 		LV_Add("", v.name, v.ruleBreak, funcBoolean, v.value)
 	}
 	LV_ModifyCol(1)
