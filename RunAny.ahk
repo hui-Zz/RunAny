@@ -146,7 +146,6 @@ global MenuObjCache:=Object()              ;Everything搜索无路径应用缓�
 global MenuObjNew:=Object()                ;Everything搜索新增加
 EvCommandStr:=EvDemandSearch ? EverythingNoPathSearchStr() : ""
 ;~;[14.获取无路径应用的运行全路径缓存]
-IniRead, evFullPathIniVar, %RunAnyEvFullPathIni%, FullPath
 Loop, parse, evFullPathIniVar, `n, `r
 {
 	varList:=StrSplit(A_LoopField,"=",,2)
@@ -368,7 +367,7 @@ if(iniFlag){
 	Gosub,Menu_About
 	Gosub,Menu_Show1
 }
-;~;[检查无路径应用缓存是否有新的版本]
+;~;[24.检查无路径应用缓存是否有新的版本]
 if(!EvNo && EvQueryFlag && Trim(evFullPathIniVar," `t`n`r")!="" && rule_check_is_run("Everything.exe")){
 	MenuObjUpdateList:=Object(),MenuObjEv:=Object(),MenuObjSearch:=Object()
 	EverythingQuery(EvCommandStr)
@@ -380,7 +379,7 @@ if(!EvNo && EvQueryFlag && Trim(evFullPathIniVar," `t`n`r")!="" && rule_check_is
 		}
 	}
 	if(MenuObjUpdateList.Length()>0){
-		ShowTrayTip("","以下无路径应用缓存替换为最新版路径``n" StrListJoin("、",MenuObjUpdateList),5,17)
+		ShowTrayTip("以下无路径应用缓存替换最新路径",StrListJoin("、",MenuObjUpdateList),10,17)
 		Gosub,Menu_Reload
 	}
 }
@@ -1107,7 +1106,7 @@ return
 Menu_Show:
 	try{
 		if(!MenuShowFlag && !MenuShowTimeFlag){
-			SetTimer,MenuShowTime,20
+			SetTimer,MenuShowTime,50
 			return
 		}
 		if(!extMenuHideFlag && !noGetZz)
@@ -1976,7 +1975,7 @@ Menu_Run_Plugins_ObjReg:
 		if(appPlugins!="runany"){
 			try {
 				PluginsObjRegActive[appPlugins]:=ComObjActive(PluginsObjRegGUID[appPlugins])
-			} catch {
+			} catch e{
 				TrayTip,,%appPlugins% 外接脚本失败`n请检查是否已经启动(在插件管理中设为自动启动)，并重启RunAny重试,5,2
 			}
 		}else if(!IsFunc(appFunc)){
@@ -2697,10 +2696,8 @@ HideTrayTip() {
 }
 ;~[鼠标悬停在托盘图标上时显示初始化信息]
 Menu_Tray_Tip(tText,tmpText:=""){
-	Critical
 	MenuTrayTipText.=tText
 	Menu,Tray,Tip,% MenuTrayTipText tmpText
-	Critical,Off
 	return MenuTrayTipText
 }
 ;~[鼠标悬停在托盘图标上时显示运行路径信息]
@@ -6133,13 +6130,13 @@ Settings_Gui:
 	Gui,66:Add,Text,xm y+%MARGIN_TOP_66%,Everything当前权限：【%EvIsAdminStatus%】
 	Gui,66:Add,Checkbox,Checked%EvAutoClose% x+20 yp vvEvAutoClose,Everything自动关闭(不常驻后台)
 	Gui,66:Add,Button,x+10 w80 h20 gSetEvReindex,重建索引
-	Gui,66:Add,Text,xm yp+25,% "Everything当前运行路径：" get_process_path("Everything.exe")
-	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h55,一键Everything [搜索选中文字，支持多选文件、再按为隐藏/激活] %EvHotKey%
+	Gui,66:Add,Text,xm yp+28,% "Everything当前运行路径：" get_process_path("Everything.exe")
+	Gui,66:Add,GroupBox,xm-10 y+12 w%GROUP_WIDTH_66% h55,一键Everything [搜索选中文字，支持多选文件、再按为隐藏/激活] %EvHotKey%
 	Gui,66:Add,Hotkey,xm+10 yp+20 w130 vvEvKey,%EvKey%
 	Gui,66:Add,Checkbox,Checked%EvWinKey% xm+150 yp+3 vvEvWinKey,Win
 	Gui,66:Add,Checkbox,Checked%EvShowExt% x+27 vvEvShowExt,搜索带文件后缀
 	Gui,66:Add,Checkbox,Checked%EvShowFolder% x+5 vvEvShowFolder,搜索选中文件夹内部
-	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h60,Everything安装路径（支持菜单变量和相对路径 \..\代表上一级目录）
+	Gui,66:Add,GroupBox,xm-10 y+25 w%GROUP_WIDTH_66% h60,Everything安装路径（支持菜单变量和相对路径 \..\代表上一级目录）
 	Gui,66:Add,Button,xm yp+20 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp+2 w%GROUP_CHOOSE_EDIT_WIDTH_66% vvEvPath,%EvPath%
 	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% vvEvCommandGroup,RunAny调用Everything搜索参数（搜索结果可在RunAny无路径运行，Everything异常请尝试重建索引）
@@ -6150,7 +6147,7 @@ Settings_Gui:
 	Gui,66:Add,Text,xm+60 yp,!C:\Windows* !?:\$RECYCLE.BIN*  表示排除搜索系统目录程序和回收站，注意中间空格间隔
 	; Gui,66:Add,Text,xm+60 yp+15,file:*.exe|*.lnk|后面类推增加想要的后缀
 	Gui,66:Font,,Consolas
-	Gui,66:Add,Edit,xm yp+35 r6 -WantReturn ReadOnly vvEvCommand,%EvCommand%
+	Gui,66:Add,Edit,xm yp+35 r5 -WantReturn ReadOnly vvEvCommand,%EvCommand%
 	Gui,66:Font,,Microsoft YaHei
 	
 	Gui,66:Tab,一键直达,,Exact
@@ -7364,10 +7361,11 @@ Run_Exist:
 	CreateDir(RunABackupDirPath "\" RunAnyConfig)
 	CreateDir(RunAEvFullPathIniDirPath)
 	CreateDir(A_Temp "\" RunAnyZz)
+	IniRead, evFullPathIniVar, %RunAnyEvFullPathIni%, FullPath
 	if(RunAEncoding){
 		try{
 			FileEncoding,%RunAEncoding%
-		}catch e{
+		}catch e {
 			MsgBox,16,文件编码出错,% "请设置正确的编码读取RunAny.ini!`n参考：https://wyagd001.github.io/zh-cn/docs/commands/FileEncoding.htm"
 			. "`n`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
 		}
@@ -7411,10 +7409,9 @@ Run_Exist:
 			}
 		}
 		;~Everything搜索检查准备
+		global RunAnyTickCount:=0
 		RegRead,RunAnyTickCount,HKEY_CURRENT_USER\SOFTWARE\RunAny,RunAnyTickCount
-		RegWrite,REG_SZ,HKEY_CURRENT_USER\SOFTWARE\RunAny,RunAnyTickCount,%A_TickCount%
 		if(!RunAnyTickCount || A_TickCount<RunAnyTickCount){
-			try Menu,Tray,Icon,% ZzIconS[1],% ZzIconS[2]
 			RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults,0
 		}
 	}
@@ -8403,7 +8400,6 @@ return
 ;~;【托盘菜单】
 Menu_Tray_Add:
 	Menu,Tray,NoStandard
-	try Menu,Tray,Icon,% MenuIconS[1],% MenuIconS[2]
 	Menu,Tray,add,显示菜单(&Z)`t%MenuHotKey%,Menu_Show1
 	Menu,Tray,add,修改菜单(&E)`t%TreeHotKey1%,Menu_Edit1
 	Menu,Tray,add,修改文件(&F)`t%TreeIniHotKey1%,Menu_Ini
@@ -8428,6 +8424,7 @@ Menu_Tray_Add:
 	Menu,Tray,Click,1
 	;[RunAny菜单图标初始化]
 	try {
+		Menu,Tray,Icon,% MenuIconS[1],% MenuIconS[2]
 		Menu,Tray,Icon,显示菜单(&Z)`t%MenuHotKey%,% ZzIconS[1],% ZzIconS[2],%MenuTrayIconSize%
 		Menu,Tray,Icon,修改菜单(&E)`t%TreeHotKey1%,% TreeIconS[1],% TreeIconS[2],%MenuTrayIconSize%
 		Menu,Tray,Icon,修改文件(&F)`t%TreeIniHotKey1%,% EditFileIconS[1],% EditFileIconS[2],%MenuTrayIconSize%
@@ -8441,7 +8438,9 @@ Menu_Tray_Add:
 		Menu,Tray,Icon,设置RunAny(&D)`t%RunASetHotKey%,% MenuIconS[1],% MenuIconS[2],%MenuTrayIconSize%
 		Menu,Tray,Icon,关于RunAny(&A)...,% AnyIconS[1],% AnyIconS[2],%MenuTrayIconSize%
 		Menu,Tray,Icon,检查更新(&U),% CheckUpdateIconS[1],% CheckUpdateIconS[2],%MenuTrayIconSize%
-	} catch {}
+	} catch e {
+		TrayTip,,% "托盘菜单图标错误：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,5,3
+	}
 return
 Menu_Tray:
 	Menu,Tray,Show
@@ -8492,7 +8491,7 @@ EverythingIsRun(){
 			Run,%EvPathRun% -exit
 			Run,%EvPathRun% -startup %evAdminRun%
 			Sleep,500
-			ShowTrayTip("","RunAny与Everything权限不一致进行重新启动",5,17)
+			ShowTrayTip("","RunAny与Everything权限不一致进行重新启动",10,17)
 			Gosub,Menu_Reload
 		}
 	}else{
@@ -8585,7 +8584,7 @@ EverythingCheckResults:
 	RegRead,EvTotResults,HKEY_CURRENT_USER,SOFTWARE\RunAny,EvTotResults
 	if(EvTotResults>0){
 		SetTimer,EverythingCheckResults,Off
-		ShowTrayTip("","Everything索引创建完成",3,17)
+		ShowTrayTip("","Everything索引创建完成",5,17)
 		Gosub,Menu_Reload
 	}
 return
@@ -8644,6 +8643,7 @@ EverythingQuery(EvCommandStr){
 			MenuObjSearch[objFileName]:=objFullPathName
 		}
 	}
+	return ev.GetNumFileResults()
 }
 EverythingNoPathSearchStr(){
 	Loop,%MenuCount%
