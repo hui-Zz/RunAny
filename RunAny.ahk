@@ -3048,7 +3048,6 @@ Menu_Edit_Gui:
 		}
 	}
 	GuiControl, MenuEdit:+Redraw, RunAnyTV
-	try Menu,TVMenu,Delete
 	TVMenu("TVMenu")
 	TVMenu("GuiMenu")
 	Gui, MenuEdit:Menu, GuiMenu
@@ -3103,7 +3102,7 @@ return
 #If
 ;~;[创建头部及右键功能菜单]
 TVMenu(addMenu){
-	flag:=addMenu="GuiMenu" ? true : false
+	flag:=(addMenu="GuiMenu") ? true : false
 	Menu, %addMenu%, Add,% flag ? "保存" : "保存`tCtrl+S", TVSave
 	Menu, %addMenu%, Icon,% flag ? "保存" : "保存`tCtrl+S", SHELL32.dll,194
 	Menu, %addMenu%, Add,% flag ? "添加应用" : "添加应用`tF3", TVAdd
@@ -3144,7 +3143,7 @@ TVClick:
 			TV_Modify(insertID, "Select Vis")
 			SendMessage, 0x110E, 0, TV_GetSelection(), , ahk_id %HTV%
 			addID:=
-			TV_MoveMenuClean()
+			Gosub,TV_MoveMenuClean
 		}
 		TVFlag:=true
 	}else if (A_GuiEvent == "K"){
@@ -3160,6 +3159,7 @@ TVClick:
 	}
 return
 TVAdd:
+	Gui, MenuEdit:Default
 	selID:=TV_Add("",TV_GetParent(TV_GetSelection()),TV_GetSelection())
 	itemGlobalWinKey:=0
 	itemName:=itemPath:=hotStrOption:=hotStrShow:=itemGlobalHotKey:=itemGlobalKey:=getZz:=""
@@ -3168,6 +3168,7 @@ TVAdd:
 	Gosub,Menu_Item_Edit
 return
 TVAddTree:
+	Gui, MenuEdit:Default
 	selID:=TV_Add("",TV_GetParent(TV_GetSelection()),TV_GetSelection())
 	TV_GetText(parentTreeName, TV_GetParent(TV_GetSelection()))
 	itemName:=RegExReplace(parentTreeName,"S)(^-+).*","$1") "-"
@@ -3371,7 +3372,7 @@ SetSaveItemGui:
 		TV_Modify(insertID, "Select Vis")
 		SendMessage, 0x110E, 0, TV_GetSelection(), , ahk_id %HTV%
 		addID:=
-		TV_MoveMenuClean()
+		Gosub,TV_MoveMenuClean
 	}
 return
 #If WinActive("新增修改菜单项 - " RunAnyZz " - 支持拖放应用")
@@ -3645,6 +3646,7 @@ TVUp:
 	TV_Move(false)
 return
 TVDel:
+	Gui, MenuEdit:Default
 	selText:=""
 	DelListID:=Object()
 	CheckID = 0
@@ -3671,11 +3673,12 @@ TVDel:
 		{
 			TV_Delete(DelListID[A_Index])
 		}
-		TV_MoveMenuClean()
 		TVFlag:=true
+		Gosub,TV_MoveMenuClean
 	}
 return
 TVComments:
+	Gui, MenuEdit:Default
 	CheckID = 0
 	Loop
 	{
@@ -3748,6 +3751,7 @@ Set_Tab(tabNum){
 }
 ;~;[多选导入]
 TVImportFile:
+	Gui, MenuEdit:Default
 	selID:=TV_GetSelection()
 	TV_GetText(ItemText, selID)
 	if(InStr(ItemText,"-")=1){
@@ -3776,6 +3780,7 @@ TVImportFile:
 return
 ;~;[批量导入]
 TVImportFolder:
+	Gui, MenuEdit:Default
 	selID:=TV_GetSelection()
 	TV_GetText(ItemText, selID)
 	if(InStr(ItemText,"-")=1){
@@ -3897,6 +3902,7 @@ WebsiteIconError(errDown){
 }
 ;~;[上下移动项目]
 TV_Move(moveMode = true){
+	Gui, MenuEdit:Default
 	selID:=TV_GetSelection()
 	moveID:=moveMode ? TV_GetNext(selID) : TV_GetPrev(selID)	; 向下：moveID为下个节点ID，向上：上个节点ID
 	if(moveID!=0){
@@ -3962,16 +3968,22 @@ TV_MoveMenu(moveMenuName){
 	moveItem:=RegExReplace(moveMenuName,"S)^-+")
 	moveLevel:=StrLen(RegExReplace(moveMenuName,"S)(^-+).*","$1"))
 	Menu,%moveMenuName%,add,%moveMenuName%,Move_Menu
-	try Menu,% moveRoot[moveLevel],add,%moveItem%, :%moveMenuName%
-	try Menu,% moveRoot[moveLevel],Icon,%moveItem%,% TreeIconS[1],% TreeIconS[2]
+	try {
+		Menu,% moveRoot[moveLevel],add,%moveItem%, :%moveMenuName%
+		Menu,% moveRoot[moveLevel],Icon,%moveItem%,% TreeIconS[1],% TreeIconS[2]
+	} catch e {
+		TrayTip,,% "右键操作菜单创建错误：" moveMenuName "`n出错命令：" e.What 
+			. "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,10,3
+	}
 	moveLevel+=1
 	moveRoot[moveLevel]:=moveMenuName
 }
-TV_MoveMenuClean(){
+TV_MoveMenuClean:
+	Gui, MenuEdit:Default
 	try{
 		;[清空功能菜单]
-		Menu,TVMenu,Delete
-		Menu,GuiMenu,Delete
+		Menu,TVMenu,DeleteAll
+		Menu,GuiMenu,DeleteAll
 		Menu,moveMenu%both%,DeleteAll
 	}catch{}
 	;[重建]
@@ -3989,9 +4001,10 @@ TV_MoveMenuClean(){
 	TVMenu("TVMenu")
 	TVMenu("GuiMenu")
 	Gui, MenuEdit:Menu, GuiMenu
-}
+return
 ;~;[移动节点后保存原来级别和自动变更名称(死了好多脑细胞)]
 Move_Menu:
+	Gui, MenuEdit:Default
 	ItemID = 0
 	MoveID = 0
 	CheckID = 0
@@ -4065,7 +4078,7 @@ Move_Menu:
 		;[焦点到移动后新节点]
 		TV_Modify(moveLevelID, "VisFirst")
 		TV_Modify(moveLevelID, "Select")
-		TV_MoveMenuClean()
+		Gosub,TV_MoveMenuClean
 	}
 return
 ;~;[菜单树项目根据后缀或模式设置图标和样式]
