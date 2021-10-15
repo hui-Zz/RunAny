@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.7 @2021.10.06
+║【RunAny】一劳永逸的快速启动工具 v5.7.7 @2021.10.15
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.7"     ;~;版本号
-global RunAny_update_time:="尝鲜版 2021.10.06"   ;~;更新日期
+global RunAny_update_time:="尝鲜版 2021.10.15"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -152,8 +152,9 @@ Loop, parse, evFullPathIniVar, `n, `r
 	objFileNameNoExeExt:=RegExReplace(varList[1],"iS)\.exe$","")
 	MenuObj[objFileNameNoExeExt]:=varList[2]
 	MenuObjCache[(varList[1])]:=varList[2]
-	if(varList[2]!="" && !FileExist(varList[2])){
+	if(Trim(varList[2]," `t`n`r")!="" && !FileExist(varList[2])){
 		outVarStr:=varList[1]
+		MenuObjCache[outVarStr]:=""  ;缓存失效则置空
 		if(RegExMatch(outVarStr, RegexEscapeNoPointStr)){
 			outVarStr:=StrListEscapeReplace(outVarStr, RegexEscapeNoPointList, "\")
 		}
@@ -1106,7 +1107,7 @@ return
 Menu_Show:
 	try{
 		if(!MenuShowFlag && !MenuShowTimeFlag){
-			SetTimer,MenuShowTime,50
+			SetTimer,MenuShowTime,10
 			return
 		}
 		if(!extMenuHideFlag && !noGetZz)
@@ -2296,6 +2297,15 @@ StrListJoin(sep, paramList){
 	}
     return SubStr(str, 1, -StrLen(sep))
 }
+;[批量替换字符]
+StrListBatchReplace(paramList, regExStr, replaceStr:=""){
+	strObj:=Object()
+	for index,searchStr in paramList
+	{
+		strObj.Push(RegExReplace(searchStr, regExStr, replaceStr))
+	}
+	return strObj
+}
 ;[批量替换数组字符]
 StrListEscapeReplace(str, paramList, replaceStr:="\"){
 	For k, v in paramList
@@ -2506,6 +2516,23 @@ cmdClipReturn(command){
 		Clipboard:=Clip_Saved
 	}catch{}
 	return cmdInfo
+}
+;[系统关机或重启前操作]
+WM_QUERYENDSESSION(wParam, lParam)
+{
+    ENDSESSION_LOGOFF = 0x80000000
+	RegWrite,REG_SZ,HKEY_CURRENT_USER\SOFTWARE\RunAny,RunAnyTickCount,%A_TickCount%
+    if (lParam & ENDSESSION_LOGOFF)  ; 用户正在注销.
+        EventType = Logoff
+    else  ; 系统正在关机或重启.
+        EventType = Shutdown
+}
+;[脚本退出或重启前操作]
+ExitFunc(ExitReason, ExitCode)
+{
+	RegWrite,REG_SZ,HKEY_CURRENT_USER\SOFTWARE\RunAny,RunAnyTickCount,%A_TickCount%
+	Gosub,AutoClose_Plugins
+    ; 不要调用 ExitApp -- 那会阻止其他 OnExit 函数被调用.
 }
 ;[动态执行脚本注册对象]
 DynaExpr_ObjRegisterActive(GUID,appFunc,appParms:="",getZz:="")
@@ -7233,6 +7260,7 @@ Var_Set:
 		}
 	}
 	OnExit("ExitFunc")
+	OnMessage(0x11, "WM_QUERYENDSESSION")
 	;~[定期自动检查更新]
 	global githubUrl:="https://raw.githubusercontent.com"
 	global giteeUrl:="https://gitee.com"
@@ -7875,12 +7903,6 @@ AutoClose_Plugins:
 	}
 	DetectHiddenWindows,Off
 return
-ExitFunc(ExitReason, ExitCode)
-{
-	RegWrite,REG_SZ,HKEY_CURRENT_USER\SOFTWARE\RunAny,RunAnyTickCount,%A_TickCount%
-	Gosub,AutoClose_Plugins
-    ; 不要调用 ExitApp -- 那会阻止其他 OnExit 函数被调用.
-}
 ;══════════════════════════════════════════════════════════════════
 ;~;【——规则启动——】
 ;══════════════════════════════════════════════════════════════════
