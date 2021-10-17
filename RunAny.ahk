@@ -1124,7 +1124,11 @@ Menu_Show:
 					Menu,% menuDefaultRoot%MENU_NO%[1],Show
 				}
 			}else{
-				Menu,% menuRoot%MENU_NO%[1],Show
+				try{
+					Menu,% menuRoot%MENU_NO%[1],Show
+				}catch e{
+					TrayTip,RunAny菜单还没准备好，请稍后再试,% "错误信息：" e.extra "`n" e.message,10,3
+				}
 			}
 			return
 		}
@@ -6170,11 +6174,11 @@ Settings_Gui:
 	Gui,66:Add,Checkbox,Checked%EvDemandSearch% xm yp+25 Disabled vvEvDemandSearch gSetEvDemandSearch,按需搜索模式（只搜索RunAny菜单的无路径文件，非全磁盘搜索后再匹配）
 	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+20 vvEvExeVerNew,搜索结果优先最新版本的同名exe
 	Gui,66:Add,Checkbox,Checked%EvExeMTimeNew% x+23 vvEvExeMTimeNew,搜索结果优先最新修改时间的同名文件
-	Gui,66:Add,Button,xm yp+30 w50 GSetEvCommand,修改
-	Gui,66:Add,Text,xm+60 yp,!C:\Windows* !?:\$RECYCLE.BIN*  表示排除搜索系统目录程序和回收站，注意中间空格间隔
-	; Gui,66:Add,Text,xm+60 yp+15,file:*.exe|*.lnk|后面类推增加想要的后缀
+	Gui,66:Add,Button,xm y+15 w50 GSetEvCommand,修改
 	Gui,66:Font,,Consolas
-	Gui,66:Add,Edit,xm yp+35 r5 -WantReturn ReadOnly vvEvCommand,%EvCommand%
+	Gui,66:Add,Text,xm+60 yp-10,% StrReplace(EvCommandDefault,"Temp\* ","Temp\* `n") "`n表示默认排除搜索系统目录、回收站、临时目录、软件数据目录等，注意中间空格间隔"
+	; Gui,66:Add,Text,xm+60 yp+15,file:*.exe|*.lnk|后面类推增加想要的后缀
+	Gui,66:Add,Edit,xm y+5 r5 -WantReturn ReadOnly vvEvCommand,%EvCommand%
 	Gui,66:Font,,Microsoft YaHei
 	
 	Gui,66:Tab,一键直达,,Exact
@@ -6464,14 +6468,14 @@ SetOK:
 	}else{
 		vSendStrEcKey:=SendStrEncrypt(SendStrDcKey,RunAnyZz vConfigDate)
 	}
-	SetValueList.Push("ConfigDate","AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupFormat","RunABackupDir","RunAEvFullPathIniDir","DisableApp")
-	SetValueList.Push("EvPath","EvCommand","EvAutoClose","EvShowExt","EvShowFolder","EvExeVerNew","EvExeMTimeNew","EvDemandSearch")
-	SetValueList.Push("HideFail","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideSelectZz","RecentMax")
-	SetValueList.Push("OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyRegedit","OneKeyFile","OneKeyMenu","BrowserPath","IconFolderPath")
-	SetValueList.Push("HideMenuTrayIcon","MenuIconSize","MenuTrayIconSize","MenuIcon","AnyIcon","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon")
-	SetValueList.Push("HideHotStr","HotStrHintLen","HotStrShowLen","HotStrShowTime","HotStrShowTransparent","HotStrShowX","HotStrShowY","SendStrEcKey")
-	SetValueList.Push("MenuDoubleCtrlKey", "MenuDoubleAltKey", "MenuDoubleLWinKey", "MenuDoubleRWinKey")
-	SetValueList.Push("MenuCtrlRightKey", "MenuShiftRightKey", "MenuXButton1Key", "MenuXButton2Key", "MenuMButtonKey")
+	SetValueList.Push("ConfigDate","AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupFormat","RunABackupDir","RunAEvFullPathIniDir","DisableApp"
+		,"EvPath","EvCommand","EvAutoClose","EvShowExt","EvShowFolder","EvExeVerNew","EvExeMTimeNew","EvDemandSearch"
+		,"HideFail","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideSelectZz","RecentMax"
+		,"OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyRegedit","OneKeyFile","OneKeyMenu","BrowserPath","IconFolderPath"
+		,"HideMenuTrayIcon","MenuIconSize","MenuTrayIconSize","MenuIcon","AnyIcon","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon"
+		,"HideHotStr","HotStrHintLen","HotStrShowLen","HotStrShowTime","HotStrShowTransparent","HotStrShowX","HotStrShowY","SendStrEcKey"
+		,"MenuDoubleCtrlKey", "MenuDoubleAltKey", "MenuDoubleLWinKey", "MenuDoubleRWinKey"
+		,"MenuCtrlRightKey", "MenuShiftRightKey", "MenuXButton1Key", "MenuXButton2Key", "MenuMButtonKey")
 	;[回车转换成竖杠保存到ini配置文件]
 	OneKeyUrl:=RegExReplace(OneKeyUrl,"S)[\n]+","|")
 	vOneKeyUrl:=RegExReplace(vOneKeyUrl,"S)[\n]+","|")
@@ -6815,17 +6819,17 @@ SetMenuVarVal:
 		menuVarType:="系统环境变量(动态)"
 		GuiControl,, vmenuVarVal, %sysMenuVarName%
 		GuiControl,, vmenuVarType, %menuVarType%
-		GuiControl,Disable, vmenuVarVal
+		GuiControl,+ReadOnly, vmenuVarVal
 	}else{
 		if(%vmenuVarName%){
 			menuVarType:="RunAny变量(动态)"
 			GuiControl,, vmenuVarVal, % %vmenuVarName%
 			GuiControl,, vmenuVarType, %menuVarType%
-			GuiControl,Disable, vmenuVarVal
+			GuiControl,+ReadOnly, vmenuVarVal
 		}else{
 			menuVarType:="用户变量(固定值)"
 			GuiControl,, vmenuVarType, %menuVarType%
-			GuiControl,Enable, vmenuVarVal
+			GuiControl,-ReadOnly, vmenuVarVal
 		}
 	}
 return
@@ -7178,10 +7182,10 @@ Var_Set:
 	global EvExeVerNew:=Var_Read("EvExeVerNew",0)
 	global EvExeMTimeNew:=Var_Read("EvExeMTimeNew",0)
 	global EvDemandSearch:=Var_Read("EvDemandSearch",1)
-	EvCommandDefault:="!C:\Windows* !?:\$RECYCLE.BIN* !?:\Users\*\AppData\Local\Temp\* !?:\Users\*\AppData\Roaming\*"
+	EvCommandDefault:="!" A_WinDir "* !?:\$RECYCLE.BIN* !?:\Users\*\AppData\Local\Temp\* !?:\Users\*\AppData\Roaming\*"
 	try EnvGet, scoopPath, scoop
 	if(scoopPath)
-		EvCommandDefault.=" !?:\Users\*\scoop\shims\*"
+		EvCommandDefault.=" !" RegExReplace(scoopPath,".(:\\.*)","?$1") "\shims\*"
 	global EvCommand:=Var_Read("EvCommand",EvDemandSearch ? EvCommandDefault : EvCommandDefault " file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
 	;[热字符串]
 	global HideHotStr:=Var_Read("HideHotStr",0)
