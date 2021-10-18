@@ -138,7 +138,7 @@ Loop,%MenuCount%
 	menuRoot%A_Index%:=[M%A_Index%]
 }
 ;══════════════════════════════════════════════════════════════════
-global EvQueryFlag:=false                  ;是否拿到无路径搜索结果
+global NoPathFlag:=false                   ;是否拿到无路径搜索结果
 global MenuObjEv:=Object()                 ;Everything搜索结果程序全路径
 global MenuObjSame:=Object()               ;Everything搜索结果重名程序全路径
 global MenuObjSearch:=Object()             ;Everything搜索无路径菜单项
@@ -164,7 +164,7 @@ Loop, parse, evFullPathIniVar, `n, `r
 }
 ;发现有新增的无路径菜单项
 if(Trim(evFullPathIniVar," `t`n`r")!=""){
-	EvQueryFlag:=true
+	NoPathFlag:=true
 	for k,v in MenuObjSearch
 	{
 		if(!MenuObjCache.HasKey(k)){
@@ -178,20 +178,20 @@ if(Trim(evFullPathIniVar," `t`n`r")!=""){
 		}
 	}
 	if(MenuObjNew.Length()>0){
-		EvQueryFlag:=false
+		NoPathFlag:=false
 		EvCommandStr:=StrListJoin("|",MenuObjNew)
 		EvCommandStr:="regex:""" EvCommandStr """"
 	}
 }
 MenuObjEv:=MenuObj.Clone()
 ;~;[15.判断有无路径应用则需要使用Everything]
-if(!EvQueryFlag && !EvNo){
+if(!NoPathFlag && !EvNo){
 	if(!EvDemandSearch || (EvDemandSearch && EvCommandStr!="")){
 		if(EverythingIsRun()){
 			RegRead,EvTotResults,HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults
 			if(EvTotResults>0){
 				EverythingQuery(EvCommandStr)
-				EvQueryFlag:=true
+				NoPathFlag:=true
 				for k,v in MenuObjSearch
 				{
 					IniWrite, %v%, %RunAnyEvFullPathIni%, FullPath, %k%
@@ -203,7 +203,7 @@ if(!EvQueryFlag && !EvNo){
 					RegRead,EvTotResults,HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults
 					if(EvTotResults>0){
 						EverythingQuery(EvCommandStr)
-						EvQueryFlag:=true
+						NoPathFlag:=true
 						for k,v in MenuObjSearch
 						{
 							IniWrite, %v%, %RunAnyEvFullPathIni%, FullPath, %k%
@@ -243,7 +243,6 @@ if(RunCtrlListBoxVar!=""){
 	t6:=A_TickCount-StartTick
 	Menu_Tray_Tip("规则启动：" Round((t6-t5)/1000,3) "s`n")
 }
-
 ;~;[19.对菜单内容项进行过滤调整]
 Loop,%MenuCount%
 {
@@ -369,7 +368,7 @@ if(iniFlag){
 	Gosub,Menu_Show1
 }
 ;~;[24.检查无路径应用缓存是否有新的版本]
-if(!EvNo && EvQueryFlag && Trim(evFullPathIniVar," `t`n`r")!="" && rule_check_is_run("Everything.exe")){
+if(NoPathFlag && !EvNo && Trim(evFullPathIniVar," `t`n`r")!="" && rule_check_is_run("Everything.exe")){
 	MenuObjUpdateList:=Object(),MenuObjEv:=Object(),MenuObjSearch:=Object()
 	EverythingQuery(EvCommandStr)
 	for k,v in MenuObjCache
@@ -8143,7 +8142,7 @@ RunCtrl_RunApps(path,noPath,repeatRun:=0,adminRun:=0,runWay:=1){
 			if(!repeatRun && rule_check_is_run(MenuObj[tfPath])){
 				return
 			}
-			if(EvNo || EvQueryFlag){
+			if(NoPathFlag || EvNo){
 				MenuShowMenuRun:=tfPath
 				global NoRecentFlag:=true
 				Gosub, Menu_Run
@@ -8178,7 +8177,7 @@ RunCtrl_RunApps(path,noPath,repeatRun:=0,adminRun:=0,runWay:=1){
 	}
 }
 RunCtrl_RunMenu:
-	if(EvNo || EvQueryFlag){
+	if(NoPathFlag || EvNo){
 		SetTimer,RunCtrl_RunMenu,Off
 		For path, isRun in RuleRunNoPathList
 		{
@@ -8630,6 +8629,8 @@ EverythingQuery(EvCommandStr){
 		chooseNewFlag:=false
 		Z_Index:=A_Index-1
 		objFullPathName:=ev.GetResultFullPathName(Z_Index)
+		if(!FileExist(objFullPathName))
+			continue
 		objFileName:=ev.GetResultFileName(Z_Index)
 		objFileNameNoExeExt:=RegExReplace(objFileName,"iS)\.exe$","")
 		if(MenuObjEv[objFileNameNoExeExt]){
