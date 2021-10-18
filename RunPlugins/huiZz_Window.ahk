@@ -33,10 +33,12 @@ class RunAnyObj {
 	}
 	;[窗口改变大小]
 	win_size_zz(var_width,var_height){
+		WinRestore, A
 		WinMove,A,,,,%var_width%,%var_height%
 	}
 	;[窗口改变大小并移动]
 	win_move_size_zz(var_x,var_y,var_width,var_height){
+		WinRestore, A
 		WinMove,A,,%var_x%,%var_y%,%var_width%,%var_height%
 	}
 	;[窗口置顶]
@@ -59,6 +61,7 @@ class RunAnyObj {
 	;w：改变窗口宽度
 	;h：改变窗口高度
 	win_movie_zz(mode=1,x=0,y=0,title=0,w=0,h=0){
+		WinRestore, A
 		WinGetActiveStats,zTitle,var_width,var_height,var_x,var_y
 		WinSet,AlwaysOnTop,on,A  ;开启置顶
 		if(title)
