@@ -6021,14 +6021,14 @@ Settings_Gui:
 	GROUP_LISTVIEW_WIDTH_66=650
 	GROUP_CHOOSE_EDIT_WIDTH_66=580
 	GROUP_ICON_EDIT_WIDTH_66=550
-	MARGIN_TOP_66=15
+	MARGIN_TOP_66=20
 	ev := new everything
 	Gui,66:Destroy
 	Gui,66:Default
 	Gui,66:+Resize
 	Gui,66:Margin,30,20
 	Gui,66:Font,,Microsoft YaHei
-	Gui,66:Add,Tab3,x10 y10 w%TAB_WIDTH_66% h475 vConfigTab +Theme -Background,RunAny设置|热键配置|菜单变量|无路径缓存|搜索Everything|一键直达|内部关联|热字符串|图标设置|高级配置
+	Gui,66:Add,Tab3,x10 y10 w%TAB_WIDTH_66% vConfigTab +Theme -Background,RunAny设置|热键配置|菜单变量|无路径缓存|搜索Everything|一键直达|内部关联|热字符串|图标设置|高级配置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+%MARGIN_TOP_66% vvAutoRun,开机自动启动
 	Gui,66:Add,Checkbox,Checked%AdminRun% x+25 vvAdminRun,管理员权限运行所有软件和插件
@@ -6048,7 +6048,6 @@ Settings_Gui:
 	Gui,66:Add,GroupBox,xm-10 y+10 w225 h55,RunAny菜单热键 %MenuHotKey%
 	Gui,66:Add,Hotkey,xm yp+20 w150 vvMenuKey,%MenuKey%
 	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+155 yp+3 w55 vvMenuWinKey gSetMenuWinKey,Win
-
 	If(MENU2FLAG){
 		Gui,66:Add,GroupBox,x+60 yp-23 w225 h55,菜单2热键 %MenuHotKey2%
 		Gui,66:Add,Hotkey,xp+10 yp+20 w150 vvMenuKey2,%MenuKey2%
@@ -6057,7 +6056,7 @@ Settings_Gui:
 		Gui,66:Add,Button,x+60 yp-5 w150 GSetMenu2,开启第2个菜单
 	}
 
-	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h110,RunAny.ini文件设置
+	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h110,RunAny.ini文件设置
 	Gui,66:Add,Edit,xm yp+20 w50 h20 vvAutoReloadMTime,%AutoReloadMTime%
 	Gui,66:Add,Text,x+5 yp+2,(毫秒)  RunAny.ini修改后自动重启，0为不自动重启
 	Gui,66:Add,Checkbox,xm yp+25 Checked%RunABackupRule% vvRunABackupRule,自动备份
@@ -6068,12 +6067,23 @@ Settings_Gui:
 	Gui,66:Add,Button,xm yp+25 GSetRunABackupDir,RunAny.ini自动备份目录
 	Gui,66:Add,Edit,x+11 yp+2 w400 r1 vvRunABackupDir,%RunABackupDir%
 	
-	Gui,66:Add,GroupBox,xm-10 y+15 w%GROUP_WIDTH_66% vvDisableAppGroup,屏蔽RunAny程序列表（逗号分隔）
+	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% vvDisableAppGroup,屏蔽RunAny程序列表（逗号分隔）
 	Gui,66:Font,,Consolas
 	Gui,66:Add,Edit,xm yp+25 r4 -WantReturn vvDisableApp,%DisableApp%
 	Gui,66:Font,,Microsoft YaHei
 	
 	Gui,66:Tab,热键配置,,Exact
+	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h125 vvMultiHotkey,RunAny多种方式启动菜单（与第三方软件热键冲突则取消勾选）
+	Gui,66:Add,Checkbox,Checked%MenuDoubleCtrlKey% xm yp+20 vvMenuDoubleCtrlKey,双击Ctrl键
+	Gui,66:Add,Checkbox,Checked%MenuDoubleAltKey% x+166 vvMenuDoubleAltKey,双击Alt键
+	Gui,66:Add,Checkbox,Checked%MenuDoubleLWinKey% xm yp+20 vvMenuDoubleLWinKey,双击左Win键
+	Gui,66:Add,Checkbox,Checked%MenuDoubleRWinKey% x+152 vvMenuDoubleRWinKey,双击右Win键
+	Gui,66:Add,Checkbox,Checked%MenuCtrlRightKey% xm yp+20 w160 vvMenuCtrlRightKey,按住Ctrl再按鼠标右键
+	Gui,66:Add,Checkbox,Checked%MenuShiftRightKey% x+86 vvMenuShiftRightKey,按住Shift再按鼠标右键
+	Gui,66:Add,Checkbox,Checked%MenuXButton1Key% xm yp+20 vvMenuXButton1Key,鼠标X1键
+	Gui,66:Add,Checkbox,Checked%MenuXButton2Key% x+171 vvMenuXButton2Key,鼠标X2键
+	Gui,66:Add,Checkbox,Checked%MenuMButtonKey% xm yp+20 vvMenuMButtonKey,鼠标中键（需要关闭插件huiZz_MButton.ahk）
+
 	Gui,66:Add,Link,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%
 		,%RunAnyZz%热键配置列表（双击修改，按F2可手写AHK使用特殊热键，<a href="https://wyagd001.github.io/zh-cn/docs/KeyList.htm">如Space、CapsLock、Tab等</a>）
 	Gui,66:Add,Listview,xm yp+20 w%GROUP_LISTVIEW_WIDTH_66% r16 AltSubmit -ReadOnly -Multi vRunAnyHotkeyLV glistviewHotkey, 热键AHK写法|热键说明|热键变量名
@@ -6099,17 +6109,6 @@ Settings_Gui:
 		LV_ModifyCol(1,"AutoHdr")  ;列宽调整为标题对齐
 	GuiControl, 66:+Redraw, RunAnyHotkeyLV
 	
-	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h125,RunAny多种方式启动菜单（与第三方软件热键冲突则取消勾选）
-	Gui,66:Add,Checkbox,Checked%MenuDoubleCtrlKey% xm yp+20 vvMenuDoubleCtrlKey,双击Ctrl键
-	Gui,66:Add,Checkbox,Checked%MenuDoubleAltKey% x+166 vvMenuDoubleAltKey,双击Alt键
-	Gui,66:Add,Checkbox,Checked%MenuDoubleLWinKey% xm yp+20 vvMenuDoubleLWinKey,双击左Win键
-	Gui,66:Add,Checkbox,Checked%MenuDoubleRWinKey% x+152 vvMenuDoubleRWinKey,双击右Win键
-	Gui,66:Add,Checkbox,Checked%MenuCtrlRightKey% xm yp+20 w160 vvMenuCtrlRightKey,按住Ctrl再按鼠标右键
-	Gui,66:Add,Checkbox,Checked%MenuShiftRightKey% x+86 vvMenuShiftRightKey,按住Shift再按鼠标右键
-	Gui,66:Add,Checkbox,Checked%MenuXButton1Key% xm yp+20 vvMenuXButton1Key,鼠标X1键
-	Gui,66:Add,Checkbox,Checked%MenuXButton2Key% x+171 vvMenuXButton2Key,鼠标X2键
-	Gui,66:Add,Checkbox,Checked%MenuMButtonKey% xm yp+20 vvMenuMButtonKey,鼠标中键（需要关闭插件huiZz_MButton.ahk）
-
 	Gui,66:Tab,菜单变量,,Exact
 	Gui,66:Add,Text,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%,自定义配置RunAny菜单中可以使用的变量
 	Gui,66:Add,Button, xm yp+30 w50 GLVMenuVarAdd, + 增加
@@ -6140,7 +6139,7 @@ Settings_Gui:
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuObjPathEdit, · 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuObjPathRemove, - 减少
 	Gui,66:Add,Text, x+25 yp-5,无路径说明：每次新增或移动无路径应用文件后`n会使用Everything获得它最新的运行全路径
-	Gui,66:Add,Listview,xm yp+40 r16 grid AltSubmit vRunAnyMenuObjPathLV glistviewMenuObjPath, 无路径应用名|运行全路径（来自Everything）
+	Gui,66:Add,Listview,xm yp+40 r16 grid AltSubmit vRunAnyMenuObjPathLV glistviewMenuObjPath, 无路径应用名|当前电脑运行全路径（来自Everything）
 	RunAnyMenuObjPathImageListID := IL_Create(11)
 	Icon_Image_Set(RunAnyMenuObjPathImageListID)
 	GuiControl, 66:-Redraw, RunAnyMenuObjPathLV
@@ -6167,18 +6166,18 @@ Settings_Gui:
 	Gui,66:Add,Checkbox,Checked%EvWinKey% xm+150 yp+3 vvEvWinKey,Win
 	Gui,66:Add,Checkbox,Checked%EvShowExt% x+27 vvEvShowExt,搜索带文件后缀
 	Gui,66:Add,Checkbox,Checked%EvShowFolder% x+5 vvEvShowFolder,搜索选中文件夹内部
-	Gui,66:Add,GroupBox,xm-10 y+25 w%GROUP_WIDTH_66% h60,Everything安装路径（支持菜单变量和相对路径 \..\代表上一级目录）
+	Gui,66:Add,GroupBox,xm-10 y+25 w%GROUP_WIDTH_66% h60 vvEvSetupGroup,Everything安装路径（支持菜单变量和相对路径 \..\代表上一级目录）
 	Gui,66:Add,Button,xm yp+20 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp+2 w%GROUP_CHOOSE_EDIT_WIDTH_66% vvEvPath,%EvPath%
 	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% vvEvCommandGroup,RunAny调用Everything搜索参数（搜索结果可在RunAny无路径运行，Everything异常请尝试重建索引）
 	Gui,66:Add,Checkbox,Checked%EvDemandSearch% xm yp+25 Disabled vvEvDemandSearch gSetEvDemandSearch,按需搜索模式（只搜索RunAny菜单的无路径文件，非全磁盘搜索后再匹配）
-	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+20 vvEvExeVerNew,搜索结果优先最新版本的同名exe
+	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+25 vvEvExeVerNew,搜索结果优先最新版本的同名exe
 	Gui,66:Add,Checkbox,Checked%EvExeMTimeNew% x+23 vvEvExeMTimeNew,搜索结果优先最新修改时间的同名文件
-	Gui,66:Add,Button,xm y+15 w50 GSetEvCommand,修改
+	Gui,66:Add,Button,xm y+20 w50 GSetEvCommand,修改
 	Gui,66:Font,,Consolas
 	Gui,66:Add,Text,xm+60 yp-10,% StrReplace(EvCommandDefault,"Temp\* ","Temp\* `n") "`n表示默认排除搜索系统目录、回收站、临时目录、软件数据目录等，注意中间空格间隔"
 	; Gui,66:Add,Text,xm+60 yp+15,file:*.exe|*.lnk|后面类推增加想要的后缀
-	Gui,66:Add,Edit,xm y+5 r5 -WantReturn ReadOnly vvEvCommand,%EvCommand%
+	Gui,66:Add,Edit,xm y+10 r5 -WantReturn ReadOnly vvEvCommand,%EvCommand%
 	Gui,66:Font,,Microsoft YaHei
 	
 	Gui,66:Tab,一键直达,,Exact
@@ -6189,13 +6188,13 @@ Settings_Gui:
 	Gui,66:Add,Checkbox,Checked%OneKeyFolder% x+10 yp vvOneKeyFolder,文件夹路径
 	Gui,66:Add,Checkbox,Checked%OneKeyMagnet% x+10 yp vvOneKeyMagnet,磁力链接
 	Gui,66:Add,Checkbox,Checked%OneKeyRegedit% x+10 yp vvOneKeyRegedit,注册表路径
-	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h310 vvOneKeyUrlGroup,一键搜索选中文字 %OneHotKey%
+	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h320 vvOneKeyUrlGroup,一键搜索选中文字 %OneHotKey%
 	Gui,66:Add,Hotkey,xm yp+30 w150 vvOneKey,%OneKey%
 	Gui,66:Add,Checkbox,Checked%OneWinKey% xm+155 yp+3 vvOneWinKey,Win
 	Gui,66:Add,Checkbox,Checked%OneKeyMenu% x+38 vvOneKeyMenu,绑定菜单1热键为一键搜索
 	Gui,66:Add,Text,xm yp+40 w325,一键搜索网址(`%s为选中文字的替代参数，多行搜索多个网址)
 	Gui,66:Add,Edit,xm yp+20 r12 vvOneKeyUrl,%OneKeyUrl%
-	Gui,66:Add,Text,xm y+20 w325,非默认浏览器打开网址(适用一键搜索和一键网址直达)
+	Gui,66:Add,Text,xm y+30 w325,非默认浏览器打开网址(适用一键搜索和一键网址直达)
 	Gui,66:Add,Button,xm yp+20 w50 GSetBrowserPath,选择
 	Gui,66:Add,Edit,xm+60 yp r3 -WantReturn vvBrowserPath,%BrowserPath%
 	
@@ -6220,7 +6219,7 @@ Settings_Gui:
 	GuiControl, 66:+Redraw, RunAnyOpenExtLV
 	
 	Gui,66:Tab,热字符串,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h460,热字符串设置
+	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% vvHotStrGroup,热字符串设置
 	Gui,66:Add,Checkbox,Checked%HideHotStr% xm yp+40 vvHideHotStr,隐藏热字符串提示
 	Gui,66:Add,Text,xm yp+40 w250,按几个字符出现提示 (默认3个字符)
 	Gui,66:Add,Edit,xm+200 yp-3 w200 r1 vvHotStrHintLen,%HotStrHintLen%
@@ -6261,7 +6260,7 @@ Settings_Gui:
 	Gui,66:Add,Edit,xm+85 yp+1 w%GROUP_ICON_EDIT_WIDTH_66% r1 vvEXEIcon,%EXEIcon%
 	Gui,66:Add,Button,xm yp+35 w80 GSetFuncIcon,脚本插件函数
 	Gui,66:Add,Edit,xm+85 yp+1 w%GROUP_ICON_EDIT_WIDTH_66% r1 vvFuncIcon,%FuncIcon%
-	Gui,66:Add,GroupBox,xm-10 y+25 w%GROUP_WIDTH_66% h165,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含热字符串和全局热键）
+	Gui,66:Add,GroupBox,xm-10 y+25 w%GROUP_WIDTH_66% h185,%RunAnyZz%图标识别库（支持多行, 要求图标名与菜单项名相同, 不包含热字符串和全局热键）
 	Gui,66:Add,Text, xm yp+20 w380,如图标文件名可以为：-常用(&&App).ico、cmd.png、百度(&&B).ico
 	if(ResourcesExtractExist)
 		Gui,66:Add,Button,x+5 yp w110 GMenu_Exe_Icon_Create,生成所有EXE图标
@@ -6322,6 +6321,7 @@ Settings_Gui:
 	Gui,66:Add,Button,w75 vvSetReSet GSetReSet,重置
 	Gui,66:Add,Text,w75 vvMenu_Config GMenu_Config,RunAnyConfig.ini
 	Gui,66:Show,w%GUI_WIDTH_66%,%RunAnyZz%设置 %RunAny_update_version% %RunAny_update_time%%AdminMode%
+	Critical,Off
 	k:=v:=mVarName:=mVarVal:=mOpenExtName:=mOpenExtRun:=""
 	SetValueList:=["AdminRun"]
 	;[手写AHK热键情况下不根据Hotkey热键控件保存，避免清空手写热键值]
@@ -6418,7 +6418,7 @@ SetRunAEvFullPathIniDir:
 	}
 return
 SetRunAEvFullPathIniDirHint:
-	ToolTip, 无路径缓存文件 请不要设置在网盘同步文件夹里面！`n防止把其他电脑上的软件路径同步过来造成混乱, 370, 102
+	ToolTip, 无路径缓存文件 请不要设置在网盘同步文件夹里面！`n防止把其他电脑上的软件路径同步过来造成混乱, 370, 45
 	SetTimer,RemoveToolTip,15000
 return
 SetBrowserPath:
@@ -7013,18 +7013,22 @@ return
 	if A_EventInfo = 1
 		return
 	GuiControl, Move, ConfigTab, % "H" . (A_GuiHeight * 0.88) . " W" . (A_GuiWidth - 20)
-	GuiControl, Move, vDisableAppGroup, % "H" . (A_GuiHeight * 0.30) . " W" . (A_GuiWidth - 40)
-	GuiControl, Move, vDisableApp, % "H" . (A_GuiHeight * 0.25) . " W" . (A_GuiWidth - 60)
-	GuiControl, Move, RunAnyHotkeyLV, % " W" . (A_GuiWidth - 60)
-	GuiControl, Move, RunAnyMenuVarLV, % "H" . (A_GuiHeight * 0.68) . " W" . (A_GuiWidth - 60)
-	GuiControl, Move, RunAnyMenuObjPathLV, % "H" . (A_GuiHeight * 0.68) . " W" . (A_GuiWidth - 60)
-	GuiControl, Move, vEvCommandGroup, % "H" . (A_GuiHeight * 0.52) . " W" . (A_GuiWidth - 40)
-	GuiControl, Move, vEvCommand, % "H" . (A_GuiHeight * 0.32) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, vDisableAppGroup, % "H" . (A_GuiHeight * 0.88 - 375) . " W" . (A_GuiWidth - 40)
+	GuiControl, Move, vDisableApp, % "H" . (A_GuiHeight * 0.88 - 415) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, RunAnyHotkeyLV, % "H" . (A_GuiHeight * 0.88 - 214) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, RunAnyMenuVarLV, % "H" . (A_GuiHeight * 0.88 - 121) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, RunAnyMenuObjPathLV, % "H" . (A_GuiHeight * 0.88 - 121) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, vRunAEvFullPathIniDir, % " W" . (A_GuiWidth - 388)
+	GuiControl, Move, vEvSetupGroup, % " W" . (A_GuiWidth - 40)
+	GuiControl, Move, vEvPath, % " W" . (A_GuiWidth - 120)
+	GuiControl, Move, vEvCommandGroup, % "H" . (A_GuiHeight * 0.88 - 248) . " W" . (A_GuiWidth - 40)
+	GuiControl, Move, vEvCommand, % "H" . (A_GuiHeight * 0.88 - 388) . " W" . (A_GuiWidth - 60)
 	GuiControl, Move, vOneKeyUrlGroup, % " W" . (A_GuiWidth - 40)
 	GuiControl, Move, vOneKeyUrl, % " W" . (A_GuiWidth - 60)
 	GuiControl, Move, vBrowserPath, % " W" . (A_GuiWidth - 120)
-	GuiControl, Move, RunAnyOpenExtLV, % "H" . (A_GuiHeight * 0.68) . " W" . (A_GuiWidth - 60)
-	GuiControl, Move, AdvancedConfigLV, % "H" . (A_GuiHeight * 0.77) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, RunAnyOpenExtLV, % "H" . (A_GuiHeight * 0.88 - 121 ) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, vHotStrGroup, % "H" . (A_GuiHeight * 0.80)
+	GuiControl, Move, AdvancedConfigLV, % "H" . (A_GuiHeight * 0.88 - 76) " W" . (A_GuiWidth - 60)
 	GuiControl, MoveDraw, vSetOK, % " X" . (A_GuiWidth * 0.30) . " Y" . (A_GuiHeight * 0.92)
 	GuiControl, MoveDraw, vSetCancel, % " X" . (A_GuiWidth * 0.30 + 90) . " Y" . (A_GuiHeight * 0.92)
 	GuiControl, MoveDraw, vSetReSet, % " X" . (A_GuiWidth * 0.30 + 180) . " Y" . (A_GuiHeight * 0.92)
