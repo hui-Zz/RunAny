@@ -3,7 +3,7 @@
 ;*                          by hui-Zz *
 ;**************************************
 global RunAny_Plugins_Name:="ObjReg文本操作脚本"
-global RunAny_Plugins_Version:="1.2.8"
+global RunAny_Plugins_Version:="1.2.9"
 global RunAny_Plugins_Icon:="SHELL32.dll,270"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
@@ -275,7 +275,25 @@ class RunAnyObj {
 		}
 		return code
 	}
-
+	;[批量打开选中文字中的所有网址]
+	;参数说明：getZz：选中的文本内容
+	;browserApp：浏览器软件
+	text_run_url(getZz:="",browserApp:=""){
+		if(browserApp)
+			browserApp:=browserApp A_Space
+		getZz:=RegexReplace(getZz,"(((ht|f)tps?):\/\/|www[.])","`n$1")
+		Loop, parse, getZz, `n, `r
+		{
+			S_LoopField=%A_LoopField%
+			if(S_LoopField=""){
+				continue
+			}
+			RegExMatch(S_LoopField, "(((((ht|f)tps?):\/\/)|www[.])\S+)", S_LoopField)
+			if(S_LoopField!=""){
+				Run,%browserApp%%S_LoopField%
+			}
+		}
+	}
 	;[复制或输出文件文本的内容]
 	;参数说明：getZz：选中的文件 或 传递文件路径(可使用无路径)
 	;isSend：0-显示并保存到剪贴板；1-输出结果
@@ -402,7 +420,7 @@ class RunAnyObj {
 			ToolTip
 		}
 	}
-	;~;[文本加密]
+	;[文本加密]
 	;【注意：key不要包含中文和中文标点符号】
 	;保存到RunAny.ini为：
 	;选中文本加密|huiZz_Text[encrypt](%getZz%,youkey1)
@@ -410,7 +428,7 @@ class RunAnyObj {
 	encrypt(text,key,isSend=1){
 		Send_Or_Show(encryptstr(text,key),isSend)
 	}
-	;~;[文本解密]
+	;[文本解密]
 	;【注意：key不要包含中文和中文标点符号】
 	;保存到RunAny.ini为：
 	;text：被解密文本；key：你的加密key
