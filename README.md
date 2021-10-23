@@ -1,18 +1,18 @@
-# 【RunAny】一劳永逸的快速启动工具 ![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat-square&logo=github) 
+# 【RunAny】一劳永逸的快速启动工具 
 
+　[![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat-square&logo=github&color=red)![GitHub stars](https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=flat-square&color=yellow)](https://github.com/hui-Zz/RunAny)![Lines of code](https://img.shields.io/tokei/lines/github/hui-Zz/RunAny?style=flat-square)![history](https://img.shields.io/badge/2017--2021-yellowgreen.svg?style=flat-square)  [![GitHub top language](https://img.shields.io/github/languages/top/hui-Zz/RunAny?style=flat-square&logo=autohotkey)![Autohotkey](https://img.shields.io/badge/1.1.33.10-brightgreen.svg?style=flat-square)](http://ahkscript.org)  ![windows](https://img.shields.io/badge/Windows-0078D6?style=flat-square&logo=windows&logoColor=white)
 
-**RunAny区别一般的启动工具，适合家里、公司多台电脑的用户，不管软件装在C盘还是D盘Anywhere，根据名字直接找到并运行**
-
+**RunAny区别一般的启动工具，适合家里、公司多台电脑的用户，不管软件装在C盘还是D盘Anywhere，根据名字直接找到并运行**  
 __多台电脑你只需配置一套软件列表(RunAny.ini)，就能到处运行，配合 坚果云 \ OneDrive \ Dropbox 等网盘同步更是如虎添翼，达到一劳永逸！😎__
 
-- ☑ 一键菜单分类界面，找应用零记忆负担
-- ☑ 分类定位，三键启动，简单迅速
-- ☑ 一次配置，到处运行，永久使用
-- ☑ <font color="red">[规则判断自动启动软件](/run-ctrl) 重磅新功能！</font>
-- ☑ [一键直达](/README?id=一键直达)，[一键公式计算](/README?id=一键公式计算)，[一键批量搜索](/README?id=批量搜索)
-- ☑ [全局热键](/README?id=全局热键)，[热键映射](/README?id=热键映射)，[热字符串](/README?id=热字符串)，多样快捷
-- ☑ [短语输出](/README?id=短语输出)，[透明化启动](/CONFIG?id=半透明启动程序)，[快捷打开文件方式](/README?id=快捷打开文件方式)
-- ☑ [外接脚本，个性函数](/plugins-list)，[自由定制](/plugins-help?id=新建自定义objreg插件)
+- ✅ 一键菜单分类界面，找应用零记忆负担
+- ✅ 分类定位，三键启动，简单迅速
+- ✅ 一次配置，到处运行，永久使用
+- ✅ <font color="red">[规则判断自动启动软件](/run-ctrl) 重磅新功能！</font>
+- ✅ [一键直达](/README?id=一键直达)，[一键公式计算](/README?id=一键公式计算)，[一键批量搜索](/README?id=批量搜索)
+- ✅ [全局热键](/README?id=全局热键)，[热键映射](/README?id=热键映射)，[热字符串](/README?id=热字符串)，多样快捷
+- ✅ [短语输出](/README?id=短语输出)，[透明化启动](/CONFIG?id=半透明启动程序)，[快捷打开文件方式](/README?id=快捷打开文件方式)
+- ✅ [外接脚本，个性函数](/plugins-list)，[自由定制](/plugins-help?id=新建自定义objreg插件)
 
 
 > RunAny使用Everything神器来知道所有软件的位置，Everything可以秒搜Windows下任何文件 <br>
