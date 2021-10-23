@@ -5,7 +5,8 @@
 
 # 【RunAny】一劳永逸的快速启动工具
 
-[![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat-square&logo=github&color=red)![GitHub stars](https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=flat-square&color=yellow)](https://github.com/hui-Zz/RunAny)![Lines of code](https://img.shields.io/tokei/lines/github/hui-Zz/RunAny?style=flat-square)![history](https://img.shields.io/badge/2017--2021-yellowgreen.svg?style=flat-square)  
+[![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat-square&logo=github&color=red)![GitHub stars](https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=flat-square&color=yellow)![GitHub forks](https://img.shields.io/github/forks/hui-Zz/RunAny?style=flat-square)](https://github.com/hui-Zz/RunAny)![Lines of code](https://img.shields.io/tokei/lines/github/hui-Zz/RunAny?style=flat-square&color=9cf)![history](https://img.shields.io/badge/2017--2021-yellowgreen.svg?style=flat-square)  
+[![码云Gitee](https://img.shields.io/badge/dynamic/json?style=flat-square&label=stars&logo=gitee&logoColor=red&url=https://gitee.com/api/v5/repos/hui-Zz/RunAny&query=$.stargazers_count)](https://gitee.com/hui-Zz/RunAny)
 [![GitHub top language](https://img.shields.io/github/languages/top/hui-Zz/RunAny?style=flat-square&logo=autohotkey)![Autohotkey](https://img.shields.io/badge/1.1.33.10-brightgreen.svg?style=flat-square)](http://ahkscript.org)  ![windows](https://img.shields.io/badge/Windows-0078D6?style=flat-square&logo=windows&logoColor=white)
 </div>
 
@@ -23,7 +24,7 @@
 
 【Github下载地址：】https://github.com/hui-Zz/RunAny/archive/master.zip
 - 蓝奏云下载：https://www.lanzoux.com/b902490/
-- 百度云下载：https://pan.baidu.com/s/1qxbYAx0UA-u1dkoY-RXZJg
+- 百度云下载：
 
 ## 【RunAny完整版文档地址：】[https://hui-zz.gitee.io/runany](https://hui-zz.gitee.io/runany) （国内速度快）
 ## 【RunAny文档Github地址：】[https://hui-zz.github.io/RunAny](https://hui-zz.github.io/RunAny)
