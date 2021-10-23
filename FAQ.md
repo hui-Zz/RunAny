@@ -62,3 +62,11 @@ ClipWaitTime=1.5
 - **觉得上面方法比较麻烦，可以把Windows系统和Everything安装在固态硬盘上即可解决**
 
 ---
+
+
+## 5. AutoHotkey 1.1.30 导致RunAny热字符串功能失效
+
+使用 AutoHotkey 1.1.28 老版本
+或升级至 AutoHotkey 1.1.31 及以上版本
+
+---
