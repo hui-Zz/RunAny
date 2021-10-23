@@ -1,5 +1,4 @@
 
----
 【国内Gitee文档】[https://hui-zz.gitee.io/RunAny](https://hui-zz.gitee.io/RunAny)  
 【国内Gitee代码】[https://gitee.com/hui-Zz/RunAny](https://gitee.com/hui-Zz/RunAny)  
 
@@ -59,6 +58,12 @@
 ## 📢 关注RunAny一劳永逸微信公众号，分享【一劳永逸】的效率软件和解决方案！
 
 ---
-![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny?style=social) ![GitHub stars](https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=social) ![Lines of code](https://img.shields.io/tokei/lines/github/hui-Zz/RunAny?style=social&logo=github) ![history](https://img.shields.io/badge/2017--2021-yellowgreen.svg?style=social&logo=github) [![Autohotkey](https://img.shields.io/badge/Autohotkey-1.1.33.10-white.svg?style=social&logo=autohotkey)![GitHub top language](https://img.shields.io/github/languages/top/hui-Zz/RunAny?style=social&logo=autohotkey)](http://ahkscript.org) ![windows](https://img.shields.io/badge/Windows-0078D6?style=social&logo=windows)
+![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny?style=social) ![GitHub stars](https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=social) ![Lines of code](https://img.shields.io/tokei/lines/github/hui-Zz/RunAny?style=social&logo=github) ![history](https://img.shields.io/badge/2017--2021-yellowgreen.svg?style=social&logo=github) 
+[![Autohotkey](https://img.shields.io/badge/Autohotkey-1.1.33.10-white.svg?style=social&logo=autohotkey)![GitHub top language](https://img.shields.io/github/languages/top/hui-Zz/RunAny?style=social&logo=autohotkey)](http://ahkscript.org) ![windows](https://img.shields.io/badge/Windows-0078D6?style=social&logo=windows)
 
 [![Stargazers over time](https://starchart.cc/hui-Zz/RunAny.svg)](https://starchart.cc/hui-Zz/RunAny)
+
+---
+[![码云Gitee](https://gitee.com/hui-Zz/RunAny/badge/star.svg)![码云Gitee](https://gitee.com/hui-Zz/RunAny/badge/fork.svg?theme=blue)](https://gitee.com/hui-Zz/RunAny)  
+[![gqzdev/ForFuture Group](https://gitee.com/hui-Zz/RunAny/widgets/widget_card.svg?colors=4183c4,ffffff,ffffff,48adf0,ed136a,080808)](https://gitee.com/hui-Zz/RunAny)
+ 
