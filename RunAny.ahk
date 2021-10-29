@@ -1841,19 +1841,21 @@ Run_Any(any,dir:="",way:=""){
 Run_Zz(program){
 	fullPath:=Get_Obj_Path(program)
 	exePath:=fullPath ? fullPath : program
+	SplitPath, exePath, exeName
+	exeName:=exeName ? exeName : exePath
 	DetectHiddenWindows, Off
-	If(!WinExist("ahk_exe" . exePath)){
+	If(!WinExist("ahk_exe" . exeName)){
 		Run_Any(program)
 		return true
 	}else{
-		WinGet,l,List,ahk_exe %exePath%
-		if l=1
-			If WinActive("ahk_exe" . exePath)
+		WinGet,l,List,ahk_exe %exeName%
+		if(l=1)
+			If WinActive("ahk_exe" . exeName)
 				WinMinimize
 			else
 				WinActivate
 		else
-			WinActivateBottom,ahk_exe %exePath%
+			WinActivateBottom,ahk_exe %exeName%
 		return false
 	}
 }
@@ -1861,26 +1863,26 @@ Run_Wait(program,topFlag:=false,transRatio=100,winSizeRatio=100,winSize=0){
 	fullPath:=Get_Obj_Path(program)
 	exePath:=fullPath ? fullPath : program
 	transRatio:=transRatio<0 ? 0 : transRatio
-	SplitPath, exePath, fName,, fExt  ; 获取扩展名
 	DetectHiddenWindows, Off
 	if(fExt="lnk"){
 		FileGetShortcut,%exePath%,lnkexePath
-		SplitPath, lnkexePath, fName,, fExt  ; 获取扩展名
+		SplitPath, lnkexePath, fName,, fExt
 		if(fExt="exe")
 			exePath:=lnkexePath
 	}
-	WinWait,ahk_exe %exePath%,,10
+	SplitPath, exePath, fName,, fExt  ; 获取应用名
+	WinWait,ahk_exe %fName%,,3
 	if ErrorLevel
 		return
 	if(topFlag){
 		if(WinActive("ahk_class CabinetWClass")){
 			WinSet,AlwaysOnTop,On,ahk_class CabinetWClass
 		}else{
-			WinSet,AlwaysOnTop,On,ahk_exe %exePath%
+			WinSet,AlwaysOnTop,On,ahk_exe %fName%
 		}
 	}
 	if(transRatio<100){
-		try WinSet,Transparent,% transRatio/100*255,ahk_exe %exePath%
+		try WinSet,Transparent,% transRatio/100*255,ahk_exe %fName%
 	}
 }
 Run_Search(any,getZz="",browser=""){
