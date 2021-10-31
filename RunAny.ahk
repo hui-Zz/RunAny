@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.7 @2021.10.19
+║【RunAny】一劳永逸的快速启动工具 v5.7.7 @2021.10.28
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.7"     ;~;版本号
-global RunAny_update_time:="尝鲜版 2021.10.19"   ;~;更新日期
+global RunAny_update_time:="尝鲜版 2021.10.28"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -80,10 +80,10 @@ if(errorKeyStr){
 	MsgBox,16,RunAny热键配置不正确,% "热键错误：`n" errorKeyStr "`n请设置正确热键后重启RunAny"
 	return
 }
-if(A_AhkVersion < 1.1.28){
-	MsgBox, 16, AutoHotKey版本过低！, 由于你的AHK版本没有高于1.1.28，会影响RunAny功能的使用!`n
+if(A_AhkVersion < 1.1.31){
+	MsgBox, 16, AutoHotKey版本过低！, 由于你的AHK版本没有高于1.1.31，会影响RunAny功能的使用!`n
 	(
-1. 不支持StrSplit()函数的MaxParts`n2. 不支持动态Hotstring创建
+1. 不支持StrSplit()函数的MaxParts`n2. 不支持动态Hotstring创建`n3. 不支持Switch Case的语法
 	)
 }
 ;══════════════════════════════════════════════════════════════════
@@ -108,8 +108,8 @@ global MenuObjExt:=Object()                 ;~后缀对应的菜单
 global MenuObjWindow:=Object()              ;~软件窗口对应的菜单
 global MenuHotStrList:=Object()             ;~热字符串对象数组
 global MenuTreeKey:=Object()                ;~菜单树分类热键
-global MenuItemIconList:=Object()           ;~菜单项对应图标对象
-global MenuItemIconNoList:=Object()         ;~菜单项对应图标位置对象
+global MenuObjIconList:=Object()           ;~菜单项对应图标对象
+global MenuObjIconNoList:=Object()         ;~菜单项对应图标位置对象
 global MenuExeArray:=Object()               ;~EXE程序对象数组
 global MenuExeIconArray:=Object()           ;~EXE程序优先加载图标对象数组
 global MenuObjTreeLevel:=Object()           ;~菜单对应级别
@@ -379,7 +379,7 @@ if(NoPathFlag && !EvNo && Trim(evFullPathIniVar," `t`n`r")!="" && rule_check_is_
 		}
 	}
 	if(MenuObjUpdateList.Length()>0){
-		ShowTrayTip("以下无路径应用缓存替换最新路径",StrListJoin("、",MenuObjUpdateList),10,17)
+		ShowTrayTip("以下无路径应用缓存更新：",StrListJoin("、",MenuObjUpdateList),10,17)
 		Gosub,Menu_Reload
 	}
 }
@@ -669,7 +669,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 			}
 			;短语、网址、脚本插件函数除外的菜单项直接转换%%为系统变量值
 			transformValFlag:=false
-			if(itemMode!=2 && itemMode!=3 && itemMode!=6 && itemMode!=8){
+			if(itemMode!=2 && itemMode!=3 && itemMode!=8){
 				Z_LoopField:=StrReplace(Z_LoopField,"%getZz%",Chr(3))
 				Z_LoopField:=StrReplace(Z_LoopField,"%Clipboard%",Chr(4))
 				Z_LoopField:=StrReplace(Z_LoopField,"%ClipboardAll%",Chr(5))
@@ -1065,12 +1065,12 @@ Menu_Item_Icon(menuName,menuItem,iconPath,iconNo=0,treeLevel=""){
 		menuItemSet:=menuItemIconFileName(menuItemSet)
 		if(IconFolderList[menuItemSet]){
 			Menu,%menuName%,Icon,%menuItem%,% IconFolderList[menuItemSet],0,%MenuIconSize%
-			MenuItemIconList[menuItem]:=IconFolderList[menuItemSet]
-			MenuItemIconNoList[menuItem]:=0
+			MenuObjIconList[menuItem]:=IconFolderList[menuItemSet]
+			MenuObjIconNoList[menuItem]:=0
 		}else{
 			Menu,%menuName%,Icon,%menuItem%,%iconPath%,%iconNo%,%MenuIconSize%
-			MenuItemIconList[menuItem]:=iconPath
-			MenuItemIconNoList[menuItem]:=iconNo
+			MenuObjIconList[menuItem]:=iconPath
+			MenuObjIconNoList[menuItem]:=iconNo
 		}
 		MenuObjName[menuItemSet]:=1
 	}catch{}
@@ -1642,7 +1642,7 @@ MenuRunMultifunctionMenu:
 		{
 			menuRunTransSubItem:="透明运行:&" A_Index*10 "%"
 			Menu,menuRunTransSub,Add,%menuRunTransSubItem%, MultifunctionMenu
-			Menu_Item_Icon("menuRunTransSub",menuRunTransSubItem,MenuItemIconList[Z_ThisMenuItem],MenuItemIconNoList[Z_ThisMenuItem])
+			Menu_Item_Icon("menuRunTransSub",menuRunTransSubItem,MenuObjIconList[Z_ThisMenuItem],MenuObjIconNoList[Z_ThisMenuItem])
 		}
 		Menu,menuRun,Add,透明运行(&Q), :menuRunTransSub
 		Menu,menuRun,Add,置顶运行(&T),MultifunctionMenu
@@ -1666,7 +1666,7 @@ MenuRunMultifunctionMenu:
 	{
 		if(A_LoopField="同名软件(&S)" && !menuRunSameSubFlag)
 			continue
-		Menu_Item_Icon("menuRun",A_LoopField,MenuItemIconList[Z_ThisMenuItem],MenuItemIconNoList[Z_ThisMenuItem])
+		Menu_Item_Icon("menuRun",A_LoopField,MenuObjIconList[Z_ThisMenuItem],MenuObjIconNoList[Z_ThisMenuItem])
 	}
 	Menu,menuRun,Show
 	Menu,menuRun,DeleteAll
@@ -2195,6 +2195,11 @@ CreateDir(dir){
 	if(!InStr(FileExist(dir), "D"))
 		FileCreateDir, %dir%
 }
+;[删除已有文件]
+DeleteFile(filePath){
+	if(FileExist(filePath))
+		FileDelete, %filePath%
+}
 ;[检查后缀名]
 Ext_Check(name,len,ext){
 	len_ext:=StrLen(ext)
@@ -2340,6 +2345,7 @@ Get_Transform_Val(string){
 				out .= %m2%
 			else switch (m3)
 			{
+				;此处报错请升级Autohotkey到v1.1.31以上版本
 				case "a": out .= "`a"
 				case "b": out .= "`b"
 				case "f": out .= "`f"
@@ -2730,16 +2736,14 @@ HideTrayTip(){
 }
 ;[临时脚本显示提示信息，不受主脚本重启影响]
 ShowTrayTip(title,text,seconds,options){
-	if(FileExist(A_Temp "\" RunAnyZz "\RunAnyTrayTip.ahk"))
-		FileDelete,%A_Temp%\%RunAnyZz%\RunAnyTrayTip.ahk
+	DeleteFile(A_Temp "\" RunAnyZz "\RunAnyTrayTip.ahk")
 	FileAppend,
 	(
 #NoEnv
+Menu,Tray,Icon,SHELL32.dll,50
 TrayTip, %title%, %text%, %seconds%, %options%
-SetTimer, HideTrayTip, -%seconds%000
-HideTrayTip() {
-    TrayTip
-}
+Sleep,10000
+ExitApp
 	),%A_Temp%\%RunAnyZz%\RunAnyTrayTip.ahk
 	Run,%A_AhkPath%%A_Space%"%A_Temp%\%RunAnyZz%\RunAnyTrayTip.ahk"
 }
@@ -6162,7 +6166,6 @@ Settings_Gui:
 	Icon_Image_Set(RunAnyMenuObjPathImageListID)
 	GuiControl, 66:-Redraw, RunAnyMenuObjPathLV
 	LV_SetImageList(RunAnyMenuObjPathImageListID)
-	IniRead, evFullPathIniVar, %RunAnyEvFullPathIni%, FullPath
 	Loop, parse, evFullPathIniVar, `n, `r
 	{
 		varList:=StrSplit(A_LoopField,"=",,2)
@@ -8325,8 +8328,7 @@ Check_Update:
 	Gosub,Auto_Update
 return
 Auto_Update:
-	if(FileExist(A_Temp "\" RunAnyZz "\RunAny_Update.bat"))
-		FileDelete, %A_Temp%\%RunAnyZz%\RunAny_Update.bat
+	DeleteFile(A_Temp "\" RunAnyZz "\RunAny_Update.bat")
 	;[下载最新的更新脚本]
 	if(!rule_check_network(giteeUrl)){
 		RunAnyDownDir:=githubUrl . RunAnyGithubDir
@@ -8565,8 +8567,7 @@ EverythingIsRun(){
 }
 ;[校验Everything是否可正常返回搜索结果]
 EverythingCheck:
-if(FileExist(A_Temp "\" RunAnyZz "\RunAnyEv.ahk"))
-	FileDelete,%A_Temp%\%RunAnyZz%\RunAnyEv.ahk
+DeleteFile(A_Temp "\" RunAnyZz "\RunAnyEv.ahk")
 FileAppend,
 (
 #NoTrayIcon
@@ -8632,7 +8633,7 @@ EverythingCheckResults:
 	RegRead,EvTotResults,HKEY_CURRENT_USER,SOFTWARE\RunAny,EvTotResults
 	if(EvTotResults>0){
 		SetTimer,EverythingCheckResults,Off
-		ShowTrayTip("","Everything索引创建完成",5,17)
+		ShowTrayTip("","Everything索引更新完成",5,17)
 		Gosub,Menu_Reload
 	}
 return
