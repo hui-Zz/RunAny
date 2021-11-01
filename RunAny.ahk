@@ -684,9 +684,9 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 			if(!IsObject(MenuObjTree%TREE_NO%[(menuRootFn[menuLevel])]))
 				MenuObjTree%TREE_NO%[(menuRootFn[menuLevel])]:=Object()
 			MenuObjTree%TREE_NO%[(menuRootFn[menuLevel])].Push(Z_LoopField)
-			flagEXE:=false			;~添加exe菜单项目
-			flagSys:=false			;~添加系统项目文件
-			IconFail:=false		;~是否显示无效项图标
+			flagEXE:=false      ;~添加exe菜单项目
+			flagSys:=false      ;~添加系统项目文件
+			IconFail:=false     ;~是否显示无效项图标
 			;[生成有前缀备注的应用]
 			if(InStr(Z_LoopField,"|")){
 				menuDiy:=StrSplit(Z_LoopField,"|",,2)
@@ -4677,7 +4677,7 @@ LVPluginsAdd:
 	Menu, ahkDownMenu, Icon,下载勾选的插件脚本, SHELL32.dll,123
 	Gui,PluginsDownload: Menu, ahkDownMenu
 	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
-	Gui,PluginsDownload:Show, , %RunAnyZz% 插件下载 %RunAny_update_version% %RunAny_update_time%
+	Gui,PluginsDownload:Show, , %RunAnyZz% 插件下载 %RunAny_update_version% %RunAny_update_time%%AdminMode%
 return
 LVPluginsCheck:
 	LV_Modify(0, "Check Focus")   ; 勾选所有.
@@ -6364,31 +6364,42 @@ return
 Menu_About:
 	Gui,99:Destroy
 	Gui,99:Color,FFFFFF
-	Gui,99:Add, ActiveX, x0 y0 w570 h470 voWB, shell explorer
+	Gui,99:Add, ActiveX, x0 y0 w570 h500 voWB, shell explorer
 	oWB.Navigate("about:blank")
+	versionUrlEncode:=StrReplace(SkSub_UrlEncode("当前版本" ),"%","`%")
+	timeUrlEncode:=StrReplace(SkSub_UrlEncode("v" RunAny_update_version " " RunAny_update_time),"%","`%")
 vHtml = 
 (
 <html>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <title>name</title>
 <body style="font-family:Microsoft YaHei;margin:30px;background:url(https://hui-zz.gitee.io/runany/assets/images/RunAnyMp_120x120.png) no-repeat center top;">
-<br><br><br>
-<h2>
-【%RunAnyZz%】一劳永逸的快速启动工具 v%RunAny_update_version% @%RunAny_update_time% 
-<img alt="GitHub stars" src="https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=social"/> 
+<br><br><br><br>
+<h2 align="center">
+【%RunAnyZz%】一劳永逸的快速启动工具
 <br>
-<font size="2">官网版本：</font>
-<img alt="GitHub release" src="https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat-square&logo=github"/>
+<img alt="GitHub stars" src="https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=social&logo=github"/>
+<img alt="GitHub forks" src="https://img.shields.io/github/forks/hui-Zz/RunAny?style=social"/>
+<img alt="history" src="https://img.shields.io/badge/2017--2021-white.svg?label=Time&style=social&logo=github"/>
 </h2>
+<img alt="当前版本" src="https://img.shields.io/badge/%versionUrlEncode%-%timeUrlEncode%-blue.svg?style=flat-square"/>
+<br>
+<img alt="GitHub release" src="https://img.shields.io/github/v/release/hui-Zz/RunAny.svg?label=`%E6`%9C`%80`%E6`%96`%B0`%E7`%89`%88`%E6`%9C`%AC&style=flat-square&color=red"/>
+<img alt="Autohotkey" src="https://img.shields.io/badge/autohotkey-1.1.33.10-green.svg?style=flat-square&logo=autohotkey"/>
+<br><br>
 默认启动菜单热键为 <b><font color="red"><kbd>``</kbd></font></b>（Esc键下方的重音符键~`` ）
 <br>
-（注意：想打字打出<kbd>``</kbd>的时候，按<kbd>Win</kbd>+<kbd>``</kbd>）
+注意：想打字打出 <font color="red"><kbd>``</kbd></font> 的时候，按 <font color="red"><kbd>Win</kbd> + <kbd>``</kbd></font>
+<br>
+【右键任务栏RA图标进行设置】
 <br><br>
 <li>按住<kbd>Shift</kbd>+回车键 或+鼠标左键打开 <b>多功能菜单运行方式</b></li>
 <li>按住<kbd>Ctrl</kbd>+回车键 或+鼠标左键打开 软件所在的目录</li>
 <li>按住<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+回车键 或+鼠标左键打开 快速跳转到编辑该菜单项</li>
 <li>按住<kbd>Ctrl</kbd>+<kbd>Win</kbd>+鼠标左键打开 以管理员身份来运行</li>
-<br>【右键任务栏RunAny图标进行配置】<br><br>
+<br>
 作者：hui-Zz 建议：hui0.0713@gmail.com
 </body>
 </html>
