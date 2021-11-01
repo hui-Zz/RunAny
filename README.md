@@ -1,10 +1,14 @@
-<p align="center">
+<div align="center">
 <a href="https://github.com/hui-Zz/RunAny" target="_blank">
 	<img src="https://hui-zz.gitee.io/runany/assets/images/RunAny.svg" alt="RunAny" width="120" height="120">
 </a>
-</p>
 
-#         【RunAny】一劳永逸的快速启动工具 ![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?style=flat-square&logo=github) 
+# 【RunAny】一劳永逸的快速启动工具
+
+[![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?label=最新版本&style=flat-square&logo=github&color=red)![GitHub stars](https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=flat-square&color=yellow)![GitHub forks](https://img.shields.io/github/forks/hui-Zz/RunAny?style=flat-square)](https://github.com/hui-Zz/RunAny)![Lines of code](https://img.shields.io/tokei/lines/github/hui-Zz/RunAny?label=代码行数&style=flat-square&color=9cf)![history](https://img.shields.io/badge/2017--2021-yellowgreen.svg?style=flat-square)  
+[![码云Gitee](https://img.shields.io/badge/dynamic/json?style=flat-square&label=stars&logo=gitee&logoColor=red&url=https://gitee.com/api/v5/repos/hui-Zz/RunAny&query=$.stargazers_count)](https://gitee.com/hui-Zz/RunAny)
+[![Autohotkey](https://img.shields.io/badge/autohotkey-1.1.33.10-green.svg?style=flat-square&logo=autohotkey)](http://ahkscript.org)  ![windows](https://img.shields.io/badge/Windows-0078D6?style=flat-square&logo=windows&logoColor=white)
+</div>
 
 ​    **RunAny区别一般的启动工具，适合家里、公司多台电脑的用户，不管软件装在C盘还是D盘Anywhere，根据名字直接找到并运行**
 
@@ -20,7 +24,7 @@
 
 【Github下载地址：】https://github.com/hui-Zz/RunAny/archive/master.zip
 - 蓝奏云下载：https://www.lanzoux.com/b902490/
-- 百度云下载：https://pan.baidu.com/s/1qxbYAx0UA-u1dkoY-RXZJg
+- 百度云下载：
 
 ## 【RunAny完整版文档地址：】[https://hui-zz.gitee.io/runany](https://hui-zz.gitee.io/runany) （国内速度快）
 ## 【RunAny文档Github地址：】[https://hui-zz.github.io/RunAny](https://hui-zz.github.io/RunAny)
@@ -221,7 +225,7 @@ RunAny追求就是：<u>**一劳永逸**</u>
 | *天（过年好）  | 2019-01-30 21:37:40 | ★火★              | 2021-09-14 21:57:24     |
 | *杭            | 2019-02-27 18:29:58 | F*o               | 2021-09-15 11:15:26     |
 | 禁誋           | 2019-03-27 21:21:08 | R*n               | 2021-09-15 14:29:12     |
-| *杭（2）       | 2019-03-29 17:06:15 |                   |                         |
+| *杭（2）       | 2019-03-29 17:06:15 | 逍遥              | 2021-10-05 11:16:24     |
 | *❎             | 2019-07-10 09:32:15 |                   |                         |
 | E*d（2）       | 2019-07-30 16:51:02 |                   |                         |
 | *伟华（2）     | 2019-08-03 23:22:57 |                   |                         |
@@ -232,6 +236,7 @@ RunAny追求就是：<u>**一劳永逸**</u>
 |                |                     |                   |                         |
 
 ---
-![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny?style=social) ![GitHub stars](https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=social) 
+![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny?style=social) ![GitHub stars](https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=social) ![Lines of code](https://img.shields.io/tokei/lines/github/hui-Zz/RunAny?style=social&logo=github) ![history](https://img.shields.io/badge/2017--2021-yellowgreen.svg?style=social&logo=github) [![Autohotkey](https://img.shields.io/badge/Autohotkey-1.1.33.10-white.svg?style=social&logo=autohotkey)![GitHub top language](https://img.shields.io/github/languages/top/hui-Zz/RunAny?style=social&logo=autohotkey)](http://ahkscript.org) ![windows](https://img.shields.io/badge/Windows-0078D6?style=social&logo=windows)
+
 [![Stargazers over time](https://starchart.cc/hui-Zz/RunAny.svg)](https://starchart.cc/hui-Zz/RunAny)
 
