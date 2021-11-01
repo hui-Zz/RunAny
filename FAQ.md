@@ -49,7 +49,7 @@ ClipWaitTime=1.5
 ## 4. 开机后RunAny加载慢和RunAny调用Everything缓慢问题
 
 鼠标移动到任务栏托盘图标后显示，调用Everything搜索应用全路径时间过长：
-![RunAny调用Everything缓慢问题](/assets/images/RunAny调用Everything缓慢问题.png)
+![RunAny调用Everything缓慢问题](/assets/images/faq/RunAny调用Everything缓慢问题.png)
 
 **原因**：因Everything正在索引、或是数据库在不同磁盘导致读写缓慢等原因。（可以开机后马上尝试能不能用Everything来验证）
 
@@ -63,10 +63,21 @@ ClipWaitTime=1.5
 
 ---
 
-
 ## 5. AutoHotkey 1.1.30 导致RunAny热字符串功能失效
 
 使用 AutoHotkey 1.1.28 老版本
 或升级至 AutoHotkey 1.1.31 及以上版本
+
+---
+
+## 6. 0x800401F3 - 无效的类字符串 `ComObjCreate("HTMLfile")`
+![HTMLfile](/assets/images/faq/HTMLfile.png ':size=577x585')
+
+**原因**：是360安全卫士、电脑管家……等等 启用 **浏览器锁定** 开关后 导致  
+一旦锁定浏览器，安全卫士就会阻止任何软件去调用浏览器相关的一些功能  
+而 `一键计算` 和 `huiZz_Text.ahk` 里面 中文转换为URI编码 等功能是需要依赖 `HTMLfile` 来完成功能的
+
+**解决**：
+关闭360安全卫士、电脑管家……等等的 **浏览器锁定** 的开关
 
 ---
