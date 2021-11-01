@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.7"     ;~;版本号
-global RunAny_update_time:="尝鲜版 2021.10.28"   ;~;更新日期
+global RunAny_update_time:="无路径缓存尝鲜版 2021.10.28"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -1454,22 +1454,22 @@ Menu_Run:
 		}
 		;[复制或输出菜单项内容]
 		if(menuholdkey=HoldKeyRun31 || M_ThisMenuItem="复制运行路径(&C)"){
-			Send_Or_Show(fullPath,false,HoldKeyShowTime,3000)
+			Send_Or_Show(fullPath,false,HoldKeyShowTime)
 			return
 		}else if(menuholdkey=HoldKeyRun32 || M_ThisMenuItem="输出运行路径(&V)"){
-			Send_Or_Show(fullPath,true,HoldKeyShowTime,3000)
+			Send_Or_Show(fullPath,true,HoldKeyShowTime)
 			return
 		}else if(menuholdkey=HoldKeyRun33 || M_ThisMenuItem="复制软件名(&N)"){
-			Send_Or_Show(name_no_ext,false,HoldKeyShowTime,3000)
+			Send_Or_Show(name_no_ext,false,HoldKeyShowTime)
 			return
 		}else if(menuholdkey=HoldKeyRun34 || M_ThisMenuItem="输出软件名(&M)"){
-			Send_Or_Show(name_no_ext,true,HoldKeyShowTime,3000)
+			Send_Or_Show(name_no_ext,true,HoldKeyShowTime)
 			return
 		}else if(menuholdkey=HoldKeyRun35 || M_ThisMenuItem="复制软件名+后缀(&F)"){
-			Send_Or_Show(name,false,HoldKeyShowTime,3000)
+			Send_Or_Show(name,false,HoldKeyShowTime)
 			return
 		}else if(menuholdkey=HoldKeyRun36 || M_ThisMenuItem="输出软件名+后缀(&G)"){
-			Send_Or_Show(name,true,HoldKeyShowTime,3000)
+			Send_Or_Show(name,true,HoldKeyShowTime)
 			return
 		}
 		;[结束软件进程]
@@ -1971,7 +1971,7 @@ Menu_Run_Plugins_ObjReg:
 	appParmStr:=RegExReplace(any,"iS).+?\[.+?\]%?\((.*?)\)$","$1")	;取函数参数
 	appParmErrorStr:=(appParmStr="") ? "空" : appParmStr
 	if(!PluginsObjRegGUID[appPlugins] && appPlugins!="runany"){
-		ToolTip,脚本插件：%appPlugins%`n脚本函数：%appFunc%`n函数参数：%appParmErrorStr%`n插件%appPlugins%没有找到！`n【请检查修改后重启RunAny重试】
+		ToolTip,❎`n脚本插件：%appPlugins%`n脚本函数：%appFunc%`n函数参数：%appParmErrorStr%`n插件%appPlugins%没有找到！`n【请检查修改后重启RunAny重试】
 		SetTimer,RemoveToolTip,8000
 		return
 	}
@@ -2024,7 +2024,7 @@ Menu_Run_Plugins_ObjReg:
 		PluginsObjRegRun(appPlugins, appFunc, appParms)
 	}
 	if(!InStr(PluginsContentList[(appPlugins ".ahk")],appFunc "(")){
-		ToolTip,脚本插件：%appPlugins%`n脚本函数：%appFunc%`n函数参数：%appParmErrorStr%`n
+		ToolTip,❎`n脚本插件：%appPlugins%`n脚本函数：%appFunc%`n函数参数：%appParmErrorStr%`n
 		(
 函数%appFunc%没有找到！`n【请检查插件脚本是否已更新版本，或修改错误后重启RunAny重试】
 		)
@@ -2055,7 +2055,7 @@ PluginsObjRegRun(appPlugins, appFunc, appParms){
 	}else if(appParms.MaxIndex()=10){
 		effectResult:=PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8],appParms[9],appParms[10])
 	}else if(appParms.MaxIndex()>10){
-		ToolTip,脚本插件：%appPlugins%`n脚本函数：%appFunc%`n函数参数：%appParmErrorStr% 参数数量最多为10个，请修改后重试！
+		ToolTip,❎`n脚本插件：%appPlugins%`n脚本函数：%appFunc%`n函数参数：%appParmErrorStr% 参数数量最多为10个，请修改后重试！
 		SetTimer,RemoveToolTip,8000
 	}
 	return effectResult
@@ -2207,7 +2207,7 @@ Ext_Check(name,len,ext){
 	return site!=0 && site=len-len_ext+1
 }
 ;~;[输出结果还是仅显示保存到剪贴板]
-Send_Or_Show(textResult,isSend:=false,sTime:=1000,wTime:=0){
+Send_Or_Show(textResult,isSend:=false,sTime:=1000){
 	textResult:=RegExReplace(textResult,"`r`n$")
 	if(isSend){
 		Send_Str_Zz(textResult)
@@ -2215,11 +2215,7 @@ Send_Or_Show(textResult,isSend:=false,sTime:=1000,wTime:=0){
 	}
 	Clipboard:=textResult
 	ToolTip,%textResult%
-	Sleep,%sTime%
-	if(A_TimeIdle>500){
-		Sleep,% wTime ? wTime : sTime
-	}
-	ToolTip
+	SetTimer,RemoveToolTip,%sTime%
 }
 ;~;[粘贴输出短语]
 Send_Str_Zz(strZz,tf=false){
@@ -2722,8 +2718,10 @@ Var_Read(rValue,defVar=""){
 }
 ;~;[控制提示信息的显示时长]
 RemoveToolTip:
-	SetTimer,RemoveToolTip,Off
-	ToolTip
+	if(A_TimeIdle<2500){
+		SetTimer,RemoveToolTip,Off
+		ToolTip
+	}
 return
 RemoveDebugModeToolTip:
 	SetTimer,RemoveDebugModeToolTip,Off
@@ -6450,7 +6448,7 @@ SetRunAEvFullPathIniDir:
 	}
 return
 SetRunAEvFullPathIniDirHint:
-	ToolTip, 无路径缓存文件 请不要设置在网盘同步文件夹里面！`n防止把其他电脑上的软件路径同步过来造成混乱, 370, 45
+	ToolTip, ⚠ 无路径缓存文件 请不要设置在网盘同步文件夹里面！`n防止把其他电脑上的软件路径同步过来造成混乱, 370, 45
 	SetTimer,RemoveToolTip,15000
 return
 SetBrowserPath:
@@ -8145,7 +8143,7 @@ RunCtrl_RunRules(runCtrlObj,show:=0){
 				}
 			}
 		}else if(show){
-			ToolTip, 规则验证失败
+			ToolTip, ❎ 规则验证失败
 			SetTimer,RemoveToolTip,3000
 			if(RuleRunFailFlag){
 				RuleRunFailStr:=StrListJoin("`n",RuleRunFailList)

@@ -220,8 +220,12 @@ class RunAnyObj {
 		;蓝奏云
 		RegExMatch(getZz,"i)(?:[A-Za-z0-9\-.]+)?lanzou[six]\.com\/[A-Za-z0-9_\-]+",url)
 		if(url!=""){
-			Run,https://%url%
-			this.text_pan_code(getZz,autoClear)
+			code:=this.text_pan_code(getZz,autoClear)
+			if(code!=""){
+				Run,https://%url%?pwd=%code%#%code%
+			}else{
+				Run,https://%url%
+			}
 			return
 		}
 		;阿里云盘
@@ -288,7 +292,7 @@ class RunAnyObj {
 			if(S_LoopField=""){
 				continue
 			}
-			RegExMatch(S_LoopField, "(((((ht|f)tps?):\/\/)|www[.])\S+)", S_LoopField)
+			RegExMatch(S_LoopField, "((((ht|f)tps?):\/\/)|www[.])[\w-]+(\.[\w-]+)+([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?", S_LoopField)
 			if(S_LoopField!=""){
 				Run,%browserApp%%S_LoopField%
 			}
@@ -396,8 +400,7 @@ class RunAnyObj {
 	text_encode_zz(getZz:="",sCode:="",cCode:="",isShow:=true){
 		if(getZz="" || sCode="" || cCode=""){
 			ToolTip,没有选中文本或指定需要转换的编码格式
-			Sleep,2000
-			ToolTip
+			SetTimer,RemoveToolTip,2000
 			return
 		}
 		if(sCode="uri"){
@@ -414,10 +417,7 @@ class RunAnyObj {
 		Send_Str_Zz(textResult)
 		if(isShow){
 			ToolTip,%textResult%
-			Sleep,3000
-			if(A_TimeIdle>1000)
-				Sleep,3000
-			ToolTip
+			SetTimer,RemoveToolTip,3000
 		}
 	}
 	;[文本加密]
@@ -492,12 +492,15 @@ Send_Or_Show(textResult,isSend:=0,sTime:=3000){
 	}
 	Clipboard:=textResult
 	ToolTip,%textResult%
-	Sleep,%sTime%
-	if(A_TimeIdle>1000)
-		Sleep,%sTime%
-	ToolTip
+	SetTimer,RemoveToolTip,%sTime%
 }
-
+;~;[控制提示信息的显示时长]
+RemoveToolTip:
+	if(A_TimeIdle<2500){
+		SetTimer,RemoveToolTip,Off
+		ToolTip
+	}
+return
 ;数字转中文   by FeiYue
 n2c(n){
 	if !(n ~= "^[1-9]\d*$")    ;当不是整数
@@ -534,9 +537,9 @@ c2n(c){
 ;[中文转换为URI编码]
 URI_Encode(Str, All := False)
 {
-	Static doc := ComObjCreate("HTMLfile")
 	Try
 	{
+		Static doc := ComObjCreate("HTMLfile")
 		doc.write("<body><script>document.body.innerText = encodeURI" . (All ? "Component" : "") . "(""" . Str . """);</script>")
 		Return, doc.body.innerText, doc.body.innerText := ""
 	}
@@ -544,9 +547,9 @@ URI_Encode(Str, All := False)
 ;[URI编码转换为中文]
 URI_Decode(Str)
 {
-	Static doc := ComObjCreate("HTMLfile")
 	Try
 	{
+		Static doc := ComObjCreate("HTMLfile")
 		doc.write("<body><script>document.body.innerText = decodeURIComponent(""" . Str . """);</script>")
 		Return, doc.body.innerText, doc.body.innerText := ""
 	}
@@ -566,9 +569,9 @@ CN2uXXXX(cnStr) ; in: "爱尔兰之狐" out: "\u7231\u5C14\u5170\u4E4B\u72D0"
 ;[Unicode编码转换为中文]
 Unicode_Decode(Str)
 {
-	Static doc := ComObjCreate("HTMLfile")
 	Try
 	{
+		Static doc := ComObjCreate("HTMLfile")
 		doc.write("<body><script>document.body.innerText = unescape(""" . Str . """);</script>")
 		Return, doc.body.innerText, doc.body.innerText := ""
 	}
@@ -790,10 +793,13 @@ GetJScript()
 }
 
 CreateScriptObj() {
-   static doc
-   doc := ComObjCreate("htmlfile")
-   doc.write("<meta http-equiv='X-UA-Compatible' content='IE=9'>")
-   Return ObjBindMethod(doc.parentWindow, "eval")
+	Try
+	{
+		static doc
+		doc := ComObjCreate("htmlfile")
+		doc.write("<meta http-equiv='X-UA-Compatible' content='IE=9'>")
+		Return ObjBindMethod(doc.parentWindow, "eval")
+	}
 }
 ;-------------[文本翻译]结束-------------
 
