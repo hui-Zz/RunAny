@@ -24,7 +24,7 @@
 
 【Github下载地址：】https://github.com/hui-Zz/RunAny/archive/master.zip
 - 蓝奏云下载：https://www.lanzoux.com/b902490/
-- 百度云下载：
+- 百度云下载：https://pan.baidu.com/s/1qxbYAx0UA-u1dkoY-RXZJg
 
 ## 【RunAny完整版文档地址：】[https://hui-zz.gitee.io/runany](https://hui-zz.gitee.io/runany) （国内速度快）
 ## 【RunAny文档Github地址：】[https://hui-zz.github.io/RunAny](https://hui-zz.github.io/RunAny)
