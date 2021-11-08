@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.7 @2021.10.28
+║【RunAny】一劳永逸的快速启动工具 v5.7.7 @2021.11.01
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.7"     ;~;版本号
-global RunAny_update_time:="无路径缓存尝鲜版 2021.10.28"   ;~;更新日期
+global RunAny_update_time:="无路径缓存尝鲜版 2021.11.01"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -6360,12 +6360,14 @@ Settings_Gui:
 return
 ;~;【关于Gui】
 Menu_About:
+	aboutWebHeight:=( 96 / A_ScreenDPI ) * 120 + 380
+	marginTop:=( 96 / A_ScreenDPI ) * 50
 	Gui,99:Destroy
 	Gui,99:Color,FFFFFF
-	Gui,99:Add, ActiveX, x0 y0 w570 h500 voWB, shell explorer
+	Gui,99:Add, ActiveX, x0 y0 w570 h%aboutWebHeight% voWB, shell explorer
 	oWB.Navigate("about:blank")
-	versionUrlEncode:=StrReplace(SkSub_UrlEncode("当前版本" ),"%","`%")
-	timeUrlEncode:=StrReplace(SkSub_UrlEncode("v" RunAny_update_version " " RunAny_update_time),"%","`%")
+	versionTime:=RegExReplace(RunAny_update_time, "[^\d\.]*([\d\.]+)[^\d\.]*", "$1")
+	versionUrlEncode:=StrReplace(SkSub_UrlEncode("v" RunAny_update_version " " versionTime),"%","`%")
 vHtml = 
 (
 <html>
@@ -6374,30 +6376,30 @@ vHtml =
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <title>name</title>
 <body style="font-family:Microsoft YaHei;margin:30px;background:url(https://hui-zz.gitee.io/runany/assets/images/RunAnyMp_120x120.png) no-repeat center top;">
-<br><br><br><br>
-<h2 align="center">
+<br><br>
+<h2 align="center" style="margin-top:%marginTop%px;">
 【%RunAnyZz%】一劳永逸的快速启动工具
 <br>
-<img alt="GitHub stars" src="https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=social&logo=github"/>
-<img alt="GitHub forks" src="https://img.shields.io/github/forks/hui-Zz/RunAny?style=social"/>
-<img alt="history" src="https://img.shields.io/badge/2017--2021-white.svg?label=Time&style=social&logo=github"/>
+<img alt="GitHub stars" src="https://raster.shields.io/github/stars/hui-Zz/RunAny.svg?style=social&logo=github"/>
+<img alt="GitHub forks" src="https://raster.shields.io/github/forks/hui-Zz/RunAny?style=social"/>
+<img alt="history" src="https://raster.shields.io/badge/2017--2021-white.svg?label=Time&style=social&logo=github"/>
 </h2>
-<img alt="当前版本" src="https://img.shields.io/badge/%versionUrlEncode%-%timeUrlEncode%-blue.svg?style=flat-square"/>
+<b>当前版本：</b><img alt="当前版本" style="vertical-align:middle" src="https://raster.shields.io/badge/RunAny-%versionUrlEncode%-blue.svg?style=flat-square"/>
 <br>
-<img alt="GitHub release" src="https://img.shields.io/github/v/release/hui-Zz/RunAny.svg?label=`%E6`%9C`%80`%E6`%96`%B0`%E7`%89`%88`%E6`%9C`%AC&style=flat-square&color=red"/>
-<img alt="Autohotkey" src="https://img.shields.io/badge/autohotkey-1.1.33.10-green.svg?style=flat-square&logo=autohotkey"/>
-<br><br>
+<b>最新版本：</b><img alt="GitHub release" style="vertical-align:middle" src="https://raster.shields.io/github/v/release/hui-Zz/RunAny.svg?label=RunAny&style=flat-square&color=red"/>
+<img alt="Autohotkey" style="vertical-align:middle" src="https://raster.shields.io/badge/autohotkey-1.1.33.10-green.svg?style=flat-square&logo=autohotkey"/>
+<br>
 默认启动菜单热键为 <b><font color="red"><kbd>``</kbd></font></b>（Esc键下方的重音符键~`` ）
 <br>
 注意：想打字打出 <font color="red"><kbd>``</kbd></font> 的时候，按 <font color="red"><kbd>Win</kbd> + <kbd>``</kbd></font>
-<br>
-【右键任务栏RA图标进行设置】
 <br><br>
 <li>按住<kbd>Shift</kbd>+回车键 或+鼠标左键打开 <b>多功能菜单运行方式</b></li>
 <li>按住<kbd>Ctrl</kbd>+回车键 或+鼠标左键打开 软件所在的目录</li>
 <li>按住<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+回车键 或+鼠标左键打开 快速跳转到编辑该菜单项</li>
 <li>按住<kbd>Ctrl</kbd>+<kbd>Win</kbd>+鼠标左键打开 以管理员身份来运行</li>
 <br>
+【右键任务栏RA图标进行设置】
+<br><br>
 作者：hui-Zz 建议：hui0.0713@gmail.com
 </body>
 </html>
@@ -6411,9 +6413,9 @@ vHtml =
 	Gui,99:Add,Link,xm+18 y+10,Github文档：<a href="https://hui-zz.github.io/RunAny">https://hui-zz.github.io/RunAny</a>
 	Gui,99:Add,Link,xm+18 y+10,Github地址：<a href="https://github.com/hui-Zz/RunAny">https://github.com/hui-Zz/RunAny</a>
 	Gui,99:Add,Text,y+10, 讨论QQ群：
-	Gui,99:Add,Link,x+8 yp,<a href="https://jq.qq.com/?_wv=1027&k=445Ug7u">246308937【RunAny快速启动一劳永逸】</a>`n`n
+	Gui,99:Add,Link,x+8 yp,<a href="https://jq.qq.com/?_wv=1027&k=445Ug7u">246308937【RunAny快速启动一劳永逸】</a>`n
 	Gui,99:Font
-	Gui,99:Show,AutoSize Center,关于%RunAnyZz%%AdminMode%
+	Gui,99:Show,AutoSize Center,关于%RunAnyZz% %RunAny_update_version% %RunAny_update_time%%AdminMode%
 	hCurs:=DllCall("LoadCursor","UInt",NULL,"Int",32649,"UInt") ;IDC_HAND
 	OnMessage(0x200,"WM_MOUSEMOVE")
 return
