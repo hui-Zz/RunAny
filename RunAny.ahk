@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.7 @2021.11.01
+║【RunAny】一劳永逸的快速启动工具 v5.7.8 @2021.11.01
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -22,8 +22,8 @@ global StartTick:=A_TickCount             ;~;评估RunAny初始化时间
 global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
-global RunAny_update_version:="5.7.7"     ;~;版本号
-global RunAny_update_time:="无路径缓存尝鲜版 2021.11.01"   ;~;更新日期
+global RunAny_update_version:="5.7.8"     ;~;版本号
+global RunAny_update_time:="2021.11.15"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -104,6 +104,7 @@ Menu_Tray_Tip("初始化+运行插件：" Round(t2/1000,3) "s`n","开始创建�
 global MenuObj:=Object()                    ;~程序全路径
 global MenuObjKey:=Object()                 ;~程序热键
 global MenuObjKeyName:=Object()             ;~程序热键关联菜单项名称
+global MenuObjKeyList:=Object()             ;~程序热键关联菜单项列表
 global MenuObjExt:=Object()                 ;~后缀对应的菜单
 global MenuObjWindow:=Object()              ;~软件窗口对应的菜单
 global MenuHotStrList:=Object()             ;~热字符串对象数组
@@ -768,6 +769,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 					MenuObj[menuKeys[1]]:=itemParam
 					MenuObjKey[menuKeys[2]]:=itemParam
 					MenuObjKeyName[menuKeys[2]]:=menuKeys[1]
+					MenuObjKeyList[menuDiy[1]]:=true
 					if(!InStr(menuDiy[2],"%getZz%") && RegExMatch(menuDiy[2],"iS).+?\[.+?\]%?\(.*?\)")){
 						Hotkey,% menuKeys[2],Menu_Key_NoGet_Run,On
 					}else if(itemMode=4 || itemMode=5){ ;热键映射不去获取当前选中内容
@@ -3225,7 +3227,7 @@ TVAddTree:
 	menuGuiFlag:=true
 	menuGuiEditFlag:=false
 	ToolTip,% "菜单分类开头是" itemName "表示新建 " StrLen(itemName) "级目录",195,270
-	SetTimer,RemoveToolTip,5000
+	SetTimer,RemoveToolTip,3500
 	Gosub,Menu_Item_Edit
 return
 TVEdit:
@@ -5336,7 +5338,7 @@ RunCtrlLVSave:
 	;中文、数字、字母、下划线正则校验，根据Unicode字符属性Han来判断中文，RunAnyCtrl.ahk编码不能为ANSI
 	if(!RegExMatch(vRuleGroupName,"^[\p{Han}A-Za-z0-9_]+$")){
 		ToolTip, 规则组名只能为中文、数字、字母、下划线,%fnx%,%fny%
-		SetTimer,RemoveToolTip,5000
+		SetTimer,RemoveToolTip,3500
 		return
 	}
 	runContent:=ruleContent:=""
@@ -5470,7 +5472,7 @@ LVFuncConfig:
 	Gui,RunCtrlFunc:Margin,20,10
 	Gui,RunCtrlFunc:Add, Text, xm y+10 w60, 规则名：
 	Gui,RunCtrlFunc:Add, DropDownList, xm+60 yp-3 Choose%RuleNameChoose% GDropDownRuleChoose vvRuleName, %RuleNameStr%
-	Gui,RunCtrlFunc:Add, Text, x+10 yp+3 cblue w150 vvRuleResultText, 
+	Gui,RunCtrlFunc:Add, Text, x+10 yp+3 cblue w150 GClipboardRuleResultText vvRuleResultText, 
 	Gui,RunCtrlFunc:Add, Radio, xm y+10 Checked%FuncBooleanEQ% vvFuncBooleanEQ, 相等 ( 真 &True 1 )
 	Gui,RunCtrlFunc:Add, Radio, x+4 yp Checked%FuncBooleanNE% vvFuncBooleanNE, 不相等 ( 假 &False 0 )
 	Gui,RunCtrlFunc:Add, Radio, xm y+10 Checked%FuncBooleanGE% vvFuncBooleanGE, 大于等于　　　　
@@ -5483,8 +5485,8 @@ LVFuncConfig:
 	Gui,RunCtrlFunc:Add, Text, xm yp w350 cblue vvRuleParamText, 条件值：（条件值变为参数传递到规则函数，只判断结果真假）
 	; `n多个参数每行为一个参数，最多支持10个，保存会用|分隔
 	Gui,RunCtrlFunc:Add, Edit, xm y+10 w350 r6 vvFuncValue GFuncValueChange, %FuncValue%
-	Gui,RunCtrlFunc:Add, Button,Default xm+80 y+15 w75 GLVFuncSave,保存(&Y)
-	Gui,RunCtrlFunc:Add, Button,x+10 w75 GSetCancel,取消(&C)
+	Gui,RunCtrlFunc:Add, Button,Default xm+80 y+15 w75 vvFuncSave GLVFuncSave,保存(&Y)
+	Gui,RunCtrlFunc:Add, Button,x+10 w75 vvFuncCancel GSetCancel,取消(&C)
 	Gui,RunCtrlFunc:Show, , RunCtrl 修改规则函数 %RunAny_update_version% %RunAny_update_time%%AdminMode%
 	Gosub,DropDownRuleChoose
 return
@@ -5570,6 +5572,13 @@ DropDownRuleChoose:
 		GuiControl, RunCtrlFunc:enable, vFuncBooleanRegEx
 	}
 	GuiControl, RunCtrlFunc:,vRuleResultText,% RunCtrl_RuleResult(vRuleName, ruleitemList[vRuleName], vFuncValue)
+return
+ClipboardRuleResultText:
+	Gui,RunCtrlFunc:Submit, NoHide
+	GuiControlGet, OutputVar, ,vRuleResultText
+	Clipboard:=OutputVar
+	ToolTip, 已复制到剪贴板
+	SetTimer,RemoveToolTip,2000
 return
 FuncValueChange:
 	Gui,RunCtrlFunc:Submit, NoHide
@@ -6053,7 +6062,7 @@ Settings_Gui:
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+%MARGIN_TOP_66% vvAutoRun,开机自动启动
 	Gui,66:Add,Checkbox,Checked%AdminRun% x+25 vvAdminRun,管理员权限运行所有软件和插件
 	Gui,66:Add,Button,x+20 w245 h20 gSetScheduledTasks,系统任务计划方式：开机管理员启动%RunAnyZz%
-	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h105,RunAny应用菜单
+	Gui,66:Add,GroupBox,xm-10 y+15 w%GROUP_WIDTH_66% h105,RunAny应用菜单
 	Gui,66:Add,Checkbox,Checked%HideFail% xm yp+20 vvHideFail,隐藏失效项
 	Gui,66:Add,Checkbox,Checked%HideSend% x+180 vvHideSend,隐藏短语
 	Gui,66:Add,Checkbox,Checked%HideWeb% xm yp+20 vvHideWeb,隐藏带`%s网址
@@ -6065,7 +6074,7 @@ Settings_Gui:
 	Gui,66:Add,Text,x+5 yp+2,最近运行项数量 (0为隐藏)
 	Gui,66:Add,Button,x+5 w50 h20 gSetClearRecentMax,清理
 
-	Gui,66:Add,GroupBox,xm-10 y+10 w225 h55,RunAny菜单热键 %MenuHotKey%
+	Gui,66:Add,GroupBox,xm-10 y+15 w225 h55,RunAny菜单热键 %MenuHotKey%
 	Gui,66:Add,Hotkey,xm yp+20 w150 vvMenuKey,%MenuKey%
 	Gui,66:Add,Checkbox,Checked%MenuWinKey% xm+155 yp+3 w55 vvMenuWinKey gSetMenuWinKey,Win
 	If(MENU2FLAG){
@@ -6076,7 +6085,7 @@ Settings_Gui:
 		Gui,66:Add,Button,x+60 yp-5 w150 GSetMenu2,开启第2个菜单
 	}
 
-	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h110,RunAny.ini文件设置
+	Gui,66:Add,GroupBox,xm-10 y+25 w%GROUP_WIDTH_66% h110,RunAny.ini文件设置
 	Gui,66:Add,Edit,xm yp+20 w50 h20 vvAutoReloadMTime,%AutoReloadMTime%
 	Gui,66:Add,Text,x+5 yp+2,(毫秒)  RunAny.ini修改后自动重启，0为不自动重启
 	Gui,66:Add,Checkbox,xm yp+25 Checked%RunABackupRule% vvRunABackupRule,自动备份
@@ -6087,7 +6096,7 @@ Settings_Gui:
 	Gui,66:Add,Button,xm yp+25 GSetRunABackupDir,RunAny.ini自动备份目录
 	Gui,66:Add,Edit,x+11 yp+2 w400 r1 vvRunABackupDir,%RunABackupDir%
 	
-	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% vvDisableAppGroup,屏蔽RunAny程序列表（逗号分隔）
+	Gui,66:Add,GroupBox,xm-10 y+25 w%GROUP_WIDTH_66% vvDisableAppGroup,屏蔽RunAny程序列表（逗号分隔）
 	Gui,66:Font,,Consolas
 	Gui,66:Add,Edit,xm yp+25 r4 -WantReturn vvDisableApp,%DisableApp%
 	Gui,66:Font,,Microsoft YaHei
@@ -6367,7 +6376,7 @@ Menu_About:
 	Gui,99:Add, ActiveX, x0 y0 w570 h%aboutWebHeight% voWB, shell explorer
 	oWB.Navigate("about:blank")
 	versionTime:=RegExReplace(RunAny_update_time, "[^\d\.]*([\d\.]+)[^\d\.]*", "$1")
-	versionUrlEncode:=StrReplace(SkSub_UrlEncode("v" RunAny_update_version " " versionTime),"%","`%")
+	versionUrlEncode:=StrReplace(SkSub_UrlEncode("v" RunAny_update_version),"%","`%")
 vHtml = 
 (
 <html>
@@ -6451,7 +6460,7 @@ SetRunAEvFullPathIniDir:
 return
 SetRunAEvFullPathIniDirHint:
 	ToolTip, ⚠ 无路径缓存文件 请不要设置在网盘同步文件夹里面！`n防止把其他电脑上的软件路径同步过来造成混乱, 370, 45
-	SetTimer,RemoveToolTip,15000
+	SetTimer,RemoveToolTip,4000
 return
 SetBrowserPath:
 	FileSelectFile, browserFilePath, 3, , 程序路径, (*.exe)
@@ -7039,14 +7048,16 @@ PluginsDownloadGuiSize:
 	GuiControl, Move, RunAnyPluginsLV2, % "H" . (A_GuiHeight * 0.48) . " W" . (A_GuiWidth - 20) . " y" . (A_GuiHeight * 0.50 + 10)
 	GuiControl, Move, RuleLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 	GuiControl, Move, RunAnyDownLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
-	GuiControl, Move, vFuncValue, % " W" . (A_GuiWidth - 40)
+	GuiControl, Move, vFuncValue, % "H" . (A_GuiHeight-230) . " W" . (A_GuiWidth - 40)
+	GuiControl, MoveDraw, vFuncSave, % " X" . (A_GuiWidth * 0.30) . " Y" . (A_GuiHeight - 50)
+	GuiControl, MoveDraw, vFuncCancel, % " X" . (A_GuiWidth * 0.30 + 100) . " Y" . (A_GuiHeight - 50)
 return
 66GuiSize:
 	if A_EventInfo = 1
 		return
 	GuiControl, Move, ConfigTab, % "H" . (A_GuiHeight * 0.88) . " W" . (A_GuiWidth - 20)
-	GuiControl, Move, vDisableAppGroup, % "H" . (A_GuiHeight * 0.88 - 375) . " W" . (A_GuiWidth - 40)
-	GuiControl, Move, vDisableApp, % "H" . (A_GuiHeight * 0.88 - 415) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, vDisableAppGroup, % "H" . (A_GuiHeight * 0.88 - 395) . " W" . (A_GuiWidth - 40)
+	GuiControl, Move, vDisableApp, % "H" . (A_GuiHeight * 0.88 - 435) . " W" . (A_GuiWidth - 60)
 	GuiControl, Move, RunAnyHotkeyLV, % "H" . (A_GuiHeight * 0.88 - 214) . " W" . (A_GuiWidth - 60)
 	GuiControl, Move, RunAnyMenuVarLV, % "H" . (A_GuiHeight * 0.88 - 121) . " W" . (A_GuiWidth - 60)
 	GuiControl, Move, RunAnyMenuObjPathLV, % "H" . (A_GuiHeight * 0.88 - 121) . " W" . (A_GuiWidth - 60)
@@ -7234,7 +7245,7 @@ Var_Set:
 	global SendStrEcKey:=Var_Read("SendStrEcKey")
 	global SendStrDcKey:=Var_Read("SendStrDcKey")
 	;[高级配置]开始
-	global ShowGetZzLen:=Var_Read("ShowGetZzLen",50)
+	global ShowGetZzLen:=Var_Read("ShowGetZzLen",30)
 	global DebugMode:=Var_Read("DebugMode",0)
 	global DebugModeShowTime:=Var_Read("DebugModeShowTime",8000)
 	global DebugModeShowTrans:=Var_Read("DebugModeShowTrans",70)
@@ -7378,6 +7389,9 @@ Open_Ext_Set:
 		}
 		if(InStr(itemList[1],"dopus.exe") || MenuObjEv["dopus"]){
 			ClipWaitAppStr:=StrJoin(",",ClipWaitAppStr,"dopus.exe")
+		}
+		if(InStr(itemList[1],"xyplorer.exe") || MenuObjEv["xyplorer"]){
+			ClipWaitAppStr:=StrJoin(",",ClipWaitAppStr,"xyplorer.exe")
 		}
 		if(InStr(itemList[1],"totalcmd.exe") || MenuObjEv["totalcmd"]){
 			ClipWaitAppStr:=StrJoin(",",ClipWaitAppStr,"totalcmd.exe")
