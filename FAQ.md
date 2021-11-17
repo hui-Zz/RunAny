@@ -30,23 +30,22 @@
 
 **原因**：因某些不明配置原因，导致在TC、DO中按<kbd>Ctrl</kbd>+<kbd>C</kbd>复制文件速度变慢，没在短时间给RunAny文件信息误判断为无选中文件
 
-**解决**：手动修改RunAny配置`RunAnyConfig.ini`，使用隐藏配置延长等待复制时间： 
-**（RunAny5.7.2版本后可以在设置-高级配置中进行配置，另外在电脑为固态硬盘时可有效减少此情况的发生）**
+**解决**：手动修改RunAny配置`RunAnyConfig.ini`，使用隐藏配置延长等待复制时间：  
+**（RunAny5.7.5版本后默认自动会在高级配置中添加此配置，另外在电脑为固态硬盘时可有效减少此情况的发生）**
+
+> 在[Config]下另起一行添加 <br>
+> ClipWaitApp（在什么应用界面延长等待复制时间, 多个逗号分隔） <br>
+> ClipWaitTime（最长等待复制的时间（2秒）大概在1.5秒以上可以稳定获取到）
 
 ```ini
-[Config]
 ClipWaitApp=TotalCMD64.exe
 ClipWaitTime=1.5
 ```
 
-> 在[Config]下添加 <br>
-> ClipWaitApp（在什么应用界面延长等待复制时间, 多个逗号分隔） <br>
-> ClipWaitTime（最长等待复制的时间（2秒）大概在1.5秒以上可以稳定获取到）
-
 ---
 
 
-## 4. 开机后RunAny加载慢和RunAny调用Everything缓慢问题
+## 4. ~~开机后RunAny加载慢和RunAny调用Everything缓慢问题~~
 
 鼠标移动到任务栏托盘图标后显示，调用Everything搜索应用全路径时间过长：
 ![RunAny调用Everything缓慢问题](/assets/images/faq/RunAny调用Everything缓慢问题.png)
@@ -59,18 +58,29 @@ ClipWaitTime=1.5
 
 - 若计算机中文件过多导致的Everything创建索引缓慢，则需要尽量减少Everything设置中的 索引磁盘、文件夹、文件属性等
 
-- **觉得上面方法比较麻烦，可以把Windows系统和Everything安装在固态硬盘上即可解决**
+#### [（使用RunAny v5.7.8 新功能：无路径缓存可有效解决）](/change-log?id=✅新增【runany无路径缓存机制】)
 
 ---
 
-## 5. AutoHotkey 1.1.30 导致RunAny热字符串功能失效
+## 5. RunAny热字符串功能失效：由 AutoHotkey 1.1.30 导致
 
-使用 AutoHotkey 1.1.28 老版本
-或升级至 AutoHotkey 1.1.31 及以上版本
+**解决**：
+- 使用 AutoHotkey `1.1.28` 老版本  
+- 或升级至 AutoHotkey `1.1.31` 及以上版本
 
 ---
 
-## 6. 0x800401F3 - 无效的类字符串 `ComObjCreate("HTMLfile")`
+## 6. Line Text: case "a":out.="`a" Error: This line does not contain a recognized action
+
+**原因**：RunAny 5.7.7及之前的 AutoHotkey 版本为 1.1.28，不支持Switch case语法
+
+**解决**：
+- RunAny升级至 `5.7.8` 及以上版本
+- 使用AutoHotkey的用户升级AHK至 `1.1.31` 及以上版本
+
+---
+
+## 7. 0x800401F3 - 无效的类字符串 `ComObjCreate("HTMLfile")`
 ![HTMLfile](/assets/images/faq/HTMLfile.png ':size=577x585')
 
 **原因**：是360安全卫士、电脑管家……等等 启用 **默认浏览器锁定** 开关后 导致  
