@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.8 @2021.11.01
+║【RunAny】一劳永逸的快速启动工具 v5.7.8 @2021.11.17
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.8"     ;~;版本号
-global RunAny_update_time:="2021.11.15"   ;~;更新日期
+global RunAny_update_time:="2021.11.17"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -5265,6 +5265,7 @@ return
 RunCtrlConfig:
 	Gui,RunCtrlConfig:Destroy
 	Gui,RunCtrlConfig:Default
+	Gui,RunCtrlConfig:+Resize
 	Gui,RunCtrlConfig:+OwnerRunCtrlManage
 	Gui,RunCtrlConfig:Font,,Microsoft YaHei
 	Gui,RunCtrlConfig:Margin,20,20
@@ -5274,11 +5275,11 @@ RunCtrlConfig:
 	Gui,RunCtrlConfig:Add, Checkbox, x+10 yp+3 w55 Checked%RuleGroupWinKey% vvRuleGroupWinKey,Win
 	Gui,RunCtrlConfig:Add, Text, xm+5 yp+30 w60, 规则组名：
 	Gui,RunCtrlConfig:Add, Edit, x+5 yp-3 w300 vvRuleGroupName, %RuleGroupName%
-	Gui,RunCtrlConfig:Add, GroupBox,xm y+10 w500 h385,规则组设置
+	Gui,RunCtrlConfig:Add, GroupBox,xm y+10 w500 h385 vFuncGroup,规则组设置
 	Gui,RunCtrlConfig:Add, Radio, xm+10 yp+25 Checked%RuleGroupLogic1% vvRuleGroupLogic1, 与（全部规则都验证成立）(&A)
 	Gui,RunCtrlConfig:Add, Radio, x+10 yp Checked%RuleGroupLogic2% vvRuleGroupLogic2, 或（一个规则即验证成立）(&O)
 	Gui,RunCtrlConfig:Add, Text, xm+10 y+15 w100, 规则循环最大次数:
-	Gui,RunCtrlConfig:Add, Edit, x+2 yp-3 Number w50 h20 vvRuleMostRun, %RuleMostRun%
+	Gui,RunCtrlConfig:Add, Edit, x+2 yp-3 Number w70 h20 vvRuleMostRun, %RuleMostRun%
 	Gui,RunCtrlConfig:Add, Text, x+20 yp+3 w110, 循环间隔时间(秒):
 	Gui,RunCtrlConfig:Add, Edit, x+2 yp-3 w100 h20 vvRuleIntervalTime, %RuleIntervalTime%
 	Gui,RunCtrlConfig:Add, Button, xm+10 y+15 w85 GLVFuncAdd, + 增加规则(&A)
@@ -5302,8 +5303,8 @@ RunCtrlConfig:
 	LV_ModifyCol(2)
 	LV_ModifyCol(3)
 	GuiControl, RunCtrlConfig:+Redraw, FuncLV
-	Gui,RunCtrlConfig:Add,Button,Default xm+150 y+15 w75 GRunCtrlLVSave,保存(&Y)
-	Gui,RunCtrlConfig:Add,Button,x+20 w75 GSetCancel,取消(&C)
+	Gui,RunCtrlConfig:Add,Button,Default xm+150 y+15 w75 vvFuncSave GRunCtrlLVSave,保存(&Y)
+	Gui,RunCtrlConfig:Add,Button,x+20 w75 vvFuncCancel GSetCancel,取消(&C)
 	Gui,RunCtrlConfig:Show, , RunCtrl 规则组 - %menuItem% %RunAny_update_version% %RunAny_update_time%%AdminMode%
 return
 
@@ -6185,6 +6186,7 @@ Settings_Gui:
 	Gui,66:Tab,搜索Everything,,Exact
 	EvIsAdmin:=ev.GetIsAdmin()
 	EvIsAdminStatus:=EvIsAdmin ? "管理员权限" : "非管理员"
+	EvAllSearch:=EvDemandSearch ? 0 : 1
 	Gui,66:Add,Text,xm y+%MARGIN_TOP_66%,Everything当前权限：【%EvIsAdminStatus%】
 	Gui,66:Add,Checkbox,Checked%EvAutoClose% x+20 yp vvEvAutoClose,Everything自动关闭(不常驻后台)
 	Gui,66:Add,Button,x+10 w80 h20 gSetEvReindex,重建索引
@@ -6198,7 +6200,8 @@ Settings_Gui:
 	Gui,66:Add,Button,xm yp+20 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp+2 w%GROUP_CHOOSE_EDIT_WIDTH_66% vvEvPath,%EvPath%
 	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% vvEvCommandGroup,RunAny调用Everything搜索参数（搜索结果可在RunAny无路径运行，Everything异常请尝试重建索引）
-	Gui,66:Add,Checkbox,Checked%EvDemandSearch% xm yp+25 Disabled vvEvDemandSearch gSetEvDemandSearch,按需搜索模式（只搜索RunAny菜单的无路径文件，非全磁盘搜索后再匹配）
+	Gui,66:Add,Radio,Checked%EvDemandSearch% xm yp+25 cBlack vvEvDemandSearch gSetEvDemandSearch,按需搜索模式（推荐，只搜索RunAny菜单的无路径文件进行匹配路径，速度快，支持生成更新无路径缓存）
+	Gui,66:Add,Radio,Checked%EvAllSearch% xm yp+25 cBlack vvEvAllSearch gSetEvAllSearch,全磁盘搜索模式（搜索全磁盘指定后缀的文件，然后匹配RA菜单取得路径，开机首次加载缓慢，不能生成无路径缓存）
 	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+25 vvEvExeVerNew,搜索结果优先最新版本的同名exe
 	Gui,66:Add,Checkbox,Checked%EvExeMTimeNew% x+23 vvEvExeMTimeNew,搜索结果优先最新修改时间的同名文件
 	Gui,66:Add,Button,xm y+20 w50 GSetEvCommand,修改
@@ -6207,6 +6210,7 @@ Settings_Gui:
 	; Gui,66:Add,Text,xm+60 yp+15,file:*.exe|*.lnk|后面类推增加想要的后缀
 	Gui,66:Add,Edit,xm y+10 r5 -WantReturn ReadOnly vvEvCommand,%EvCommand%
 	Gui,66:Font,,Microsoft YaHei
+	Gosub,SetEvAllSearch
 	
 	Gui,66:Tab,一键直达,,Exact
 	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h50,一键直达（仅菜单1热键触发，不想触发的菜单项放入菜单2中）
@@ -6494,7 +6498,12 @@ SetEvCommand:
 	GuiControl,-ReadOnly,vEvCommand
 return
 SetOK:
-	Gui,Submit
+	Gui,66:Submit, NoHide
+	if(!vEvDemandSearch && !InStr(vEvCommand,"file:*.exe")){
+		MsgBox, 48, 提示：, 搜索Everything - 全磁盘搜索模式 - 请修改搜索参数编辑框，指定搜索后缀`n`n空格间隔后写入 file:*.exe|*.lnk|*.ahk|*.bat|*.cmd`n`n否则开机加载会非常缓慢！
+		return
+	}
+	Gui,66:Hide
 	vConfigDate:=A_MM A_DD
 	if(vAutoRun!=AutoRun){
 		AutoRun:=vAutoRun
@@ -6625,15 +6634,26 @@ SetReSet:
 		Gosub,Menu_Reload
 	}
 return
-SetEvDemandSearch:
+SetEvAllSearch:
 	Gui,66:Submit, NoHide
 	if(vEvDemandSearch){
-		MsgBox,64,Everything按需搜索模式, 不再搜索电脑上所有exe、lnk等后缀文件全路径，`n
+		Gui,66:Font, cBlack, Microsoft YaHei
+		GuiControl,66:Font, vEvAllSearch
+	}else{
+		Gui,66:Font, cRed, Microsoft YaHei
+		GuiControl,66:Font, vEvAllSearch
+	}
+return
+SetEvDemandSearch:
+	Gui,66:Submit, NoHide
+	Gosub,SetEvAllSearch
+	if(vEvDemandSearch){
+		MsgBox,64,Everything按需搜索模式, 只搜索%RunAnyZz%菜单的无路径文件，`n
 		(
-（只搜索%RunAnyZz%菜单的无路径文件）加快加载速度`n
-如果想在%RunAnyZz%菜单中的任意后缀文件都可以无路径运行
-按需模式可以去掉file搜索参数，全量搜索在后面按格式添加其他后缀  file:*.exe|*.lnk|*.ahk|*.bat|*.cmd`n
-【注意】开启后会影响RunAny所有设置和插件脚本的无路径识别，
+（不再搜索电脑上所有exe、lnk等后缀文件全路径）加快加载速度`n
+想在%RunAnyZz%菜单中的任意后缀文件，都可以无路径运行`n
+按需模式可以去掉下面的搜索参数：file:*.exe|*.lnk|*.ahk|*.bat|*.cmd`n
+【注意】此设置会影响RunAny所有设置和插件脚本的无路径识别，
 不在RunAny.ini菜单内的程序无法自动识别全路径
 		)
 	}
@@ -7038,6 +7058,7 @@ return
 ;[GuiSize]
 MenuEditGuiSize:
 RuleManageGuiSize:
+RunCtrlConfigGuiSize:
 RunCtrlFuncGuiSize:
 PluginsManageGuiSize:
 PluginsDownloadGuiSize:
@@ -7048,6 +7069,8 @@ PluginsDownloadGuiSize:
 	GuiControl, Move, RunAnyPluginsLV2, % "H" . (A_GuiHeight * 0.48) . " W" . (A_GuiWidth - 20) . " y" . (A_GuiHeight * 0.50 + 10)
 	GuiControl, Move, RuleLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 	GuiControl, Move, RunAnyDownLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
+	GuiControl, Move, FuncGroup, % "H" . (A_GuiHeight-130) . " W" . (A_GuiWidth - 40)
+	GuiControl, Move, FuncLV, % "H" . (A_GuiHeight-270) . " W" . (A_GuiWidth - 60)
 	GuiControl, Move, vFuncValue, % "H" . (A_GuiHeight-230) . " W" . (A_GuiWidth - 40)
 	GuiControl, MoveDraw, vFuncSave, % " X" . (A_GuiWidth * 0.30) . " Y" . (A_GuiHeight - 50)
 	GuiControl, MoveDraw, vFuncCancel, % " X" . (A_GuiWidth * 0.30 + 100) . " Y" . (A_GuiHeight - 50)
@@ -7065,7 +7088,7 @@ return
 	GuiControl, Move, vEvSetupGroup, % " W" . (A_GuiWidth - 40)
 	GuiControl, Move, vEvPath, % " W" . (A_GuiWidth - 120)
 	GuiControl, Move, vEvCommandGroup, % "H" . (A_GuiHeight * 0.88 - 248) . " W" . (A_GuiWidth - 40)
-	GuiControl, Move, vEvCommand, % "H" . (A_GuiHeight * 0.88 - 388) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, vEvCommand, % "H" . (A_GuiHeight * 0.88 - 408) . " W" . (A_GuiWidth - 60)
 	GuiControl, Move, vOneKeyUrlGroup, % " W" . (A_GuiWidth - 40)
 	GuiControl, Move, vOneKeyUrl, % " W" . (A_GuiWidth - 60)
 	GuiControl, Move, vBrowserPath, % " W" . (A_GuiWidth - 120)
