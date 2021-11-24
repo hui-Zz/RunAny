@@ -22,6 +22,7 @@
 - ☑ [全局热键，热键映射](#advancedConfig)，[热字符串](https://hui-zz.github.io/RunAny/#/hotstring)，多样快捷
 - ☑ [短语输出](#wordOutput)，[透明化启动](#advancedConfig)，[快捷打开文件方式](#quickOpenFile)
 - ☑ [外接脚本，个性函数，自由定制](#runPlugins)
+- ☑ [规则判断自动启动软件](https://hui-zz.github.io/RunAny/#/run-ctrl) **重磅新功能！**
 
 【Github下载地址：】https://github.com/hui-Zz/RunAny/archive/master.zip
 - 蓝奏云下载：https://www.lanzoux.com/b902490/
