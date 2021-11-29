@@ -58,7 +58,7 @@ ClipWaitTime=1.5
 
 - 若计算机中文件过多导致的Everything创建索引缓慢，则需要尽量减少Everything设置中的 索引磁盘、文件夹、文件属性等
 
-#### [（使用RunAny v5.7.8 新功能：无路径缓存可有效解决）](/change-log?id=✅新增【runany无路径缓存机制】)
+#### [（使用RunAny v5.7.8 新功能：无路径应用缓存可有效解决）](/change-log?id=✅新增【runany无路径应用缓存机制】)
 
 ---
 
@@ -89,5 +89,18 @@ ClipWaitTime=1.5
 
 **解决**：
 关闭360安全卫士、电脑管家……等等的 **默认浏览器锁定** 的开关
+
+---
+
+## 8. Could not close the previous instance of this script. Keep waiting?
+
+**原因**：上一个RunAny.ahk仍在后台运行，无法关闭（没有权限关闭）
+- 比如：已经使用了`任务计划管理员启动RunAny`，又使用了普通权限 开机启动 或 第三方软件启动`RunAny`
+- 同一个`RunAny.ahk`多次启动，会先关闭老的进程再启动新的`RunAny.ahk`
+- 但如果老的`RunAny.ahk`是由管理员权限运行，而新的`RunAny.ahk`是普通权限，就会无法关闭，出现此弹窗
+
+**解决**：
+- **`RunAny`只保留一处开机启动**
+- **`RunAny`多次运行权限一致，都是用管理员权限运行，或都是普通权限运行**
 
 ---
