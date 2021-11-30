@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.8 @2021.11.17
+║【RunAny】一劳永逸的快速启动工具 v5.7.8 @2021.11.30
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.8"     ;~;版本号
-global RunAny_update_time:="2021.11.17"   ;~;更新日期
+global RunAny_update_time:="打开窗口快捷切换目录 2021.11.30"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -109,8 +109,8 @@ global MenuObjExt:=Object()                 ;~后缀对应的菜单
 global MenuObjWindow:=Object()              ;~软件窗口对应的菜单
 global MenuHotStrList:=Object()             ;~热字符串对象数组
 global MenuTreeKey:=Object()                ;~菜单树分类热键
-global MenuObjIconList:=Object()           ;~菜单项对应图标对象
-global MenuObjIconNoList:=Object()         ;~菜单项对应图标位置对象
+global MenuObjIconList:=Object()            ;~菜单项对应图标对象
+global MenuObjIconNoList:=Object()          ;~菜单项对应图标位置对象
 global MenuExeArray:=Object()               ;~EXE程序对象数组
 global MenuExeIconArray:=Object()           ;~EXE程序优先加载图标对象数组
 global MenuObjTreeLevel:=Object()           ;~菜单对应级别
@@ -614,11 +614,12 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 								MenuObjText%TREE_NO%.Push(menuItem)
 							}else if(A_LoopField="file"){
 								MenuObjFile%TREE_NO%.Push(menuItem)
-							}else if(RegExMatch(A_LoopField,"iS).+\.exe$")){
+							}else if(RegExMatch(A_LoopField,"iS).+\.(exe|class)$")){
 								global MenuObjWindowFlag:=true
-								if(!IsObject(MenuObjWindow[(A_LoopField)]))
-									MenuObjWindow[(A_LoopField)]:=Object()
-								MenuObjWindow[(A_LoopField)].Push(menuItem)
+								windowItem:=RegExReplace(A_LoopField,"iS)\.class$")
+								if(!IsObject(MenuObjWindow[(windowItem)]))
+									MenuObjWindow[(windowItem)]:=Object()
+								MenuObjWindow[(windowItem)].Push(menuItem)
 							}else{
 								MenuObjExt[(A_LoopField)]:=menuItem
 							}
@@ -1119,10 +1120,30 @@ Menu_Show:
 			;加载顺序：无Everything菜单 -> 无图标菜单 -> 有图标无路径识别菜单
 			if(MenuIconFlag && MenuShowFlag){
 				WinGet,pname,ProcessName,A
-				if(MenuObjWindowFlag && MenuObjWindow[pname]){
+				WinGetClass,pclass,A
+				ctrlgMenuItem:=Object()
+				if(MenuObjWindowFlag && (MenuObjWindow[pname])){
 					Menu_Show_Show(MenuObjWindow[pname][1],"")
+				}else if(MenuObjWindowFlag && (MenuObjWindow[pclass])){
+					ctrlgMenuName:=MenuObjWindow[pclass][1]
+					Gosub,CtrlGQuickSwitch
+					Menu_Show_Show(ctrlgMenuName,"")
+					Loop,% ctrlgMenuItem.Count()
+					{
+						Menu,%ctrlgMenuName%,Delete,1&
+					}
 				}else{
+					if(pclass="#32770"){
+						ctrlgMenuName:=menuDefaultRoot%MENU_NO%[1]
+						Gosub,CtrlGQuickSwitch
+					}
 					Menu,% menuDefaultRoot%MENU_NO%[1],Show
+					if(pclass="#32770"){
+						Loop,% ctrlgMenuItem.Count()
+						{
+							Menu,%ctrlgMenuName%,Delete,1&
+						}
+					}
 				}
 			}else{
 				try{
@@ -1403,6 +1424,117 @@ Menu_Add_Del_Temp(addDel=1,TREE_NO=1,mName="",LabelName="",mIcon="",mIconNum="")
 		}
 	}
 }
+CtrlGQuickSwitch:
+	ctrlgMenuItemNum:=0
+;---------------[ File Explorer ]----------------------------------------
+	For $Exp in ComObjCreate("Shell.Application").Windows	{
+		$This := $Exp.Document.Folder.Self.Path
+		if(RegExMatch($This,"S)^\:\:{")){
+			Continue
+		}
+		Menu %ctrlgMenuName%, Insert, %A_Index%&,% "&" A_Index A_Space $This, Choice
+		Menu %ctrlgMenuName%, Icon,% "&" A_Index A_Space $This, shell32.dll, 5, %MenuIconSize%
+		ctrlgMenuItem.Push($This)
+		ctrlgMenuItemNum++
+	}
+	$Exp := ""
+	if(ctrlgMenuItem.Count()>0){
+		ctrlgMenuItem.Push("-")
+		Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() "&"
+	}
+;---------------[ Total Commander ]--------------------------------------
+	tcIcon:=get_process_path("totalcmd.exe")
+	tcIcon:=tcIcon ? tcIcon : get_process_path("TotalCMD64.exe")
+	if(tcIcon){
+		DetectHiddenWindows,On
+		try{
+			; Total Commander internal codes
+			cm_CopySrcPathToClip  := 2029
+			cm_CopyTrgPathToClip  := 2030
+			ClipSaved := ClipboardAll
+			Clipboard := ""
+			SendMessage 1075, %cm_CopySrcPathToClip%, 0, , ahk_class TTOTAL_CMD
+			If (ErrorLevel = 0 && !RegExMatch(clipboard,"S)^\\\\")) {
+				Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() + 1 "&",% "&" ++ctrlgMenuItemNum A_Space clipboard, Choice
+				Menu %ctrlgMenuName%, Icon,% "&" ctrlgMenuItemNum A_Space clipboard, % tcIcon,1, %MenuIconSize%
+				ctrlgMenuItem.Push(clipboard)
+			}
+			SendMessage 1075, %cm_CopyTrgPathToClip%, 0, , ahk_class TTOTAL_CMD
+			If (ErrorLevel = 0 && !RegExMatch(clipboard,"S)^\\\\")) {
+				Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() + 1 "&",% "&" ++ctrlgMenuItemNum A_Space clipboard, Choice
+				Menu %ctrlgMenuName%, Icon,% "&" ctrlgMenuItemNum A_Space clipboard, % tcIcon,1, %MenuIconSize%
+				ctrlgMenuItem.Push(clipboard)
+			}
+			Clipboard := ClipSaved
+			ClipSaved := ""
+		}catch e{
+			TrayTip,,% "无法显示TC当前目录：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,10,3
+		}
+		DetectHiddenWindows,Off
+	}
+	WinGet, doIcon, ProcessPath,ahk_exe dopus.exe
+	if(doIcon){
+		try{
+			ControlGetText,folder, Edit1,ahk_class dopus.lister
+			If (RegExMatch(folder,"S)^.:\\")) {
+				Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() + 1 "&",% "&" ++ctrlgMenuItemNum A_Space folder, Choice
+				Menu %ctrlgMenuName%, Icon,% "&" ctrlgMenuItemNum A_Space folder, % doIcon,1, %MenuIconSize%
+				ctrlgMenuItem.Push(folder)
+			}
+			ControlGetText,folder, Edit2,ahk_class dopus.lister
+			If (RegExMatch(folder,"S)^.:\\")) {
+				Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() + 1 "&",% "&" ++ctrlgMenuItemNum A_Space folder, Choice
+				Menu %ctrlgMenuName%, Icon,% "&" ctrlgMenuItemNum A_Space folder, % doIcon,1, %MenuIconSize%
+				ctrlgMenuItem.Push(folder)
+			}
+		}catch e{
+			TrayTip,,% "无法显示DO当前目录：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,10,3
+		}
+	}
+	if(tcIcon || doIcon){
+		ctrlgMenuItem.Push("-")
+		Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() "&"
+	}
+return
+
+Choice:
+	$FolderPath := RegExReplace(A_ThisMenuItem,"^&\d+ ","")
+	Gosub FeedExplorerOpenSave
+return
+;_____________________________________________________________________________
+;
+FeedExplorerOpenSave:
+;_____________________________________________________________________________
+;    
+	$WinID := WinExist("A")
+	WinActivate, ahk_id %$WinID%
+	; Read the current text in the "File Name:" box (= $OldText)
+	ControlGetText $OldText, Edit1, A
+	ControlFocus Edit1, A
+	; Go to Folder
+	Loop, 5
+	{
+		ControlSetText, Edit1, %$FolderPath%, ahk_id %$WinID%		; set
+		Sleep, 50
+		ControlGetText, $CurControlText, Edit1, ahk_id %$WinID%		; check
+		if ($CurControlText = $FolderPath)
+			break
+	}
+	Sleep, 50
+	ControlSend Edit1, {Enter}, A
+	Sleep, 50
+	; Insert original filename
+	If !$OldText
+		return
+	Loop, 5
+	{
+		ControlSetText, Edit1, %$OldText%, A		; set
+		Sleep, 50
+		ControlGetText, $CurControlText, Edit1, A		; check
+		if ($CurControlText = $OldText)
+			break
+	}
+return
 ;══════════════════════════════════════════════════════════════════
 ;~;【——菜单运行——】
 ;══════════════════════════════════════════════════════════════════
@@ -1496,6 +1628,16 @@ Menu_Run:
 		if(getZz="" && !Candy_isFile){
 			;[打开应用所在目录，只有目录则直接打开]
 			if(menuholdkey=HoldKeyRun2 || M_ThisMenuItem="软件目录(&D)" || InStr(FileExist(any), "D")){
+				WinGetClass,pclass,A
+				if(pclass="#32770"){  ;打开/另存为窗口 变为跳转目录
+					$FolderPath:=any
+					if(RegExMatch(any,"iS).*?\.exe$")){
+						SplitPath, any,, dir
+						$FolderPath:=dir
+					}
+					Gosub,FeedExplorerOpenSave
+					return
+				}
 				if(OpenFolderPathRun){
 					anyRun=%anyRun%%OpenFolderPathRun%%A_Space%"%any%"
 				}else if(InStr(FileExist(any), "D")){
@@ -1707,9 +1849,13 @@ Menu_Key_Run_Run:
 		getZzFlag:=InStr(any,"%getZz%") ? true : false
 		any:=Get_Transform_Val(any)
 		any:=RTrim(any," `t`n`r")
+		;[打开文件夹]
 		if(itemMode=7 && InStr(FileExist(any), "D")){
-			;[打开文件夹]
-			if(OpenFolderPathRun){
+			WinGetClass,pclass,A
+			if(pclass="#32770"){  ;打开/另存为窗口 变为跳转目录
+				$FolderPath:=any
+				Gosub,FeedExplorerOpenSave
+			}else if(OpenFolderPathRun){
 				Run_Any(OpenFolderPathRun A_Space """" any """")
 			}else{
 				Run_Any(any)
@@ -6397,7 +6543,7 @@ vHtml =
 <img alt="GitHub forks" src="https://raster.shields.io/github/forks/hui-Zz/RunAny?style=social"/>
 <img alt="history" src="https://raster.shields.io/badge/2017--2021-white.svg?label=Time&style=social&logo=github"/>
 </h2>
-<b>当前版本：</b><img alt="当前版本" style="vertical-align:middle" src="https://raster.shields.io/badge/RunAny-%versionUrlEncode%-blue.svg?style=flat-square"/>
+<b>当前版本：</b><img alt="当前版本" style="vertical-align:middle" src="https://raster.shields.io/badge/RunAny-%versionUrlEncode%-blue.svg?style=flat-square"/> 打开窗口快捷切换目录 尝鲜版
 <br>
 <b>最新版本：</b><img alt="GitHub release" style="vertical-align:middle" src="https://raster.shields.io/github/v/release/hui-Zz/RunAny.svg?label=RunAny&style=flat-square&color=red"/>
 <img alt="Autohotkey" style="vertical-align:middle" src="https://raster.shields.io/badge/autohotkey-1.1.33.10-green.svg?style=flat-square&logo=autohotkey"/>
