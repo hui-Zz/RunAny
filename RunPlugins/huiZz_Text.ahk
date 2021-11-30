@@ -3,7 +3,7 @@
 ;*                          by hui-Zz *
 ;**************************************
 global RunAny_Plugins_Name:="ObjReg文本操作脚本"
-global RunAny_Plugins_Version:="1.2.9"
+global RunAny_Plugins_Version:="1.3.0"
 global RunAny_Plugins_Icon:="SHELL32.dll,270"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
@@ -725,12 +725,12 @@ SendRequest(JS, str, tl, sl, proxy) {
    {
       http := ComObjCreate("WinHttp.WinHttpRequest.5.1")
       ( proxy && http.SetProxy(2, proxy) )
-      http.open( "get", "https://translate.google.cn", 1 )
+      http.open( "get", "https://translate.googleapis.com", 1 )
       http.SetRequestHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0")
       http.send()
       http.WaitForResponse(-1)
    }
-   http.open( "POST", "https://translate.google.cn/translate_a/single?client=webapp&sl="
+   http.open( "POST", "https://translate.googleapis.com/translate_a/single?client=webapp&sl="
       . sl . "&tl=" . tl . "&hl=" . tl
       . "&dt=at&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss&dt=t&ie=UTF-8&oe=UTF-8&otf=0&ssel=0&tsel=0&pc=1&kc=1"
       . "&tk=" . JS.("tk").(str), 1 )
