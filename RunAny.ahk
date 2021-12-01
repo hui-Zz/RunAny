@@ -8309,7 +8309,6 @@ class RunCtrlRunRule
 ;~;【规则生效】
 Rule_Effect:
 	global runIndex:=Object(), RuleRunFailList:=Object(), RuleRunNoPathList:=Object()
-	global RuleRunFailFlag:=false
 	try{
 		for n,obj in RunCtrlList
 		{
@@ -8328,7 +8327,7 @@ Rule_Effect:
 				RunCtrl_RunRules(runCtrlObj)
 			}
 		}
-		if(RuleRunFailFlag){
+		if(RuleRunFailList.Count() > 0){
 			RuleRunFailStr:=StrListJoin("`n",RuleRunFailList)
 			TrayTip,,规则插件脚本没有启动：`n%RuleRunFailStr%,5,2
 		}
@@ -8352,7 +8351,7 @@ RunCtrl_RunRules(runCtrlObj,show:=0){
 		}else if(show){
 			ToolTip, ❎ 规则验证失败
 			SetTimer,RemoveToolTip,3000
-			if(RuleRunFailFlag){
+			if(RuleRunFailList.Count() > 0){
 				RuleRunFailStr:=StrListJoin("`n",RuleRunFailList)
 				TrayTip,,规则插件脚本没有启动：`n%RuleRunFailStr%,5,2
 			}
@@ -8446,7 +8445,6 @@ RunCtrl_RuleEffect(runCtrlObj){
 			if(rule_check_is_run(PluginsPathList[ruleFile ".ahk"])){
 				PluginsObjRegActive[ruleFile]:=ComObjActive(PluginsObjRegGUID[ruleFile])
 			}else{
-				RuleRunFailFlag:=true
 				RuleRunFailList[ruleFile]:=""
 			}
 		}
