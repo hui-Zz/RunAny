@@ -1122,9 +1122,7 @@ Menu_Show:
 				WinGet,pname,ProcessName,A
 				WinGetClass,pclass,A
 				ctrlgMenuItem:=Object()
-				if(MenuObjWindowFlag && (MenuObjWindow[pname])){
-					Menu_Show_Show(MenuObjWindow[pname][1],"")
-				}else if(MenuObjWindowFlag && (MenuObjWindow[pclass])){
+				if(MenuObjWindowFlag && (MenuObjWindow[pclass])){
 					ctrlgMenuName:=MenuObjWindow[pclass][1]
 					Gosub,CtrlGQuickSwitch
 					Menu_Show_Show(ctrlgMenuName,"")
@@ -1132,6 +1130,8 @@ Menu_Show:
 					{
 						Menu,%ctrlgMenuName%,Delete,1&
 					}
+				}else if(MenuObjWindowFlag && (MenuObjWindow[pname])){
+					Menu_Show_Show(MenuObjWindow[pname][1],"")
 				}else{
 					if(pclass="#32770"){
 						ctrlgMenuName:=menuDefaultRoot%MENU_NO%[1]
@@ -1427,20 +1427,25 @@ Menu_Add_Del_Temp(addDel=1,TREE_NO=1,mName="",LabelName="",mIcon="",mIconNum="")
 CtrlGQuickSwitch:
 	ctrlgMenuItemNum:=0
 ;---------------[ File Explorer ]----------------------------------------
-	For $Exp in ComObjCreate("Shell.Application").Windows	{
-		$This := $Exp.Document.Folder.Self.Path
-		if(RegExMatch($This,"S)^\:\:{")){
-			Continue
+	try{
+		ctrlgMenuExplorer:=Object()
+		For $Exp in ComObjCreate("Shell.Application").Windows {
+			try $This := $Exp.Document.Folder.Self.Path
+			if(!$This || RegExMatch($This,"S)^\:\:{") || ctrlgMenuExplorer[$This]){
+				Continue
+			}
+			Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() + 1 "&",% "&" ++ctrlgMenuItemNum A_Space $This, Choice
+			Menu %ctrlgMenuName%, Icon,% "&" ctrlgMenuItemNum A_Space $This, shell32.dll, 5, %MenuIconSize%
+			ctrlgMenuItem.Push($This)
+			ctrlgMenuExplorer[$This]:=true
 		}
-		Menu %ctrlgMenuName%, Insert, %A_Index%&,% "&" A_Index A_Space $This, Choice
-		Menu %ctrlgMenuName%, Icon,% "&" A_Index A_Space $This, shell32.dll, 5, %MenuIconSize%
-		ctrlgMenuItem.Push($This)
-		ctrlgMenuItemNum++
-	}
-	$Exp := ""
-	if(ctrlgMenuItem.Count()>0){
-		ctrlgMenuItem.Push("-")
-		Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() "&"
+		$Exp := ""
+		if(ctrlgMenuItem.Count()>0){
+			ctrlgMenuItem.Push("-")
+			Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() "&"
+		}
+	}catch e{
+		TrayTip,,% "无法显示资源管理器当前目录：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,10,3
 	}
 ;---------------[ Total Commander ]--------------------------------------
 	tcIcon:=get_process_path("totalcmd.exe")
@@ -1491,7 +1496,23 @@ CtrlGQuickSwitch:
 			TrayTip,,% "无法显示DO当前目录：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,10,3
 		}
 	}
-	if(tcIcon || doIcon){
+	WinGet, xyIcon, ProcessPath,ahk_exe XYplorer.exe
+	if(!xyIcon)
+		WinGet, xyIcon, ProcessPath,ahk_exe XYplorerFree.exe
+	if(xyIcon){
+		try{
+			SplitPath, xyIcon, xyName
+			ControlGetText,folder,Edit18, ahk_exe %xyName%
+			If (RegExMatch(folder,"S)^.:\\")) {
+				Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() + 1 "&",% "&" ++ctrlgMenuItemNum A_Space folder, Choice
+				Menu %ctrlgMenuName%, Icon,% "&" ctrlgMenuItemNum A_Space folder, % xyIcon,1, %MenuIconSize%
+				ctrlgMenuItem.Push(folder)
+			}
+		}catch e{
+			TrayTip,,% "无法显示XYplorer当前目录：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,10,3
+		}
+	}
+	if(tcIcon || doIcon || xyIcon){
 		ctrlgMenuItem.Push("-")
 		Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() "&"
 	}
