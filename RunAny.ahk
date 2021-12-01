@@ -6398,7 +6398,8 @@ Settings_Gui:
 	Gui,66:Add,Edit,xm+60 yp r3 -WantReturn vvBrowserPath,%BrowserPath%
 	
 	Gui,66:Tab,内部关联,,Exact
-	Gui,66:Add,Text,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%,内部关联软件打开%RunAnyZz%菜单内不同后缀的文件（仅菜单内部不作用资源管理器）
+	Gui,66:Add,Text,xm y+%MARGIN_TOP_66%,内部关联RunAny.ini菜单内不同后缀的文件，使用指定软件打开
+	Gui,66:Add,Text,xm yp x+5 cRed, （对资源管理器选中的文件无效！）
 	Gui,66:Add,Button, xm yp+30 w50 GLVOpenExtAdd, + 增加
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtEdit, · 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVOpenExtRemove, - 减少
@@ -9139,8 +9140,8 @@ FileAppend,
 	;当前时间（变量语法参考AHK文档https://wyagd001.github.io/zh-cn/docs/Variables.htm）
 	当前时间|`%A_YYYY`%-`%A_MM`%-`%A_DD`% `%A_Hour`%:`%A_Min`%:`%A_Sec`%;
 	;热键映射,快捷方便,左边Shift+空格=回车键;左手Shift+大小写键=删除键
-	左手回车	<+Space|{Enter}::
-	左手删除	LShift & CapsLock|{Delete}::
+	;左手回车	<+Space|{Enter}::
+	;左手删除	LShift & CapsLock|{Delete}::
 ),%iniFile%
 Gosub,Desktop_Append
 FileAppend,
