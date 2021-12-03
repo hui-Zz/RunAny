@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.8 @2021.11.30
+║【RunAny】一劳永逸的快速启动工具 v5.7.8 @2021.12.01
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.8"     ;~;版本号
-global RunAny_update_time:="打开窗口快捷切换目录 2021.11.30"   ;~;更新日期
+global RunAny_update_time:="打开窗口快捷切换目录 2021.12.01"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -1428,20 +1428,18 @@ CtrlGQuickSwitch:
 	ctrlgMenuItemNum:=0
 ;---------------[ File Explorer ]----------------------------------------
 	try{
-		ctrlgMenuExplorer:=Object()
 		For $Exp in ComObjCreate("Shell.Application").Windows {
 			try $This := $Exp.Document.Folder.Self.Path
-			if(!$This || RegExMatch($This,"S)^\:\:{") || ctrlgMenuExplorer[$This]){
+			if(!$This || RegExMatch($This,"S)^\:\:{") || ctrlgMenuItem[$This]){
 				Continue
 			}
 			Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() + 1 "&",% "&" ++ctrlgMenuItemNum A_Space $This, Choice
 			Menu %ctrlgMenuName%, Icon,% "&" ctrlgMenuItemNum A_Space $This, shell32.dll, 5, %MenuIconSize%
-			ctrlgMenuItem.Push($This)
-			ctrlgMenuExplorer[$This]:=true
+			ctrlgMenuItem[$This]:=true
 		}
 		$Exp := ""
 		if(ctrlgMenuItem.Count()>0){
-			ctrlgMenuItem.Push("-")
+			ctrlgMenuItem["-"]:=true
 			Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() "&"
 		}
 	}catch e{
@@ -1459,16 +1457,16 @@ CtrlGQuickSwitch:
 			ClipSaved := ClipboardAll
 			Clipboard := ""
 			SendMessage 1075, %cm_CopySrcPathToClip%, 0, , ahk_class TTOTAL_CMD
-			If (ErrorLevel = 0 && !RegExMatch(clipboard,"S)^\\\\")) {
+			If (ErrorLevel = 0 && !RegExMatch(clipboard,"S)^\\\\") && !ctrlgMenuItem[clipboard]) {
 				Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() + 1 "&",% "&" ++ctrlgMenuItemNum A_Space clipboard, Choice
 				Menu %ctrlgMenuName%, Icon,% "&" ctrlgMenuItemNum A_Space clipboard, % tcIcon,1, %MenuIconSize%
-				ctrlgMenuItem.Push(clipboard)
+				ctrlgMenuItem[clipboard]:=true
 			}
 			SendMessage 1075, %cm_CopyTrgPathToClip%, 0, , ahk_class TTOTAL_CMD
-			If (ErrorLevel = 0 && !RegExMatch(clipboard,"S)^\\\\")) {
+			If (ErrorLevel = 0 && !RegExMatch(clipboard,"S)^\\\\") && !ctrlgMenuItem[clipboard]) {
 				Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() + 1 "&",% "&" ++ctrlgMenuItemNum A_Space clipboard, Choice
 				Menu %ctrlgMenuName%, Icon,% "&" ctrlgMenuItemNum A_Space clipboard, % tcIcon,1, %MenuIconSize%
-				ctrlgMenuItem.Push(clipboard)
+				ctrlgMenuItem[clipboard]:=true
 			}
 			Clipboard := ClipSaved
 			ClipSaved := ""
@@ -1481,16 +1479,16 @@ CtrlGQuickSwitch:
 	if(doIcon){
 		try{
 			ControlGetText,folder, Edit1,ahk_class dopus.lister
-			If (RegExMatch(folder,"S)^.:\\")) {
+			If (RegExMatch(folder,"S)^.:\\") && !ctrlgMenuItem[folder]) {
 				Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() + 1 "&",% "&" ++ctrlgMenuItemNum A_Space folder, Choice
 				Menu %ctrlgMenuName%, Icon,% "&" ctrlgMenuItemNum A_Space folder, % doIcon,1, %MenuIconSize%
-				ctrlgMenuItem.Push(folder)
+				ctrlgMenuItem[folder]:=true
 			}
 			ControlGetText,folder, Edit2,ahk_class dopus.lister
-			If (RegExMatch(folder,"S)^.:\\")) {
+			If (RegExMatch(folder,"S)^.:\\") && !ctrlgMenuItem[folder]) {
 				Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() + 1 "&",% "&" ++ctrlgMenuItemNum A_Space folder, Choice
 				Menu %ctrlgMenuName%, Icon,% "&" ctrlgMenuItemNum A_Space folder, % doIcon,1, %MenuIconSize%
-				ctrlgMenuItem.Push(folder)
+				ctrlgMenuItem[folder]:=true
 			}
 		}catch e{
 			TrayTip,,% "无法显示DO当前目录：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,10,3
@@ -1503,17 +1501,17 @@ CtrlGQuickSwitch:
 		try{
 			SplitPath, xyIcon, xyName
 			ControlGetText,folder,Edit18, ahk_exe %xyName%
-			If (RegExMatch(folder,"S)^.:\\")) {
+			If (RegExMatch(folder,"S)^.:\\") && !ctrlgMenuItem[folder]) {
 				Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() + 1 "&",% "&" ++ctrlgMenuItemNum A_Space folder, Choice
 				Menu %ctrlgMenuName%, Icon,% "&" ctrlgMenuItemNum A_Space folder, % xyIcon,1, %MenuIconSize%
-				ctrlgMenuItem.Push(folder)
+				ctrlgMenuItem[folder]:=true
 			}
 		}catch e{
 			TrayTip,,% "无法显示XYplorer当前目录：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,10,3
 		}
 	}
 	if(tcIcon || doIcon || xyIcon){
-		ctrlgMenuItem.Push("-")
+		ctrlgMenuItem["--"]:=true
 		Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() "&"
 	}
 return
