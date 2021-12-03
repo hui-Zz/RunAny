@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.8 @2021.12.01
+║【RunAny】一劳永逸的快速启动工具 v5.7.8 @2021.12.03
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.8"     ;~;版本号
-global RunAny_update_time:="打开窗口快捷切换目录 2021.12.01"   ;~;更新日期
+global RunAny_update_time:="打开窗口快捷切换目录 2021.12.03"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -1451,13 +1451,11 @@ CtrlGQuickSwitch:
 ;---------------[ File Explorer ]----------------------------------------
 	try{
 		For $Exp in ComObjCreate("Shell.Application").Windows {
-			try $This := $Exp.Document.Folder.Self.Path
-			if(!$This || RegExMatch($This,"S)^\:\:{") || ctrlgMenuItem[$This]){
+			try folder := $Exp.Document.Folder.Self.Path
+			if(!folder || ctrlgMenuItem[folder]){
 				Continue
 			}
-			Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() + 1 "&",% "&" ++ctrlgMenuItemNum A_Space $This, Choice
-			Menu %ctrlgMenuName%, Icon,% "&" ctrlgMenuItemNum A_Space $This, shell32.dll, 5, %MenuIconSize%
-			ctrlgMenuItem[$This]:=true
+			ctrlgMenuItemAdd(ctrlgMenuName, ctrlgMenuItem, ctrlgMenuItemNum, folder, "shell32.dll", 5)
 		}
 		$Exp := ""
 		if(ctrlgMenuItem.Count()>0){
@@ -1479,16 +1477,14 @@ CtrlGQuickSwitch:
 			ClipSaved := ClipboardAll
 			Clipboard := ""
 			SendMessage 1075, %cm_CopySrcPathToClip%, 0, , ahk_class TTOTAL_CMD
-			If (ErrorLevel = 0 && !RegExMatch(clipboard,"S)^\\\\") && !ctrlgMenuItem[clipboard]) {
-				Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() + 1 "&",% "&" ++ctrlgMenuItemNum A_Space clipboard, Choice
-				Menu %ctrlgMenuName%, Icon,% "&" ctrlgMenuItemNum A_Space clipboard, % tcIcon,1, %MenuIconSize%
-				ctrlgMenuItem[clipboard]:=true
+			folder:=RegExReplace(clipboard,"S)^\\\\")
+			If (ErrorLevel = 0 && folder && !ctrlgMenuItem[folder]) {
+				ctrlgMenuItemAdd(ctrlgMenuName, ctrlgMenuItem, ctrlgMenuItemNum, folder, tcIcon)
 			}
 			SendMessage 1075, %cm_CopyTrgPathToClip%, 0, , ahk_class TTOTAL_CMD
-			If (ErrorLevel = 0 && !RegExMatch(clipboard,"S)^\\\\") && !ctrlgMenuItem[clipboard]) {
-				Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() + 1 "&",% "&" ++ctrlgMenuItemNum A_Space clipboard, Choice
-				Menu %ctrlgMenuName%, Icon,% "&" ctrlgMenuItemNum A_Space clipboard, % tcIcon,1, %MenuIconSize%
-				ctrlgMenuItem[clipboard]:=true
+			folder:=RegExReplace(clipboard,"S)^\\\\")
+			If (ErrorLevel = 0 && folder && !ctrlgMenuItem[folder]) {
+				ctrlgMenuItemAdd(ctrlgMenuName, ctrlgMenuItem, ctrlgMenuItemNum, folder, tcIcon)
 			}
 			Clipboard := ClipSaved
 			ClipSaved := ""
@@ -1501,16 +1497,12 @@ CtrlGQuickSwitch:
 	if(doIcon){
 		try{
 			ControlGetText,folder, Edit1,ahk_class dopus.lister
-			If (RegExMatch(folder,"S)^.:\\") && !ctrlgMenuItem[folder]) {
-				Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() + 1 "&",% "&" ++ctrlgMenuItemNum A_Space folder, Choice
-				Menu %ctrlgMenuName%, Icon,% "&" ctrlgMenuItemNum A_Space folder, % doIcon,1, %MenuIconSize%
-				ctrlgMenuItem[folder]:=true
+			If (folder && !ctrlgMenuItem[folder]) {
+				ctrlgMenuItemAdd(ctrlgMenuName, ctrlgMenuItem, ctrlgMenuItemNum, folder, doIcon)
 			}
 			ControlGetText,folder, Edit2,ahk_class dopus.lister
-			If (RegExMatch(folder,"S)^.:\\") && !ctrlgMenuItem[folder]) {
-				Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() + 1 "&",% "&" ++ctrlgMenuItemNum A_Space folder, Choice
-				Menu %ctrlgMenuName%, Icon,% "&" ctrlgMenuItemNum A_Space folder, % doIcon,1, %MenuIconSize%
-				ctrlgMenuItem[folder]:=true
+			If (folder && !ctrlgMenuItem[folder]) {
+				ctrlgMenuItemAdd(ctrlgMenuName, ctrlgMenuItem, ctrlgMenuItemNum, folder, doIcon)
 			}
 		}catch e{
 			TrayTip,,% "无法显示DO当前目录：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,10,3
@@ -1523,10 +1515,8 @@ CtrlGQuickSwitch:
 		try{
 			SplitPath, xyIcon, xyName
 			ControlGetText,folder,Edit18, ahk_exe %xyName%
-			If (RegExMatch(folder,"S)^.:\\") && !ctrlgMenuItem[folder]) {
-				Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() + 1 "&",% "&" ++ctrlgMenuItemNum A_Space folder, Choice
-				Menu %ctrlgMenuName%, Icon,% "&" ctrlgMenuItemNum A_Space folder, % xyIcon,1, %MenuIconSize%
-				ctrlgMenuItem[folder]:=true
+			If (folder && !ctrlgMenuItem[folder]) {
+				ctrlgMenuItemAdd(ctrlgMenuName, ctrlgMenuItem, ctrlgMenuItemNum, folder, xyIcon)
 			}
 		}catch e{
 			TrayTip,,% "无法显示XYplorer当前目录：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,10,3
@@ -1537,6 +1527,11 @@ CtrlGQuickSwitch:
 		Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() "&"
 	}
 return
+ctrlgMenuItemAdd(ByRef ctrlgMenuName,ByRef ctrlgMenuItem,ByRef ctrlgMenuItemNum,ByRef folder,menuIcon,menuIconNum:=1){
+	Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() + 1 "&",% "&" ++ctrlgMenuItemNum A_Space folder, Choice
+	Menu %ctrlgMenuName%, Icon,% "&" ctrlgMenuItemNum A_Space folder, %menuIcon%, %menuIconNum%, %MenuIconSize%
+	ctrlgMenuItem[folder]:=true
+}
 
 Choice:
 	$FolderPath := RegExReplace(A_ThisMenuItem,"^&\d+ ","")
@@ -1549,6 +1544,12 @@ FeedExplorerOpenSave:
 ;    
 	$WinID := WinExist("A")
 	WinActivate, ahk_id %$WinID%
+	if(RegExMatch($FolderPath,"S)^.:\\"))
+		Gosub,FeedExplorerOpenSaveEdit1
+	else
+		Gosub,FeedExplorerOpenSaveEdit2
+return
+FeedExplorerOpenSaveEdit1:
 	; Read the current text in the "File Name:" box (= $OldText)
 	ControlGetText $OldText, Edit1, A
 	ControlFocus Edit1, A
@@ -1575,6 +1576,14 @@ FeedExplorerOpenSave:
 		if ($CurControlText = $OldText)
 			break
 	}
+return
+FeedExplorerOpenSaveEdit2:
+	ControlFocus,Edit2,ahk_id %$WinID%
+    ControlSend,Edit2,{f4},ahk_id %$WinID%
+	Sleep, 50
+	ControlSetText,Edit2,%$FolderPath%,ahk_id %$WinID%
+	Sleep, 50
+    ControlSend,Edit2,{Enter},ahk_id %$WinID%
 return
 ;══════════════════════════════════════════════════════════════════
 ;~;【——菜单运行——】
