@@ -1124,11 +1124,33 @@ Menu_Show:
 				ctrlgMenuItem:=Object()
 				if(MenuObjWindowFlag && (MenuObjWindow[pclass])){
 					ctrlgMenuName:=MenuObjWindow[pclass][1]
+					;添加后缀公共菜单
+					publicMenuMaxNum:=MenuObjExt["public"].MaxIndex()
+					if(publicMenuMaxNum>0){
+						Loop {
+							v:=MenuObjExt["public"][publicMenuMaxNum]
+							vn:=RegExReplace(v,"S)^-+")
+							Menu,%ctrlgMenuName%,Insert, 1&, %vn%, :%vn%
+							Menu_Item_Icon(ctrlgMenuName,vn,TreeIconS[1],TreeIconS[2],v)
+							publicMenuMaxNum--
+						} Until % publicMenuMaxNum<1
+						publicMaxNum:=MenuObjExt["public"].MaxIndex() + 1
+						Menu,%ctrlgMenuName%,Insert, %publicMaxNum%&
+					}
 					Gosub,CtrlGQuickSwitch
 					Menu_Show_Show(ctrlgMenuName,"")
 					Loop,% ctrlgMenuItem.Count()
 					{
 						Menu,%ctrlgMenuName%,Delete,1&
+					}
+					;删除临时添加的菜单
+					if(MenuObjExt["public"].MaxIndex()>0){
+						Menu,%ctrlgMenuName%,Delete, %publicMaxNum%&
+						for k,v in MenuObjExt["public"]
+						{
+							vn:=RegExReplace(v,"S)^-+")
+							Menu,%ctrlgMenuName%,Delete,%vn%
+						}
 					}
 				}else if(MenuObjWindowFlag && (MenuObjWindow[pname])){
 					Menu_Show_Show(MenuObjWindow[pname][1],"")
@@ -7576,18 +7598,14 @@ Open_Ext_Set:
 			extLoopField:=RegExReplace(A_LoopField,"^\.","")
 			openExtRunList[extLoopField]:=Get_Obj_Path_Transform(itemList[1])
 		}
-		if(InStr(itemList[1],"dopus.exe") || MenuObjEv["dopus"]){
+		if(InStr(itemList[1],"dopus.exe") || MenuObjEv["dopus"])
 			ClipWaitAppStr:=StrJoin(",",ClipWaitAppStr,"dopus.exe")
-		}
-		if(InStr(itemList[1],"xyplorer.exe") || MenuObjEv["xyplorer"]){
+		if(InStr(itemList[1],"xyplorer.exe") || MenuObjEv["xyplorer"])
 			ClipWaitAppStr:=StrJoin(",",ClipWaitAppStr,"xyplorer.exe")
-		}
-		if(InStr(itemList[1],"totalcmd.exe") || MenuObjEv["totalcmd"]){
+		if(InStr(itemList[1],"totalcmd.exe") || MenuObjEv["totalcmd"])
 			ClipWaitAppStr:=StrJoin(",",ClipWaitAppStr,"totalcmd.exe")
-		}
-		if(InStr(itemList[1],"TotalCMD64.exe") || MenuObjEv["TotalCMD64"]){
+		if(InStr(itemList[1],"TotalCMD64.exe") || MenuObjEv["TotalCMD64"])
 			ClipWaitAppStr:=StrJoin(",",ClipWaitAppStr,"totalcmd64.exe")
-		}
 	}
 	; 解决指定软件界面剪贴板等待时间过短获取不到选中内容
 	Sort, ClipWaitAppStr ,U D,
