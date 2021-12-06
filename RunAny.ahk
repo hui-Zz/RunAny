@@ -1302,11 +1302,7 @@ Menu_Show:
 				if(RegExMatch(S_LoopField,"S)^(\\\\|.:\\)")){
 					;一键打开目录
 					if(OneKeyFolder && InStr(FileExist(S_LoopField), "D")){
-						If(OpenFolderPathRun){
-							Run,%OpenFolderPathRun%%A_Space%"%S_LoopField%"
-						}else{
-							Run,%S_LoopField%
-						}
+						Open_Folder_Path(S_LoopField)
 						openFlag:=true
 						continue
 					}
@@ -1477,12 +1473,12 @@ CtrlGQuickSwitch:
 			ClipSaved := ClipboardAll
 			Clipboard := ""
 			SendMessage 1075, %cm_CopySrcPathToClip%, 0, , ahk_class TTOTAL_CMD
-			folder:=RegExReplace(clipboard,"S)^\\\\")
+			folder:=RegExReplace(clipboard,"S)^\\\\(?!file)")
 			If (ErrorLevel = 0 && folder && !ctrlgMenuItem[folder]) {
 				ctrlgMenuItemAdd(ctrlgMenuName, ctrlgMenuItem, ctrlgMenuItemNum, folder, tcIcon)
 			}
 			SendMessage 1075, %cm_CopyTrgPathToClip%, 0, , ahk_class TTOTAL_CMD
-			folder:=RegExReplace(clipboard,"S)^\\\\")
+			folder:=RegExReplace(clipboard,"S)^\\\\(?!file)")
 			If (ErrorLevel = 0 && folder && !ctrlgMenuItem[folder]) {
 				ctrlgMenuItemAdd(ctrlgMenuName, ctrlgMenuItem, ctrlgMenuItemNum, folder, tcIcon)
 			}
@@ -1905,10 +1901,8 @@ Menu_Key_Run_Run:
 			if(pclass="#32770"){  ;打开/另存为窗口 变为跳转目录
 				$FolderPath:=any
 				Gosub,FeedExplorerOpenSave
-			}else if(OpenFolderPathRun){
-				Run_Any(OpenFolderPathRun A_Space """" any """")
 			}else{
-				Run_Any(any)
+				Open_Folder_Path(any)
 			}
 			return
 		}
@@ -3084,6 +3078,14 @@ Get_Item_Run_Path(z_item_path){
 		return z_item_path
 	}
 	return fileName
+}
+;[打开文件夹(支持使用第三方文件管理器)]
+Open_Folder_Path(path){
+	If(OpenFolderPathRun){
+		Run,%OpenFolderPathRun%%A_Space%"%path%"
+	}else{
+		Run,%path%
+	}
 }
 ;~;[检查文件后缀是否支持无路径查找]
 Check_Obj_Ext(filePath){
@@ -4576,6 +4578,10 @@ WM_NOTIFY(Param*){
 ;~;【——插件Gui——】
 ;══════════════════════════════════════════════════════════════════
 Plugins_Gui:
+	if(GetKeyState("Ctrl")){
+		Open_Folder_Path(A_ScriptDir "\" PluginsDir)
+		return
+	}
 	Gosub,Plugins_Read
 	;根据网络自动选择对应插件说明网页地址
 	pagesPluginsUrl:=RunAnyGiteePages . "/runany/#"
@@ -6237,6 +6243,10 @@ KnowAhkFuncZz(ahkPath){
 Settings_Gui:
 	if(GetKeyState("Shift")){
 		Gosub,Menu_Config
+		return
+	}
+	if(GetKeyState("Ctrl")){
+		Open_Folder_Path(A_ScriptDir)
 		return
 	}
 	Critical  ;防止短时间内打开多次界面出现问题
