@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.8 @2021.12.03
+║【RunAny】一劳永逸的快速启动工具 v5.7.8 @2021.12.15
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.8"     ;~;版本号
-global RunAny_update_time:="打开窗口快捷切换目录 2021.12.03"   ;~;更新日期
+global RunAny_update_time:="打开窗口快捷切换目录 2021.12.15"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -411,6 +411,28 @@ if(MENU2FLAG){
 }
 if(AutoReloadMTime>0){
 	SetTimer,AutoReloadMTime,%AutoReloadMTime%
+}
+if(PluginsObjList["RunAny_SearchBar.ahk"]){
+	DeleteFile(RunAEvFullPathIniDirPath "\RunAnyMenuObj.ini")
+	DeleteFile(RunAEvFullPathIniDirPath "\RunAnyMenuObjExt.ini")
+	DeleteFile(RunAEvFullPathIniDirPath "\RunAnyMenuObjIcon.ini")
+	for k,v in MenuObj
+	{
+		if(v="" || MenuObjKeyList[k])
+			continue
+		IniWrite, % v, %RunAEvFullPathIniDirPath%\RunAnyMenuObj.ini, MenuObj, %k%
+	}
+	for k,v in MenuObjExt
+	{
+		IniWrite, % v, %RunAEvFullPathIniDirPath%\RunAnyMenuObjExt.ini, MenuObjExt, %k%
+	}
+	for k,v in MenuObjIconList
+	{
+		if(v="" || MenuObjKeyList[k])
+			continue
+		IniWrite, % v "," MenuObjIconNoList[k], %RunAEvFullPathIniDirPath%\RunAnyMenuObjIcon.ini, MenuObjIcon, %k%
+	}
+	Run,% A_AhkPath A_Space "" PluginsPathList["RunAny_SearchBar.ahk"] ""
 }
 ;如果需要自动关闭everything
 if(EvAutoClose && EvPathRun){
@@ -2735,6 +2757,19 @@ cmdClipReturn(command){
 	}catch{}
 	return cmdInfo
 }
+;~;[接收其他脚本的消息]
+Receive_WM_COPYDATA(wParam, lParam)
+{
+    StringAddress := NumGet(lParam + 2*A_PtrSize)  ; 获取 CopyDataStruct 的 lpData 成员.
+    CopyOfData := StrGet(StringAddress)  ; 从结构中复制字符串.
+	if(IsLabel(CopyOfData))
+		Gosub,%CopyOfData%
+	if(RegExMatch(CopyOfData,"S).+?\[.+?\]%?\(.*?\)")){
+		global any:=CopyOfData
+		SetTimer,Menu_Run_Plugins_ObjReg,-1
+	}
+    return true  ; 返回 1(true) 是回复此消息的传统方式.
+}
 ;[系统关机或重启前操作]
 WM_QUERYENDSESSION(wParam, lParam)
 {
@@ -3114,7 +3149,18 @@ LVModifyCol(width, colList*){
 		LV_ModifyCol(col, "center")
 	}
 }
-
+;[外部调用菜单运行]
+Remote_Menu_Run(remoteRun){
+	MenuShowMenuRun:=remoteRun
+	getZz:=""
+	Gosub, Menu_Run
+}
+Remote_Menu_Ext_Show(fileExt){
+	extMenuName:=MenuObjExt[FileExt]
+	If (extMenuName="" || FileExt="public")
+		extMenuName := "public"
+	Menu_Show_Show(extMenuName, "")
+}
 ;══════════════════════════════════════════════════════════════════
 ;~;[添加编辑新添加的菜单项]
 Menu_Add_File_Item:
@@ -5073,9 +5119,19 @@ LVDown:
 					return
 				}
 			}else if(FileName="RunCtrl_Network.ahk"){
-				TrayTip,,RunCtrl_Network.ahk需要下载JSON.ahk，请稍等……,3,17
+				TrayTip,,RunCtrl_Network.ahk需要下载组件JSON.ahk，请稍等……,3,17
 				SetTimer, HideTrayTip, -3000
 				URLDownloadToFile(RunAnyDownDir "/" StrReplace(pluginsDownPath,"\","/") "/Lib/JSON.ahk",A_ScriptDir "\" pluginsDownPath "\Lib\JSON.ahk")
+			}else if(FileName="RunAny_SearchBar.ahk"){
+				TrayTip,,RunAny_SearchBar.ahk需要下载汉字转拼音组件ChToPy.ahk，请稍等……,3,17
+				SetTimer, HideTrayTip, -3000
+				URLDownloadToFile(RunAnyDownDir "/" StrReplace(pluginsDownPath,"\","/") "/Lib/ChToPy.ahk",A_ScriptDir "\" pluginsDownPath "\Lib\ChToPy.ahk")
+				CreateDir(A_ScriptDir "\" pluginsDownPath "\Lib\ChToPy_dll_32")
+				URLDownloadToFile(RunAnyDownDir "/" StrReplace(pluginsDownPath,"\","/") "/Lib/ChToPy_dll_32/cpp2ahk.dll",A_ScriptDir "\" pluginsDownPath "\Lib\ChToPy_dll_32\cpp2ahk.dll")
+				if(A_Is64bitOS){
+					CreateDir(A_ScriptDir "\" pluginsDownPath "\Lib\ChToPy_dll_64")
+					URLDownloadToFile(RunAnyDownDir "/" StrReplace(pluginsDownPath,"\","/") "/Lib/ChToPy_dll_64/cpp2ahk.dll",A_ScriptDir "\" pluginsDownPath "\Lib\ChToPy_dll_64\cpp2ahk.dll")
+				}
 			}
 			;[下载插件脚本]
 			IfExist,%A_ScriptDir%\%pluginsDownPath%\%FileName%
@@ -7541,6 +7597,7 @@ Var_Set:
 		}
 	}
 	OnExit("ExitFunc")
+	OnMessage(0x004A, "Receive_WM_COPYDATA")
 	OnMessage(0x11, "WM_QUERYENDSESSION")
 	;~[定期自动检查更新]
 	global githubUrl:="https://raw.githubusercontent.com"
@@ -8146,7 +8203,7 @@ AutoRun_Plugins:
 		For runn, runv in PluginsPathList	;循环启动项
 		{
 			;需要自动启动的项
-			if(PluginsObjList[runn]){
+			if(PluginsObjList[runn] && runn!="RunAny_SearchBar.ahk"){
 				runValue:=RegExReplace(runv,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
 				SplitPath, runValue, name, dir, ext  ; 获取扩展名
 				if(dir && FileExist(dir)){
