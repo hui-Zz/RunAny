@@ -15,8 +15,8 @@
 
 ​    __多台电脑你只需配置一套软件列表(RunAny.ini)，就能到处运行，配合坚果云\OneDrive\Dropbox等网盘同步更是如虎添翼，达到一劳永逸！😎__
 
-- ☑ 一键菜单分类界面，找应用零记忆负担
-- ☑ 分类定位，三键启动，简单迅速
+- ☑ 一键菜单分类界面，找应用零记忆负担，快搜索启动几倍效率
+- ☑ 分类定位，三键启动，极简极速
 - ☑ 一次配置，到处运行，永久使用
 - ☑ [一键直达](#oneKey)，[一键计算](#oneKeyCalc)，[一键批量搜索](#oneKeySearch)
 - ☑ [全局热键，热键映射](#advancedConfig)，[热字符串](https://hui-zz.github.io/RunAny/#/hotstring)，多样快捷
@@ -41,6 +41,8 @@
 
 ## 📢 关注RunAny一劳永逸微信公众号，分享【一劳永逸】的效率软件和解决方案！
 <img src="https://hui-zz.gitee.io/runany/assets/images/RunAny%E5%85%AC%E4%BC%97%E5%8F%B7-%E7%99%BD%E8%89%B2%E7%89%88.jpg" alt="RunAny公众号-白色版">
+
+Once and for all quick-start software, with three key startup, one key direct access, batch search, global hotkeys, phrase output, hotkey mapping, script plug-in and other functions
 
 ---
 

@@ -1,9 +1,9 @@
-﻿;**************************************
-;* 【ObjReg窗口操作脚本[窗口函数.ini]】 *
-;*                          by hui-Zz *
-;**************************************
+﻿;************************
+;* 【ObjReg窗口操作脚本】 
+;*             by hui-Zz 
+;************************
 global RunAny_Plugins_Name:="ObjReg窗口操作脚本"
-global RunAny_Plugins_Version:="1.1.1"
+global RunAny_Plugins_Version:="1.1.2"
 global RunAny_Plugins_Icon:="SHELL32.dll,241"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
@@ -25,6 +25,7 @@ class RunAnyObj {
 	win_center_zz(){
 		WinGetActiveStats,zTitle,var_width,var_height,var_x,var_y
 		WinGetPos,,,,h,ahk_class Shell_TrayWnd
+		h:=(h>=A_ScreenHeight) ? 0 : h
 		WinMove,%zTitle%,,(A_ScreenWidth-var_width)/2,(A_ScreenHeight-var_height-h)/2
 	}
 	;[窗口移动]
@@ -193,7 +194,7 @@ class RunAnyObj {
 
 }
 
-;════════════════════════════以下是脚本自己调用依赖的函数════════════════════════════
+;═══════════════════════════以下是脚本自己调用依赖的函数═══════════════════════════
 
 ;独立使用方式
 ;F1::

@@ -4963,13 +4963,13 @@ SplitPath, newObjRegInput,,,,inputNameNotExt
 FileAppend,
 (
 ;************************
-;* 【ObjReg插件脚本 %newObjRegCount%】 *
+;* 【ObjReg插件脚本 %newObjRegCount%】
 ;************************
 global RunAny_Plugins_Version:="1.0.0"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
 #SingleInstance,Force   ;~运行替换旧实例
-;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+;********************************************************************************
 #Include `%A_ScriptDir`%\RunAny_ObjReg.ahk
 
 class RunAnyObj {

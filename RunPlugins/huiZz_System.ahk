@@ -1,7 +1,7 @@
-﻿;**************************************
-;* 【ObjReg系统操作脚本[系统函数.ini]】 *
-;*                          by hui-Zz *
-;**************************************
+﻿;************************
+;* 【ObjReg系统操作脚本】 
+;*             by hui-Zz 
+;************************
 global RunAny_Plugins_Name:="ObjReg系统操作脚本"
 global RunAny_Plugins_Version:="1.1.1"
 global RunAny_Plugins_Icon:="imageres.dll,61"
@@ -16,7 +16,7 @@ SetControlDelay,0       ;~控件修改命令自动延时(默认20)
 SetWinDelay,0           ;~执行窗口命令自动延时(默认100)
 SetTitleMatchMode,2     ;~窗口标题模糊匹配
 CoordMode,Menu,Window   ;~坐标相对活动窗口
-;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+;SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 #Include %A_ScriptDir%\RunAny_ObjReg.ahk
 
 class RunAnyObj {
@@ -155,7 +155,7 @@ class RunAnyObj {
 
 }
 
-;════════════════════════════以下是脚本自己调用依赖的函数════════════════════════════
+;═══════════════════════════以下是脚本自己调用依赖的函数═══════════════════════════
 
 /*
 【隐藏运行cmd命令并将结果存入剪贴板后取回 @hui-Zz】

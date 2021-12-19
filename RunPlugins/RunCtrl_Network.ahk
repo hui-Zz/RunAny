@@ -1,11 +1,11 @@
 ﻿;****************************
-;* 【RunCtrl网络规则函数库】 *
+;* 【RunCtrl网络规则函数库】 
 ;****************************
 global RunAny_Plugins_Version:="1.0.0"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
 #SingleInstance,Force   ;~运行替换旧实例
-;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+;NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 #Include %A_ScriptDir%\RunAny_ObjReg.ahk
 #Include <JSON>
 
@@ -72,7 +72,7 @@ class RunAnyObj {
 
 }
 
-;════════════════════════════以下是脚本自己调用依赖的函数════════════════════════════
+;═══════════════════════════以下是脚本自己调用依赖的函数═══════════════════════════
 
 /*
 通过第三方接口获取IP地址等信息 @hui-Zz

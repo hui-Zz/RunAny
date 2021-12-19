@@ -1,7 +1,7 @@
-﻿;**************************************
-;* 【ObjReg文本操作脚本[文本函数.ini]】 *
-;*                          by hui-Zz *
-;**************************************
+﻿;************************
+;* 【ObjReg文本操作脚本】 
+;*             by hui-Zz 
+;************************
 global RunAny_Plugins_Name:="ObjReg文本操作脚本"
 global RunAny_Plugins_Version:="1.3.0"
 global RunAny_Plugins_Icon:="SHELL32.dll,270"
@@ -17,7 +17,7 @@ SetControlDelay,0       ;~控件修改命令自动延时(默认20)
 SetWinDelay,0           ;~执行窗口命令自动延时(默认100)
 SetTitleMatchMode,2     ;~窗口标题模糊匹配
 CoordMode,Menu,Window   ;~坐标相对活动窗口
-;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+;TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
 #Include %A_ScriptDir%\RunAny_ObjReg.ahk
 
 class RunAnyObj {
@@ -471,7 +471,7 @@ class RunAnyObj {
 
 }
 
-;════════════════════════════以下是脚本自己调用依赖的函数════════════════════════════
+;═══════════════════════════以下是脚本自己调用依赖的函数═══════════════════════════
 
 ;~;输出结果
 Send_Str_Zz(strZz){

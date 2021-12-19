@@ -1,11 +1,11 @@
-﻿;****************************
-;* 【ObjReg批量自定义运行】 *
-;****************************
+﻿;***************************
+;* 【ObjReg批量自定义运行】 
+;***************************
 global RunAny_Plugins_Version:="1.1.1"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
 #SingleInstance,Force   ;~运行替换旧实例
-;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+;BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
 #Include %A_ScriptDir%\RunAny_ObjReg.ahk
 
 class RunAnyObj {
@@ -38,7 +38,7 @@ class RunAnyObj {
 
 }
 
-;════════════════════════════以下是脚本自己调用依赖的函数════════════════════════════
+;═══════════════════════════以下是脚本自己调用依赖的函数═══════════════════════════
 
 ;独立使用方式
 ;F1::

@@ -1,12 +1,12 @@
-﻿;***************************
-;* 【ObjReg二维码脚本{}】  *
-;*               by hui-Zz *
-;***************************
+﻿;*************************
+;* 【ObjReg二维码脚本{}】 
+;*             by hui-Zz 
+;*************************
 global RunAny_Plugins_Version:="1.1.1"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
 #SingleInstance,Force   ;~运行替换旧实例
-;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+;QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ
 #Include %A_ScriptDir%\..\RunAny_ObjReg.ahk
 
 class RunAnyObj {
@@ -44,7 +44,7 @@ class RunAnyObj {
 
 }
 
-;════════════════════════════以下是脚本自己调用依赖的函数════════════════════════════
+;═══════════════════════════以下是脚本自己调用依赖的函数═══════════════════════════
 
 GEN_QR_CODE(string,file="")
 {
