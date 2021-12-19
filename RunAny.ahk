@@ -1656,8 +1656,8 @@ Menu_Run:
 			return
 		}
 		;[结束软件进程]
-		if((menuholdkey=HoldKeyRun4 || M_ThisMenuItem="结束软件进程(&X)") && (itemMode=1 || itemMode=60)){
-			Process,Close,%name%
+		if((menuholdkey=HoldKeyRun4 || M_ThisMenuItem="结束软件进程(&X)" || RunCtrlRunWayVal=6) && (itemMode=1 || itemMode=60)){
+			cmdClipReturn("taskkill /f /im """ name """")
 			return
 		}
 		if(RecentMax>0 && !NoRecentFlag && !RegExMatch(Z_ThisMenuItem,"S)^&\d+")){
