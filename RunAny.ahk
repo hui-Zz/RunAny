@@ -6588,7 +6588,7 @@ Settings_Gui:
 	LV_Add(HoldCtrlShiftRun ? "Icon1" : "Icon2", HoldCtrlShiftRun,"", "[按住Ctrl+Shift键] 回车或点击菜单项（选项数字可互用） 3:编辑该菜单项","","HoldCtrlShiftRun")
 	LV_Add(HoldCtrlWinRun ? "Icon1" : "Icon2", HoldCtrlWinRun,"", "[按住Ctrl+Win键] 回车或点击菜单项（选项数字可互用） 11:以管理员权限运行 12:最小化运行 13:最大化运行 14:隐藏运行(部分有效)","","HoldCtrlWinRun")
 	LV_Add(HoldShiftWinRun ? "Icon1" : "Icon2", HoldShiftWinRun,"", "[按住Shift+Win键] 回车或点击菜单项（选项数字可互用） 31:复制运行路径 32:输出运行路径 33:复制软件名 34:输出软件名 35:复制软件名+后缀 36:输出软件名+后缀","","HoldShiftWinRun")
-	LV_Add(HoldCtrlShiftWinRun ? "Icon1" : "Icon2", HoldCtrlShiftWinRun,"", "[按住Ctrl+Shift+Win键] 回车或点击菜单项（选项数字可互用） 4:强制结束该软件单个进程","","HoldCtrlShiftWinRun")
+	LV_Add(HoldCtrlShiftWinRun ? "Icon1" : "Icon2", HoldCtrlShiftWinRun,"", "[按住Ctrl+Shift+Win键] 回车或点击菜单项（选项数字可互用） 4:强制结束该软件名进程","","HoldCtrlShiftWinRun")
 	if(RunAnyMenuSpaceFlag)
 		LV_Add(RunAnyMenuSpaceRun ? "Icon1" : "Icon2", RunAnyMenuSpaceRun,"", "[按空格键] 运行菜单项（只能复制上面已设置的选项数字）","RunAny_Menu.ahk","RunAnyMenuSpaceRun")
 	if(RunAnyMenuRButtonFlag)
@@ -8296,7 +8296,7 @@ RunCtrl_Read:
 	;---规则启动项---
 	global RunCtrlList:=Object(),RunCtrlListBoxList:=Object(),RunCtrlListContentList:=Object()
 	global RunCtrlLogicEnum:={"eq":"相等","ne":"不相等","ge":"大于等于","le":"小于等于","gt":"大于","lt":"小于","regex":"正则表达式"}
-	global RunCtrlRunWayList:=["启动","置顶启动","最小化启动","最大化启动","隐藏启动"]
+	global RunCtrlRunWayList:=["启动","置顶启动","最小化启动","最大化启动","隐藏启动","结束软件进程_启动"]
 	global RunCtrlListBoxVar:=""
 	IniRead,runCtrlListVar,%RunAnyConfig%,RunCtrlList
 	Loop, parse, runCtrlListVar, `n, `r
@@ -8477,7 +8477,7 @@ RunCtrl_RunApps(path,noPath,repeatRun:=0,adminRun:=0,runWay:=1){
 		global RunCtrlRunWayVal:=runWay
 		if(noPath){
 			tfPath:=Get_Obj_Transform_Name(Trim(path," `t`n`r"))
-			if(!repeatRun && rule_check_is_run(MenuObj[tfPath])){
+			if(!repeatRun && runWay!=6 && rule_check_is_run(MenuObj[tfPath])){
 				return
 			}
 			if(NoPathFlag || EvNo){
@@ -8495,7 +8495,7 @@ RunCtrl_RunApps(path,noPath,repeatRun:=0,adminRun:=0,runWay:=1){
 		}else{
 			global any:=Get_Transform_Val(path)
 			SplitPath,% any, name, dir
-			if(!repeatRun && rule_check_is_run(any)){
+			if(!repeatRun && runWay!=6 && rule_check_is_run(any)){
 				return
 			}
 			if(dir && FileExist(dir))
@@ -8856,7 +8856,7 @@ EverythingIsRun(){
 			Run,%EvPathRun% -exit
 			Run,%EvPathRun% -startup %evAdminRun%
 			Sleep,500
-			ShowTrayTip("","RunAny与Everything权限不一致进行重新启动",10,17)
+			ShowTrayTip("","RunAny与Everything权限不一致自动调整后启动",10,17)
 			Gosub,Menu_Reload
 		}
 	}else{
