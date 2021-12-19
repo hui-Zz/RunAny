@@ -153,6 +153,7 @@ Loop, parse, evFullPathIniVar, `n, `r
 	objFileNameNoExeExt:=RegExReplace(varList[1],"iS)\.exe$","")
 	MenuObj[objFileNameNoExeExt]:=varList[2]
 	MenuObjCache[(varList[1])]:=varList[2]
+	;检查缓存中的无路径应用被删除或移动
 	if(Trim(varList[2]," `t`n`r")!="" && !FileExist(varList[2])){
 		outVarStr:=varList[1]
 		MenuObjCache[outVarStr]:=""  ;缓存失效则置空
@@ -168,6 +169,7 @@ if(Trim(evFullPathIniVar," `t`n`r")!=""){
 	NoPathFlag:=true
 	for k,v in MenuObjSearch
 	{
+		;发现有新的无路径应用
 		if(!MenuObjCache.HasKey(k)){
 			if(RegExMatch(k, RegexEscapeNoPointStr)){
 				k:=StrListEscapeReplace(k, RegexEscapeNoPointList, "\")
@@ -380,6 +382,7 @@ if(NoPathFlag && !EvNo && Trim(evFullPathIniVar," `t`n`r")!="" && rule_check_is_
 		}
 	}
 	if(MenuObjUpdateList.Length()>0){
+		Gosub,RunAny_SearchBar
 		ShowTrayTip("以下无路径应用缓存更新：",StrListJoin("、",MenuObjUpdateList),10,17)
 		Gosub,Menu_Reload
 	}
@@ -411,28 +414,6 @@ if(MENU2FLAG){
 }
 if(AutoReloadMTime>0){
 	SetTimer,AutoReloadMTime,%AutoReloadMTime%
-}
-if(PluginsObjList["RunAny_SearchBar.ahk"]){
-	DeleteFile(RunAEvFullPathIniDirPath "\RunAnyMenuObj.ini")
-	DeleteFile(RunAEvFullPathIniDirPath "\RunAnyMenuObjExt.ini")
-	DeleteFile(RunAEvFullPathIniDirPath "\RunAnyMenuObjIcon.ini")
-	for k,v in MenuObj
-	{
-		if(v="" || MenuObjKeyList[k])
-			continue
-		IniWrite, % v, %RunAEvFullPathIniDirPath%\RunAnyMenuObj.ini, MenuObj, %k%
-	}
-	for k,v in MenuObjExt
-	{
-		IniWrite, % v, %RunAEvFullPathIniDirPath%\RunAnyMenuObjExt.ini, MenuObjExt, %k%
-	}
-	for k,v in MenuObjIconList
-	{
-		if(v="" || MenuObjKeyList[k])
-			continue
-		IniWrite, % v "," MenuObjIconNoList[k], %RunAEvFullPathIniDirPath%\RunAnyMenuObjIcon.ini, MenuObjIcon, %k%
-	}
-	Run,% A_AhkPath A_Space "" PluginsPathList["RunAny_SearchBar.ahk"] ""
 }
 ;如果需要自动关闭everything
 if(EvAutoClose && EvPathRun){
@@ -2402,7 +2383,7 @@ One_Search:
 	}
 return
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-;~;【——通用函数方法——】
+;~;【══通用函数方法══】
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 ;[创建文件夹]
 CreateDir(dir){
@@ -2916,7 +2897,7 @@ URLDownloadToFile(URL, FilePath, Options:="", RequestHeaders:="")
 	return, 1
 }
 ;══════════════════════════════════════════════════════════════════
-;~;【——内部函数方法——】
+;~;【══内部函数方法══】
 ;══════════════════════════════════════════════════════════════════
 ;~;[写入配置]
 Reg_Set(vGui, var, sz){
@@ -3161,6 +3142,34 @@ Remote_Menu_Ext_Show(fileExt){
 		extMenuName := "public"
 	Menu_Show_Show(extMenuName, "")
 }
+;══════════════════════════════════════════════════════════════════
+;~;【══插件函数方法══】
+;══════════════════════════════════════════════════════════════════
+
+;RunAny搜索框插件
+RunAny_SearchBar:
+	if(PluginsObjList["RunAny_SearchBar.ahk"]){
+		DeleteFile(RunAEvFullPathIniDirPath "\RunAnyMenuObj.ini")
+		DeleteFile(RunAEvFullPathIniDirPath "\RunAnyMenuObjExt.ini")
+		DeleteFile(RunAEvFullPathIniDirPath "\RunAnyMenuObjIcon.ini")
+		for k,v in MenuObj
+		{
+			if(v="" || MenuObjKeyList[k])
+				continue
+			IniWrite, % v, %RunAEvFullPathIniDirPath%\RunAnyMenuObj.ini, MenuObj, %k%
+		}
+		for k,v in MenuObjExt
+		{
+			IniWrite, % v, %RunAEvFullPathIniDirPath%\RunAnyMenuObjExt.ini, MenuObjExt, %k%
+		}
+		for k,v in MenuObjIconList
+		{
+			if(v="" || MenuObjKeyList[k])
+				continue
+			IniWrite, % v "," MenuObjIconNoList[k], %RunAEvFullPathIniDirPath%\RunAnyMenuObjIcon.ini, MenuObjIcon, %k%
+		}
+	}
+return
 ;══════════════════════════════════════════════════════════════════
 ;~;[添加编辑新添加的菜单项]
 Menu_Add_File_Item:
@@ -8939,6 +8948,7 @@ EverythingCheckResults:
 	RegRead,EvTotResults,HKEY_CURRENT_USER,SOFTWARE\RunAny,EvTotResults
 	if(EvTotResults>0){
 		SetTimer,EverythingCheckResults,Off
+		Gosub,RunAny_SearchBar
 		ShowTrayTip("","Everything索引更新完成",5,17)
 		Gosub,Menu_Reload
 	}
