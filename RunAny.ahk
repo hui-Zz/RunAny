@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.8 @2021.12.15
+║【RunAny】一劳永逸的快速启动工具 v5.7.8 @2021.12.19
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.8"     ;~;版本号
-global RunAny_update_time:="打开窗口快捷切换目录 2021.12.15"   ;~;更新日期
+global RunAny_update_time:="打开窗口快捷切换目录 2021.12.19"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -407,10 +407,18 @@ if(RunABackupRule && RunABackupDirPath!=A_ScriptDir){
 }
 ;~[记录ini文件修改时间]
 FileGetTime,MTimeIniPath, %iniPath%, M  ; 获取修改时间.
+RegRead, MTimeIniPathReg, HKEY_CURRENT_USER\Software\RunAny, %iniPath%
 RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny, %iniPath%, %MTimeIniPath%
+IniChangeFlag:=MTimeIniPathReg=MTimeIniPath
 if(MENU2FLAG){
 	FileGetTime,MTimeIniPath2, %iniPath2%, M  ; 获取修改时间.
+	RegRead, MTimeIniPath2Reg, HKEY_CURRENT_USER\Software\RunAny, %iniPath2%
 	RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny, %iniPath2%, %MTimeIniPath2%
+	IniChangeFlag:=IniChangeFlag && (MTimeIniPath2Reg=MTimeIniPath2)
+}
+if(!IniChangeFlag){
+	Gosub,RunAny_SearchBar
+	Run,% A_AhkPath A_Space "" PluginsPathList["RunAny_SearchBar.ahk"] ""
 }
 if(AutoReloadMTime>0){
 	SetTimer,AutoReloadMTime,%AutoReloadMTime%
@@ -488,8 +496,8 @@ AutoReloadMTime:
 		Gosub,Menu_Reload
 	}
 	if(MENU2FLAG){
-		RegRead, MTimeIniPath2, HKEY_CURRENT_USER, Software\RunAny, %iniPath2%
-		FileGetTime,MTimeIniPath2Reg, %iniPath2%, M  ; 获取修改时间.
+		RegRead, MTimeIniPath2Reg, HKEY_CURRENT_USER, Software\RunAny, %iniPath2%
+		FileGetTime,MTimeIniPath2, %iniPath2%, M  ; 获取修改时间.
 		if(MTimeIniPath2!=MTimeIniPath2Reg){
 			Gosub,Menu_Reload
 		}
