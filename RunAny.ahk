@@ -8212,7 +8212,7 @@ AutoRun_Plugins:
 		For runn, runv in PluginsPathList	;循环启动项
 		{
 			;需要自动启动的项
-			if(PluginsObjList[runn] && runn!="RunAny_SearchBar.ahk"){
+			if(PluginsObjList[runn]){
 				runValue:=RegExReplace(runv,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
 				SplitPath, runValue, name, dir, ext  ; 获取扩展名
 				if(dir && FileExist(dir)){
