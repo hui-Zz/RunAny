@@ -490,13 +490,13 @@ Menu_Tree_List_Filter(M_Index,MenuTypeList,MenuType){
 }
 ;[修改RunAny.ini文件自动重启]
 AutoReloadMTime:
-	RegRead, MTimeIniPathReg, HKEY_CURRENT_USER, Software\RunAny, %iniPath%
+	RegRead, MTimeIniPathReg, HKEY_CURRENT_USER\Software\RunAny, %iniPath%
 	FileGetTime,MTimeIniPath, %iniPath%, M  ; 获取修改时间.
 	if(MTimeIniPathReg!=MTimeIniPath){
 		Gosub,Menu_Reload
 	}
 	if(MENU2FLAG){
-		RegRead, MTimeIniPath2Reg, HKEY_CURRENT_USER, Software\RunAny, %iniPath2%
+		RegRead, MTimeIniPath2Reg, HKEY_CURRENT_USER\Software\RunAny, %iniPath2%
 		FileGetTime,MTimeIniPath2, %iniPath2%, M  ; 获取修改时间.
 		if(MTimeIniPath2!=MTimeIniPath2Reg){
 			Gosub,Menu_Reload
@@ -6898,7 +6898,7 @@ SetScheduledTasks:
 	GuiControl,,vAutoRun,0
 return
 SetClearRecentMax:
-	RegDelete, HKEY_CURRENT_USER, SOFTWARE\RunAny, MenuCommonList
+	RegDelete, HKEY_CURRENT_USER\SOFTWARE\RunAny, MenuCommonList
 return
 SetEvReindex:
 	Gui,66:Submit, NoHide
@@ -6908,8 +6908,8 @@ SetReSet:
 	MsgBox,49,重置RunAny配置,此操作会删除RunAny所有注册表配置`n以及删除本地配置文件%RunAnyConfig%！`n还有所有的规则启动配置！`n确认删除重置吗？
 	IfMsgBox Ok
 	{
-		RegDelete, HKEY_CURRENT_USER, SOFTWARE\RunAny
-		RegDelete, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
+		RegDelete, HKEY_CURRENT_USER\SOFTWARE\RunAny
+		RegDelete, HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 		FileDelete, %RunAnyConfig%
 		Gosub,Menu_Reload
 	}
@@ -7459,13 +7459,13 @@ return
 Var_Set:
 	;[RunAny设置参数]
 	global Z_ScriptName:=FileExist(RunAnyZz ".exe") ? RunAnyZz ".exe" : A_ScriptName
-	RegRead, AutoRun, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Run, RunAny
+	RegRead, AutoRun, HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 	AutoRun:=AutoRun=A_ScriptDir "\" Z_ScriptName ? 1 : 0
 	;优先读取配置文件，后读注册表
 	global IniConfig:=1
 	if(FileExist(RunAnyConfig)){
 		IniRead,IniConfig,%RunAnyConfig%,Config,IniConfig,1
-		RegRead, regVar, HKEY_CURRENT_USER, Software\RunAny, IniConfig
+		RegRead, regVar, HKEY_CURRENT_USER\Software\RunAny, IniConfig
 		if ErrorLevel
 			IniConfig:=1
 	}
@@ -7601,7 +7601,7 @@ Var_Set:
 	;~[最近运行项]
 	if(RecentMax>0){
 		global MenuCommonList:={}
-		RegRead, MenuCommonListReg, HKEY_CURRENT_USER, Software\RunAny, MenuCommonList
+		RegRead, MenuCommonListReg, HKEY_CURRENT_USER\Software\RunAny, MenuCommonList
 		if(MenuCommonListReg){
 			Loop, parse, MenuCommonListReg, |
 			{
@@ -8953,7 +8953,7 @@ Sleep, 200
 Run,%A_AhkPath%%A_Space%"%A_Temp%\%RunAnyZz%\RunAnyEv.ahk"
 return
 EverythingCheckResults:
-	RegRead,EvTotResults,HKEY_CURRENT_USER,SOFTWARE\RunAny,EvTotResults
+	RegRead,EvTotResults,HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults
 	if(EvTotResults>0){
 		SetTimer,EverythingCheckResults,Off
 		Gosub,RunAny_SearchBar
