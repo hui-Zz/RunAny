@@ -150,18 +150,22 @@ EvCommandStr:=EvDemandSearch ? EverythingNoPathSearchStr() : ""
 Loop, parse, evFullPathIniVar, `n, `r
 {
 	varList:=StrSplit(A_LoopField,"=",,2)
-	objFileNameNoExeExt:=RegExReplace(varList[1],"iS)\.exe$","")
+	outVarStr:=varList[1]
+	objFileNameNoExeExt:=RegExReplace(outVarStr,"iS)\.exe$","")
 	MenuObj[objFileNameNoExeExt]:=varList[2]
-	MenuObjCache[(varList[1])]:=varList[2]
+	MenuObjCache[outVarStr]:=varList[2]
 	;检查缓存中的无路径应用被删除或移动
 	if(Trim(varList[2]," `t`n`r")!="" && !FileExist(varList[2])){
-		outVarStr:=varList[1]
 		MenuObjCache[outVarStr]:=""  ;缓存失效则置空
 		if(RegExMatch(outVarStr, RegexEscapeNoPointStr)){
 			outVarStr:=StrListEscapeReplace(outVarStr, RegexEscapeNoPointList, "\")
 		}
 		outVarStr:=StrReplace(outVarStr,".","\.")
 		MenuObjNew.push("^" outVarStr "$")
+	}
+	;无路径应用被删除自动清除对应的缓存
+	if(!MenuObjSearch.HasKey(outVarStr)){
+		IniDelete, %RunAnyEvFullPathIni%, FullPath, %outVarStr%
 	}
 }
 ;发现有新增的无路径菜单项
@@ -373,18 +377,19 @@ if(iniFlag){
 ;~;[24.检查无路径应用缓存是否有新的版本]
 if(NoPathFlag && !EvNo && Trim(evFullPathIniVar," `t`n`r")!="" && rule_check_is_run("Everything.exe")){
 	MenuObjUpdateList:=Object(),MenuObjEv:=Object(),MenuObjSearch:=Object()
-	EverythingQuery(EvCommandStr)
-	for k,v in MenuObjCache
-	{
-		if(MenuObjSearch[k] && v!=MenuObjSearch[k]){
-			IniWrite, % MenuObjSearch[k], %RunAnyEvFullPathIni%, FullPath, %k%
-			MenuObjUpdateList.Push(k)
+	if(EverythingQuery(EvCommandStr)){
+		for k,v in MenuObjCache
+		{
+			if(MenuObjSearch[k] && v!=MenuObjSearch[k]){
+				IniWrite, % MenuObjSearch[k], %RunAnyEvFullPathIni%, FullPath, %k%
+				MenuObjUpdateList.Push(k)
+			}
 		}
-	}
-	if(MenuObjUpdateList.Length()>0){
-		Gosub,RunAny_SearchBar
-		ShowTrayTip("以下无路径应用缓存更新：",StrListJoin("、",MenuObjUpdateList),10,17)
-		Gosub,Menu_Reload
+		if(MenuObjUpdateList.Length()>0){
+			Gosub,RunAny_SearchBar
+			ShowTrayTip("以下无路径应用缓存更新：",StrListJoin("、",MenuObjUpdateList),10,17)
+			Gosub,Menu_Reload
+		}
 	}
 }
 ;提前加载菜单树图标缓存
