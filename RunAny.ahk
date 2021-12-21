@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.8 @2021.12.19
+║【RunAny】一劳永逸的快速启动工具 v5.7.8 @2021.12.21
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.8"     ;~;版本号
-global RunAny_update_time:="打开窗口快捷切换目录 2021.12.19"   ;~;更新日期
+global RunAny_update_time:="预发布版 2021.12.21"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -421,7 +421,10 @@ if(MENU2FLAG){
 	RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny, %iniPath2%, %MTimeIniPath2%
 	IniChangeFlag:=IniChangeFlag && (MTimeIniPath2Reg=MTimeIniPath2)
 }
-if(!IniChangeFlag){
+if(PluginsObjList["RunAny_SearchBar.ahk"] 
+		&& (!IniChangeFlag || !FileExist(RunAEvFullPathIniDirPath "\RunAnyMenuObj.ini") 
+		|| !FileExist(RunAEvFullPathIniDirPath "\RunAnyMenuObjExt.ini") 
+		|| !FileExist(RunAEvFullPathIniDirPath "\RunAnyMenuObjIcon.ini"))){
 	Gosub,RunAny_SearchBar
 	Run,% A_AhkPath A_Space "" PluginsPathList["RunAny_SearchBar.ahk"] ""
 }
@@ -1141,8 +1144,9 @@ Menu_Show:
 				if(MenuObjWindowFlag && (MenuObjWindow[pclass])){
 					ctrlgMenuName:=MenuObjWindow[pclass][1]
 					;添加后缀公共菜单
+					showPublicMenu:=Var_Read("ShowPublicMenu",1)
 					publicMenuMaxNum:=MenuObjExt["public"].MaxIndex()
-					if(publicMenuMaxNum>0){
+					if(showPublicMenu && publicMenuMaxNum>0){
 						Loop {
 							v:=MenuObjExt["public"][publicMenuMaxNum]
 							vn:=RegExReplace(v,"S)^-+")
@@ -1160,7 +1164,7 @@ Menu_Show:
 						Menu,%ctrlgMenuName%,Delete,1&
 					}
 					;删除临时添加的菜单
-					if(MenuObjExt["public"].MaxIndex()>0){
+					if(showPublicMenu && MenuObjExt["public"].MaxIndex()>0){
 						Menu,%ctrlgMenuName%,Delete, %publicMaxNum%&
 						for k,v in MenuObjExt["public"]
 						{
@@ -3177,8 +3181,12 @@ RunAny_SearchBar:
 		}
 		for k,v in MenuObjIconList
 		{
-			if(v="" || MenuObjKeyList[k])
+			if(v="")
 				continue
+			if(MenuObjKeyList[k]){
+				klist:=StrSplit(k,"`t",,2)
+				k:=klist[1]
+			}
 			IniWrite, % v "," MenuObjIconNoList[k], %RunAEvFullPathIniDirPath%\RunAnyMenuObjIcon.ini, MenuObjIcon, %k%
 		}
 	}
@@ -6682,7 +6690,7 @@ vHtml =
 <img alt="GitHub forks" src="https://raster.shields.io/github/forks/hui-Zz/RunAny?style=social"/>
 <img alt="history" src="https://raster.shields.io/badge/2017--2021-white.svg?label=Time&style=social&logo=github"/>
 </h2>
-<b>当前版本：</b><img alt="当前版本" style="vertical-align:middle" src="https://raster.shields.io/badge/RunAny-%versionUrlEncode%-blue.svg?style=flat-square"/> 打开窗口快捷切换目录 尝鲜版
+<b>当前版本：</b><img alt="当前版本" style="vertical-align:middle" src="https://raster.shields.io/badge/RunAny-%versionUrlEncode%-blue.svg?style=flat-square"/> 预发布版
 <br>
 <b>最新版本：</b><img alt="GitHub release" style="vertical-align:middle" src="https://raster.shields.io/github/v/release/hui-Zz/RunAny.svg?label=RunAny&style=flat-square&color=red"/>
 <img alt="Autohotkey" style="vertical-align:middle" src="https://raster.shields.io/badge/autohotkey-1.1.33.10-green.svg?style=flat-square&logo=autohotkey"/>
