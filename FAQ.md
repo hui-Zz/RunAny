@@ -104,3 +104,11 @@ ClipWaitTime=1.5
 - **`RunAny`多次运行权限一致，都是用管理员权限运行，或都是普通权限运行**
 
 ---
+
+## 9. Critical Error:  Invalid memory read/write.
+
+**原因**：往RunAny菜单的空分类中插入菜单项导致错误
+
+**解决**：不要在RunAny菜单中使用空分类，更不要在空分类后面添加`|后缀或软件类名`
+
+---
