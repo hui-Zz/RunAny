@@ -12,7 +12,7 @@
 | 插件文件             | 插件功能                                                     |
 | -------------------- | ------------------------------------------------------------ |
 | RunAny_Menu.ahk      | 1. 透明化RunAny菜单主体<br />2. 可用空格、鼠标右键、XButton等热键改变RunAny菜单项运行方式<br />（打开目录、最小化运行、复制路径、结束进程等） |
-| [RunAny_SearchBar.ahk](/plugins-searchbar) | RunAny搜索框：快捷使用文本功能列表、后缀应用列表、百度等网址 |
+| [RunAny_SearchBar.ahk](/plugins-runany-searchbar) | RunAny搜索框：快捷使用文本功能列表、后缀应用列表、百度等网址 |
 | RunCtrl_Common.ahk   | RunCtrl公共规则函数库                                        |
 
 
