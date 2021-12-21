@@ -89,10 +89,11 @@
 	窗口占比0.7x0.7|huiZz_Window[win_size_zz]%(A_ScreenWidth*0.7,A_ScreenHeight*0.7)
 	窗口占比0.8x0.8|huiZz_Window[win_size_zz]%(A_ScreenWidth*0.8,A_ScreenHeight*0.8)
 	窗口占比0.8x0.9|huiZz_Window[win_size_zz]%(A_ScreenWidth*0.8,A_ScreenHeight*0.95)
+	窗口上半屏|huiZz_Window[win_move_size_zz]%(0,0,A_ScreenWidth,A_ScreenHeight*0.5)
+	窗口下半屏|huiZz_Window[win_move_size_zz]%(0,A_ScreenHeight*0.5,A_ScreenWidth,A_ScreenHeight*0.5)
+	窗口左半屏|huiZz_Window[win_move_size_zz]%(0,0,A_ScreenWidth*0.5,A_ScreenHeight)
+	窗口右半屏|huiZz_Window[win_move_size_zz]%(A_ScreenWidth*0.5,0,A_ScreenWidth*0.5,A_ScreenHeight)
 	--
-	窗口上半屏|huiZz_Window[win_move_size_zz](0,0,%A_ScreenWidth%,540)
-	窗口下半屏|huiZz_Window[win_move_size_zz](0,540,%A_ScreenWidth%,540)
-	窗口竖半屏|huiZz_Window[win_size_zz](960,%A_ScreenHeight%)
 	窗口最大化去标题栏|huiZz_Window[win_max_zz]()
 	窗口最大化多显示器|huiZz_Window[win_max_max]()
 	--
