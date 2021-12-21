@@ -1,24 +1,37 @@
+# 独立运行插件脚本（不与RunAny有关联）
+| 插件文件                 | 插件功能                       |
+| ------------------------ | ------------------------------ |
+| huiZz_MButton.ahk        | 鼠标中键任意位置拖拽窗口       |
+| huiZz_RestTime.ahk       | 定时提醒休息时间               |
+| huiZz_InputEnCn.ahk      | 自定义程序自动中英输入法       |
+| huiZz_VirtualDesktop.ahk | 在任务栏上滚动鼠标切换虚拟桌面 |
+---
+
+# RunAny多功能插件
+
+| 插件文件             | 插件功能                                                     |
+| -------------------- | ------------------------------------------------------------ |
+| RunAny_Menu.ahk      | 1. 透明化RunAny菜单主体<br />2. 可用空格、鼠标右键、XButton等热键改变RunAny菜单项运行方式<br />（打开目录、最小化运行、复制路径、结束进程等） |
+| [RunAny_SearchBar.ahk](/plugins-searchbar) | RunAny搜索框：快捷使用文本功能列表、后缀应用列表、百度等网址 |
+| RunCtrl_Common.ahk   | RunCtrl公共规则函数库                                        |
+
+
+
+---
+
 ![RunAny_huiZz_Text变量命名功能](/assets/images/RunAny_huiZz_Text变量命名功能.gif)
 
-# 独立运行插件脚本
-| 插件文件            | 插件分类       | 插件功能                 |
-| ------------------- | -------------- | ------------------------ |
-| huiZz_MButton.ahk   | 独立功能插件   | 鼠标中键任意位置拖拽窗口 |
-| huiZz_RestTime.ahk  | 独立功能插件   | 定时提醒休息时间         |
-| RunAny_Menu.ahk     | RunAny辅助插件 | 透明化RunAny菜单主体     |
-| huiZz_InputEnCn.ahk | 独立功能插件   | 自定义程序自动中英输入法  |
-
-# ObjReg插件脚本嵌入RunAny菜单
+# RunAny菜单内运行项插件：ObjReg插件脚本
 以下ObjReg插件需要先下载RunAny_ObjReg.ahk，注册到RunAny之后实现功能
 
-| 插件文件           | 插件功能                     |
-| ------------------ | ---------------------------- |
-| [huiZz_Window.ahk](/plugins-list?id=huizz_window窗口操作脚本窗口函数ini)   | ObjReg窗口操作脚本           |
-| [huizz_System.ahk](/plugins-list?id=huizz_system系统操作脚本系统函数ini)   | ObjReg系统操作脚本           |
-| [huizz_Text.ahk](/plugins-list?id=huizz_text文本操作脚本文本函数ini)     | ObjReg文本操作脚本           |
-| [huiZz_QRCode.ahk](/plugins-list?id=huizz_qrcode二维码脚本)   | ObjReg二维码脚本{}           |
-| huiZz_BatchRun.ahk | ObjReg批量自定义运行         |
-| huiZz_Work.ahk     | ObjReg工作相关脚本           |
+| 插件文件                                                     | 插件功能             |
+| ------------------------------------------------------------ | -------------------- |
+| [huiZz_Window.ahk](/plugins-list?id=huizz_window窗口操作脚本窗口函数ini) | ObjReg窗口操作脚本   |
+| [huizz_System.ahk](/plugins-list?id=huizz_system系统操作脚本系统函数ini) | ObjReg系统操作脚本   |
+| [huizz_Text.ahk](/plugins-list?id=huizz_text文本操作脚本文本函数ini) | ObjReg文本操作脚本   |
+| [huiZz_QRCode.ahk](/plugins-list?id=huizz_qrcode二维码脚本)  | ObjReg二维码脚本{}   |
+| huiZz_BatchRun.ahk                                           | ObjReg批量自定义运行 |
+| huiZz_Work.ahk                                               | ObjReg工作相关脚本   |
 
 ---
 
@@ -45,8 +58,8 @@
 | system_hidefile_zz     | 显示或不显示 系统文件和隐藏文件                |
 | system_regedit_zz      | 根据选中注册表路径，直接打开注册表定位         |
 | system_ip_zz           | 获取本地IP地址显示并放入剪贴板或输出           |
-| system_ping_zz         | Ping选中的IP地址                              |
-| system_explorer_zz     | 重启桌面进程                                  |
+| system_ping_zz         | Ping选中的IP地址                               |
+| system_explorer_zz     | 重启桌面进程                                   |
 | system_file_path_zz    | 复制选中文件路径、名称、后缀、快捷方式指向路径 |
 | system_create_shortcut | 创建快捷方式到桌面                             |
 | system_sound_volume    | 控制系统音量增减                               |
@@ -93,5 +106,4 @@
 | 脚本内函数名 | RunAny菜单实现功能 |
 | ------------ | ------------------ |
 | qr_code      | 二维码生成         |
-
 
