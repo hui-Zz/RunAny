@@ -1,11 +1,11 @@
-# 【RA搜索框：快捷使用文本功能列表、后缀应用列表、百度等网址】
+# 【RunAny搜索框：快捷使用文本功能列表、后缀应用列表、百度等网址】
 
 ## 一.使用方法：
 1. 下载安装【RunAny】 https://hui-zz.gitee.io/runany/#/
 2. 将【tong_SearchBar.ahk】、【Lib】添加至【RunAny】的【RunPlugins】文件夹，在RunAny中【开启】并设置为【自启】
     Lib文件夹存放的是汉字转拼音功能
-3. 打开RunAny.ini或RunAny2.ini文件，添加以下内容，可自定义快捷键，下列是shift+D开启
-    `RA搜索栏	+d|RunAny_SearchBar[toggle_searchBar]()`
+3. 打开RunAny.ini或RunAny2.ini文件，添加以下内容，可自定义快捷键，下列是<kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>d</kbd>开启
+    `RA搜索栏	+!d|RunAny_SearchBar[toggle_searchBar]()`
 4. 使用3中快捷键开启
 
 ## 二.使用说明：
