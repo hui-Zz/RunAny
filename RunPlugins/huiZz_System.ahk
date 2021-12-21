@@ -3,7 +3,7 @@
 ;*             by hui-Zz 
 ;************************
 global RunAny_Plugins_Name:="ObjReg系统操作脚本"
-global RunAny_Plugins_Version:="1.1.1"
+global RunAny_Plugins_Version:="1.1.2"
 global RunAny_Plugins_Icon:="imageres.dll,61"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
@@ -149,6 +149,34 @@ class RunAnyObj {
 		}
 		if(str="")
 			FileRecycleEmpty
+	}
+	;[批量ping命令]
+	;参数说明：getZz：选中的多个IP地址内容
+	;splitStr：每个IP地址中间分隔的符号(默认回车，逗号为特殊字符，转义写成`,)
+	;批量ping命令|huiZz_System[system_batch_ping](%getZz%,"`n")
+	system_batch_ping(getZz:="",splitStr:="`n"){
+		getZzLoop:=Trim(getZz," `t`n`r")
+		textResult:=""
+		Loop, Parse, getZzLoop, %splitStr%
+		{
+			str=%A_LoopField%
+			if(str!="")
+				Run,%ComSpec% /c "title ping %str% -t & ping %str% -t"
+		}
+	}
+	;[批量cmd命令]
+	;参数说明：getZz：选中的多个cmd命令内容
+	;splitStr：每个cmd命令中间分隔的符号(默认回车，逗号为特殊字符，转义写成`,)
+	;批量cmd命令|huiZz_System[system_batch_cmd](%getZz%,"`n")
+	system_batch_cmd(getZz:="",splitStr:="`n"){
+		getZzLoop:=Trim(getZz," `t`n`r")
+		textResult:=""
+		Loop, Parse, getZzLoop, %splitStr%
+		{
+			str=%A_LoopField%
+			if(str!="")
+				Run,%ComSpec% /c "title %str% & %str%"
+		}
 	}
 
 ;══════════════════════════大括号以上是RunAny菜单调用的函数══════════════════════════
