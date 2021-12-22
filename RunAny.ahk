@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.8 @2021.12.21
+║【RunAny】一劳永逸的快速启动工具 v5.7.8 @2021.12.22
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.7.8"     ;~;版本号
-global RunAny_update_time:="预发布版 2021.12.21"   ;~;更新日期
+global RunAny_update_time:="预发布版 2021.12.22"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -145,49 +145,52 @@ global MenuObjSame:=Object()               ;Everything搜索结果重名程序�
 global MenuObjSearch:=Object()             ;Everything搜索无路径菜单项
 global MenuObjCache:=Object()              ;Everything搜索无路径应用缓存
 global MenuObjNew:=Object()                ;Everything搜索新增加
-EvCommandStr:=EvDemandSearch ? EverythingNoPathSearchStr() : ""
+EvCommandStr:=""                           ;Everything搜索字符
 ;~;[14.获取无路径应用的运行全路径缓存]
-Loop, parse, evFullPathIniVar, `n, `r
-{
-	varList:=StrSplit(A_LoopField,"=",,2)
-	outVarStr:=varList[1]
-	objFileNameNoExeExt:=RegExReplace(outVarStr,"iS)\.exe$","")
-	MenuObj[objFileNameNoExeExt]:=varList[2]
-	MenuObjCache[outVarStr]:=varList[2]
-	;检查缓存中的无路径应用被删除或移动
-	if(Trim(varList[2]," `t`n`r")!="" && !FileExist(varList[2])){
-		MenuObjCache[outVarStr]:=""  ;缓存失效则置空
-		if(RegExMatch(outVarStr, RegexEscapeNoPointStr)){
-			outVarStr:=StrListEscapeReplace(outVarStr, RegexEscapeNoPointList, "\")
-		}
-		outVarStr:=StrReplace(outVarStr,".","\.")
-		MenuObjNew.push("^" outVarStr "$")
-	}
-	;无路径应用被删除自动清除对应的缓存
-	if(!MenuObjSearch.HasKey(outVarStr)){
-		IniDelete, %RunAnyEvFullPathIni%, FullPath, %outVarStr%
-	}
-}
-;发现有新增的无路径菜单项
-if(Trim(evFullPathIniVar," `t`n`r")!=""){
-	NoPathFlag:=true
-	for k,v in MenuObjSearch
+if(EvDemandSearch){
+	EvCommandStr:=EverythingNoPathSearchStr()
+	Loop, parse, evFullPathIniVar, `n, `r
 	{
-		;发现有新的无路径应用
-		if(!MenuObjCache.HasKey(k)){
-			if(RegExMatch(k, RegexEscapeNoPointStr)){
-				k:=StrListEscapeReplace(k, RegexEscapeNoPointList, "\")
+		varList:=StrSplit(A_LoopField,"=",,2)
+		outVarStr:=varList[1]
+		objFileNameNoExeExt:=RegExReplace(outVarStr,"iS)\.exe$","")
+		MenuObj[objFileNameNoExeExt]:=varList[2]
+		MenuObjCache[outVarStr]:=varList[2]
+		;检查缓存中的无路径应用被删除或移动
+		if(Trim(varList[2]," `t`n`r")!="" && !FileExist(varList[2])){
+			MenuObjCache[outVarStr]:=""  ;缓存失效则置空
+			if(RegExMatch(outVarStr, RegexEscapeNoPointStr)){
+				outVarStr:=StrListEscapeReplace(outVarStr, RegexEscapeNoPointList, "\")
 			}
-			k:=StrReplace(k,".","\.")
-			MenuObjNew.push("^" k "$")
-		}else{
-			MenuObjSearch[k]:=MenuObjCache[k]
+			outVarStr:=StrReplace(outVarStr,".","\.")
+			MenuObjNew.push("^" outVarStr "$")
+		}
+		;无路径应用被删除自动清除对应的缓存
+		if(!MenuObjSearch.HasKey(outVarStr)){
+			IniDelete, %RunAnyEvFullPathIni%, FullPath, %outVarStr%
 		}
 	}
-	if(MenuObjNew.Length()>0){
-		NoPathFlag:=false
-		EvCommandStr:=StrListJoin("|",MenuObjNew)
-		EvCommandStr:="regex:""" EvCommandStr """"
+	;发现有新增的无路径菜单项
+	if(Trim(evFullPathIniVar," `t`n`r")!=""){
+		NoPathFlag:=true
+		for k,v in MenuObjSearch
+		{
+			;发现有新的无路径应用
+			if(!MenuObjCache.HasKey(k)){
+				if(RegExMatch(k, RegexEscapeNoPointStr)){
+					k:=StrListEscapeReplace(k, RegexEscapeNoPointList, "\")
+				}
+				k:=StrReplace(k,".","\.")
+				MenuObjNew.push("^" k "$")
+			}else{
+				MenuObjSearch[k]:=MenuObjCache[k]
+			}
+		}
+		if(MenuObjNew.Length()>0){
+			NoPathFlag:=false
+			EvCommandStr:=StrListJoin("|",MenuObjNew)
+			EvCommandStr:="regex:""" EvCommandStr """"
+		}
 	}
 }
 MenuObjEv:=MenuObj.Clone()
@@ -2224,12 +2227,11 @@ Menu_Run_Plugins_ObjReg:
 		if(appPlugins="runany"){
 			if(appParmStr=""){
 				Send_Or_Show(Func(appFunc).Call(),false)
-			}else if(appParms.MaxIndex()=1){
-				Send_Or_Show(Func(appFunc).Call(appParms[1]),false)
-			}else if(appParms.MaxIndex()=2){
-				Send_Or_Show(Func(appFunc).Call(appParms[1],appParms[2]),false)
-			}else if(appParms.MaxIndex()=3){
-				Send_Or_Show(Func(appFunc).Call(appParms[1],appParms[2],appParms[3]),false)
+			}else if(appParms.MaxIndex()>=1 && appParms.MaxIndex()<=10){
+				Send_Or_Show(Func(appFunc).Call(appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8],appParms[9],appParms[10]),false)
+			}else if(appParms.MaxIndex()>10){
+				ToolTip,❎`n脚本函数：%appFunc%`n函数参数：%appParmErrorStr% 参数数量最多为10个，请修改后重试！
+				SetTimer,RemoveToolTip,8000
 			}
 			return
 		}
@@ -2246,25 +2248,7 @@ return
 PluginsObjRegRun(appPlugins, appFunc, appParms){
 	if(appParms.Length()=0){	;没有传参，直接执行函数
 		effectResult:=PluginsObjRegActive[appPlugins][appFunc]()
-	}else if(appParms.MaxIndex()=1){
-		effectResult:=PluginsObjRegActive[appPlugins][appFunc](appParms[1])
-	}else if(appParms.MaxIndex()=2){
-		effectResult:=PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2])
-	}else if(appParms.MaxIndex()=3){
-		effectResult:=PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3])
-	}else if(appParms.MaxIndex()=4){
-		effectResult:=PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4])
-	}else if(appParms.MaxIndex()=5){
-		effectResult:=PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5])
-	}else if(appParms.MaxIndex()=6){
-		effectResult:=PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6])
-	}else if(appParms.MaxIndex()=7){
-		effectResult:=PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7])
-	}else if(appParms.MaxIndex()=8){
-		effectResult:=PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8])
-	}else if(appParms.MaxIndex()=9){
-		effectResult:=PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8],appParms[9])
-	}else if(appParms.MaxIndex()=10){
+	}else if(appParms.MaxIndex()>=1 && appParms.MaxIndex()<=10){
 		effectResult:=PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8],appParms[9],appParms[10])
 	}else if(appParms.MaxIndex()>10){
 		ToolTip,❎`n脚本插件：%appPlugins%`n脚本函数：%appFunc%`n函数参数：%appParmErrorStr% 参数数量最多为10个，请修改后重试！
@@ -5139,13 +5123,13 @@ LVDown:
 					URLDownloadToFile(RunAnyDownDir "/" PluginsDir "/" name_no_ext "/quricol64.dll",A_ScriptDir "\" pluginsDownPath "\quricol64.dll")
 					FileRead, quricol64, %A_ScriptDir%\%pluginsDownPath%\quricol64.dll
 					if(quricol64="404: Not Found`n"){
-						MsgBox,48,,二维码插件quricol64.dll下载异常，请重新更新或到官网下载！
+						MsgBox,48,,二维码插件quricol64.dll下载异常，请重新勾选下载！
 						return
 					}
 				}
 				FileRead, quricol32, %A_ScriptDir%\%pluginsDownPath%\quricol32.dll
 				if(quricol32="404: Not Found`n"){
-					MsgBox,48,,二维码插件quricol32.dll下载异常，请重新更新或到官网下载！
+					MsgBox,48,,二维码插件quricol32.dll下载异常，请重新勾选下载！
 					return
 				}
 			}else if(FileName="RunCtrl_Network.ahk"){
@@ -5161,6 +5145,10 @@ LVDown:
 				if(A_Is64bitOS){
 					CreateDir(A_ScriptDir "\" pluginsDownPath "\Lib\ChToPy_dll_64")
 					URLDownloadToFile(RunAnyDownDir "/" StrReplace(pluginsDownPath,"\","/") "/Lib/ChToPy_dll_64/cpp2ahk.dll",A_ScriptDir "\" pluginsDownPath "\Lib\ChToPy_dll_64\cpp2ahk.dll")
+				}
+				Sleep, 2000
+				if(!FileExist(A_ScriptDir "\" pluginsDownPath "\Lib\ChToPy_dll_32\cpp2ahk.dll")){
+					MsgBox, 48, ,RunAny_SearchBar.ahk需要的汉字转拼音组件ChToPy.ahk没有下载成功，请重新勾选下载
 				}
 			}
 			;[下载插件脚本]
@@ -6460,6 +6448,7 @@ Settings_Gui:
 	Gui,66:Add,Button, xm yp+35 w50 GLVMenuObjPathAdd, + 增加
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuObjPathEdit, · 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuObjPathRemove, - 减少
+	Gui,66:Add,Button, x+10 yp w50 GLVMenuObjPathSelect, A 全选
 	Gui,66:Add,Text, x+25 yp-5,无路径说明：每次新增或移动无路径应用文件后`n会使用Everything获得它最新的运行全路径
 	Gui,66:Add,Listview,xm yp+40 r16 grid AltSubmit vRunAnyMenuObjPathLV glistviewMenuObjPath, 无路径应用名|当前电脑运行全路径（来自Everything）
 	RunAnyMenuObjPathImageListID := IL_Create(11)
@@ -6492,8 +6481,8 @@ Settings_Gui:
 	Gui,66:Add,Button,xm yp+20 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp+2 w%GROUP_CHOOSE_EDIT_WIDTH_66% vvEvPath,%EvPath%
 	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% vvEvCommandGroup,RunAny调用Everything搜索参数（搜索结果可在RunAny无路径运行，Everything异常请尝试重建索引）
-	Gui,66:Add,Radio,Checked%EvDemandSearch% xm yp+25 cBlack vvEvDemandSearch gSetEvDemandSearch,按需搜索模式（推荐，只搜索RunAny菜单的无路径文件进行匹配路径，速度快，支持生成更新无路径缓存）
-	Gui,66:Add,Radio,Checked%EvAllSearch% xm yp+25 cBlack vvEvAllSearch gSetEvAllSearch,全磁盘搜索模式（搜索全磁盘指定后缀的文件，然后匹配RA菜单取得路径，开机首次加载缓慢，不能生成无路径缓存）
+	Gui,66:Add,Radio,Checked%EvDemandSearch% xm yp+25 cBlack vvEvDemandSearch gSetEvDemandSearch,按需搜索模式（推荐，只搜索RunAny菜单的无路径文件进行匹配路径，速度快，支持生成更新无路径应用缓存）
+	Gui,66:Add,Radio,Checked%EvAllSearch% xm yp+25 cBlack vvEvAllSearch gSetEvAllSearch,全磁盘搜索模式（搜索全磁盘指定后缀的文件，然后匹配RA菜单取得路径，开机首次加载缓慢，无路径缓存无效！）
 	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+25 vvEvExeVerNew,搜索结果优先最新版本的同名exe
 	Gui,66:Add,Checkbox,Checked%EvExeMTimeNew% x+23 vvEvExeMTimeNew,搜索结果优先最新修改时间的同名文件
 	Gui,66:Add,Button,xm y+20 w50 GSetEvCommand,修改
@@ -6935,6 +6924,8 @@ SetEvAllSearch:
 	}else{
 		Gui,66:Font, cRed, Microsoft YaHei
 		GuiControl,66:Font, vEvAllSearch
+		GuiControl,66:Font, RunAnyMenuObjPathLV
+		Gui,66:Font, cBlack, Microsoft YaHei
 	}
 return
 SetEvDemandSearch:
@@ -7258,10 +7249,22 @@ return
 LVMenuObjPathRemove:
 	Gui, ListView, RunAnyMenuObjPathLV
 	MenuObjPathFlag:=true
-	RunRowNumber := LV_GetNext(0, "F")
-	if not RunRowNumber
-		return
-	LV_Delete(RunRowNumber)
+	DelRowList:=""
+	RowNumber:=0
+	Loop
+	{
+		RowNumber := LV_GetNext(RowNumber)  ; 在前一次找到的位置后继续搜索.
+		if not RowNumber  ; 上面返回零, 所以选择的行已经都找到了.
+			break
+		DelRowList:=RowNumber . ":" . DelRowList
+	}
+	stringtrimright, DelRowList, DelRowList, 1
+	loop, parse, DelRowList, :
+		LV_Delete(A_loopfield)
+return
+LVMenuObjPathSelect:
+	Gui, ListView, RunAnyMenuObjPathLV
+	LV_Modify(0, "Select Focus")   ; 选择所有.
 return
 SaveMenuObjPath:
 	MenuObjPathFlag:=true
