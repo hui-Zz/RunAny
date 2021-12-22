@@ -6,7 +6,6 @@
 # 【RunAny】一劳永逸的快速启动工具
 
 [![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?label=最新版本&style=flat-square&logo=github&color=red)![GitHub stars](https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=flat-square&color=yellow)![GitHub forks](https://img.shields.io/github/forks/hui-Zz/RunAny?style=flat-square)](https://github.com/hui-Zz/RunAny)![Lines of code](https://img.shields.io/tokei/lines/github/hui-Zz/RunAny?label=代码行数&style=flat-square&color=99ccff)![history](https://img.shields.io/badge/2017--2021-yellowgreen.svg?style=flat-square)  
-[![码云Gitee](https://img.shields.io/badge/dynamic/json?style=flat-square&label=stars&logo=gitee&logoColor=red&url=https://gitee.com/api/v5/repos/hui-Zz/RunAny&query=$.stargazers_count)](https://gitee.com/hui-Zz/RunAny)
 [![Autohotkey](https://img.shields.io/badge/autohotkey-1.1.33.10-green.svg?style=flat-square&logo=autohotkey)](http://ahkscript.org)
 [![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fhui-Zz%2FRunAny&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=%E5%BD%93%E6%97%A5%2F%E6%80%BB%E6%B5%8F%E8%A7%88&edge_flat=true)](https://hits.seeyoufarm.com)
 </div>
@@ -205,40 +204,40 @@ RunAny追求就是：<u>**一劳永逸**</u>
 
 ## 【特别感谢以下朋友对RunAny的赞助！有你们RunAny会越来越好！】
 
-| 昵称           | 时间                | 昵称              | 时间                    |
-| -------------- | ------------------- | ----------------- | ----------------------- |
-| Balance        | 2017                | 心向              | 2020-03-11 10:11:40     |
-| AHK-工兵       | 2018-04-17 17:30:09 | 涅槃 (2)          | 2020-03-23 08:32:57     |
-| Nicked         | 2018-05-15 15:25:42 | **E*d (3)**       | **2020-04-01 09:37:45** |
-| 声仔           | 2018-05-16 10:29:59 | **成              | 2020-04-22 21:17:34     |
-| °～童年不懂事° | 2018-05-16 22:55:26 | S*w               | 2020-06-03 09:53:19     |
-| skystar        | 2018-05-27 16:39:36 | contraction       | 2020-07-30 22:33:42     |
-| AHK-工兵（2）  | 2018-06-01 11:04:59 | **坤              | 2020-08-06 21:33:45     |
-| 小雨果         | 2018-06-03 17:51:58 | *闲               | 2020-08-19 17:24:15     |
-| 多多           | 2018-06-07 12:38:42 | K*s               | 2020-08-25 10:21:55     |
-| 涅槃           | 2018-06-18 16:54:18 | *丁               | 2020-09-04 18:02:57     |
-| skystar（2）   | 2018-06-26 14:24:17 | **国              | 2020-11-18 02:12:44     |
-| 小川（Ever）   | 2018-07-18 09:12:00 | *斌               | 2020-11-23 11:35:59     |
-| E*d            | 2018-07-23 11:20:18 | **锋              | 2020-12-02 15:26:46     |
-| 鼠小天         | 2018-10-20 17:06:00 | **彬              | 2021-01-11 10:19:30     |
-| *伟华          | 2018-11-08 16:42:07 | S*w               | 2021-02-01 18:21:40     |
-| AHK-工兵（3）  | 2018-11-29 10:01:21 | **涅槃 (3)**      | **2021-07-16 15:23:34** |
-| K*a            | 2018-12-04 15:22:41 | **AHK-工兵（6）** | **2021-07-16 16:23:16** |
-| *天（过年好）  | 2019-01-30 21:37:40 | ★火★              | 2021-09-14 21:57:24     |
-| *杭            | 2019-02-27 18:29:58 | F*o               | 2021-09-15 11:15:26     |
-| 禁誋           | 2019-03-27 21:21:08 | R*n               | 2021-09-15 14:29:12     |
-| *杭（2）       | 2019-03-29 17:06:15 | 逍遥              | 2021-10-05 11:16:24     |
-| *❎             | 2019-07-10 09:32:15 | *毛               | 2021-11-10 19:42:46     |
-| E*d（2）       | 2019-07-30 16:51:02 |                   |                         |
-| *伟华（2）     | 2019-08-03 23:22:57 |                   |                         |
-| AHK-工兵（4）  | 2019-08-22 12:13:49 |                   |                         |
-| AHK-工兵（5）  | 2019-08-23 15:22:22 |                   |                         |
-| Mr.Liu         | 2019-08-23 15:24:37 |                   |                         |
-| 过客           | 2019-10-01 14:33:37 |                   |                         |
-|                |                     |                   |                         |
+| 昵称           | 时间                | 昵称              | 时间                |
+| -------------- | ------------------- | ----------------- | ------------------- |
+| Balance        | 2017                | 心向              | 2020-03-11 10:11:40 |
+| AHK-工兵       | 2018-04-17 17:30:09 | 涅槃 (2)          | 2020-03-23 08:32:57 |
+| Nicked         | 2018-05-15 15:25:42 | **E*d (3)**       | 2020-04-01 09:37:45 |
+| 声仔           | 2018-05-16 10:29:59 | **成              | 2020-04-22 21:17:34 |
+| °～童年不懂事° | 2018-05-16 22:55:26 | S*w               | 2020-06-03 09:53:19 |
+| skystar        | 2018-05-27 16:39:36 | contraction       | 2020-07-30 22:33:42 |
+| AHK-工兵（2）  | 2018-06-01 11:04:59 | **坤              | 2020-08-06 21:33:45 |
+| 小雨果         | 2018-06-03 17:51:58 | *闲               | 2020-08-19 17:24:15 |
+| 多多           | 2018-06-07 12:38:42 | K*s               | 2020-08-25 10:21:55 |
+| 涅槃           | 2018-06-18 16:54:18 | *丁               | 2020-09-04 18:02:57 |
+| skystar（2）   | 2018-06-26 14:24:17 | **国              | 2020-11-18 02:12:44 |
+| 小川（Ever）   | 2018-07-18 09:12:00 | *斌               | 2020-11-23 11:35:59 |
+| E*d            | 2018-07-23 11:20:18 | **锋              | 2020-12-02 15:26:46 |
+| 鼠小天         | 2018-10-20 17:06:00 | **彬              | 2021-01-11 10:19:30 |
+| *伟华          | 2018-11-08 16:42:07 | S*w               | 2021-02-01 18:21:40 |
+| AHK-工兵（3）  | 2018-11-29 10:01:21 | **涅槃 (3)**      | 2021-07-16 15:23:34 |
+| K*a            | 2018-12-04 15:22:41 | **AHK-工兵（6）** | 2021-07-16 16:23:16 |
+| *天（过年好）  | 2019-01-30 21:37:40 | ★火★              | 2021-09-14 21:57:24 |
+| *杭            | 2019-02-27 18:29:58 | F*o               | 2021-09-15 11:15:26 |
+| 禁誋           | 2019-03-27 21:21:08 | R*n               | 2021-09-15 14:29:12 |
+| *杭（2）       | 2019-03-29 17:06:15 | *旭               | 2021-09-18 19:00:10 |
+| *❎             | 2019-07-10 09:32:15 | 逍遥              | 2021-10-05 11:16:24 |
+| E*d（2）       | 2019-07-30 16:51:02 | *毛               | 2021-11-10 19:42:46 |
+| ***伟华（2）** | 2019-08-03 23:22:57 | *塔               | 2021-12-01 09:28:11 |
+| AHK-工兵（4）  | 2019-08-22 12:13:49 | L*u               | 2021-12-04 09:54:21 |
+| AHK-工兵（5）  | 2019-08-23 15:22:22 | **AHK-工兵（7）** | 2021-12-06 19:28:38 |
+| Mr.Liu         | 2019-08-23 15:24:37 |                   |                     |
+| 过客           | 2019-10-01 14:33:37 |                   |                     |
+|                |                     |                   |                     |
 
 ---
-![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny?style=social) ![GitHub stars](https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=social) ![Lines of code](https://img.shields.io/tokei/lines/github/hui-Zz/RunAny?style=social&logo=github) ![history](https://img.shields.io/badge/2017--2021-yellowgreen.svg?style=social&logo=github) [![Autohotkey](https://img.shields.io/badge/Autohotkey-1.1.33.10-white.svg?style=social&logo=autohotkey)![GitHub top language](https://img.shields.io/github/languages/top/hui-Zz/RunAny?style=social&logo=autohotkey)](http://ahkscript.org) ![windows](https://img.shields.io/badge/Windows-0078D6?style=social&logo=windows)
+![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny?style=social) ![GitHub stars](https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=social) ![Lines of code](https://img.shields.io/tokei/lines/github/hui-Zz/RunAny?style=social&logo=github) ![history](https://img.shields.io/badge/2017--2021-yellowgreen.svg?style=social&logo=github) [![Autohotkey](https://img.shields.io/badge/Autohotkey-1.1.33.10-white.svg?style=social&logo=autohotkey)![GitHub top language](https://img.shields.io/github/languages/top/hui-Zz/RunAny?style=social&logo=autohotkey)](http://ahkscript.org) ![windows](https://img.shields.io/badge/Windows-0078D6?style=social&logo=windows) [![码云Gitee](https://img.shields.io/badge/dynamic/json?style=flat-square&label=stars&logo=gitee&logoColor=red&url=https://gitee.com/api/v5/repos/hui-Zz/RunAny&query=$.stargazers_count)](https://gitee.com/hui-Zz/RunAny)
 
 [![Stargazers over time](https://starchart.cc/hui-Zz/RunAny.svg)](https://starchart.cc/hui-Zz/RunAny)
 
