@@ -4,27 +4,32 @@
 ;tong
 /*1.使用方法：
 	1.下载安装【RunAny】 https://hui-zz.gitee.io/runany/#/
-	2.将【tong_SearchBar.ahk】、【Lib】添加至【RunAny】的【RunPlugins】文件夹，在RunAny中【开启】并设置为【自启】
-		Lib文件夹存放的是汉字转拼音功能
+	2.在插件管理中将本插件设置为自启，并重启RA，完成第一次使用的初始化
 	3.打开RunAny.ini或RunAny2.ini文件，添加以下内容，可自定义快捷键，下列是shift+D开启
-		RA搜索栏	+d|RunAny_SearchBar[toggle_searchBar]()
+		RA搜索框	+d|RunAny_SearchBar[toggle_searchBar]()
+		RA搜索框	+d|RunAny_SearchBar[toggle_searchBar](%getZz%)
+		第二个菜单项可以划词
 	4.使用3中快捷键开启
 
   2.使用说明：
-	1.当候选项当候选项剩下一个时，自动填充 is_auto_fill，可关闭
-	2.加号可移动搜索框
-	3.双击提示框可执行
-	4.有候选项是回车执行第一个
-	5.可以选择是否自动为大写，is_auto_CapsLock ，可关闭
-	6.自动填充后是否禁用一段时间输入，Edit_stop_time，可选择
+	1.加号可移动搜索框
+	2.双击候选项可执行
+	3.可以选择输入框是否自动填充
+	4.可以选择自动填充后禁用输入时间，0代表不禁用
+	5.可以选择是否回车自动执行第一个候选项
+	6.可以选择是否自动开启大写
+	7.可以选择是否记住上次执行内容
+	8.可以选择插件配置更改自动重启时间，0代表更改后不重启
+	9.可设置输入框出现的位置模式，0代表上次位置，1代表固定位置，2代表鼠标位置
+	-----插件配置可通过右键加号打开进行配置-----
 
   3.快捷键说明：
 	1.tab键正序切换功能，右shift逆序切换功能
 	2.alt快速选择第1个候选项，alt+1、2、3。。。9分别快速选择第1-9对应候选项
-	3.Delete快速清空
-	4.上下键快速选择提示框
+	3.Delete快速清空输入框
+	4.上下键快速选择
 
-  4.添加功能说明：
+  4.添加自定义搜索说明：
 	1.【自定义样式】Radio_names中添加对应功能名称
 	2.【自定义样式】RA_suffix、RA_menu在Radio_names中的对应位置，如未调整顺序则为默认
 	3.【单选框对应功能】中按序号添加对应功能
@@ -32,9 +37,17 @@
 v1.0.3: 2021年12月
 	1.添加拼音搜索和首字母搜索(基于kazhafeizhale的ChToPy脚本),同时RA菜单项值匹配菜单项名称，不再匹配路径
 	2.不再使用onMessage.ahk
+v1.0.4: 2021年12月22日
+	1.新增首次运行没有自启时的提示信息
+	2.插件可设置为鼠标位置
+	3.增加配置文件，可根据当前屏幕分辨率设置外观
+	4.解决缩放显示问题
+	5.新增可接收getZz参数
+	6.新增可以选择记住上次执行的内容
+	7.新增右键加号可以打开配置文件
 */
 
-global RunAny_Plugins_Version:="1.0.3"
+global RunAny_Plugins_Version:="1.0.4"
 global RunAny_Plugins_Icon:="shell32.dll,23"
 ;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
 #Include %A_ScriptDir%\RunAny_ObjReg.ahk
@@ -44,44 +57,27 @@ ChToPy.log4ahk_load_all_dll_path()
 
 ;----------------------------------------【RA插件功能】----------------------------------------
 class RunAnyObj {
-	;RA搜索栏	+d|RunAny_SearchBar[toggle_searchBar]()
-	toggle_searchBar(){
-		Gosub, toggleSearchBar
+	;RA搜索框	+d|RunAny_SearchBar[toggle_searchBar]()
+	;RA搜索框	+d|RunAny_SearchBar[toggle_searchBar](%getZz%)
+	toggle_searchBar(getZz:=""){
+		toggleSearchBar(getZz)
 	}
 }
 ;----------------------------------------【自定义样式】----------------------------------------
 Label_Custom:
-	;搜索框样式
-	global x_pos := 0								;搜索框x轴位置，0默认为中心位置
-	global y_pos := A_ScreenHeight*0.2				;搜索框y轴位置
-	global is_fixed := 1							;1表示每次打开搜索框都固定位置，0表示每次打开搜索框都为上次位置
-	global Edit_color := "black"					;输入框字体颜色
-	global Edit_text_size := 25						;输入框字体大小
-	global Edit_trans := 220						;输入框字体透明度
-	global Edit_width := 800						;输入框宽度
-
-	;上方单选框样式
-	global Radio_un_color := "black"				;单选框控件未选中时字体颜色
-	global Radio_un_text_size := 14					;单选框控件未选中时字体大小
-	global Radio_color := "1e90ff"					;单选框控件选中时字体颜色
-	global Radio_text_size := Radio_un_text_size+1	;单选框控件未选中时字体大小
 	;上方单选框对应功能
-	global Radio_names := ["RA后缀菜单","RA菜单项","百度一下"]	;上方选项的单选框控件ID-设置项
+	global Radio_names := ["后缀菜单","菜单项","百度一下"]	;上方选项的单选框控件ID-设置项，前两项最好不要动
 	global RA_suffix := 1							;RA后缀菜单 在Radio_names中的位置，默认为1，与上面对应
 	global RA_menu := 2								;RA菜单项 在Radio_names中的位置，默认为2，与上面对应
 	global Radio_Default := 2						;默认单选框
-
+	;搜索框样式
+	global x_pos,y_pos,pos_mode,Edit_color,Edit_text_size,Edit_trans,Edit_width,Radio_un_color,Radio_un_text_size,Radio_color,Radio_text_size
 	;提示框样式
-	global ListView_text_size := 12					;提示框字体
-	global ListView_h := 25.2						;提示框单列高度：10-21.5；11-24.2；12-25.2；13-27.2；14-29.2；15-32.2；16-34.2；17-35.2；18-36.2；19-39.2；20-41.2
-	global Candidates_num_max := 50					;候选项个数，超出9的部分不能使用alt+数字键快速选取
-	global width_1 := 0.1,width_2 := 0.4,width_3 := 0.5		;第一、二、三列占中宽度的比列
-
+	global ListView_text_size,ListView_h,Candidates_num_max,Candidates_show_num_max,width_1,width_2,width_3
 	;特色功能
-	global Edit_stop_time := 500					;输入框自动填充后将会禁用[一段时间]键盘鼠标，避免输入过快，自动填充后又输入
-	global is_auto_fill := 1						;当候选项剩下一个时，是否自动填充
-	global is_run_first := 1						;当输入框内容与菜单项名称不完全相同，但有候选项时是否自动执行第一个
-	global is_auto_CapsLock := 1					;是否打开输入框自动开启大写，因为加入了拼音，所以不需要中文输入搜索了
+	global Edit_stop_time,is_auto_fill,is_run_first,is_auto_CapsLock,is_remember_content
+	;辅助功能
+	global Auto_Reload_MTime
 
 ;----------------------------------------【初始化】----------------------------------------
 Label_ScriptSetting: ;脚本前参数设置
@@ -103,7 +99,61 @@ Label_ScriptSetting: ;脚本前参数设置
 	SetTitleMatchMode 2								;窗口标题模糊匹配;RegEx正则匹配
 	DetectHiddenWindows on							;显示隐藏窗口
 
-Label_ReadINI:	;读取INI文件生成菜单项
+Label_ReadINI:	;读取INI文件配置收缩框
+	global INI
+	INI = %A_ScriptDir%\RunAny_SearchBar.ini
+	if !FileExist(INI)
+		initINI()
+	iniread, x_pos, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 搜索框x轴位置, 0.5
+	iniread, y_pos, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 搜索框y轴位置, 0.25
+	iniread, pos_mode, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 搜索框位置模式, 1
+
+	iniread, Edit_color, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 输入框字体颜色, black
+	iniread, Edit_text_size, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 输入框字体大小, 25
+	iniread, Edit_trans, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 输入框透明度, 220
+	iniread, Edit_width, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 输入框宽度, 800
+
+	iniread, Radio_un_color, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 上方搜索选项未选中时字体颜色, black
+	Radio_un_text_size := Edit_text_size -11
+	Radio_text_size := Edit_text_size -10
+	iniread, Radio_color, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 上方搜索选项选中时字体颜色, 1e90ff
+
+	ListView_text_size := Radio_un_text_size
+	iniread, Candidates_num_max, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 候选框内最大行数, 50
+	iniread, Candidates_show_num_max, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 候选框显示最大行数, 10
+	iniread, ListView_column_ratio, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 候选框内三列比例, 0.08:0.28:0.64
+	ListView_column_ratio := StrSplit(ListView_column_ratio, ":")
+	width_1 := ListView_column_ratio[1],width_2 := ListView_column_ratio[2],width_3 := ListView_column_ratio[3]
+	If (width_1 + width_2 + width_3) != 1{
+		width_3 := 1 - width_1 -width_2
+	}
+
+	iniread, is_auto_fill, %INI%, %A_ScreenWidth%*%A_ScreenHeight%,输入框是否自动填充, 1
+	iniread, Edit_stop_time, %INI%, %A_ScreenWidth%*%A_ScreenHeight%,自动填充后禁用输入时间, 500
+	iniread, is_run_first, %INI%, %A_ScreenWidth%*%A_ScreenHeight%,是否回车自动执行第一个候选项, 1
+	iniread, is_auto_CapsLock, %INI%, %A_ScreenWidth%*%A_ScreenHeight%,是否自动开启大写, 1
+	iniread, is_remember_content, %INI%, %A_ScreenWidth%*%A_ScreenHeight%,是否记住上次执行内容, 0
+
+	iniread, Auto_Reload_MTime, %INI%, %A_ScreenWidth%*%A_ScreenHeight%,配置更改自动重启时间, 2000
+	If (A_ScreenDPI=96){
+		
+	}Else If (A_ScreenDPI=120){
+		Edit_width *= 1.25*0.9
+		ListView_h *= 1.25
+		Candidates_show_num_max := Format("{:d}", Candidates_show_num_max/1.25+1)
+	}Else If (A_ScreenDPI=144){
+		Edit_width *= 1.5*0.9
+		ListView_h *= 1.5
+		Candidates_show_num_max := Format("{:d}", Candidates_show_num_max/1.5+2)
+	}Else{
+		Edit_width *= A_ScreenDPI/100*0.9
+		ListView_h *= A_ScreenDPI/100
+		Candidates_show_num_max := Format("{:d}", Candidates_show_num_max/A_ScreenDPI*100+3)
+	}
+	initResetINI()
+
+Label_ReadRAINI:	;读取RAINI文件生成菜单项
+	global rAAhkMatch  := "RunAny.ahk ahk_class AutoHotkey"		;RA ahk路径
 	;从RA配置文件中读取无路径缓存路径
 	SplitPath, A_AhkPath, , RunAnyConfigDir
 	IniRead, RunAEvFullPathIniDir, %RunAnyConfigDir%\RunAnyConfig.ini, Config, RunAEvFullPathIniDir, %A_Space%
@@ -115,6 +165,9 @@ Label_ReadINI:	;读取INI文件生成菜单项
 	INI_MenuObj := INI_Path "\RunAnyMenuObj.ini"
 	INI_MenuObjIcon := INI_Path "\RunAnyMenuObjIcon.ini"
 	INI_MenuObjExt := INI_Path "\RunAnyMenuObjExt.ini"
+	If (!FileExist(INI_MenuObj) || !FileExist(INI_MenuObjIcon) || !FileExist(INI_MenuObjExt)){
+		Send_WM_COPYDATA("runany[ShowTrayTip](RA搜索框插件,首次运行无法读取RA菜单信息，请将本插件设置为【自启】后重启RA！如已设置为【自启】，请耐心等待【RA】启动初始化，将自动重启生效！,20,17)", rAAhkMatch)
+	}
 	global MenuObj := Object()                    	;~程序全路径
 	global MenuObjIcon := Object()                  ;~程序对应图标路径
 	global MenuObjExt := Object()					;~对应后缀菜单
@@ -141,15 +194,16 @@ Label_ReadINI:	;读取INI文件生成菜单项
 	}
 
 Label_Init: ;搜索框GUI初始化
-	global rAAhkMatch  := "RunAny.ahk ahk_class AutoHotkey"		;RA ahk路径
 	global index_temp := Radio_Default							;临时变量，用于tab切换减少时间复杂度
 	global WinID := ""											;窗口ID
 	global My_Edit_Hwnd := ""									;输入框ID
 	global Content := ""										;输入框内容
-	global ListView_Hwnd := ""									;ListView_Hwnd
+	global Move_Hwnd := ""										;加号对应的Hwnd
+	global ListView_Hwnd := ""									;候选项对应的Hwnd
 	global len_Radio := Radio_names.Length()					;上方选项的单选框控件数量
 	global Candidates_num := -1									;候选项个数
 	global is_hide := 0											;表示是否是隐藏效果
+	global Radio_H,Edit_H,ListBox_width,ListView_H1				;辅助变量
 	OnMessage( 0x201 , "move_Win")								;用于拖拽移动
 
 	CustomColor := "6b9ac9"										;用于背景透明的颜色
@@ -179,7 +233,14 @@ Label_Init: ;搜索框GUI初始化
 	ControlGetPos, , ,Move_W , , , ahk_id %Move_Hwnd%
 	ListBox_width := Edit_width + Move_W
 	Gui font, s%ListView_text_size% c%Edit_color%,Segoe UI
-	Gui Add, ListView,xs w%ListBox_width% vCommandChoice -Multi +AltSubmit -HScroll HwndListView_Hwnd gGiveEdit, 序号|菜单名称|菜单值
+	Gui Add, ListView,xs w%ListBox_width% vCommandChoice R2 -Multi +AltSubmit -HScroll HwndListView_Hwnd gGiveEdit, 序号|菜单名称|菜单值
+	Gui Add, ListView,xs w%ListBox_width% R1 -Multi +AltSubmit -HScroll HwndListView_temp_Hwnd , 序号|菜单名称|菜单值
+	Gui, ListView, CommandChoice
+	ControlGetPos, , , , ListView_H1, , ahk_id %ListView_temp_Hwnd%
+	ControlGetPos, , , , ListView_H2, , ahk_id %ListView_Hwnd%
+	ListView_h := ListView_H2 - ListView_H1
+	GuiControl, Disable, %ListView_temp_Hwnd%
+	GuiControl, Hide, %ListView_temp_Hwnd%
 	Gui Add, Button, x39 y69 w75 h23 Hidden Default gLabel_Submit, 确定(&Y)
 	WinSet, TransColor, %CustomColor% %Edit_trans%
 
@@ -189,12 +250,14 @@ Label_Init: ;搜索框GUI初始化
 	Gosub, Label_Font_Radio
 	GuiControl, Font, %DefaultHwnd%
 	GuiControl, Hide, CommandChoice
+	x_pos := A_ScreenWidth*x_pos - (ListBox_width/2)
+	y_pos := A_ScreenHeight*y_pos - (Radio_H+Edit_H/2)
 	Gui Show, xCenter y%y_pos% Hide
 Return
 
 Label_Submit: ;确认提交
 	Gosub, Label_Submit_Before
-	Gosub, toggleSearchBar
+	toggleSearchBar("")
 	Gosub, fun_%index_temp%
 return
 
@@ -294,7 +357,7 @@ ChangeEdit(){	;输入框改变时触发
 		match_flag := 0
 	}
 	ListCount := CandidateList.Length()/3	;数组对应的3元组数量（key、val、ico_path）
-	GuiControl, Move, CommandChoice, % "h" ListView_h + ListView_h * (ListCount > 9 ? 10 : ListCount) + 5	;设置对应的提示框高度
+	GuiControl, Move, CommandChoice, % "h" ListView_H1 + ListView_h * ((ListCount > (Candidates_show_num_max-1) ? Candidates_show_num_max : ListCount)-1) ;设置对应的提示框高度
 	LV_Delete()							;删除提示框内容以刷新
 	ImageListID := IL_Create(ListCount)	;创建对应图片
 	LV_SetImageList(ImageListID)
@@ -351,7 +414,7 @@ Timer_Remove_check: ;鼠标点击其他区域自动隐藏
 	}
 Return
 
-toggleSearchBar:	;激活或关闭RA搜索栏
+toggleSearchBar(getZz){	;激活或关闭RA搜索框
 	if WinActive("ahk_id" WinID){
 		SetTimer, Timer_Remove_check, Off
 		Gosub, hide_searchBar
@@ -360,20 +423,29 @@ toggleSearchBar:	;激活或关闭RA搜索栏
 		is_hide := 0
 		If (is_auto_CapsLock)
 			SetCapsLockState, On
-		If (is_fixed=0){
+		If (pos_mode=0){
 			Gui Show
-		}
-		else If (x_pos=0)
-			Gui Show, xCenter y%y_pos%
-		Else
+		}Else If (pos_mode=1){
 			Gui Show, x%x_pos% y%y_pos%
+		}Else If (pos_mode=2){
+			CoordMode, Mouse, Screen
+			MouseGetPos, xMouse, yMouse
+			xMouse -= (ListBox_width/2)
+			yMouse -= (Radio_H+Edit_H/2)
+			Gui Show, x%xMouse% y%yMouse%
+		}
 		WinActivate,ahk_id %WinID%
 		ControlFocus,,ahk_id %My_Edit_Hwnd%
+		If (getZz)
+			GuiControl, Text, %My_Edit_Hwnd%, %getZz%
+		Else If (is_remember_content)
+			GuiControl, Text, %My_Edit_Hwnd%, %Content%
+		SendInput {End}
 		SetTimer, Timer_Remove_check, 25
 	}
-Return
+}
 
-hide_searchBar:	;隐藏搜索栏
+hide_searchBar:	;隐藏搜索框
 	ToolTip
 	If (is_auto_CapsLock)
 		SetCapsLockState, Off
@@ -381,7 +453,6 @@ hide_searchBar:	;隐藏搜索栏
 	GuiControl, Text, %My_Edit_Hwnd%
 	GuiControl, Hide, CommandChoice
 	Gui Hide
-
 Return
 
 move_Win(){ ;左键移动窗口
@@ -416,6 +487,12 @@ Send_WM_COPYDATA(ByRef StringToSend, ByRef TargetScriptTitle)
     DetectHiddenWindows %Prev_DetectHiddenWindows%  ; 恢复调用者原来的设置.
     SetTitleMatchMode %Prev_TitleMatchMode%         ; 同样.
     return ErrorLevel  ; 返回 SendMessage 的回复给我们的调用者.
+}
+
+GuiContextMenu(GuiHwnd, CtrlHwnd, EventInfo, IsRightClick, X, Y){
+	If (Move_Hwnd=CtrlHwnd) {
+		iniRun(INI)
+	}
 }
 
 ;获取菜单候选项
@@ -483,6 +560,64 @@ getCandidateSuffix(Content,Candidates_num_max){
     Candidates_num := Candidates_num=1 ? 0 : Candidates_num
     Candidates_num := full_match ? 1 : Candidates_num
     Return CandidateList
+}
+
+initResetINI() { ;定时重新加载配置文件
+	FileGetTime, mtime_ini_path, %INI%, M  ; 获取修改时间.
+	RegWrite, REG_SZ, HKEY_CURRENT_USER\Software\RunAny, %INI%, %mtime_ini_path%
+	if (Auto_Reload_MTime>0)
+	{
+		SetTimer, Auto_Reload_MTime, %Auto_Reload_MTime%
+	}
+}
+
+Auto_Reload_MTime: ;定时重新加载脚本
+	RegRead, mtime_ini_path_reg, HKEY_CURRENT_USER\Software\RunAny, %INI%
+	FileGetTime, mtime_ini_path, %INI%, M  ; 获取修改时间.
+	if (mtime_ini_path_reg != mtime_ini_path)
+	{
+		try Reload
+	}
+Return
+
+iniRun(ini) { ;打开指定文件
+	try{
+		if(!FileExist(ini)){
+			MsgBox,16,%ini%,没有找到配置文件：%ini%
+		}
+		Run,"%ini%"
+	}catch{
+		Run,notepad.exe "%ini%"
+	}
+}
+
+initINI() { ;初始化INI
+	FileAppend,;【RA搜索框配置文件】`n, %INI%
+	FileAppend,;【说明】：本配置文件可针对不同分辨率显示器分别设置，请自行添加，默认为【1080P】的设置`n, %INI%
+	FileAppend,[1920*1080]`n, %INI%
+	FileAppend,搜索框x轴位置=0.5`n, %INI%
+	FileAppend,搜索框y轴位置=0.25`n, %INI%
+	FileAppend,搜索框位置模式=1`n, %INI%
+
+	FileAppend,输入框字体颜色=black`n, %INI%
+	FileAppend,输入框字体大小=25`n, %INI%
+	FileAppend,输入框透明度=220`n, %INI%
+	FileAppend,输入框宽度=800`n, %INI%
+
+	FileAppend,上方搜索选项未选中时字体颜色=black`n, %INI%
+	FileAppend,上方搜索选项选中时字体颜色=1e90ff`n, %INI%
+
+	FileAppend,候选框内最大行数=50`n, %INI%
+	FileAppend,候选框显示最大行数=10`n, %INI%
+	FileAppend,候选框内三列比例=0.08:0.28:0.64`n, %INI%
+
+	FileAppend,输入框是否自动填充=1`n, %INI%
+	FileAppend,自动填充后禁用输入时间=500`n, %INI%
+	FileAppend,是否回车自动执行第一个候选项=1`n, %INI%
+	FileAppend,是否自动开启大写=1`n, %INI%
+	FileAppend,是否记住上次执行内容=0`n, %INI%
+
+	FileAppend,配置更改自动重启时间=2000`n, %INI%
 }
 
 ;----------------------------------------------------------------------------------------------
