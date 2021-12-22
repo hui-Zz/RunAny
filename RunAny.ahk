@@ -1100,6 +1100,21 @@ Menu_Item_Icon(menuName,menuItem,iconPath,iconNo=0,treeLevel=""){
 		MenuObjName[menuItemSet]:=1
 	}catch{}
 }
+Menu_Tray_Show:
+	if(GetKeyState("Ctrl") && GetKeyState("Shift")){
+		Gosub,Menu_Config
+		return
+	}
+	if(GetKeyState("Shift")){
+		Gosub,Menu_Ini
+		return
+	}
+	if(GetKeyState("Ctrl")){
+		Open_Folder_Path(A_ScriptDir)
+		return
+	}
+	Gosub,Menu_Show1
+return
 Menu_Show1:
 	MENU_NO:=1
 	iniFileShow:=iniPath
@@ -4638,7 +4653,7 @@ WM_NOTIFY(Param*){
 ;~;【——插件Gui——】
 ;══════════════════════════════════════════════════════════════════
 Plugins_Gui:
-	if(GetKeyState("Ctrl")){
+	if(A_ThisHotkey!=PluginsManageKey && GetKeyState("Ctrl")){
 		Open_Folder_Path(A_ScriptDir "\" PluginsDir)
 		return
 	}
@@ -6315,14 +6330,6 @@ KnowAhkFuncZz(ahkPath){
 ;~;【——设置选项Gui——】
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 Settings_Gui:
-	if(GetKeyState("Shift")){
-		Gosub,Menu_Config
-		return
-	}
-	if(GetKeyState("Ctrl")){
-		Open_Folder_Path(A_ScriptDir)
-		return
-	}
 	Critical  ;防止短时间内打开多次界面出现问题
 	HotKeyFlag:=MenuVarFlag:=OpenExtFlag:=AdvancedConfigFlag:=false
 	GUI_WIDTH_66=700
@@ -8789,7 +8796,7 @@ return
 ;~;【托盘菜单】
 Menu_Tray_Add:
 	Menu,Tray,NoStandard
-	Menu,Tray,add,显示菜单(&Z)`t%MenuHotKey%,Menu_Show1
+	Menu,Tray,add,显示菜单(&Z)`t%MenuHotKey%,Menu_Tray_Show
 	Menu,Tray,add,修改菜单(&E)`t%TreeHotKey1%,Menu_Edit1
 	Menu,Tray,add,修改文件(&F)`t%TreeIniHotKey1%,Menu_Ini
 	Menu,Tray,add
