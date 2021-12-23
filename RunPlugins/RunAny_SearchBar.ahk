@@ -8,7 +8,7 @@
 	3.打开RunAny.ini或RunAny2.ini文件，添加以下内容，可自定义快捷键，下列是shift+D开启
 		RA搜索框	+d|RunAny_SearchBar[toggle_searchBar]()
 		RA搜索框	+d|RunAny_SearchBar[toggle_searchBar](%getZz%)
-		第二个菜单项可以划词
+		上面两个任选一个添加，第二个菜单项可以实现划词搜索
 	4.使用3中快捷键开启
 
   2.使用说明：
@@ -21,18 +21,27 @@
 	7.可以选择是否记住上次执行内容
 	8.可以选择插件配置更改自动重启时间，0代表更改后不重启
 	9.可设置输入框出现的位置模式，0代表上次位置，1代表固定位置，2代表鼠标位置
-	-----插件配置可通过右键加号打开进行配置-----
+	-----插件配置可通过右键加号打开进行设置-----
 
   3.快捷键说明：
 	1.tab键正序切换功能，右shift逆序切换功能
 	2.alt快速选择第1个候选项，alt+1、2、3。。。9分别快速选择第1-9对应候选项
 	3.Delete快速清空输入框
-	4.上下键快速选择
+	4.上下键快速选择候选项
 
   4.添加自定义搜索说明：
-	1.【自定义样式】Radio_names中添加对应功能名称
-	2.【自定义样式】RA_suffix、RA_menu在Radio_names中的对应位置，如未调整顺序则为默认
-	3.【单选框对应功能】中按序号添加对应功能
+	1.【RunAny_SearchBar_Custom.ahk】中【Radio_names】添加对应功能名称
+	2.【RunAny_SearchBar_Custom.ahk】中【RA_suffix】、【RA_menu】与步骤1中【后缀菜单】、【菜单项】位置对应
+	3.【RunAny_SearchBar_Custom.ahk】中【单选框对应功能】中按序号添加对应功能
+	-----【RunAny_SearchBar_Custom.ahk】将在第一次运行后自动生成-----
+	-----【RunAny_SearchBar_Custom.ahk】可通过右键输入框上方搜索功能项打开-----
+	重要：事先声明没有AHK基础不建议自行修改，如出现错误无法解决，请删除RunAny_SearchBar_Custom.ahk，将会自动初始化
+  
+  5.文件说明
+	1.【RunAny_SearchBar.ahk】搜索框主文件，一般下载后会更新此文件
+	2.【RunAny_SearchBar.ini】搜索框配置文件，修改搜索框样式，第一次运行后自动生成，可自行备份
+	3.【RunAny_SearchBar_Custom.ahk】自定义搜索功能文件，无此需求请勿乱改，可自定义添加不同的搜索功能（可以与别人分享的自己写的搜索功能），第一次运行后自动生成，可自行备份，【不用自启】
+	4.【RunAny_SearchBar.ini】和【RunAny_SearchBar_Custom.ahk】文件删除后自动生成
 ;-----------------------------------------【更新说明】-----------------------------------------
 v1.0.3: 2021年12月
 	1.添加拼音搜索和首字母搜索(基于kazhafeizhale的ChToPy脚本),同时RA菜单项值匹配菜单项名称，不再匹配路径
@@ -45,14 +54,19 @@ v1.0.4: 2021年12月22日
 	5.新增可接收getZz参数
 	6.新增可以选择记住上次执行的内容
 	7.新增右键加号可以打开配置文件
+v1.0.5: 2021年12月23日
+	1.功能与插件分离，自定义搜索功能用户可通过RunAny_SearchBar_Custom.ahk文件保存
+	2.自定义搜索堆叠优化，上方垂直堆叠
+	3.新增右键搜索功能项可以打开功能配置文件
+	4.新增配置文件打开方式为RA内部关联
 */
 
-global RunAny_Plugins_Version:="1.0.4"
+global RunAny_Plugins_Version:="1.0.5"
 global RunAny_Plugins_Icon:="shell32.dll,23"
 ;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
-#Include %A_ScriptDir%\RunAny_ObjReg.ahk
+#Include %A_ScriptDir%\..\RunAny_ObjReg.ahk
 ;https://www.autoahk.com/archives/37300 汉字转拼音，不需要则删除下面两行
-#Include %A_ScriptDir%\Lib\ChToPy.ahk
+#Include %A_ScriptDir%\..\Lib\ChToPy.ahk
 ChToPy.log4ahk_load_all_dll_path()
 
 ;----------------------------------------【RA插件功能】----------------------------------------
@@ -66,10 +80,7 @@ class RunAnyObj {
 ;----------------------------------------【自定义样式】----------------------------------------
 Label_Custom:
 	;上方单选框对应功能
-	global Radio_names := ["后缀菜单","菜单项","百度一下"]	;上方选项的单选框控件ID-设置项，前两项最好不要动
-	global RA_suffix := 1							;RA后缀菜单 在Radio_names中的位置，默认为1，与上面对应
-	global RA_menu := 2								;RA菜单项 在Radio_names中的位置，默认为2，与上面对应
-	global Radio_Default := 2						;默认单选框
+	Gosub, Init_Custom_Fun
 	;搜索框样式
 	global x_pos,y_pos,pos_mode,Edit_color,Edit_text_size,Edit_trans,Edit_width,Radio_un_color,Radio_un_text_size,Radio_color,Radio_text_size
 	;提示框样式
@@ -77,7 +88,7 @@ Label_Custom:
 	;特色功能
 	global Edit_stop_time,is_auto_fill,is_run_first,is_auto_CapsLock,is_remember_content
 	;辅助功能
-	global Auto_Reload_MTime
+	global Auto_Reload_MTime,INI_Open_Exe,AHK_Open_Exe
 
 ;----------------------------------------【初始化】----------------------------------------
 Label_ScriptSetting: ;脚本前参数设置
@@ -161,6 +172,31 @@ Label_ReadRAINI:	;读取RAINI文件生成菜单项
 		INI_Path := A_AppData "\RunAny"
 	Else
 		Transform, INI_Path, Deref, % StrReplace(RunAEvFullPathIniDir, "AppData", "A_AppData")
+	;从RA配置文件中ini、ahk后缀关联程序
+	IniRead,openExtVar,%RunAnyConfigDir%\RunAnyConfig.ini,OpenExt
+	Loop, parse, openExtVar, `n, `r
+	{
+		itemList:=StrSplit(A_LoopField,"=",,2)
+		openExtIniList[itemList[1]]:=itemList[2]
+		Loop, parse,% itemList[2], %A_Space%
+		{
+			StringLower, ExtVar, A_LoopField 
+			if (ExtVar="ini")
+				INI_Open_Exe := itemList[1]
+			Else if(ExtVar="ahk")
+				AHK_Open_Exe := itemList[1]
+		}
+	}
+	If !FileExist(INI_Open_Exe){
+		IniRead,INI_Open_Exe,%INI_Path%\RunAnyEvFullPath.ini,FullPath,%INI_Open_Exe%,%A_Space%
+		If !FileExist(INI_Open_Exe)
+			INI_Open_Exe := ""
+	}
+	If !FileExist(AHK_Open_Exe){
+		IniRead,AHK_Open_Exe,%INI_Path%\RunAnyEvFullPath.ini,FullPath,%AHK_Open_Exe%,%A_Space%
+		If !FileExist(AHK_Open_Exe)
+			AHK_Open_Exe := ""
+	}
 	;读取菜单项配置文件
 	INI_MenuObj := INI_Path "\RunAnyMenuObj.ini"
 	INI_MenuObjIcon := INI_Path "\RunAnyMenuObjIcon.ini"
@@ -203,7 +239,7 @@ Label_Init: ;搜索框GUI初始化
 	global len_Radio := Radio_names.Length()					;上方选项的单选框控件数量
 	global Candidates_num := -1									;候选项个数
 	global is_hide := 0											;表示是否是隐藏效果
-	global Radio_H,Edit_H,ListBox_width,ListView_H1				;辅助变量
+	global Radio_H_ALL,Edit_H,ListBox_width,ListView_H1			;辅助变量
 	OnMessage( 0x201 , "move_Win")								;用于拖拽移动
 
 	CustomColor := "6b9ac9"										;用于背景透明的颜色
@@ -217,19 +253,27 @@ Label_Init: ;搜索框GUI初始化
 		If (ki=1)
 			Gui Add, Radio,-Background  x0 y0  gChangeRadio  HwndSearch_Hwnd_%ki%, %kv%
 		Else
-			Gui Add, Radio,-Background yn  gChangeRadio HwndSearch_Hwnd_%ki%, %kv%
+			Gui Add, Radio,-Background x%Radio_X% y%Radio_Y%  gChangeRadio HwndSearch_Hwnd_%ki%, %kv%
 		tmp := Search_Hwnd_%ki%
-		ControlGetPos, , , Radio_W, Radio_H, , ahk_id %tmp%
-		ControlMove, , , , Radio_W*1.05, Radio_H+5,ahk_id %tmp%
+		ControlGetPos, Radio_X, Radio_Y, Radio_W, Radio_H, , ahk_id %tmp%
+		If ((Radio_X+Radio_W)>Edit_width){
+			Radio_X := Radio_W + 15
+			Radio_Y += Radio_H + 15
+			Radio_H_ALL += Radio_H +15
+			ControlMove, , 0, Radio_Y, Radio_W*1.05, Radio_H*1.2,ahk_id %tmp%
+		}Else{
+			Radio_X += Radio_W + 15
+			ControlMove, , , , Radio_W*1.05, Radio_H*1.2,ahk_id %tmp%
+		}
 	}
 ;--------------------------------------------------------------------------------------------
 
 	Gui font, s%Edit_text_size% c%Edit_color%,Segoe UI
 	ControlGetPos, , , , Radio_H, , ahk_id %Search_Hwnd_1%
-	Radio_H += 10
-	Gui Add, Edit, HwndMy_Edit_Hwnd x0 y%Radio_H% w%Edit_width% vContent gChangeEdit
+	Radio_H_ALL += Radio_H + 10
+	Gui Add, Edit, HwndMy_Edit_Hwnd x0 y%Radio_H_ALL% w%Edit_width% vContent gChangeEdit
 	ControlGetPos, , , , Edit_H, , ahk_id %My_Edit_Hwnd%
-	Gui Add, Text,+Border -Background x%Edit_width% y%Radio_H% h%Edit_H% HwndMove_Hwnd, +
+	Gui Add, Text,+Border -Background x%Edit_width% y%Radio_H_ALL% h%Edit_H% HwndMove_Hwnd, +
 	ControlGetPos, , ,Move_W , , , ahk_id %Move_Hwnd%
 	ListBox_width := Edit_width + Move_W
 	Gui font, s%ListView_text_size% c%Edit_color%,Segoe UI
@@ -251,20 +295,22 @@ Label_Init: ;搜索框GUI初始化
 	GuiControl, Font, %DefaultHwnd%
 	GuiControl, Hide, CommandChoice
 	x_pos := A_ScreenWidth*x_pos - (ListBox_width/2)
-	y_pos := A_ScreenHeight*y_pos - (Radio_H+Edit_H/2)
+	y_pos := A_ScreenHeight*y_pos - (Radio_H_ALL+Edit_H/2)
 	Gui Show, xCenter y%y_pos% Hide
 Return
 
 Label_Submit: ;确认提交
 	Gosub, Label_Submit_Before
 	toggleSearchBar("")
-	Gosub, fun_%index_temp%
+	if IsLabel("fun_" index_temp)
+		Gosub, fun_%index_temp%
+	Else
+		Send_WM_COPYDATA("runany[ShowTrayTip](RA搜索框插件,对应功能未定义，请在【RunAny_SearchBar_Custom.ahk】中添加后重启插件，可以通过右键点击功能项快速打开,20,17)", rAAhkMatch)
 return
 
-;----------------------------------------【单选框对应功能】----------------------------------------
-;请按照Radio_names对应的顺序填写
-
-fun_1:	;激活指定后缀的菜单
+;单选框对应功能
+;后缀菜单功能
+suffix_fun:
 	If (Content!="")
 		showSwitchToolTip("后缀: " . Content,2500)
 	Else
@@ -272,7 +318,7 @@ fun_1:	;激活指定后缀的菜单
 	result := Send_WM_COPYDATA("runany[Remote_Menu_Ext_Show](" Content ")", rAAhkMatch)
 Return
 
-fun_2:	;打开指定菜单
+menu_fun:
 	if(RegExMatch(MenuObj[Content],"S).+?\[.+?\]%?\(.*?\)")){
 		result := Send_WM_COPYDATA(MenuObj[Content], rAAhkMatch)
 	}else{
@@ -280,10 +326,7 @@ fun_2:	;打开指定菜单
 	}
 Return
 
-fun_3:	;百度一下
-	Run https://www.baidu.com/s?wd=%Content%
-Return
-;----------------------------------------------------------------------------------------------
+#Include *i %A_ScriptDir%\RunAny_SearchBar_Custom.ahk
 
 Label_Submit_Before: ;提交之前的操作
 	If (index_temp=RA_suffix || index_temp=RA_menu){
@@ -431,7 +474,7 @@ toggleSearchBar(getZz){	;激活或关闭RA搜索框
 			CoordMode, Mouse, Screen
 			MouseGetPos, xMouse, yMouse
 			xMouse -= (ListBox_width/2)
-			yMouse -= (Radio_H+Edit_H/2)
+			yMouse -= (Radio_H_ALL+Edit_H/2)
 			Gui Show, x%xMouse% y%yMouse%
 		}
 		WinActivate,ahk_id %WinID%
@@ -491,7 +534,11 @@ Send_WM_COPYDATA(ByRef StringToSend, ByRef TargetScriptTitle)
 
 GuiContextMenu(GuiHwnd, CtrlHwnd, EventInfo, IsRightClick, X, Y){
 	If (Move_Hwnd=CtrlHwnd) {
-		iniRun(INI)
+		EditFile(INI,INI_Open_Exe)
+	}
+	WinGetClass, CtrlClass, ahk_id %CtrlHwnd%
+	If (CtrlClass="Button"){
+		EditFile(A_ScriptDir "\RunAny_SearchBar_Custom.ahk",AHK_Open_Exe)
 	}
 }
 
@@ -564,7 +611,9 @@ getCandidateSuffix(Content,Candidates_num_max){
 
 initResetINI() { ;定时重新加载配置文件
 	FileGetTime, mtime_ini_path, %INI%, M  ; 获取修改时间.
+	FileGetTime, mtime_CustomAHK_path, %A_ScriptDir%\RunAny_SearchBar_Custom.ahk, M  ; 获取修改时间.
 	RegWrite, REG_SZ, HKEY_CURRENT_USER\Software\RunAny, %INI%, %mtime_ini_path%
+	RegWrite, REG_SZ, HKEY_CURRENT_USER\Software\RunAny, %A_ScriptDir%\RunAny_SearchBar_Custom.ahk, %mtime_CustomAHK_path%
 	if (Auto_Reload_MTime>0)
 	{
 		SetTimer, Auto_Reload_MTime, %Auto_Reload_MTime%
@@ -573,27 +622,82 @@ initResetINI() { ;定时重新加载配置文件
 
 Auto_Reload_MTime: ;定时重新加载脚本
 	RegRead, mtime_ini_path_reg, HKEY_CURRENT_USER\Software\RunAny, %INI%
+	RegRead, mtime_CustomAHK_path_reg, HKEY_CURRENT_USER\Software\RunAny, %A_ScriptDir%\RunAny_SearchBar_Custom.ahk
 	FileGetTime, mtime_ini_path, %INI%, M  ; 获取修改时间.
-	if (mtime_ini_path_reg != mtime_ini_path)
+	FileGetTime, mtime_CustomAHK_path, %A_ScriptDir%\RunAny_SearchBar_Custom.ahk, M  ; 获取修改时间.
+	if (mtime_ini_path_reg != mtime_ini_path || mtime_CustomAHK_path_reg != mtime_CustomAHK_path)
 	{
 		try Reload
 	}
 Return
 
-iniRun(ini) { ;打开指定文件
+Init_Custom_Fun:
+	FileGetTime, mtime_CustomAHK_path, %A_ScriptDir%\RunAny_SearchBar_Custom.ahk, M  ; 获取修改时间.
+	if !mtime_CustomAHK_path{
+		initCustomAHK()
+		Reload
+	}
+	temp := "Fun"
+	if IsLabel("Label_Custom_" temp)
+		Gosub, Label_Custom_%temp%
+Return
+
+initCustomAHK(){
+	FileAppend,
+(
+;*************************************************
+;* 【RA搜索框自定义功能（不用自启）】
+;*************************************************
+;tong
+;【重要】：事先声明没有AHK基础不建议自行修改本文件，如出现错误无法解决，请关闭RA后删除本文件，将会自动初始化本文件
+;【说明】：如果改动了本文件，请自行备份，避免丢失，重新下载RunAny_SearchBar.ahk不会覆盖本文件
+;【建议】：自定义的变量和辅助函数加上建议使用 SearchCustom_ 前缀避免重名冲突
+;【添加自定义搜索功能步骤】：【百度一下】为参考案例
+	;1.【Radio_names】添加对应功能名称
+	;2.【RA_suffix】、【RA_menu】与步骤1中【后缀菜单】、【菜单项】位置对应，请务必一一对应
+	;3.【单选框对应功能】中按序号添加与【Radio_names】对应的功能
+
+;------------------------------------------【自定义变量】-----------------------------------------
+Label_Custom_Fun:
+	global Radio_names := ["后缀菜单","菜单项","百度一下"]
+	global RA_suffix := 1		;后缀菜单对应位置
+	global RA_menu := 2			;菜单项对应位置
+	global Radio_Default := 2	;默认搜索对应位置，默认为菜单项
+Return
+
+;----------------------------------------【单选框对应功能】----------------------------------------
+fun_1:	;后缀菜单
+	Gosub, suffix_fun
+Return
+
+fun_2:	;菜单项
+	Gosub, menu_fun
+Return
+
+fun_3:	;百度一下
+	Run https://www.baidu.com/s?wd=`%Content`%
+Return
+
+;----------------------------------------【辅助函数位置】----------------------------------------
+	), %A_ScriptDir%\RunAny_SearchBar_Custom.ahk, UTF-8
+}
+
+EditFile(filePath,openExe:="notepad.exe") { ;打开指定文件
+	openExe := openExe ? openExe : "notepad.exe"
 	try{
 		if(!FileExist(ini)){
 			MsgBox,16,%ini%,没有找到配置文件：%ini%
+		}Else{
+			Run,%openExe% "%filePath%"
 		}
-		Run,"%ini%"
 	}catch{
-		Run,notepad.exe "%ini%"
+		MsgBox,16,%ini%,无法打开配置文件：%filePath%
 	}
 }
 
 initINI() { ;初始化INI
 	FileAppend,;【RA搜索框配置文件】`n, %INI%
-	FileAppend,;【说明】：本配置文件可针对不同分辨率显示器分别设置，请自行添加，默认为【1080P】的设置`n, %INI%
+	FileAppend,;【说明】：本配置文件可针对不同分辨率显示器分别设置，请自行添加，默认为【1080P】的设置，详细参数说明请看RA官网说明或入群自问`n, %INI%
 	FileAppend,[1920*1080]`n, %INI%
 	FileAppend,搜索框x轴位置=0.5`n, %INI%
 	FileAppend,搜索框y轴位置=0.25`n, %INI%
