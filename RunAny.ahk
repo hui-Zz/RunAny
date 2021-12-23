@@ -5150,19 +5150,19 @@ LVDown:
 			}else if(FileName="RunCtrl_Network.ahk"){
 				TrayTip,,RunCtrl_Network.ahk需要下载组件JSON.ahk，请稍等……,3,17
 				SetTimer, HideTrayTip, -3000
-				URLDownloadToFile(RunAnyDownDir "/" StrReplace(pluginsDownPath,"\","/") "/Lib/JSON.ahk",A_ScriptDir "\" pluginsDownPath "\Lib\JSON.ahk")
+				URLDownloadToFile(RunAnyDownDir "/" PluginsDir "/Lib/JSON.ahk",A_ScriptDir "\" PluginsDir "\Lib\JSON.ahk")
 			}else if(FileName="RunAny_SearchBar.ahk"){
 				TrayTip,,RunAny_SearchBar.ahk需要下载汉字转拼音组件ChToPy.ahk，请稍等……,3,17
 				SetTimer, HideTrayTip, -3000
-				URLDownloadToFile(RunAnyDownDir "/" StrReplace(pluginsDownPath,"\","/") "/Lib/ChToPy.ahk",A_ScriptDir "\" pluginsDownPath "\Lib\ChToPy.ahk")
-				CreateDir(A_ScriptDir "\" pluginsDownPath "\Lib\ChToPy_dll_32")
-				URLDownloadToFile(RunAnyDownDir "/" StrReplace(pluginsDownPath,"\","/") "/Lib/ChToPy_dll_32/cpp2ahk.dll",A_ScriptDir "\" pluginsDownPath "\Lib\ChToPy_dll_32\cpp2ahk.dll")
+				URLDownloadToFile(RunAnyDownDir "/" PluginsDir "/Lib/ChToPy.ahk",A_ScriptDir "\" PluginsDir "\Lib\ChToPy.ahk")
+				CreateDir(A_ScriptDir "\" PluginsDir "\Lib\ChToPy_dll_32")
+				URLDownloadToFile(RunAnyDownDir "/" PluginsDir "/Lib/ChToPy_dll_32/cpp2ahk.dll",A_ScriptDir "\" PluginsDir "\Lib\ChToPy_dll_32\cpp2ahk.dll")
 				if(A_Is64bitOS){
-					CreateDir(A_ScriptDir "\" pluginsDownPath "\Lib\ChToPy_dll_64")
-					URLDownloadToFile(RunAnyDownDir "/" StrReplace(pluginsDownPath,"\","/") "/Lib/ChToPy_dll_64/cpp2ahk.dll",A_ScriptDir "\" pluginsDownPath "\Lib\ChToPy_dll_64\cpp2ahk.dll")
+					CreateDir(A_ScriptDir "\" PluginsDir "\Lib\ChToPy_dll_64")
+					URLDownloadToFile(RunAnyDownDir "/" PluginsDir "/Lib/ChToPy_dll_64/cpp2ahk.dll",A_ScriptDir "\" PluginsDir "\Lib\ChToPy_dll_64\cpp2ahk.dll")
 				}
 				Sleep, 2000
-				if(!FileExist(A_ScriptDir "\" pluginsDownPath "\Lib\ChToPy_dll_32\cpp2ahk.dll")){
+				if(!FileExist(A_ScriptDir "\" PluginsDir "\Lib\ChToPy_dll_32\cpp2ahk.dll")){
 					MsgBox, 48, ,RunAny_SearchBar.ahk需要的汉字转拼音组件ChToPy.ahk没有下载成功，请重新勾选下载
 				}
 			}
