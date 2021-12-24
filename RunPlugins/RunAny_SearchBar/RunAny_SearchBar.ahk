@@ -59,9 +59,13 @@ v1.0.5: 2021年12月23日
 	2.自定义搜索堆叠优化，上方垂直堆叠
 	3.新增右键搜索功能项可以打开功能配置文件
 	4.新增配置文件打开方式为RA内部关联
+v1.0.6: 2021年12月24日
+	1.修复使用RA内部关联打开配置文件包含变量无法读取的错误
+	2.修复ListView图像列表内存占用问题，降低内存占用
+	3.修复长按退格键导致下方候选框残留问题
 */
 
-global RunAny_Plugins_Version:="1.0.5"
+global RunAny_Plugins_Version:="1.0.6"
 global RunAny_Plugins_Icon:="shell32.dll,23"
 ;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
 #Include %A_ScriptDir%\..\RunAny_ObjReg.ahk
@@ -94,7 +98,6 @@ Label_Custom:
 Label_ScriptSetting: ;脚本前参数设置
 	Process, Priority, , High						;脚本高优先级
 	#MenuMaskKey vkE8
-	#NoEnv											;不检查空变量是否为环境变量
 	#NoTrayIcon             						;~不显示托盘图标
 	#Persistent										;让脚本持久运行(关闭或ExitApp)
 	#SingleInstance Force							;单例运行
@@ -171,9 +174,9 @@ Label_ReadRAINI:	;读取RAINI文件生成菜单项
 	If (RunAEvFullPathIniDir="")
 		INI_Path := A_AppData "\RunAny"
 	Else
-		Transform, INI_Path, Deref, % StrReplace(RunAEvFullPathIniDir, "AppData", "A_AppData")
+		Transform, INI_Path, Deref, % RunAEvFullPathIniDir
 	;从RA配置文件中ini、ahk后缀关联程序
-	IniRead,openExtVar,%RunAnyConfigDir%\RunAnyConfig.ini,OpenExt
+	IniRead, openExtVar, %RunAnyConfigDir%\RunAnyConfig.ini, OpenExt
 	Loop, parse, openExtVar, `n, `r
 	{
 		itemList:=StrSplit(A_LoopField,"=",,2)
@@ -182,18 +185,18 @@ Label_ReadRAINI:	;读取RAINI文件生成菜单项
 		{
 			StringLower, ExtVar, A_LoopField 
 			if (ExtVar="ini")
-				INI_Open_Exe := itemList[1]
+				Transform, INI_Open_Exe, Deref, % itemList[1]
 			Else if(ExtVar="ahk")
-				AHK_Open_Exe := itemList[1]
+				Transform, AHK_Open_Exe, Deref, % itemList[1]
 		}
 	}
 	If !FileExist(INI_Open_Exe){
-		IniRead,INI_Open_Exe,%INI_Path%\RunAnyEvFullPath.ini,FullPath,%INI_Open_Exe%,%A_Space%
+		IniRead, INI_Open_Exe, %INI_Path%\RunAnyEvFullPath.ini, FullPath, %INI_Open_Exe%, %A_Space%
 		If !FileExist(INI_Open_Exe)
 			INI_Open_Exe := ""
 	}
 	If !FileExist(AHK_Open_Exe){
-		IniRead,AHK_Open_Exe,%INI_Path%\RunAnyEvFullPath.ini,FullPath,%AHK_Open_Exe%,%A_Space%
+		IniRead, AHK_Open_Exe, %INI_Path%\RunAnyEvFullPath.ini, FullPath, %AHK_Open_Exe%, %A_Space%
 		If !FileExist(AHK_Open_Exe)
 			AHK_Open_Exe := ""
 	}
@@ -239,7 +242,7 @@ Label_Init: ;搜索框GUI初始化
 	global len_Radio := Radio_names.Length()					;上方选项的单选框控件数量
 	global Candidates_num := -1									;候选项个数
 	global is_hide := 0											;表示是否是隐藏效果
-	global Radio_H_ALL,Edit_H,ListBox_width,ListView_H1			;辅助变量
+	global Radio_H_ALL,Edit_H,ListBox_width,ListView_H1,ImageListID			;辅助变量
 	OnMessage( 0x201 , "move_Win")								;用于拖拽移动
 
 	CustomColor := "6b9ac9"										;用于背景透明的颜色
@@ -296,7 +299,7 @@ Label_Init: ;搜索框GUI初始化
 	GuiControl, Hide, CommandChoice
 	x_pos := A_ScreenWidth*x_pos - (ListBox_width/2)
 	y_pos := A_ScreenHeight*y_pos - (Radio_H_ALL+Edit_H/2)
-	Gui Show, xCenter y%y_pos% Hide
+	Gui Show, x%x_pos% y%y_pos% Hide
 Return
 
 Label_Submit: ;确认提交
@@ -309,8 +312,7 @@ Label_Submit: ;确认提交
 return
 
 ;单选框对应功能
-;后缀菜单功能
-suffix_fun:
+suffix_fun:	;后缀菜单功能
 	If (Content!="")
 		showSwitchToolTip("后缀: " . Content,2500)
 	Else
@@ -318,7 +320,7 @@ suffix_fun:
 	result := Send_WM_COPYDATA("runany[Remote_Menu_Ext_Show](" Content ")", rAAhkMatch)
 Return
 
-menu_fun:
+menu_fun:	;菜单项功能
 	if(RegExMatch(MenuObj[Content],"S).+?\[.+?\]%?\(.*?\)")){
 		result := Send_WM_COPYDATA(MenuObj[Content], rAAhkMatch)
 	}else{
@@ -326,6 +328,7 @@ menu_fun:
 	}
 Return
 
+;加载用户自定义功能
 #Include *i %A_ScriptDir%\RunAny_SearchBar_Custom.ahk
 
 Label_Submit_Before: ;提交之前的操作
@@ -386,6 +389,8 @@ Return
 ;----------------------------------------【单选框对应触发提示对应】----------------------------------------
 
 ChangeEdit(){	;输入框改变时触发
+	LV_Delete()							;删除提示框内容以刷新
+	IL_Destroy(ImageListID)				;删除图像列表，降低内存
 	match_flag := 1	;用于那些功能出发下方提示框
 	GuiControlGet, OutputVar, ,%My_Edit_Hwnd%
 	If (index_temp=RA_suffix){			;激活指定后缀的菜单触发
@@ -401,7 +406,6 @@ ChangeEdit(){	;输入框改变时触发
 	}
 	ListCount := CandidateList.Length()/3	;数组对应的3元组数量（key、val、ico_path）
 	GuiControl, Move, CommandChoice, % "h" ListView_H1 + ListView_h * ((ListCount > (Candidates_show_num_max-1) ? Candidates_show_num_max : ListCount)-1) ;设置对应的提示框高度
-	LV_Delete()							;删除提示框内容以刷新
 	ImageListID := IL_Create(ListCount)	;创建对应图片
 	LV_SetImageList(ImageListID)
 	Loop, %ListCount%{					;ListView插入对应值
@@ -430,7 +434,19 @@ ChangeEdit(){	;输入框改变时触发
 	}Else{
 		ToolTip
 	}
+	SetTimer, close_ListView, 100
 }
+
+close_ListView:	;如果为空则关闭候选框
+	GuiControlGet, OutputVar, ,%My_Edit_Hwnd%
+	If (!OutputVar){
+		LV_Delete()							;删除提示框内容以刷新
+		IL_Destroy(ImageListID)				;删除图像列表，降低内存
+		GuiControl, Hide, CommandChoice
+	}
+	SetTimer, close_ListView, Off
+Return
+
 
 GiveEdit:	;在提示框内输入按键自动跳转到输入框，双击执行对应功能
 	If (A_GuiEvent = "K"){
@@ -457,7 +473,7 @@ Timer_Remove_check: ;鼠标点击其他区域自动隐藏
 	}
 Return
 
-toggleSearchBar(getZz){	;激活或关闭RA搜索框
+toggleSearchBar(getZz:=""){	;激活或关闭RA搜索框
 	if WinActive("ahk_id" WinID){
 		SetTimer, Timer_Remove_check, Off
 		Gosub, hide_searchBar
@@ -631,7 +647,7 @@ Auto_Reload_MTime: ;定时重新加载脚本
 	}
 Return
 
-Init_Custom_Fun:
+Init_Custom_Fun:  ;执行自定义功能标签
 	FileGetTime, mtime_CustomAHK_path, %A_ScriptDir%\RunAny_SearchBar_Custom.ahk, M  ; 获取修改时间.
 	if !mtime_CustomAHK_path{
 		initCustomAHK()
@@ -642,7 +658,7 @@ Init_Custom_Fun:
 		Gosub, Label_Custom_%temp%
 Return
 
-initCustomAHK(){
+initCustomAHK(){	;初始化自定义的AHK
 	FileAppend,
 (
 ;*************************************************
