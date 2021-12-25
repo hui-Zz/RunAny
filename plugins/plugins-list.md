@@ -19,7 +19,7 @@
 
 ---
 
-![RunAny_huiZz_Text变量命名功能](/assets/images/RunAny_huiZz_Text变量命名功能.gif)
+![RunAny_huiZz_Text变量命名功能](../assets/images/RunAny_huiZz_Text变量命名功能.gif)
 
 # RunAny菜单运行项插件：
 **以下ObjReg插件都要添加到RunAny菜单中运行才能使用**  
