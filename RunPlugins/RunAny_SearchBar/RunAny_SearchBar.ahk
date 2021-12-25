@@ -63,9 +63,13 @@ v1.0.6: 2021年12月24日
 	1.修复使用RA内部关联打开配置文件包含变量无法读取的错误
 	2.修复ListView图像列表内存占用问题，降低内存占用
 	3.修复长按退格键导致下方候选框残留问题
+v1.0.7: 2021年12月25日
+	1.新增能够为每个搜索功能设置是否开启大写，对应配置项：对应菜单开启大写
+	2.新增基于系统设置的切换输入法快捷键实现自动切换输入法，对应配置项：切换输入法快捷键
+	3.增加URI转义，修复网页搜索内容存在%等无法搜索的问题，见【RunAny_SearchBar_Custom.ahk】中百度一下搜索功能
 */
 
-global RunAny_Plugins_Version:="1.0.6"
+global RunAny_Plugins_Version:="1.0.7"
 global RunAny_Plugins_Icon:="shell32.dll,23"
 ;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
 #Include %A_ScriptDir%\..\RunAny_ObjReg.ahk
@@ -90,7 +94,7 @@ Label_Custom:
 	;提示框样式
 	global ListView_text_size,ListView_h,Candidates_num_max,Candidates_show_num_max,width_1,width_2,width_3
 	;特色功能
-	global Edit_stop_time,is_auto_fill,is_run_first,is_auto_CapsLock,is_remember_content
+	global Edit_stop_time,is_auto_fill,is_run_first,is_auto_CapsLock,CapsLock_List,is_remember_content,ChangeIMEHotKey
 	;辅助功能
 	global Auto_Reload_MTime,INI_Open_Exe,AHK_Open_Exe
 
@@ -114,6 +118,7 @@ Label_ScriptSetting: ;脚本前参数设置
 	DetectHiddenWindows on							;显示隐藏窗口
 
 Label_ReadINI:	;读取INI文件配置收缩框
+	global SearchBar_Version:="1.0.7"
 	global INI
 	INI = %A_ScriptDir%\RunAny_SearchBar.ini
 	if !FileExist(INI)
@@ -138,14 +143,16 @@ Label_ReadINI:	;读取INI文件配置收缩框
 	iniread, ListView_column_ratio, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 候选框内三列比例, 0.08:0.28:0.64
 	ListView_column_ratio := StrSplit(ListView_column_ratio, ":")
 	width_1 := ListView_column_ratio[1],width_2 := ListView_column_ratio[2],width_3 := ListView_column_ratio[3]
-	If (width_1 + width_2 + width_3) != 1{
-		width_3 := 1 - width_1 -width_2
-	}
 
 	iniread, is_auto_fill, %INI%, %A_ScreenWidth%*%A_ScreenHeight%,输入框是否自动填充, 1
 	iniread, Edit_stop_time, %INI%, %A_ScreenWidth%*%A_ScreenHeight%,自动填充后禁用输入时间, 500
 	iniread, is_run_first, %INI%, %A_ScreenWidth%*%A_ScreenHeight%,是否回车自动执行第一个候选项, 1
 	iniread, is_auto_CapsLock, %INI%, %A_ScreenWidth%*%A_ScreenHeight%,是否自动开启大写, 1
+	iniread, CapsLock_List1, %INI%, %A_ScreenWidth%*%A_ScreenHeight%,对应菜单开启大写, 1|2
+	iniread, ChangeIMEHotKey, %INI%, %A_ScreenWidth%*%A_ScreenHeight%,切换输入法快捷键, %A_Space%
+	CapsLock_List := Object() 
+	Loop, parse, CapsLock_List1, |
+    	CapsLock_List[A_LoopField] := A_LoopField 
 	iniread, is_remember_content, %INI%, %A_ScreenWidth%*%A_ScreenHeight%,是否记住上次执行内容, 0
 
 	iniread, Auto_Reload_MTime, %INI%, %A_ScreenWidth%*%A_ScreenHeight%,配置更改自动重启时间, 2000
@@ -384,6 +391,7 @@ ChangeRadio(CtrlHwnd){	;单选框改变时的样式改变
 		Else
 			index_temp := Mod(index_temp+1, len_Radio+1)
 	}
+	Gosub, changeCapsLockState
 }
 Return
 ;----------------------------------------【单选框对应触发提示对应】----------------------------------------
@@ -404,7 +412,8 @@ ChangeEdit(){	;输入框改变时触发
 	}Else{
 		match_flag := 0
 	}
-	ListCount := CandidateList.Length()/3	;数组对应的3元组数量（key、val、ico_path）
+	column := LV_GetCount("Column")
+	ListCount := CandidateList.Length()/column	;数组对应的3元组数量（key、val、ico_path）
 	GuiControl, Move, CommandChoice, % "h" ListView_H1 + ListView_h * ((ListCount > (Candidates_show_num_max-1) ? Candidates_show_num_max : ListCount)-1) ;设置对应的提示框高度
 	ImageListID := IL_Create(ListCount)	;创建对应图片
 	LV_SetImageList(ImageListID)
@@ -415,9 +424,16 @@ ChangeEdit(){	;输入框改变时触发
 		IL_Add(ImageListID, ico[1], ico[2])
 		LV_Add("Icon" . A_Index,"-" . A_Index, key, val)
 	}
-	LV_ModifyCol(1,Edit_width*width_1)		;设置算元祖对应宽度
-	LV_ModifyCol(2,Edit_width*width_2)
-	LV_ModifyCol(3,Edit_width*width_3)
+	width_remainder := 1
+	Loop, %column%{
+		If (A_Index=column)
+			LV_ModifyCol(A_Index,Edit_width*width_remainder)
+		Else{
+			width := width_%A_Index%
+			LV_ModifyCol(A_Index,Edit_width*width)
+			width_remainder -= width
+		}
+	}
 	GuiControl, % ListCount ? "Show" : "Hide", CommandChoice 	;根据数量是否显示提示框
 	If (is_hide = 0)
 		Gui, Show, AutoSize
@@ -480,8 +496,7 @@ toggleSearchBar(getZz:=""){	;激活或关闭RA搜索框
 	}
 	Else{
 		is_hide := 0
-		If (is_auto_CapsLock)
-			SetCapsLockState, On
+		Gosub, changeCapsLockState
 		If (pos_mode=0){
 			Gui Show
 		}Else If (pos_mode=1){
@@ -495,6 +510,7 @@ toggleSearchBar(getZz:=""){	;激活或关闭RA搜索框
 		}
 		WinActivate,ahk_id %WinID%
 		ControlFocus,,ahk_id %My_Edit_Hwnd%
+		SendInput %ChangeIMEHotKey%
 		If (getZz)
 			GuiControl, Text, %My_Edit_Hwnd%, %getZz%
 		Else If (is_remember_content)
@@ -548,7 +564,7 @@ Send_WM_COPYDATA(ByRef StringToSend, ByRef TargetScriptTitle)
     return ErrorLevel  ; 返回 SendMessage 的回复给我们的调用者.
 }
 
-GuiContextMenu(GuiHwnd, CtrlHwnd, EventInfo, IsRightClick, X, Y){
+GuiContextMenu(GuiHwnd, CtrlHwnd, EventInfo, IsRightClick, X, Y){	;右键功能
 	If (Move_Hwnd=CtrlHwnd) {
 		EditFile(INI,INI_Open_Exe)
 	}
@@ -558,8 +574,7 @@ GuiContextMenu(GuiHwnd, CtrlHwnd, EventInfo, IsRightClick, X, Y){
 	}
 }
 
-;获取菜单候选项
-getCandidateMenu(Content,Candidates_num_max){
+getCandidateMenu(Content,Candidates_num_max){	;获取菜单候选项
 	If (Content="")
 		Return
 	CandidateList := Object()
@@ -596,8 +611,7 @@ getCandidateMenu(Content,Candidates_num_max){
     Return CandidateList
 }
 
-;获取后缀候选项
-getCandidateSuffix(Content,Candidates_num_max){
+getCandidateSuffix(Content,Candidates_num_max){	;获取后缀候选项
 	If (Content="")
 		Return
 	CandidateList := Object()
@@ -658,7 +672,16 @@ Init_Custom_Fun:  ;执行自定义功能标签
 		Gosub, Label_Custom_%temp%
 Return
 
-initCustomAHK(){	;初始化自定义的AHK
+changeCapsLockState:	;改变大小写状态
+	If (is_auto_CapsLock){
+		If CapsLock_List.HasKey(index_temp)
+			SetCapsLockState, On
+		Else
+			SetCapsLockState, Off
+	}
+Return
+
+initCustomAHK(){	;初始化自定义搜索功能的AHK
 	FileAppend,
 (
 ;*************************************************
@@ -691,7 +714,8 @@ fun_2:	;菜单项
 Return
 
 fun_3:	;百度一下
-	Run https://www.baidu.com/s?wd=`%Content`%
+	URIContent:=URIEncode(Content)	;网页搜索时内容进行URI转义
+	Run https://www.baidu.com/s?wd=`%URIContent`%
 Return
 
 ;----------------------------------------【辅助函数位置】----------------------------------------
@@ -711,8 +735,22 @@ EditFile(filePath,openExe:="notepad.exe") { ;打开指定文件
 	}
 }
 
+URIEncode(str, encoding := "UTF-8")  {	;URI转义
+   VarSetCapacity(var, StrPut(str, encoding))
+   StrPut(str, &var, encoding)
+
+   While code := NumGet(Var, A_Index - 1, "UChar")  {
+      bool := (code > 0x7F || code < 0x30 || code = 0x3D)
+      UrlStr .= bool ? "%" . Format("{:02X}", code) : Chr(code)
+   }
+   Return UrlStr
+}
+
 initINI() { ;初始化INI
 	FileAppend,;【RA搜索框配置文件】`n, %INI%
+	FileAppend,;【说明】：后续版本如有新的配置项，请对比后自行修改添加`n, %INI%
+	FileAppend,[基础配置]`n, %INI%
+	FileAppend,配置版本=%SearchBar_Version%`n, %INI%
 	FileAppend,;【说明】：本配置文件可针对不同分辨率显示器分别设置，请自行添加，默认为【1080P】的设置，详细参数说明请看RA官网说明或入群自问`n, %INI%
 	FileAppend,[1920*1080]`n, %INI%
 	FileAppend,搜索框x轴位置=0.5`n, %INI%
@@ -735,6 +773,8 @@ initINI() { ;初始化INI
 	FileAppend,自动填充后禁用输入时间=500`n, %INI%
 	FileAppend,是否回车自动执行第一个候选项=1`n, %INI%
 	FileAppend,是否自动开启大写=1`n, %INI%
+	FileAppend,对应菜单开启大写=1|2`n, %INI%
+	FileAppend,切换输入法快捷键=`n, %INI%
 	FileAppend,是否记住上次执行内容=0`n, %INI%
 
 	FileAppend,配置更改自动重启时间=2000`n, %INI%
@@ -767,6 +807,7 @@ Tab::	;TAB键快速正序切换，loop循环保证意外发生，循环其实不
 		}
 		index_temp := Mod(index_temp+1, len_Radio+1)
 	}
+	Gosub, changeCapsLockState
 	ChangeEdit()
 Return
 RShift::	;右边shift键快速逆序切换
@@ -793,6 +834,7 @@ RShift::	;右边shift键快速逆序切换
 		}
 		index_temp := Mod(index_temp-1, len_Radio+1)
 	}
+	Gosub, changeCapsLockState
 	ChangeEdit()
 Return
 ;左Lat自动补全
