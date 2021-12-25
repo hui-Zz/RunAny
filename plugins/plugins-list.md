@@ -1,4 +1,5 @@
-# 独立运行插件脚本（不与RunAny有关联）
+# RunAny插件列表
+# 独立运行插件脚本（不与RunAny有关系）
 | 插件文件                 | 插件功能                       |
 | ------------------------ | ------------------------------ |
 | huiZz_MButton.ahk        | 鼠标中键任意位置拖拽窗口       |
@@ -16,13 +17,13 @@
 | RunCtrl_Common.ahk   | RunCtrl公共规则函数库                                        |
 
 
-
 ---
 
 ![RunAny_huiZz_Text变量命名功能](/assets/images/RunAny_huiZz_Text变量命名功能.gif)
 
-# RunAny菜单内运行项插件：ObjReg插件脚本
-以下ObjReg插件需要先下载RunAny_ObjReg.ahk，注册到RunAny之后实现功能
+# RunAny菜单运行项插件：
+**以下ObjReg插件都要添加到RunAny菜单中运行才能使用**  
+ObjReg插件需要先下载RunAny_ObjReg.ahk，注册到RunAny之后实现功能
 
 | 插件文件                                                     | 插件功能             |
 | ------------------------------------------------------------ | -------------------- |

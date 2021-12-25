@@ -1,4 +1,5 @@
 - [**[首页]**](/README)
 ---
 - [**插件列表**](/plugins/plugins-list.md)
+- [**插件库**](plugins-help.md)
 - [**RA搜索框RunAny_SearchBar**](plugins/runany-searchbar.md)

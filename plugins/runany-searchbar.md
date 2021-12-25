@@ -1,19 +1,88 @@
-## 视频演示
+## **视频演示**
 ### 01-下载使用插件
-[runany-searchbar-01-下载使用插件.mp4](/assets/images/plugins/runany-searchbar-01-下载使用插件.mp4 ':include width=100%')
+[runany-searchbar-01-下载使用插件.mp4](../assets/images/plugins/runany-searchbar-01-下载使用插件.mp4 ':include width=100%')
 ### 02-RA菜单项功能
-[runany-searchbar-02-RA菜单项功能.mp4](/assets/images/plugins/runany-searchbar-02-RA菜单项功能.mp4 ':include width=100%')
+[runany-searchbar-02-RA菜单项功能.mp4](../assets/images/plugins/runany-searchbar-02-RA菜单项功能.mp4 ':include width=100%')
 ### 03-RA后缀菜单功能
-[runany-searchbar-03-RA后缀菜单功能.mp4](/assets/images/plugins/runany-searchbar-03-RA后缀菜单功能.mp4 ':include width=100%')
+[runany-searchbar-03-RA后缀菜单功能.mp4](../assets/images/plugins/runany-searchbar-03-RA后缀菜单功能.mp4 ':include width=100%')
 ### 04-设置外观样式
-[runany-searchbar-04-设置外观样式.mp4](/assets/images/plugins/runany-searchbar-04-设置外观样式.mp4 ':include width=100%')
+[runany-searchbar-04-设置外观样式.mp4](../assets/images/plugins/runany-searchbar-04-设置外观样式.mp4 ':include width=100%')
 ### 05-设置自动切换输入法
-[runany-searchbar-05-设置自动切换输入法.mp4](/assets/images/plugins/runany-searchbar-05-设置自动切换输入法.mp4 ':include width=100%')
+[runany-searchbar-05-设置自动切换输入法.mp4](../assets/images/plugins/runany-searchbar-05-设置自动切换输入法.mp4 ':include width=100%')
 ### 06-设置不同搜索功能对应大小写
-[runany-searchbar-06-设置不同搜索功能对应大小写.mp4](/assets/images/plugins/runany-searchbar-06-设置不同搜索功能对应大小写.mp4 ':include width=100%')
+[runany-searchbar-06-设置不同搜索功能对应大小写.mp4](../assets/images/plugins/runany-searchbar-06-设置不同搜索功能对应大小写.mp4 ':include width=100%')
 ### 07-添加自定义搜索功能
-[runany-searchbar-07-添加自定义搜索功能.mp4](/assets/images/plugins/runany-searchbar-07-添加自定义搜索功能.mp4 ':include width=100%')
+[runany-searchbar-07-添加自定义搜索功能.mp4](../assets/images/plugins/runany-searchbar-07-添加自定义搜索功能.mp4 ':include width=100%')
 
-## 使用方法：
+---
 
-[RunAny_SearchBar.md](https://hui-zz.gitee.io/runany/plugins-runany-searchbar.md ':include')
+
+## **1.使用方法：**
+
+1. 下载安装【RunAny】 https://hui-zz.gitee.io/runany/#/
+2. 在插件管理中将本插件设置为自启，并重启RA，完成第一次使用的初始化
+3. 打开RunAny.ini或RunAny2.ini文件，添加以下内容，可自定义快捷键，下列是shift+D开启
+4. RA搜索框	+d|RunAny_SearchBar[toggle_searchBar]()
+   RA搜索框	+d|RunAny_SearchBar[toggle_searchBar](%getZz%)
+   上面两个任选一个添加，第二个菜单项可以实现划词搜索
+5. 使用3中快捷键开启
+
+###   2.使用说明：
+
+1. 加号可移动搜索框
+2. 双击候选项可执行
+3. 可以选择输入框是否自动填充
+4. 可以选择自动填充后禁用输入时间，0代表不禁用
+5. 可以选择是否回车自动执行第一个候选项
+6. 可以选择是否自动开启大写
+7. 可以选择是否记住上次执行内容
+8. 可以选择插件配置更改自动重启时间，0代表更改后不重启
+9. 可设置输入框出现的位置模式，0代表上次位置，1代表固定位置，2代表鼠标位置
+   	-----插件配置可通过右键加号打开进行设置-----
+
+###   3.快捷键说明：
+
+1. tab键正序切换功能，右shift逆序切换功能
+2. alt快速选择第1个候选项，alt+1、2、3。。。9分别快速选择第1-9对应候选项
+3. Delete快速清空输入框
+4. 上下键快速选择候选项
+
+###   4.添加自定义搜索说明：
+
+1. 【RunAny_SearchBar_Custom.ahk】中【Radio_names】添加对应功能名称
+2. 【RunAny_SearchBar_Custom.ahk】中【RA_suffix】、【RA_menu】与步骤1中【后缀菜单】、【菜单项】位置对应
+3. 【RunAny_SearchBar_Custom.ahk】中【单选框对应功能】中按序号添加对应功能
+   	-----【RunAny_SearchBar_Custom.ahk】将在第一次运行后自动生成-----
+   	-----【RunAny_SearchBar_Custom.ahk】可通过右键输入框上方搜索功能项打开-----
+4. **重要**：事先声明没有AHK基础不建议自行修改，如出现错误无法解决，请删除RunAny_SearchBar_Custom.ahk，将会自动初始化
+
+###   5.文件说明
+
+1. 【RunAny_SearchBar.ahk】搜索框主文件，一般下载后会更新此文件
+2. 【RunAny_SearchBar.ini】搜索框配置文件，修改搜索框样式，第一次运行后自动生成，可自行备份
+3. 【RunAny_SearchBar_Custom.ahk】自定义搜索功能文件，无此需求请勿乱改，可自定义添加不同的搜索功能（可以与别人分享的自己写的搜索功能），第一次运行后自动生成，可自行备份，【不用自启】
+4. 【RunAny_SearchBar.ini】和【RunAny_SearchBar_Custom.ahk】文件删除后自动生成
+
+### 6.RunAny_SearchBar.ini配置文件说明
+
+1. 搜索框x轴位置：0-1，表示屏幕水平方向上的比例位置
+2. 搜索框y轴位置：0-1，表示屏幕垂直方向上的比例位置
+3. 搜索框位置模式：表示呼出输入框的位置模式，0代表上次位置，1代表固定位置，2代表鼠标位置
+4. 输入框字体颜色：字面意思
+5. 输入框字体大小：字面意思，可通过该选项设置输入框高度
+6. 输入框透明度：字面意思
+7. 输入框宽度：字面意思
+8. 上方搜索选项未选中时字体颜色：未选中的搜索功能字体颜色
+9. 上方搜索选项选中时字体颜色：选中哪个搜索功能，改功能字体颜色
+10. 候选框内最大行数：下方能够搜索到的最大行数
+11. 候选框显示最大行数：一次能够显示的最大行数
+12. 候选框内三列比例：下方搜索结果 序号|菜单名称|菜单值所占比例
+13. 输入框是否自动填充：当下方搜索结果只剩一个时，该结果自动填充到输入框
+14. 自动填充后禁用输入时间：自动填充生效后将输入框一段时间内不能输入，0为不禁用，单位为ms
+15. 是否回车自动执行第一个候选项：当搜索结果有多个，此时回车执行第一个结果
+16. 是否自动开启大写：呼出输入框自动设置为大写，关闭输入框关闭大写
+17. 对应菜单开启大写：哪些菜单开启大写，以 | 隔开
+18. 切换输入法快捷键：呼出输入框自动执行该快捷键，可以在windows中设置切换为中英文的快捷键，使用ahk语法设置，则可呼出输入框后自动设置中英文
+19. 是否记住上次执行内容：呼出输入框自动填充上次执行的内容
+20. 配置更改自动重启时间：当更改【RunAny_SearchBar.ini】或【RunAny_SearchBar_Custom.ahk】文件后自动重启输入框的时间，单位为ms
+
