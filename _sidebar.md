@@ -1,7 +1,7 @@
 - [**快速开始**](README.md)
 - [**配置说明**](CONFIG.md)
 - [**功能库**](run-lib.md)
-- [**插件列表**](plugins-list.md)
+- [**插件列表**](plugins/plugins-list.md)
 - [**插件库**](plugins-help.md)
 - [**规则启动**](run-ctrl.md)
 - [**其他功能**](other-features.md)
