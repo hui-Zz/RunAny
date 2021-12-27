@@ -5134,23 +5134,16 @@ LVDown:
 				TrayTip,,huiZz_QRCode需要下载quricol32.dll，请稍等……,3,17
 				SetTimer, HideTrayTip, -3000
 				URLDownloadToFile(RunAnyDownDir "/" PluginsDir "/" name_no_ext "/quricol32.dll",A_ScriptDir "\" pluginsDownPath "\quricol32.dll")
+				Plugins_Down_Check("二维码插件quricol32.dll", A_ScriptDir "\" pluginsDownPath "\quricol32.dll")
 				if(A_Is64bitOS){
 					URLDownloadToFile(RunAnyDownDir "/" PluginsDir "/" name_no_ext "/quricol64.dll",A_ScriptDir "\" pluginsDownPath "\quricol64.dll")
-					FileRead, quricol64, %A_ScriptDir%\%pluginsDownPath%\quricol64.dll
-					if(quricol64="404: Not Found`n"){
-						MsgBox,48,,二维码插件quricol64.dll下载异常，请重新勾选下载！
-						return
-					}
-				}
-				FileRead, quricol32, %A_ScriptDir%\%pluginsDownPath%\quricol32.dll
-				if(quricol32="404: Not Found`n"){
-					MsgBox,48,,二维码插件quricol32.dll下载异常，请重新勾选下载！
-					return
+					Plugins_Down_Check("二维码插件quricol64.dll", A_ScriptDir "\" pluginsDownPath "\quricol64.dll")
 				}
 			}else if(FileName="RunCtrl_Network.ahk"){
 				TrayTip,,RunCtrl_Network.ahk需要下载组件JSON.ahk，请稍等……,3,17
 				SetTimer, HideTrayTip, -3000
 				URLDownloadToFile(RunAnyDownDir "/" PluginsDir "/Lib/JSON.ahk",A_ScriptDir "\" PluginsDir "\Lib\JSON.ahk")
+				Plugins_Down_Check("RunCtrl_Network.ahk需要下载组件JSON.ahk", A_ScriptDir "\" PluginsDir "\Lib\JSON.ahk")
 			}else if(FileName="RunAny_SearchBar.ahk"){
 				TrayTip,,RunAny_SearchBar.ahk需要下载汉字转拼音组件ChToPy.ahk，请稍等……,3,17
 				SetTimer, HideTrayTip, -3000
@@ -5160,11 +5153,12 @@ LVDown:
 				if(A_Is64bitOS){
 					CreateDir(A_ScriptDir "\" PluginsDir "\Lib\ChToPy_dll_64")
 					URLDownloadToFile(RunAnyDownDir "/" PluginsDir "/Lib/ChToPy_dll_64/cpp2ahk.dll",A_ScriptDir "\" PluginsDir "\Lib\ChToPy_dll_64\cpp2ahk.dll")
+					Sleep, 1000
+					Plugins_Down_Check("RunPlugins\Lib\ChToPy_dll_64\cpp2ahk.dll", A_ScriptDir "\" PluginsDir "\Lib\ChToPy_dll_64\cpp2ahk.dll")
 				}
-				Sleep, 2000
-				if(!FileExist(A_ScriptDir "\" PluginsDir "\Lib\ChToPy_dll_32\cpp2ahk.dll")){
-					MsgBox, 48, ,RunAny_SearchBar.ahk需要的汉字转拼音组件ChToPy.ahk没有下载成功，请重新勾选下载
-				}
+				Sleep, 1000
+				Plugins_Down_Check("RunAny_SearchBar.ahk需要下载汉字转拼音组件ChToPy.ahk", A_ScriptDir "\" PluginsDir "\Lib\ChToPy.ahk")
+				Plugins_Down_Check("RunPlugins\Lib\ChToPy_dll_32\cpp2ahk.dll", A_ScriptDir "\" PluginsDir "\Lib\ChToPy_dll_32\cpp2ahk.dll")
 			}
 			;[下载插件脚本]
 			IfExist,%A_ScriptDir%\%pluginsDownPath%\%FileName%
@@ -5193,6 +5187,12 @@ LVDown:
 		}
 	}
 return
+Plugins_Down_Check(name, path){
+	FileRead, content, %path%
+	if(!content || InStr(content,"404: Not Found") || InStr(content,"404 Not Found")){
+		MsgBox,48,,%name% 下载失败，请重新勾选下载！
+	}
+}
 ;[加载插件脚本图标]
 Plugins_LV_Icon_Set(PluginsImageListID){
 	IL_Add(PluginsImageListID, A_AhkPath, 1)
