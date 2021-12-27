@@ -67,9 +67,11 @@ v1.0.7: 2021年12月25日
 	1.新增能够为每个搜索功能设置是否开启大写，对应配置项：对应菜单开启大写
 	2.新增基于系统设置的切换输入法快捷键实现自动切换输入法，对应配置项：切换输入法快捷键
 	3.增加URI转义，修复网页搜索内容存在%等无法搜索的问题，见【RunAny_SearchBar_Custom.ahk】中百度一下搜索功能
+v1.0.8: 2021年12月26日
+	1.修复MenuObj包含无路径缓存内容，造成重复，修复思路基于无路径缓存的MenuObj无对应图标：MenuObjIcon中不存的且EvFullPath中存在的被排除
 */
 
-global RunAny_Plugins_Version:="1.0.7"
+global RunAny_Plugins_Version:="1.0.8"
 global RunAny_Plugins_Icon:="shell32.dll,23"
 ;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
 #Include %A_ScriptDir%\..\RunAny_ObjReg.ahk
@@ -208,20 +210,22 @@ Label_ReadRAINI:	;读取RAINI文件生成菜单项
 			AHK_Open_Exe := ""
 	}
 	;读取菜单项配置文件
+	INI_EvFullPath := INI_Path "\RunAnyEvFullPath.ini"	
 	INI_MenuObj := INI_Path "\RunAnyMenuObj.ini"
 	INI_MenuObjIcon := INI_Path "\RunAnyMenuObjIcon.ini"
 	INI_MenuObjExt := INI_Path "\RunAnyMenuObjExt.ini"
 	If (!FileExist(INI_MenuObj) || !FileExist(INI_MenuObjIcon) || !FileExist(INI_MenuObjExt)){
 		Send_WM_COPYDATA("runany[ShowTrayTip](RA搜索框插件,首次运行无法读取RA菜单信息，请将本插件设置为【自启】后重启RA！如已设置为【自启】，请耐心等待【RA】启动初始化，将自动重启生效！,20,17)", rAAhkMatch)
 	}
+	global EvFullPath := Object()                   ;~无路径缓存
 	global MenuObj := Object()                    	;~程序全路径
 	global MenuObjIcon := Object()                  ;~程序对应图标路径
 	global MenuObjExt := Object()					;~对应后缀菜单
-	Loop, read, %INI_MenuObj%
+	Loop, read, %INI_EvFullPath%
 	{
 		If (A_Index!=1){
 			item := StrSplit(A_LoopReadLine, "=")
-			MenuObj[(item[1])] := item[2]
+			EvFullPath[(item[1])] := item[2]
 		}
 	}
 	Loop, read, %INI_MenuObjIcon%
@@ -229,6 +233,14 @@ Label_ReadRAINI:	;读取RAINI文件生成菜单项
 		If (A_Index!=1){
 			item := StrSplit(A_LoopReadLine, "=")
 			MenuObjIcon[(item[1])] := item[2]
+		}
+	}
+	Loop, read, %INI_MenuObj%
+	{
+		If (A_Index!=1){
+			item := StrSplit(A_LoopReadLine, "=")
+			If (MenuObjIcon.HasKey(item[1]) || !EvFullPath.HasKey(item[1] ".exe"))
+				MenuObj[(item[1])] := item[2]
 		}
 	}
 	Loop, read, %INI_MenuObjExt%
