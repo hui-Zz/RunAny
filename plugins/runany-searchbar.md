@@ -1,21 +1,15 @@
 ## **视频演示**
-### 01-下载使用插件
-![runany-searchbar-01-下载使用插件.gif](../assets/images/plugins/runany-searchbar-01-下载使用插件.gif)
-### 02-RA菜单项功能
-![runany-searchbar-02-RA菜单项功能.gif](../assets/images/plugins/runany-searchbar-02-RA菜单项功能.gif)
-### 03-RA后缀菜单功能
-![runany-searchbar-03-RA后缀菜单功能.gif](../assets/images/plugins/runany-searchbar-03-RA后缀菜单功能.gif)
-### 04-设置外观样式
-![runany-searchbar-04-设置外观样式.gif](../assets/images/plugins/runany-searchbar-04-设置外观样式.gif)
-### 05-设置自动切换输入法
-![runany-searchbar-05-设置自动切换输入法.gif](../assets/images/plugins/runany-searchbar-05-设置自动切换输入法.gif)
-### 06-设置不同搜索功能对应大小写
-![runany-searchbar-06-设置不同搜索功能对应大小写.gif](../assets/images/plugins/runany-searchbar-06-设置不同搜索功能对应大小写.gif)
-### 07-添加自定义搜索功能
-![runany-searchbar-07-添加自定义搜索功能.gif](../assets/images/plugins/runany-searchbar-07-添加自定义搜索功能.gif)
+- 01-下载使用插件
+- 02-RA菜单项功能
+- 03-RA后缀菜单功能
+- 04-设置外观样式
+- 05-设置自动切换输入法
+- 06-设置不同搜索功能对应大小写
+- 07-添加自定义搜索功能
+
+https://www.bilibili.com/video/BV1xR4y1377M?share_source=copy_web
 
 ---
-
 
 ## **1. 使用方法：**
 
