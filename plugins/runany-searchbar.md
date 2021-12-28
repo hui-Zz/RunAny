@@ -1,23 +1,23 @@
 ## **视频演示**
 ### 01-下载使用插件
-[runany-searchbar-01-下载使用插件.mp4](../assets/images/plugins/runany-searchbar-01-下载使用插件.mp4 ':include width=100%')
+![runany-searchbar-01-下载使用插件.gif](../assets/images/plugins/runany-searchbar-01-下载使用插件.gif)
 ### 02-RA菜单项功能
-[runany-searchbar-02-RA菜单项功能.mp4](../assets/images/plugins/runany-searchbar-02-RA菜单项功能.mp4 ':include width=100%')
+![runany-searchbar-02-RA菜单项功能.gif](../assets/images/plugins/runany-searchbar-02-RA菜单项功能.gif)
 ### 03-RA后缀菜单功能
-[runany-searchbar-03-RA后缀菜单功能.mp4](../assets/images/plugins/runany-searchbar-03-RA后缀菜单功能.mp4 ':include width=100%')
+![runany-searchbar-03-RA后缀菜单功能.gif](../assets/images/plugins/runany-searchbar-03-RA后缀菜单功能.gif)
 ### 04-设置外观样式
-[runany-searchbar-04-设置外观样式.mp4](../assets/images/plugins/runany-searchbar-04-设置外观样式.mp4 ':include width=100%')
+![runany-searchbar-04-设置外观样式.gif](../assets/images/plugins/runany-searchbar-04-设置外观样式.gif)
 ### 05-设置自动切换输入法
-[runany-searchbar-05-设置自动切换输入法.mp4](../assets/images/plugins/runany-searchbar-05-设置自动切换输入法.mp4 ':include width=100%')
+![runany-searchbar-05-设置自动切换输入法.gif](../assets/images/plugins/runany-searchbar-05-设置自动切换输入法.gif)
 ### 06-设置不同搜索功能对应大小写
-[runany-searchbar-06-设置不同搜索功能对应大小写.mp4](../assets/images/plugins/runany-searchbar-06-设置不同搜索功能对应大小写.mp4 ':include width=100%')
+![runany-searchbar-06-设置不同搜索功能对应大小写.gif](../assets/images/plugins/runany-searchbar-06-设置不同搜索功能对应大小写.gif)
 ### 07-添加自定义搜索功能
-[runany-searchbar-07-添加自定义搜索功能.mp4](../assets/images/plugins/runany-searchbar-07-添加自定义搜索功能.mp4 ':include width=100%')
+![runany-searchbar-07-添加自定义搜索功能.gif](../assets/images/plugins/runany-searchbar-07-添加自定义搜索功能.gif)
 
 ---
 
 
-## **1.使用方法：**
+## **1. 使用方法：**
 
 1. 下载安装【RunAny】 https://hui-zz.gitee.io/runany/#/
 2. 在插件管理中将本插件设置为自启，并重启RA，完成第一次使用的初始化
@@ -27,7 +27,7 @@
    上面两个任选一个添加，第二个菜单项可以实现划词搜索
 5. 使用3中快捷键开启
 
-###   2.使用说明：
+### 2. 使用说明：
 
 1. 加号可移动搜索框
 2. 双击候选项可执行
@@ -40,14 +40,14 @@
 9. 可设置输入框出现的位置模式，0代表上次位置，1代表固定位置，2代表鼠标位置
    	-----插件配置可通过右键加号打开进行设置-----
 
-###   3.快捷键说明：
+### 3. 快捷键说明：
 
 1. tab键正序切换功能，右shift逆序切换功能
 2. alt快速选择第1个候选项，alt+1、2、3。。。9分别快速选择第1-9对应候选项
 3. Delete快速清空输入框
 4. 上下键快速选择候选项
 
-###   4.添加自定义搜索说明：
+### 4. 添加自定义搜索说明：
 
 1. 【RunAny_SearchBar_Custom.ahk】中【Radio_names】添加对应功能名称
 2. 【RunAny_SearchBar_Custom.ahk】中【RA_suffix】、【RA_menu】与步骤1中【后缀菜单】、【菜单项】位置对应
@@ -56,14 +56,14 @@
    	-----【RunAny_SearchBar_Custom.ahk】可通过右键输入框上方搜索功能项打开-----
 4. **重要**：事先声明没有AHK基础不建议自行修改，如出现错误无法解决，请删除RunAny_SearchBar_Custom.ahk，将会自动初始化
 
-###   5.文件说明
+### 5. 文件说明
 
 1. 【RunAny_SearchBar.ahk】搜索框主文件，一般下载后会更新此文件
 2. 【RunAny_SearchBar.ini】搜索框配置文件，修改搜索框样式，第一次运行后自动生成，可自行备份
 3. 【RunAny_SearchBar_Custom.ahk】自定义搜索功能文件，无此需求请勿乱改，可自定义添加不同的搜索功能（可以与别人分享的自己写的搜索功能），第一次运行后自动生成，可自行备份，【不用自启】
 4. 【RunAny_SearchBar.ini】和【RunAny_SearchBar_Custom.ahk】文件删除后自动生成
 
-### 6.RunAny_SearchBar.ini配置文件说明
+### 6. RunAny_SearchBar.ini配置文件说明
 
 1. 搜索框x轴位置：0-1，表示屏幕水平方向上的比例位置
 2. 搜索框y轴位置：0-1，表示屏幕垂直方向上的比例位置
