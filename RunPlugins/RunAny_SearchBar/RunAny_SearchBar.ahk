@@ -69,14 +69,9 @@ v1.0.7: 2021年12月25日
 	3.增加URI转义，修复网页搜索内容存在%等无法搜索的问题，见【RunAny_SearchBar_Custom.ahk】中百度一下搜索功能
 v1.0.8: 2021年12月26日
 	1.修复MenuObj包含无路径缓存内容，造成重复，修复思路基于无路径缓存的MenuObj无对应图标：MenuObjIcon中不存的且EvFullPath中存在的被排除
-v1.0.9: 2021年12月27日
-	1.修复点击切换搜索功能时，候选项没有刷新
-	2.汉字转拼音插件在多音字方面处理存在问题，当出现多个多音词（例如“的”），会产生指数及增长，导致程序崩溃
-v1.1.0: 2021年12月28日
-	1.优化代码，可以更好的自定义搜索功能（例如实现chrome|edge收藏夹）
 */
 
-global RunAny_Plugins_Version:="1.1.0"
+global RunAny_Plugins_Version:="1.0.8"
 global RunAny_Plugins_Icon:="shell32.dll,23"
 ;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
 #Include %A_ScriptDir%\..\RunAny_ObjReg.ahk
@@ -125,7 +120,7 @@ Label_ScriptSetting: ;脚本前参数设置
 	DetectHiddenWindows on							;显示隐藏窗口
 
 Label_ReadINI:	;读取INI文件配置收缩框
-	global SearchBar_Version:="1.1.0"
+	global SearchBar_Version:="1.0.7"
 	global INI
 	INI = %A_ScriptDir%\RunAny_SearchBar.ini
 	if !FileExist(INI)
@@ -267,7 +262,6 @@ Label_Init: ;搜索框GUI初始化
 	global Candidates_num := -1									;候选项个数
 	global is_hide := 0											;表示是否是隐藏效果
 	global Radio_H_ALL,Edit_H,ListBox_width,ListView_H1,ImageListID			;辅助变量
-	global CandidateList,Edit_OutputVar							;候选框、输入框内容
 	OnMessage( 0x201 , "move_Win")								;用于拖拽移动
 
 	CustomColor := "6b9ac9"										;用于背景透明的颜色
@@ -358,13 +352,15 @@ Return
 
 Label_Submit_Before: ;提交之前的操作
 	If (index_temp=RA_suffix || index_temp=RA_menu){
-		executeCandidateWhich(2)
-	}Else{
-		temp := "Execute"
-		If (IsLabel("Label_Custom_ListView_" temp))
-			Gosub, Label_Custom_ListView_%temp%
-		Else
+		RowNumber := LV_GetNext()
+		If (RowNumber!=0){
+			LV_GetText(Content, LV_GetNext(), 2)
+		}Else If (LV_GetCount()!=0 && is_run_first){
+			LV_GetText(Content, 1, 2)
+		}Else
 			GuiControlGet, Content, ,%My_Edit_Hwnd%
+	}Else{
+		GuiControlGet, Content, ,%My_Edit_Hwnd%
 	}
 Return
 
@@ -408,7 +404,6 @@ ChangeRadio(CtrlHwnd){	;单选框改变时的样式改变
 			index_temp := Mod(index_temp+1, len_Radio+1)
 	}
 	Gosub, changeCapsLockState
-	ChangeEdit()
 }
 Return
 ;----------------------------------------【单选框对应触发提示对应】----------------------------------------
@@ -417,21 +412,17 @@ ChangeEdit(){	;输入框改变时触发
 	LV_Delete()							;删除提示框内容以刷新
 	IL_Destroy(ImageListID)				;删除图像列表，降低内存
 	match_flag := 1	;用于那些功能出发下方提示框
-	GuiControlGet, Edit_OutputVar, ,%My_Edit_Hwnd%
+	GuiControlGet, OutputVar, ,%My_Edit_Hwnd%
 	If (index_temp=RA_suffix){			;激活指定后缀的菜单触发
-		CandidateList:=getCandidateCommon(MenuObjExt,3,MenuObjIcon,3)
+		CandidateList:=getCandidateSuffix(OutputVar,Candidates_num_max)
 		LV_ModifyCol(2, ,"后缀名")
 		LV_ModifyCol(3, ,"菜单名称")
 	}Else If (index_temp=RA_menu){		;打开指定菜单
-		CandidateList:=getCandidateCommon(MenuObj,4,MenuObjIcon)
+		CandidateList:=getCandidateMenu(OutputVar,Candidates_num_max)
 		LV_ModifyCol(2, ,"菜单名称")
 		LV_ModifyCol(3, ,"菜单值")
 	}Else{
-		temp := "Show"
-		If (IsLabel("Label_Custom_ListView_" temp))
-			Gosub, Label_Custom_ListView_%temp%
-		Else
-			match_flag := 0
+		match_flag := 0
 	}
 	column := LV_GetCount("Column")
 	ListCount := CandidateList.Length()/column	;数组对应的3元组数量（key、val、ico_path）
@@ -458,7 +449,7 @@ ChangeEdit(){	;输入框改变时触发
 	GuiControl, % ListCount ? "Show" : "Hide", CommandChoice 	;根据数量是否显示提示框
 	If (is_hide = 0)
 		Gui, Show, AutoSize
-	If ( match_flag && ListCount=0 && Edit_OutputVar){		;无匹配时提醒
+	If ( match_flag && ListCount=0 && OutputVar){		;无匹配时提醒
 		showSwitchToolTip("无匹配项！",0,1)
 	}else if(is_auto_fill && Candidates_num=2){	;剩下一个选项自动填充
 		Candidates_num := -1
@@ -471,7 +462,6 @@ ChangeEdit(){	;输入框改变时触发
 	}Else{
 		ToolTip
 	}
-	CandidateList := ""
 	SetTimer, close_ListView, 100
 }
 
@@ -596,31 +586,32 @@ GuiContextMenu(GuiHwnd, CtrlHwnd, EventInfo, IsRightClick, X, Y){	;右键功能
 	}
 }
 
-getCandidateCommon(Obj,default_Icon_number:=4,ObjIcon:="",WhichToExe:=2){
-	If (Edit_OutputVar="")
+getCandidateMenu(Content,Candidates_num_max){	;获取菜单候选项
+	If (Content="")
 		Return
 	CandidateList := Object()
 	full_match := 0	;有完全匹配项则不会重复搜索，消除自动补全BUG
 	Candidates_num := 1
 	temp_kv := ""	;消除临近重复选项，，例如快捷键的
-    For ki, kv in Obj
+    For ki, kv in MenuObj
 	{
 		If (kv="")
 			Continue
-		a := InStr(ki, Edit_OutputVar) || InStr(ChToPy.allspell(ki), Edit_OutputVar) || InStr(ChToPy.initials(ki), Edit_OutputVar)
+		targ := ChToPy.allspell(ki)
+		a := InStr(ki, Content) || InStr(ChToPy.allspell_muti(ki), Content) || InStr(ChToPy.initials_muti(ki), Content)
 		If (a!=0){
 			If (kv=temp_kv){
 				Continue
 			}Else{
 				temp_kv := kv
 			}
-			ico_path := WhichToExe=2?ObjIcon[ki]:ObjIcon[kv]
+			ico_path := MenuObjIcon[ki]
 			If (ico_path="")
-				ico_path := "shell32.dll," default_Icon_number
+				ico_path := "shell32.dll,4"
 			CandidateList.push(ki,kv,ico_path)
 			Candidates_num +=1
 		}
-		If (ki=Edit_OutputVar){
+		If (ki=Content){
 			full_match := 1
 		}
 		If ( Candidates_num > Candidates_num_max){
@@ -632,14 +623,32 @@ getCandidateCommon(Obj,default_Icon_number:=4,ObjIcon:="",WhichToExe:=2){
     Return CandidateList
 }
 
-executeCandidateWhich(whichColumn:=2){
-	RowNumber := LV_GetNext()
-		If (RowNumber!=0){
-			LV_GetText(Content, LV_GetNext(), whichColumn)
-		}Else If (LV_GetCount()!=0 && is_run_first){
-			LV_GetText(Content, 1, whichColumn)
-		}Else
-			GuiControlGet, Content, ,%My_Edit_Hwnd%
+getCandidateSuffix(Content,Candidates_num_max){	;获取后缀候选项
+	If (Content="")
+		Return
+	CandidateList := Object()
+	full_match := 0	;有完全匹配项则不会重复搜索，消除自动补全BUG
+	Candidates_num := 1
+    For ki, kv in MenuObjExt													
+	{
+		a := InStr(ki, Content)
+		If (a!=0){
+			ico_path := MenuObjIcon[kv]
+			If (ico_path="")
+				ico_path := "shell32.dll,3"
+			CandidateList.push(ki,kv,ico_path)
+			Candidates_num +=1
+		}
+		If (ki=Content){
+			full_match := 1
+		}
+		If ( Candidates_num > Candidates_num_max){
+			break
+		}
+    }
+    Candidates_num := Candidates_num=1 ? 0 : Candidates_num
+    Candidates_num := full_match ? 1 : Candidates_num
+    Return CandidateList
 }
 
 initResetINI() { ;定时重新加载配置文件
