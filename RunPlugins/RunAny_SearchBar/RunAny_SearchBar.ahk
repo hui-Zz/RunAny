@@ -74,6 +74,8 @@ v1.0.9: 2021年12月27日
 	2.汉字转拼音插件在多音字方面处理存在问题，当出现多个多音词（例如“的”），会产生指数及增长，导致程序崩溃，改为多音字单转换
 v1.1.0: 2021年12月28日
 	1.优化代码，可以更好的自定义搜索功能（例如实现chrome|edge收藏夹）
+v1.1.1: 2021年12月29日
+	1.修复由于v1.1.0自定义搜索功能产生的搜索（例如百度）无内容BUG
 */
 
 global RunAny_Plugins_Version:="1.1.0"
@@ -357,14 +359,13 @@ Return
 #Include *i %A_ScriptDir%\RunAny_SearchBar_Custom.ahk
 
 Label_Submit_Before: ;提交之前的操作
+	GuiControlGet, Content, ,%My_Edit_Hwnd%
 	If (index_temp=RA_suffix || index_temp=RA_menu){
 		executeCandidateWhich(2)
 	}Else{
 		temp := "Execute"
 		If (IsLabel("Label_Custom_ListView_" temp))
 			Gosub, Label_Custom_ListView_%temp%
-		Else
-			GuiControlGet, Content, ,%My_Edit_Hwnd%
 	}
 Return
 
