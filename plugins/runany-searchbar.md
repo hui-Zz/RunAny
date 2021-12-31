@@ -1,13 +1,27 @@
 ## **视频演示**
-- 01-下载使用插件
-- 02-RA菜单项功能
-- 03-RA后缀菜单功能
-- 04-设置外观样式
-- 05-设置自动切换输入法
-- 06-设置不同搜索功能对应大小写
-- 07-添加自定义搜索功能
 
-【视频地址】 https://www.bilibili.com/video/BV16a41167Sh?share_source=copy_web
+【B站视频地址】 https://www.bilibili.com/video/BV16a41167Sh?share_source=copy_web
+
+- 01-下载使用插件
+<video src="https://hui-zz.github.io/RunAny/assets/video/plugins/01-下载使用插件.mp4" width="100%" controls="true" preload="auto"></video>
+
+- 02-RA菜单项功能
+<video src="https://hui-zz.github.io/RunAny/assets/video/plugins/02-RA菜单项功能.mp4" width="100%" controls="true" preload="auto"></video>
+
+- 03-RA后缀菜单功能
+<video src="https://hui-zz.github.io/RunAny/assets/video/plugins/03-RA后缀菜单功能.mp4" width="100%" controls="true" preload="auto"></video>
+
+- 04-设置外观样式
+<video src="https://hui-zz.github.io/RunAny/assets/video/plugins/04-设置外观样式.mp4" width="100%" controls="true" preload="auto"></video>
+
+- 05-设置自动切换输入法
+<video src="https://hui-zz.github.io/RunAny/assets/video/plugins/05-设置自动切换输入法.mp4" width="100%" controls="true" preload="auto"></video>
+
+- 06-设置不同搜索功能对应大小写
+<video src="https://hui-zz.github.io/RunAny/assets/video/plugins/06-设置不同搜索功能对应大小写.mp4" width="100%" controls="true" preload="auto"></video>
+
+- 07-添加自定义搜索功能
+<video src="https://hui-zz.github.io/RunAny/assets/video/plugins/07-添加自定义搜索功能.mp4" width="100%" controls="true" preload="auto"></video>
 
 ---
 
