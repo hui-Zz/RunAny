@@ -24,8 +24,7 @@
 
 <video src="https://hui-zz.github.io/RunAny/assets/video/RunAny打开保存对话框快速定位目录功能.mp4" width="100%" controls="true" preload="auto"></video>
 
-B站视频地址：【RunAny】打开对话框快速定位目录 （类似于Listary的Ctrl+G）  
-https://www.bilibili.com/video/BV15F411i7Hq
+介绍视频地址：https://www.bilibili.com/video/BV15F411i7Hq 【RunAny】打开对话框快速定位目录 （类似于Listary的Ctrl+G）
 
 + 【其他功能改动】：
   + ✅规则启动：新增应用第6种启动方式：结束软件进程
