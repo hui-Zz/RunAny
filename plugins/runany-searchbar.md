@@ -7,7 +7,7 @@
 - 06-设置不同搜索功能对应大小写
 - 07-添加自定义搜索功能
 
-https://www.bilibili.com/video/BV1xR4y1377M?share_source=copy_web
+【视频地址】 https://www.bilibili.com/video/BV16a41167Sh?share_source=copy_web
 
 ---
 

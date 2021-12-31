@@ -7,13 +7,53 @@
 
 # RunAny已更新最新版本！感谢一直以来的支持！
 
-## 【RunAny】`v5.7.8` 2021-11-17
+## 【RunAny】`v5.7.9` 2022-01-01
+
+- ##### ✅新增【打开/保存对话框快速定位目录功能】（类似于Listary的Ctrl+G）
+
+?> 在`打开或保存对话框`中，快速定位到当前 `资源管理器/TC/DO/XP`中打开的文件夹路径  
+ Listary用作启动器功能有点过于少了，但是Ctrl+G的功能是很多人一直留着它的原因  
+ **所以应广大用户提议，本着软件在于精不在于多的理念，RunAny终于集成了这一功能，并且更加好用**
+
+  - 默认在`打开或保存对话框`中按<kbd>\`</kbd>即可看到当前`资源管理器/TC/DO/XP`中打开的文件夹路径
+  - 为了更方便，创建专属`打开或保存对话框`的RunAny菜单分类，存放常用文件夹
+    - 在 修改菜单 ➡️ 菜单树管理 ➡️ 添加分类 ➡️ 填写菜单分类名 ➡️ 在后缀菜单中添加 `#32770.class` ➡️ 保存
+    - `打开或保存对话框`的窗口类是`#32770.class`，在这个分类下添加你常用的需要打开和保存的文件夹路径
+  - 另外，任何原来在RunAny菜单打开文件夹的操作都会变成跳转目录
+    - 如：按住<kbd>Ctrl</kbd>+回车键 或<kbd>Ctrl</kbd>+鼠标左键打开 软件所在的目录 会变成对话框中跳转到目录路径
+
+[RunAny打开保存对话框快速定位目录功能](https://hui-zz.github.io/RunAny/assets/images/video/RunAny打开保存对话框快速定位目录功能.mp4 ':include width=800px height=600px')
+
+B站视频地址：【RunAny】打开对话框快速定位目录 （类似于Listary的Ctrl+G）  
+https://www.bilibili.com/video/BV15F411i7Hq
+
++ 【其他功能改动】：
+  + ✅规则启动：新增应用第6种启动方式：结束软件进程
+  + ✨结束软件进程 从单个升级为 => 强制结束该软件名所有同名进程
+  + ✨RA菜单无路径应用删除后，自动清除对应的缓存
+  + ✨优化精简动态运行插件函数代码
+
+> 按住Ctrl键点击任务栏托盘的 Ra 图标，打开RunAny文件夹（有设置第三方文件管理器会用第三方）  
+> 按住Shift键点击任务栏托盘的 Ra 图标，使用编辑器打开RunAny.ini  
+> 按住Ctrl+Shift键点击任务栏托盘的 Ra 图标，使用编辑器打开RunAnyConfig.ini配置文件
+
++ 【插件功能】：
+  + **新增★火★开发的RA搜索框插件：RunAny_SearchBar.ahk 搜索菜单项，后缀菜单、自定义搜索等**
+  + huiZz_Text.ahk `v1.3.0`：🐞修复选中文字谷歌翻译
+  + huiZz_System.ahk `v1.1.2`：✅添加 批量ping命令、批量cmd命令
+    + `批量ping命令|huiZz_System[system_batch_ping](%getZz%,"``n")`
+    + `批量cmd命令|huiZz_System[system_batch_cmd](%getZz%,"``n")`
+
+
+---
+
+## 【RunAny】v5.7.8 2021-11-17
 
 - ##### ✅新增【RunAny无路径应用缓存机制】
-  - 大家平时软件路径变更并不频繁，所以日常使用缓存路径，RunAny不再需要每次启动等待Everything
-  - 只有当新增或变更无路径菜单项后，才会启动Everything获得它最新的运行全路径
-  - 2020年前的老用户，如果没有生成无路径应用缓存，请在设置-搜索Everything-选择`按需搜索模式`
-  - **当RunAny启动时Everything已经启动，无路径应用缓存会全部生成一遍，去除多余和更新最新版本的同名exe**
+  > 大家平时软件路径变更并不频繁，所以日常使用缓存路径，RunAny不再需要每次启动等待Everything  
+  > 只有当新增或变更无路径菜单项后，才会启动Everything获得它最新的运行全路径  
+  > 2020年前的老用户，如果没有生成无路径应用缓存，请在设置-搜索Everything-选择`按需搜索模式`  
+  > **当RunAny启动时Everything已经启动，无路径应用缓存会全部生成一遍，去除多余和更新最新版本的同名exe**
 
 + 【功能改动】：
   + ✅**RunAny.exe的Autohotkey版本升级到1.1.33.10**
@@ -35,8 +75,6 @@
       + `网址批量智能打开|huiZz_Text[text_run_url](%getZz%)`
   + huiZz_System.ahk `v1.1.1`：✅添加 一键清空回收站：`清空回收站|huiZz_System[system_recycle_empty]()`
 
-
----
 ## 【RunAny】v5.7.6 ~ v5.7.7 2021-09-15
 
 + ##### [`💡新增重磅功能`【规则判断自动启动软件】](/run-ctrl)：点击链接详细查看
