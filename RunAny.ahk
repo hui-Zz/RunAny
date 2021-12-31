@@ -8867,7 +8867,8 @@ Menu_Config:
 return
 Menu_Reload:
 	Critical
-	Reload
+	Run,%A_AhkPath% /force /restart %A_ScriptFullPath%
+	ExitApp
 return
 Menu_Suspend:
 	Menu,tray,ToggleCheck,停用(&S)`t%RunASuspendHotKey%
