@@ -22,7 +22,7 @@
   - 另外，任何原来在RunAny菜单打开文件夹的操作都会变成跳转目录
     - 如：按住<kbd>Ctrl</kbd>+回车键 或<kbd>Ctrl</kbd>+鼠标左键打开 软件所在的目录 会变成对话框中跳转到目录路径
 
-[RunAny打开保存对话框快速定位目录功能](https://hui-zz.github.io/RunAny/assets/images/video/RunAny打开保存对话框快速定位目录功能.mp4 ':include width=800px height=600px')
+<video src="https://hui-zz.github.io/RunAny/assets/images/video/RunAny打开保存对话框快速定位目录功能.mp4" width="100%" controls="true" preload="auto"></video>
 
 B站视频地址：【RunAny】打开对话框快速定位目录 （类似于Listary的Ctrl+G）  
 https://www.bilibili.com/video/BV15F411i7Hq
