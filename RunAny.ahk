@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.7.8 @2021.12.22
+║【RunAny】一劳永逸的快速启动工具 v5.7.9 @2022.01.01
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -22,8 +22,8 @@ global StartTick:=A_TickCount             ;~;评估RunAny初始化时间
 global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
-global RunAny_update_version:="5.7.8"     ;~;版本号
-global RunAny_update_time:="预发布版 2021.12.22"   ;~;更新日期
+global RunAny_update_version:="5.7.9"     ;~;版本号
+global RunAny_update_time:="2022.01.01"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -6699,7 +6699,7 @@ vHtml =
 <br>
 <img alt="GitHub stars" src="https://raster.shields.io/github/stars/hui-Zz/RunAny.svg?style=social&logo=github"/>
 <img alt="GitHub forks" src="https://raster.shields.io/github/forks/hui-Zz/RunAny?style=social"/>
-<img alt="history" src="https://raster.shields.io/badge/2017--2021-white.svg?label=Time&style=social&logo=github"/>
+<img alt="history" src="https://raster.shields.io/badge/2017--2022-white.svg?label=Time&style=social&logo=github"/>
 </h2>
 <b>当前版本：</b><img alt="当前版本" style="vertical-align:middle" src="https://raster.shields.io/badge/RunAny-%versionUrlEncode%-blue.svg?style=flat-square"/> 预发布版
 <br>
