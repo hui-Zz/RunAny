@@ -395,24 +395,6 @@ if(NoPathFlag && !EvNo && Trim(evFullPathIniVar," `t`n`r")!="" && rule_check_is_
 		}
 	}
 }
-;提前加载菜单树图标缓存
-global TreeImageListID := IL_Create(11)
-Icon_Image_Set(TreeImageListID)
-Icon_Tree_Image_Set(TreeImageListID)
-;如果有需要继续执行的操作
-RegRead, ReloadGosub, HKEY_CURRENT_USER\Software\RunAny, ReloadGosub
-if(ReloadGosub){
-	RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny, ReloadGosub, 0
-	Gosub,%ReloadGosub%
-}
-;自动备份配置文件
-if(RunABackupRule && RunABackupDirPath!=A_ScriptDir){
-	RunABackupFormatStr:=Get_Transform_Val(RunABackupFormat)
-	RunABackup(RunABackupDirPath "\", RunAnyZz ".ini*", iniVar1, iniPath, RunAnyZz ".ini" RunABackupFormatStr)
-	RunABackup(RunABackupDirPath "\" RunAnyZz "2.ini\", RunAnyZz "2.ini*", iniVar2, iniPath2, RunAnyZz "2.ini" RunABackupFormatStr)
-	FileRead, iniVarBak, %RunAnyConfig%
-	RunABackup(RunABackupDirPath "\" RunAnyConfig "\", RunAnyConfig "*", iniVarBak, RunAnyConfig, RunAnyConfig RunABackupFormatStr)
-}
 ;~[记录ini文件修改时间]
 FileGetTime,MTimeIniPath, %iniPath%, M  ; 获取修改时间.
 RegRead, MTimeIniPathReg, HKEY_CURRENT_USER\Software\RunAny, %iniPath%
@@ -424,12 +406,30 @@ if(MENU2FLAG){
 	RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny, %iniPath2%, %MTimeIniPath2%
 	IniChangeFlag:=IniChangeFlag && (MTimeIniPath2Reg=MTimeIniPath2)
 }
-if(PluginsObjList["RunAny_SearchBar.ahk"] 
+if(rule_check_is_run(PluginsPathList["RunAny_SearchBar.ahk"]) 
 		&& (!IniChangeFlag || !FileExist(RunAEvFullPathIniDirPath "\RunAnyMenuObj.ini") 
 		|| !FileExist(RunAEvFullPathIniDirPath "\RunAnyMenuObjExt.ini") 
 		|| !FileExist(RunAEvFullPathIniDirPath "\RunAnyMenuObjIcon.ini"))){
 	Gosub,RunAny_SearchBar
 	Run,% A_AhkPath A_Space "" PluginsPathList["RunAny_SearchBar.ahk"] ""
+}
+;如果有需要继续执行的操作
+RegRead, ReloadGosub, HKEY_CURRENT_USER\Software\RunAny, ReloadGosub
+if(ReloadGosub){
+	RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny, ReloadGosub, 0
+	Gosub,%ReloadGosub%
+}
+;提前加载菜单树图标缓存
+global TreeImageListID := IL_Create(11)
+Icon_Image_Set(TreeImageListID)
+Icon_Tree_Image_Set(TreeImageListID)
+;自动备份配置文件
+if(RunABackupRule && RunABackupDirPath!=A_ScriptDir){
+	RunABackupFormatStr:=Get_Transform_Val(RunABackupFormat)
+	RunABackup(RunABackupDirPath "\", RunAnyZz ".ini*", iniVar1, iniPath, RunAnyZz ".ini" RunABackupFormatStr)
+	RunABackup(RunABackupDirPath "\" RunAnyZz "2.ini\", RunAnyZz "2.ini*", iniVar2, iniPath2, RunAnyZz "2.ini" RunABackupFormatStr)
+	FileRead, iniVarBak, %RunAnyConfig%
+	RunABackup(RunABackupDirPath "\" RunAnyConfig "\", RunAnyConfig "*", iniVarBak, RunAnyConfig, RunAnyConfig RunABackupFormatStr)
 }
 if(AutoReloadMTime>0){
 	SetTimer,AutoReloadMTime,%AutoReloadMTime%
@@ -1539,7 +1539,7 @@ CtrlGQuickSwitch:
 				ctrlgMenuItemAdd(ctrlgMenuName, ctrlgMenuItem, ctrlgMenuItemNum, folder, doIcon)
 			}
 		}catch e{
-			TrayTip,,% "无法显示DO当前目录：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,10,3
+			TrayTip,,% "无法获取DO当前目录，不建议最小化到托盘：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,10,3
 		}
 	}
 	WinGet, xyIcon, ProcessPath,ahk_exe XYplorer.exe
@@ -1553,7 +1553,7 @@ CtrlGQuickSwitch:
 				ctrlgMenuItemAdd(ctrlgMenuName, ctrlgMenuItem, ctrlgMenuItemNum, folder, xyIcon)
 			}
 		}catch e{
-			TrayTip,,% "无法显示XYplorer当前目录：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,10,3
+			TrayTip,,% "无法获取XYplorer当前目录，不建议最小化到托盘：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,10,3
 		}
 	}
 	if(tcIcon || doIcon || xyIcon){
@@ -2349,13 +2349,14 @@ return
 Ev_Show:
 	getZz:=Get_Zz()
 	EverythingIsRun()
-	evSearch:=""
+	evSearch:=EvShowFolderSpace:=""
 	if(Trim(getZz," `t`n`r")!=""){
 		getZzLength:=StrSplit(getZz,"`n").Length()
 		Loop, parse, getZz, `n, `r
 		{
 			S_LoopField=%A_LoopField%
 			if(EvShowFolder && (InStr(FileExist(S_LoopField), "D") || RegExMatch(S_LoopField,"S).*\\$"))){
+				EvShowFolderSpace:=A_Space
 			}else if(RegExMatch(S_LoopField,"S)^(\\\\|.:\\).*?$")){
 				SplitPath,S_LoopField,fileName,,,name_no_ext
 				S_LoopField:=EvShowExt ? fileName : name_no_ext
@@ -2370,14 +2371,14 @@ Ev_Show:
 	DetectHiddenWindows,On
 	IfWinExist ahk_class EVERYTHING
 		if evSearch
-			Run % EvPathRun " -search """ evSearch """"
+			Run % EvPathRun " -search """ evSearch EvShowFolderSpace """"
 		else
 			IfWinNotActive
 				WinActivate
 			else
 				WinMinimize
 	else
-		Run % EvPathRun (evSearch ? " -search """ evSearch """" : "")
+		Run % EvPathRun (evSearch ? " -search """ evSearch EvShowFolderSpace """" : "")
 	DetectHiddenWindows,Off
 return
 ;~;【一键搜索】
@@ -2420,6 +2421,8 @@ Ext_Check(name,len,ext){
 ;~;[输出结果还是仅显示保存到剪贴板]
 Send_Or_Show(textResult,isSend:=false,sTime:=1000){
 	textResult:=RegExReplace(textResult,"`r`n$")
+	if(textResult="")
+		return
 	if(isSend){
 		Send_Str_Zz(textResult)
 		return
@@ -3164,7 +3167,7 @@ Remote_Menu_Ext_Show(fileExt){
 
 ;RunAny搜索框插件
 RunAny_SearchBar:
-	if(PluginsObjList["RunAny_SearchBar.ahk"]){
+	if(rule_check_is_run(PluginsPathList["RunAny_SearchBar.ahk"])){
 		DeleteFile(RunAEvFullPathIniDirPath "\RunAnyMenuObj.ini")
 		DeleteFile(RunAEvFullPathIniDirPath "\RunAnyMenuObjExt.ini")
 		DeleteFile(RunAEvFullPathIniDirPath "\RunAnyMenuObjIcon.ini")
@@ -3608,7 +3611,7 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add,Text, xm+90 yp w355 cRed vvExtPrompt GSetSaveItemFullPath, 注意：RunAny不支持当前后缀无路径运行，%PromptStr%使用全路径
 	Gui,SaveItem:Add, DropDownList,x+30 yp-5 w120 AltSubmit vvItemMode GChooseItemMode Choose%setItemMode%,启动路径|短语模式|模拟打字短语|热键映射|AHK热键映射|网址|文件夹|插件脚本函数
 	
-	Gui,SaveItem:Add,Text, xm+10 yp w60 vvSetFileSuffix,文件后缀：
+	Gui,SaveItem:Add,Text, xm+10 yp w60 vvSetFileSuffix,后缀菜单：
 	Gui,SaveItem:Add,Button, xm+6 y+%treeYNum% w60 vvSetItemPath GSetItemPath,启动路径
 	Gui,SaveItem:Font,,Consolas
 	Gui,SaveItem:Add,Edit, x+10 yp WantTab w510 r5 vvitemPath GEditItemPathChange, %itemPath%
@@ -3616,6 +3619,7 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add,Button, xm+6 yp w60 vvSetMenuPublic GSetMenuPublic,公共菜单
 	Gui,SaveItem:Add,Button, xm+6 yp w60 vvSetMenuText GSetMenuText,文本菜单
 	Gui,SaveItem:Add,Button, xm+6 yp w60 vvSetMenuFile GSetMenuFile,文件菜单
+	Gui,SaveItem:Add,Button, xm+6 yp w60 vvSetMenuWindow GSetMenuWindow,软件菜单
 	Gui,SaveItem:Add,Button, xm+6 yp+27 w60 vvSetFileRelativePath GSetFileRelativePath,相对路径
 	Gui,SaveItem:Add,Button, xm+6 yp+27 w60 vvSetItemPathGetZz GSetItemPathGetZz,选中变量
 	Gui,SaveItem:Add,Button, xm+6 yp+27 w60 vvSetItemPathClipboard GSetItemPathClipboard, 剪贴板 
@@ -3735,13 +3739,14 @@ EditItemPathChange:
 	Gui,SaveItem:Submit, NoHide
 	if(InStr(vitemName,"-")=1){
 		GuiControlHide("SaveItem","vItemMode","vSetItemPath","vSetFileRelativePath","vSetItemPathGetZz","vSetItemPathClipboard","vSetShortcut")
-		GuiControlShow("SaveItem","vSetFileSuffix","vSetMenuPublic","vSetMenuText","vSetMenuFile")
+		GuiControlShow("SaveItem","vSetFileSuffix","vSetMenuPublic","vSetMenuText","vSetMenuFile","vSetMenuWindow")
 		GuiControl,SaveItem:Move, vSetFileSuffix, y+160
-		GuiControl,SaveItem:Move, vSetMenuPublic, y+190
-		GuiControl,SaveItem:Move, vSetMenuText, y+220
-		GuiControl,SaveItem:Move, vSetMenuFile, y+250
+		GuiControl,SaveItem:Move, vSetMenuPublic, y+180
+		GuiControl,SaveItem:Move, vSetMenuText, y+210
+		GuiControl,SaveItem:Move, vSetMenuFile, y+240
+		GuiControl,SaveItem:Move, vSetMenuWindow, y+270
 	}else{
-		GuiControlHide("SaveItem","vSetFileSuffix","vSetMenuPublic","vSetMenuText","vSetMenuFile")
+		GuiControlHide("SaveItem","vSetFileSuffix","vSetMenuPublic","vSetMenuText","vSetMenuFile","vSetMenuWindow")
 		GuiControlShow("SaveItem","vItemMode","vSetItemPath","vSetFileRelativePath","vSetItemPathGetZz","vSetItemPathClipboard")
 		filePath:=!vitemPath && vitemName ? vitemName : vitemPath
 		itemPathMode:=StrReplace(filePath,"%getZz%",Chr(3))
@@ -3820,6 +3825,10 @@ SetMenuFile:
 	Gui,SaveItem:Submit, NoHide
 	GuiControl, SaveItem:, vStatusBar,有file的菜单分类会在选中文件内容的时候显示
 	GuiControl, SaveItem:, vitemPath, %vitemPath% file
+return
+SetMenuWindow:
+	webUrl:=rule_check_network(RunAnyGiteePages) ? RunAnyGiteePages : RunAnyGithubPages
+	Run,% webUrl "/RunAny/#/CONFIG?id=软件专属菜单"
 return
 SetMenuText:
 	Gui,SaveItem:Submit, NoHide
@@ -4669,6 +4678,7 @@ Plugins_Gui:
 	PluginsHelpList["huiZz_Window.ahk"]:=pagesPlugins "huizz_window窗口操作插件使用方法"
 	PluginsHelpList["huiZz_System.ahk"]:=pagesPlugins "huizz_system系统操作插件使用方法"
 	PluginsHelpList["huiZz_Text.ahk"]:=pagesPlugins "huizz_text文本操作插件使用方法"
+	PluginsHelpList["RunAny_SearchBar.ahk"]:=pagesPluginsUrl "/plugins/runany-searchbar"
 	PluginsHelpList["RunCtrl_Common.ahk"]:=pagesRunCtrl "runctrl_commonahk插件-公共规则函数库"
 	PluginsHelpList["RunCtrl_Network.ahk"]:=pagesRunCtrl "runctrl_networkahk插件-网络规则函数库"
 	global ColumnName:=1
@@ -4704,7 +4714,7 @@ Plugins_Gui:
 	GuiControl,PluginsManage: +Redraw, RunAnyPluginsLV1
 	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
 
-	Gui,PluginsManage:Add, Listview, xm y+10 w730 r11 grid AltSubmit vRunAnyPluginsLV2 gPluginsListView,  %listViewColumnName2%插件脚本|运行状态|自动启动|插件描述|插件说明地址
+	Gui,PluginsManage:Add, Listview, xm y+10 w730 r12 grid AltSubmit vRunAnyPluginsLV2 gPluginsListView,  %listViewColumnName2%插件脚本|运行状态|自动启动|插件描述|插件说明地址
 	GuiControl,PluginsManage: -Redraw, RunAnyPluginsLV2
 	LV_SetImageList(PluginsImageListID)
 	For runn, runv in PluginsObjList
@@ -5000,7 +5010,12 @@ class RunAnyObj {
 `t`t
 	;}
 `t
+
+;══════════════════════════大括号以上是RunAny菜单调用的函数══════════════════════════
+
 }
+
+;═══════════════════════════以下是脚本自己调用依赖的函数═══════════════════════════
 
 ;独立使用方式
 ;F1::
@@ -7369,7 +7384,7 @@ PluginsDownloadGuiSize:
 		return
 	GuiControl, Move, RunAnyTV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 	GuiControl, Move, RunAnyPluginsLV1, % "H" . (A_GuiHeight * 0.50) . " W" . (A_GuiWidth - 20)
-	GuiControl, Move, RunAnyPluginsLV2, % "H" . (A_GuiHeight * 0.48) . " W" . (A_GuiWidth - 20) . " y" . (A_GuiHeight * 0.50 + 10)
+	GuiControl, Move, RunAnyPluginsLV2, % "H" . (A_GuiHeight * 0.49) . " W" . (A_GuiWidth - 20) . " y" . (A_GuiHeight * 0.50 + 10)
 	GuiControl, Move, RuleLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 	GuiControl, Move, RunAnyDownLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 	GuiControl, Move, FuncGroup, % "H" . (A_GuiHeight-130) . " W" . (A_GuiWidth - 40)

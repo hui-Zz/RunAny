@@ -164,7 +164,7 @@ class RunAnyObj {
 				Run,%ComSpec% /c "title ping %str% -t & ping %str% -t"
 		}
 	}
-	;[批量cmd命令]
+	;[批量执行cmd命令]
 	;参数说明：getZz：选中的多个cmd命令内容
 	;splitStr：每个cmd命令中间分隔的符号(默认回车，逗号为特殊字符，转义写成`,)
 	;批量cmd命令|huiZz_System[system_batch_cmd](%getZz%,"`n")
