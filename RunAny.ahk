@@ -6215,7 +6215,7 @@ LVRuleSave:
 	}
 	if(vRuleTypeFunc){
 		checkRulePath:=Get_Transform_Val(vRulePath)
-		if(!FileExist(checkRulePath) && !FileExist(A_ScriptDir "\" PluginsDir "\" checkRulePath)){
+		if(!FileExist(checkRulePath) && !FileExist(PluginsPathList[checkRulePath])){
 			MsgBox, 48, ,规则路径AHK脚本不存在，请重新添加
 			return
 		}
@@ -6314,8 +6314,8 @@ return AHK脚本所有函数用|分隔的字符串,没有返回""
 */
 KnowAhkFuncZz(ahkPath){
 	ahkPath:=Get_Transform_Val(ahkPath)
-	if(FileExist(A_ScriptDir "\" PluginsDir "\" ahkPath)){
-		ahkPath:=A_ScriptDir "\" PluginsDir "\" ahkPath
+	if(FileExist(PluginsPathList[ahkPath])){
+		ahkPath:=PluginsPathList[ahkPath]
 	}
 	funcName:=funcnameStr:=""
 	StringReplace, checkPath, ahkPath,`%A_ScriptDir`%, %A_ScriptDir%
@@ -8101,7 +8101,7 @@ menuItemIconFileName(menuItem){
 ;══════════════════════════════════════════════════════════════════
 ;~;【AHK插件脚本Read】
 Plugins_Read:
-	global PluginsObjList:=Object(),PluginsPathList:=Object(),PluginsNameList:=Object(),pluginsDownList:=Object()
+	global PluginsObjList:=Object(),PluginsPathList:=Object(),PluginsRelativePathList:=Object(),PluginsNameList:=Object(),pluginsDownList:=Object()
 	global PluginsVersionList:=Object(),PluginsIconList:=Object(),PluginsContentList:=Object()
 	global PluginsObjNum:=0
 	global PluginsDirList:=[]
@@ -8120,6 +8120,7 @@ Plugins_Read:
 		{
 			PluginsObjList[(A_LoopFileName)]:=0
 			PluginsPathList[(A_LoopFileName)]:=A_LoopFileFullPath
+			PluginsRelativePathList[(A_LoopFileName)]:=StrReplace(A_LoopFileFullPath,A_ScriptDir "\")
 			PluginsNameList[(A_LoopFileName)]:=Plugins_Read_Name(A_LoopFileFullPath)
 			PluginsVersionList[(A_LoopFileName)]:=Plugins_Read_Version(A_LoopFileFullPath)
 			PluginsIconList[(A_LoopFileName)]:=Plugins_Read_Icon(A_LoopFileFullPath)
@@ -8134,6 +8135,7 @@ Plugins_Read:
 			{
 				PluginsObjList[(A_LoopFileName . ".ahk")]:=0
 				PluginsPathList[(A_LoopFileName . ".ahk")]:=A_LoopFileFullPath "\" A_LoopFileName ".ahk"
+				PluginsRelativePathList[(A_LoopFileName . ".ahk")]:=StrReplace(A_LoopFileFullPath "\" A_LoopFileName ".ahk",A_ScriptDir "\")
 				PluginsNameList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Name(A_LoopFileFullPath "\" A_LoopFileName ".ahk")
 				PluginsVersionList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Version(A_LoopFileFullPath "\" A_LoopFileName ".ahk")
 				PluginsIconList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Icon(A_LoopFileFullPath "\" A_LoopFileName ".ahk")
@@ -8737,9 +8739,11 @@ Auto_Update:
 				if(pluginUpdateStr!=""){
 					For pk, pv in pluginsDownList
 					{
-						if(PluginsVersionList[pk] < pv && FileExist(A_ScriptDir "\" PluginsDir "\" pk)){
-							FileMove,%A_ScriptDir%\%PluginsDir%\%pk%,%A_Temp%\%RunAnyZz%\%PluginsDir%\%pk%,1
-							URLDownloadToFile(RunAnyDownDir "/" StrReplace(PluginsDir,"\","/") "/" pk, A_ScriptDir "\" PluginsDir "\" pk)
+						if(PluginsVersionList[pk] < pv && FileExist(PluginsPathList[pk])){
+							FileMove,% PluginsPathList[pk],%A_Temp%\%RunAnyZz%\%PluginsDir%\%pk%,1
+							URLDownloadToFile(RunAnyDownDir "/" StrReplace(PluginsRelativePathList[pk],"\","/"), A_ScriptDir "\" PluginsRelativePathList[pk])
+							Sleep,1000
+							Plugins_Down_Check(pk, A_ScriptDir "\" PluginsRelativePathList[pk])
 						}
 					}
 					TrayTip,,插件脚本已经更新到最新版本。,3,1
