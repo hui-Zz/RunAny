@@ -1505,20 +1505,23 @@ CtrlGQuickSwitch:
 	if(tcIcon){
 		DetectHiddenWindows,On
 		try{
-			SendMessage 1074, 9, 0, , ahk_class TTOTAL_CMD
-			ControlGetText, folder, , ahk_id %ErrorLevel%
-			folder:=RegExReplace(folder,"S)^\\\\(?!file)")
-			folder:=RegExReplace(folder,"S)\*\.\*$")
+			; Total Commander internal codes
+			cm_CopySrcPathToClip  := 2029
+			cm_CopyTrgPathToClip  := 2030
+			ClipSaved := ClipboardAll
+			Clipboard := ""
+			SendMessage 1075, %cm_CopySrcPathToClip%, 0, , ahk_class TTOTAL_CMD
+			folder:=RegExReplace(clipboard,"S)^\\\\(?!file)")
 			If (ErrorLevel = 0 && folder && !ctrlgMenuItem[folder]) {
 				ctrlgMenuItemAdd(ctrlgMenuName, ctrlgMenuItem, ctrlgMenuItemNum, folder, tcIcon)
 			}
-			SendMessage 1074, 10, 0, , ahk_class TTOTAL_CMD
-			ControlGetText, folder, , ahk_id %ErrorLevel%
-			folder:=RegExReplace(folder,"S)^\\\\(?!file)")
-			folder:=RegExReplace(folder,"S)\*\.\*$")
+			SendMessage 1075, %cm_CopyTrgPathToClip%, 0, , ahk_class TTOTAL_CMD
+			folder:=RegExReplace(clipboard,"S)^\\\\(?!file)")
 			If (ErrorLevel = 0 && folder && !ctrlgMenuItem[folder]) {
 				ctrlgMenuItemAdd(ctrlgMenuName, ctrlgMenuItem, ctrlgMenuItemNum, folder, tcIcon)
 			}
+			Clipboard := ClipSaved
+			ClipSaved := ""
 		}catch e{
 			TrayTip,,% "无法显示TC当前目录：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,10,3
 		}
