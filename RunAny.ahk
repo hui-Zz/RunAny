@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.01.02
+║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.01.06
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.8.0"     ;~;版本号
-global RunAny_update_time:="2022.01.02"   ;~;更新日期
+global RunAny_update_time:="2022.01.06"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -2243,7 +2243,7 @@ Menu_Run_Plugins_ObjReg:
 			if(appParmStr=""){
 				Send_Or_Show(Func(appFunc).Call(),false)
 			}else if(appParms.MaxIndex()>=1 && appParms.MaxIndex()<=10){
-				Send_Or_Show(Func(appFunc).Call(appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8],appParms[9],appParms[10]),false)
+				Send_Or_Show(Func(appFunc).Call(appParms*),false)
 			}else if(appParms.MaxIndex()>10){
 				ToolTip,❎`n脚本函数：%appFunc%`n函数参数：%appParmErrorStr% 参数数量最多为10个，请修改后重试！
 				SetTimer,RemoveToolTip,8000
@@ -2264,7 +2264,7 @@ PluginsObjRegRun(appPlugins, appFunc, appParms){
 	if(appParms.Length()=0){	;没有传参，直接执行函数
 		effectResult:=PluginsObjRegActive[appPlugins][appFunc]()
 	}else if(appParms.MaxIndex()>=1 && appParms.MaxIndex()<=10){
-		effectResult:=PluginsObjRegActive[appPlugins][appFunc](appParms[1],appParms[2],appParms[3],appParms[4],appParms[5],appParms[6],appParms[7],appParms[8],appParms[9],appParms[10])
+		effectResult:=PluginsObjRegActive[appPlugins][appFunc](appParms*)
 	}else if(appParms.MaxIndex()>10){
 		ToolTip,❎`n脚本插件：%appPlugins%`n脚本函数：%appFunc%`n函数参数：%appParmErrorStr% 参数数量最多为10个，请修改后重试！
 		SetTimer,RemoveToolTip,8000
