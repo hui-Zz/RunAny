@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.01.06
+║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.01.07
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.8.0"     ;~;版本号
-global RunAny_update_time:="2022.01.06"   ;~;更新日期
+global RunAny_update_time:="2022.01.07"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -1578,46 +1578,46 @@ FeedExplorerOpenSave:
 ;    
 	$WinID := WinExist("A")
 	WinActivate, ahk_id %$WinID%
-	if(RegExMatch($FolderPath,"S)^.:\\"))
+	if(RegExMatch($FolderPath,"S)^.:\\") || RegExMatch($FolderPath,"S)^\\\\file"))
 		Gosub,FeedExplorerOpenSaveEdit1
 	else
 		Gosub,FeedExplorerOpenSaveEdit2
 return
 FeedExplorerOpenSaveEdit1:
 	; Read the current text in the "File Name:" box (= $OldText)
-	ControlGetText $OldText, Edit1, A
-	ControlFocus Edit1, A
+	ControlGetText $OldText, Edit1
+	ControlFocus Edit1
 	; Go to Folder
 	Loop, 5
 	{
-		ControlSetText, Edit1, %$FolderPath%, ahk_id %$WinID%		; set
+		ControlSetText, Edit1, %$FolderPath%		; set
 		Sleep, 50
-		ControlGetText, $CurControlText, Edit1, ahk_id %$WinID%		; check
+		ControlGetText, $CurControlText, Edit1		; check
 		if ($CurControlText = $FolderPath)
 			break
 	}
 	Sleep, 50
-	ControlSend Edit1, {Enter}, A
+	ControlSend Edit1, {Enter}
 	Sleep, 50
 	; Insert original filename
 	If !$OldText
 		return
 	Loop, 5
 	{
-		ControlSetText, Edit1, %$OldText%, A		; set
+		ControlSetText, Edit1, %$OldText%		; set
 		Sleep, 50
-		ControlGetText, $CurControlText, Edit1, A		; check
+		ControlGetText, $CurControlText, Edit1		; check
 		if ($CurControlText = $OldText)
 			break
 	}
 return
 FeedExplorerOpenSaveEdit2:
-	ControlFocus,Edit2,ahk_id %$WinID%
-    ControlSend,Edit2,{f4},ahk_id %$WinID%
+	ControlFocus,Edit2
+	ControlSend,Edit2,{f4}
 	Sleep, 50
-	ControlSetText,Edit2,%$FolderPath%,ahk_id %$WinID%
+	ControlSetText,Edit2,%$FolderPath%
 	Sleep, 50
-    ControlSend,Edit2,{Enter},ahk_id %$WinID%
+	ControlSend,Edit2,{Enter}
 return
 ;══════════════════════════════════════════════════════════════════
 ;~;【——菜单运行——】
