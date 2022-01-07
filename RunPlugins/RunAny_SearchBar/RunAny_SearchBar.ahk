@@ -1,6 +1,7 @@
 ﻿;*************************************************
 ;* 【RA搜索框：搜索菜单项，后缀菜单、自定义搜索等】
 ;*************************************************
+;【使用说明地址】：https://hui-zz.gitee.io/runany/#/plugins/runany-searchbar
 ;tong
 /*1.使用方法：
 	1.下载安装【RunAny】 https://hui-zz.gitee.io/runany/#/
@@ -76,9 +77,15 @@ v1.1.0: 2021年12月28日
 	1.优化代码，可以更好的自定义搜索功能（例如实现chrome|edge收藏夹）
 v1.1.1: 2021年12月29日
 	1.修复由于v1.1.0自定义搜索功能产生的搜索（例如百度）无内容BUG
+v1.1.2: 2021年1月6日
+	1.优化选择搜索功能代码
+	2.优化有搜索结果的搜索功能无匹配时不再执行，避免报错
+	3.新增快捷键F1-8快速切换搜索功能
+	4.优化配置项无当前分辨率屏幕的设置时，默认使用1080P下的设置
+	5.新增设置候选框搜索结果和加号字体颜色，【候选框字体颜色=black】、【加号颜色=black】如需要请自行添加至配置项，或删除配置文件后自动生成
 */
 
-global RunAny_Plugins_Version:="1.1.0"
+global RunAny_Plugins_Version:="1.1.2"
 global RunAny_Plugins_Icon:="shell32.dll,23"
 ;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
 #Include %A_ScriptDir%\..\RunAny_ObjReg.ahk
@@ -127,44 +134,49 @@ Label_ScriptSetting: ;脚本前参数设置
 	DetectHiddenWindows on							;显示隐藏窗口
 
 Label_ReadINI:	;读取INI文件配置收缩框
-	global SearchBar_Version:="1.1.0"
+	global SearchBar_Version:="1.1.2"
 	global INI
 	INI = %A_ScriptDir%\RunAny_SearchBar.ini
 	if !FileExist(INI)
 		initINI()
-	iniread, x_pos, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 搜索框x轴位置, 0.5
-	iniread, y_pos, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 搜索框y轴位置, 0.25
-	iniread, pos_mode, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 搜索框位置模式, 1
+	iniread, is_exist_Screen, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 搜索框x轴位置
+	Screen_Section := is_exist_Screen="ERROR" ? "1920*1080" : A_ScreenWidth "*" A_ScreenHeight
+	iniread, x_pos, %INI%, %Screen_Section%, 搜索框x轴位置, 0.5
+	iniread, y_pos, %INI%, %Screen_Section%, 搜索框y轴位置, 0.25
+	iniread, pos_mode, %INI%, %Screen_Section%, 搜索框位置模式, 1
 
-	iniread, Edit_color, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 输入框字体颜色, black
-	iniread, Edit_text_size, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 输入框字体大小, 25
-	iniread, Edit_trans, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 输入框透明度, 220
-	iniread, Edit_width, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 输入框宽度, 800
+	iniread, Edit_color, %INI%, %Screen_Section%, 输入框字体颜色, black
+	iniread, Edit_text_size, %INI%, %Screen_Section%, 输入框字体大小, 25
+	iniread, Edit_trans, %INI%, %Screen_Section%, 输入框透明度, 220
+	iniread, Edit_width, %INI%, %Screen_Section%, 输入框宽度, 800
 
-	iniread, Radio_un_color, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 上方搜索选项未选中时字体颜色, black
+	iniread, Plus_color, %INI%, %Screen_Section%, 加号颜色, black
+
+	iniread, Radio_un_color, %INI%, %Screen_Section%, 上方搜索选项未选中时字体颜色, black
 	Radio_un_text_size := Edit_text_size -11
 	Radio_text_size := Edit_text_size -10
-	iniread, Radio_color, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 上方搜索选项选中时字体颜色, 1e90ff
+	iniread, Radio_color, %INI%, %Screen_Section%, 上方搜索选项选中时字体颜色, 1e90ff
 
 	ListView_text_size := Radio_un_text_size
-	iniread, Candidates_num_max, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 候选框内最大行数, 50
-	iniread, Candidates_show_num_max, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 候选框显示最大行数, 10
-	iniread, ListView_column_ratio, %INI%, %A_ScreenWidth%*%A_ScreenHeight%, 候选框内三列比例, 0.08:0.28:0.64
+	iniread, Candidates_font_color, %INI%, %Screen_Section%, 候选框字体颜色, black
+	iniread, Candidates_num_max, %INI%, %Screen_Section%, 候选框内最大行数, 50
+	iniread, Candidates_show_num_max, %INI%, %Screen_Section%, 候选框显示最大行数, 10
+	iniread, ListView_column_ratio, %INI%, %Screen_Section%, 候选框内三列比例, 0.08:0.28:0.64
 	ListView_column_ratio := StrSplit(ListView_column_ratio, ":")
 	width_1 := ListView_column_ratio[1],width_2 := ListView_column_ratio[2],width_3 := ListView_column_ratio[3]
 
-	iniread, is_auto_fill, %INI%, %A_ScreenWidth%*%A_ScreenHeight%,输入框是否自动填充, 1
-	iniread, Edit_stop_time, %INI%, %A_ScreenWidth%*%A_ScreenHeight%,自动填充后禁用输入时间, 500
-	iniread, is_run_first, %INI%, %A_ScreenWidth%*%A_ScreenHeight%,是否回车自动执行第一个候选项, 1
-	iniread, is_auto_CapsLock, %INI%, %A_ScreenWidth%*%A_ScreenHeight%,是否自动开启大写, 1
-	iniread, CapsLock_List1, %INI%, %A_ScreenWidth%*%A_ScreenHeight%,对应菜单开启大写, 1|2
-	iniread, ChangeIMEHotKey, %INI%, %A_ScreenWidth%*%A_ScreenHeight%,切换输入法快捷键, %A_Space%
+	iniread, is_auto_fill, %INI%, %Screen_Section%,输入框是否自动填充, 1
+	iniread, Edit_stop_time, %INI%, %Screen_Section%,自动填充后禁用输入时间, 500
+	iniread, is_run_first, %INI%, %Screen_Section%,是否回车自动执行第一个候选项, 1
+	iniread, is_auto_CapsLock, %INI%, %Screen_Section%,是否自动开启大写, 1
+	iniread, CapsLock_List1, %INI%, %Screen_Section%,对应菜单开启大写, 1|2
+	iniread, ChangeIMEHotKey, %INI%, %Screen_Section%,切换输入法快捷键, %A_Space%
 	CapsLock_List := Object() 
 	Loop, parse, CapsLock_List1, |
     	CapsLock_List[A_LoopField] := A_LoopField 
-	iniread, is_remember_content, %INI%, %A_ScreenWidth%*%A_ScreenHeight%,是否记住上次执行内容, 0
+	iniread, is_remember_content, %INI%, %Screen_Section%,是否记住上次执行内容, 0
 
-	iniread, Auto_Reload_MTime, %INI%, %A_ScreenWidth%*%A_ScreenHeight%,配置更改自动重启时间, 2000
+	iniread, Auto_Reload_MTime, %INI%, %Screen_Section%,配置更改自动重启时间, 2000
 	If (A_ScreenDPI=96){
 		
 	}Else If (A_ScreenDPI=120){
@@ -270,6 +282,7 @@ Label_Init: ;搜索框GUI初始化
 	global is_hide := 0											;表示是否是隐藏效果
 	global Radio_H_ALL,Edit_H,ListBox_width,ListView_H1,ImageListID			;辅助变量
 	global CandidateList,Edit_OutputVar							;候选框、输入框内容
+	global is_can_run_fun
 	OnMessage( 0x201 , "move_Win")								;用于拖拽移动
 
 	CustomColor := "6b9ac9"										;用于背景透明的颜色
@@ -303,10 +316,11 @@ Label_Init: ;搜索框GUI初始化
 	Radio_H_ALL += Radio_H + 10
 	Gui Add, Edit, HwndMy_Edit_Hwnd x0 y%Radio_H_ALL% w%Edit_width% vContent gChangeEdit
 	ControlGetPos, , , , Edit_H, , ahk_id %My_Edit_Hwnd%
+	Gui font, s%Edit_text_size% c%Plus_color%,Segoe UI
 	Gui Add, Text,+Border -Background x%Edit_width% y%Radio_H_ALL% h%Edit_H% HwndMove_Hwnd, +
 	ControlGetPos, , ,Move_W , , , ahk_id %Move_Hwnd%
 	ListBox_width := Edit_width + Move_W
-	Gui font, s%ListView_text_size% c%Edit_color%,Segoe UI
+	Gui font, s%ListView_text_size% c%Candidates_font_color%,Segoe UI
 	Gui Add, ListView,xs w%ListBox_width% vCommandChoice R2 -Multi +AltSubmit -HScroll HwndListView_Hwnd gGiveEdit, 序号|菜单名称|菜单值
 	Gui Add, ListView,xs w%ListBox_width% R1 -Multi +AltSubmit -HScroll HwndListView_temp_Hwnd , 序号|菜单名称|菜单值
 	Gui, ListView, CommandChoice
@@ -330,6 +344,8 @@ Label_Init: ;搜索框GUI初始化
 Return
 
 Label_Submit: ;确认提交
+	If (!is_can_run_fun)
+		Return
 	Gosub, Label_Submit_Before
 	toggleSearchBar("")
 	if IsLabel("fun_" index_temp)
@@ -390,28 +406,25 @@ showSwitchToolTip(Msg="", ShowTime=1000, is_input=0) { ;ToolTip形式显示
 	Return
 }
 
-ChangeRadio(CtrlHwnd){	;单选框改变时的样式改变
+ChangeRadio(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:=""){	;单选框改变时的样式改变
+	GuiControlGet, OutputVar, Focus 
+	SelectWhichRadio( SubStr(OutputVar, 0, 1))
+}
+
+SelectWhichRadio(index){	;改变搜索功能
+	index := index<=len_Radio ? index : len_Radio
+	ControlFocus,,ahk_id %My_Edit_Hwnd%
 	Gosub, Label_Font_Radio_un
 	hwnd := Search_Hwnd_%index_temp%
 	GuiControl, Font, %hwnd%
 	Gosub, Label_Font_Radio
-	GuiControl, Font, %CtrlHwnd%
-	Loop, %len_Radio%
-	{
-		hwnd := Search_Hwnd_%index_temp%
-		GuiControlGet, OutputVar,, %hwnd%
-		If (OutputVar=1){
-			break
-		}
-		If (index_temp=len_Radio)
-			index_temp := 1
-		Else
-			index_temp := Mod(index_temp+1, len_Radio+1)
-	}
+	hwnd := Search_Hwnd_%index%
+	GuiControl, , %hwnd%, 1
+	GuiControl, Font, %hwnd%
+	index_temp := index
 	Gosub, changeCapsLockState
 	ChangeEdit()
 }
-Return
 ;----------------------------------------【单选框对应触发提示对应】----------------------------------------
 
 ChangeEdit(){	;输入框改变时触发
@@ -460,8 +473,10 @@ ChangeEdit(){	;输入框改变时触发
 	If (is_hide = 0)
 		Gui, Show, AutoSize
 	If ( match_flag && ListCount=0 && Edit_OutputVar){		;无匹配时提醒
+		is_can_run_fun := False
 		showSwitchToolTip("无匹配项！",0,1)
 	}else if(is_auto_fill && Candidates_num=2){	;剩下一个选项自动填充
+		is_can_run_fun := True
 		Candidates_num := -1
 		Autocomplete(1)
 		if (Edit_stop_time){
@@ -470,6 +485,7 @@ ChangeEdit(){	;输入框改变时触发
 			GuiControl, -ReadOnly, %My_Edit_Hwnd%
 		}
 	}Else{
+		is_can_run_fun := True
 		ToolTip
 	}
 	CandidateList := ""
@@ -597,7 +613,7 @@ GuiContextMenu(GuiHwnd, CtrlHwnd, EventInfo, IsRightClick, X, Y){	;右键功能
 	}
 }
 
-getCandidateCommon(Obj,default_Icon_number:=4,ObjIcon:="",WhichToExe:=2){
+getCandidateCommon(Obj,default_Icon_number:=4,ObjIcon:="",WhichToExe:=2){	;获取搜索结果
 	If (Edit_OutputVar="")
 		Return
 	CandidateList := Object()
@@ -633,7 +649,7 @@ getCandidateCommon(Obj,default_Icon_number:=4,ObjIcon:="",WhichToExe:=2){
     Return CandidateList
 }
 
-executeCandidateWhich(whichColumn:=2){
+executeCandidateWhich(whichColumn:=2){	;执行搜索结果的哪一列
 	RowNumber := LV_GetNext()
 		If (RowNumber!=0){
 			LV_GetText(Content, LV_GetNext(), whichColumn)
@@ -765,10 +781,13 @@ initINI() { ;初始化INI
 	FileAppend,输入框字体大小=25`n, %INI%
 	FileAppend,输入框透明度=220`n, %INI%
 	FileAppend,输入框宽度=800`n, %INI%
+	
+	FileAppend,加号颜色=black`n, %INI%
 
 	FileAppend,上方搜索选项未选中时字体颜色=black`n, %INI%
 	FileAppend,上方搜索选项选中时字体颜色=1e90ff`n, %INI%
 
+	FileAppend,候选框字体颜色=black`n, %INI%
 	FileAppend,候选框内最大行数=50`n, %INI%
 	FileAppend,候选框显示最大行数=10`n, %INI%
 	FileAppend,候选框内三列比例=0.08:0.28:0.64`n, %INI%
@@ -788,58 +807,10 @@ initINI() { ;初始化INI
 
 #If WinActive("ahk_id" WinID)	;搜索框的热键，可自行更改，因为要判断是否激活了搜索框，所以不能做成RA插件功能
 Tab::	;TAB键快速正序切换，loop循环保证意外发生，循环其实不会走完一遍
-	ControlFocus,,ahk_id %My_Edit_Hwnd%
-	Loop, %len_Radio%
-	{
-		hwnd := Search_Hwnd_%index_temp%
-		GuiControlGet, OutputVar,, %hwnd%
-		If (OutputVar=1){
-			Gosub, Label_Font_Radio_un
-			GuiControl, Font, %hwnd%
-			If (index_temp=len_Radio){
-				hwnd := Search_Hwnd_1
-				index_temp := 1
-			}Else{
-				temp := index_temp + 1 
-				hwnd := Search_Hwnd_%temp%
-				index_temp := Mod(index_temp+1, len_Radio+1)
-			}
-			Gosub, Label_Font_Radio
-			GuiControl, , %hwnd%, 1
-			GuiControl, Font, %hwnd%
-			Break
-		}
-		index_temp := Mod(index_temp+1, len_Radio+1)
-	}
-	Gosub, changeCapsLockState
-	ChangeEdit()
+	SelectWhichRadio(Mod(index_temp+1, len_Radio+1)=0 ? 1 : Mod(index_temp+1, len_Radio+1))
 Return
 RShift::	;右边shift键快速逆序切换
-	ControlFocus,,ahk_id %My_Edit_Hwnd%
-	Loop, %len_Radio%
-	{
-		hwnd := Search_Hwnd_%index_temp%
-		GuiControlGet, OutputVar,, %hwnd%
-		If (OutputVar=1){
-			Gosub, Label_Font_Radio_un
-			GuiControl, Font, %hwnd%
-			If (index_temp=1){
-				hwnd := Search_Hwnd_%len_Radio%
-				index_temp := len_Radio
-			}Else{
-				temp := index_temp - 1 
-				hwnd := Search_Hwnd_%temp%
-				index_temp := Mod(index_temp-1, len_Radio+1)
-			}
-			Gosub, Label_Font_Radio
-			GuiControl, , %hwnd%, 1
-			GuiControl, Font, %hwnd%
-			Break
-		}
-		index_temp := Mod(index_temp-1, len_Radio+1)
-	}
-	Gosub, changeCapsLockState
-	ChangeEdit()
+	SelectWhichRadio(Mod(index_temp-1, len_Radio+1)=0 ? len_Radio : Mod(index_temp-1, len_Radio+1))
 Return
 ;左Lat自动补全
 LAlt::Autocomplete(1)
@@ -852,6 +823,15 @@ LAlt & 6::Autocomplete(6)
 LAlt & 7::Autocomplete(7)
 LAlt & 8::Autocomplete(8)
 LAlt & 9::Autocomplete(9)
+
+F1::SelectWhichRadio(1)
+F2::SelectWhichRadio(2)
+F3::SelectWhichRadio(3)
+F4::SelectWhichRadio(4)
+F5::SelectWhichRadio(5)
+F6::SelectWhichRadio(6)
+F7::SelectWhichRadio(7)
+F8::SelectWhichRadio(8)
 
 Delete::	;delet自动情况输入框
 	ControlFocus,,ahk_id %My_Edit_Hwnd%
