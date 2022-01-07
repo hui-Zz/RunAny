@@ -178,11 +178,12 @@ class RunAnyObj {
 	text_edit_zz(getZz:="",editApp:=""){
 		if(editApp){
 			DetectHiddenWindows, Off
-			if(!WinExist("ahk_exe" . editApp)){
+			SplitPath, editApp, editName
+			if(!WinExist("ahk_exe" . editName)){
 				Run,%editApp%
-				WinWait,ahk_exe %editApp%
+				WinWait,ahk_exe %editName%,,3
 			}
-			WinActivate,ahk_exe %editApp%
+			WinActivate,ahk_exe %editName%
 			Sleep,200
 			Send_Str_Zz(getZz)
 		}
