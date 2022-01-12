@@ -13,6 +13,7 @@ __多台电脑你只需配置一套软件列表(RunAny.ini)，就能到处运行
 - ✅ 分类定位，三键启动，简单迅速
 - ✅ 一次配置，到处运行，永久使用
 - ✅ <font color="red">[规则判断自动启动软件](/run-ctrl) 重磅新功能！</font>
+- ✅ <font color="red">[【打开/保存对话框快速定位目录功能】（类似于Listary的Ctrl+G）](/change-log?id=%e2%9c%85%e6%96%b0%e5%a2%9e%e3%80%90%e6%89%93%e5%bc%80%e4%bf%9d%e5%ad%98%e5%af%b9%e8%af%9d%e6%a1%86%e5%bf%ab%e9%80%9f%e5%ae%9a%e4%bd%8d%e7%9b%ae%e5%bd%95%e5%8a%9f%e8%83%bd%e3%80%91%ef%bc%88%e7%b1%bb%e4%bc%bc%e4%ba%8elistary%e7%9a%84ctrlg%ef%bc%89) 重磅新功能！</font>
 - ✅ [一键直达](/README?id=一键直达)，[一键公式计算](/README?id=一键公式计算)，[一键批量搜索](/README?id=批量搜索)
 - ✅ [全局热键](/README?id=全局热键)，[热键映射](/README?id=热键映射)，[热字符串](/README?id=热字符串)，多样快捷
 - ✅ [短语输出](/README?id=短语输出)，[透明化启动](/CONFIG?id=半透明启动程序)，[快捷打开文件方式](/README?id=快捷打开文件方式)
