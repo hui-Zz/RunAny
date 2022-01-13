@@ -21,7 +21,8 @@
 - ☑ [全局热键，热键映射](#advancedConfig)，[热字符串](https://hui-zz.github.io/RunAny/#/hotstring)，多样快捷
 - ☑ [短语输出](#wordOutput)，[透明化启动](#advancedConfig)，[快捷打开文件方式](#quickOpenFile)
 - ☑ [外接脚本，个性函数，自由定制](#runPlugins)
-- ☑ [规则判断自动启动软件](https://hui-zz.github.io/RunAny/#/run-ctrl) **重磅新功能！**
+- ☑ [规则判断自动启动软件](https://hui-zz.gitee.io/runany/#/run-ctrl) **重磅新功能！**
+- ☑ [【打开/保存对话框快速定位目录功能】（类似于Listary的Ctrl+G）](https://hui-zz.gitee.io/runany/#/change-log?id=%e2%9c%85%e6%96%b0%e5%a2%9e%e3%80%90%e6%89%93%e5%bc%80%e4%bf%9d%e5%ad%98%e5%af%b9%e8%af%9d%e6%a1%86%e5%bf%ab%e9%80%9f%e5%ae%9a%e4%bd%8d%e7%9b%ae%e5%bd%95%e5%8a%9f%e8%83%bd%e3%80%91%ef%bc%88%e7%b1%bb%e4%bc%bc%e4%ba%8elistary%e7%9a%84ctrlg%ef%bc%89) **重磅新功能！**
 
 【Github下载地址：】https://github.com/hui-Zz/RunAny/archive/master.zip
 - 蓝奏云下载：https://www.lanzoux.com/b902490/

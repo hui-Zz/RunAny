@@ -16,13 +16,14 @@ SetControlDelay,0       ;~控件修改命令自动延时(默认20)
 SetTitleMatchMode,2     ;~窗口标题模糊匹配
 CoordMode,Menu,Window   ;~坐标相对活动窗口
 ;**************************************************************************
+;[屏蔽的程序，复制一行后修改软件名.exe]
 GroupAdd,maxApp,ahk_exe vmware-vmx.exe
 GroupAdd,maxApp,ahk_exe TeamViewer.exe
 GroupAdd,maxApp,ahk_exe dota2.exe
 GroupAdd,maxApp,ahk_exe League of Legends.exe
 GroupAdd,maxApp,ahk_exe scrcpy.exe
-GroupAdd,browserApp,ahk_exe chrome.exe
-GroupAdd,browserApp,ahk_exe QQBrowser.exe
+
+;**************************************************************************
 #If !WinActive("ahk_group maxApp") ;特定最大化程序下屏蔽
 	MButton:: ; 如不屏蔽中键原功能在前缀加~，但这样拖拽窗口时会实时激活
 		CoordMode,Mouse ; 切换到屏幕绝对坐标
