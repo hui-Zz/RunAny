@@ -44,37 +44,6 @@
 	3.【RunAny_SearchBar_Custom.ahk】自定义搜索功能文件，无此需求请勿乱改，可自定义添加不同的搜索功能（可以与别人分享的自己写的搜索功能），第一次运行后自动生成，可自行备份，【不用自启】
 	4.【RunAny_SearchBar.ini】和【RunAny_SearchBar_Custom.ahk】文件删除后自动生成
 ;-----------------------------------------【更新说明】-----------------------------------------
-v1.0.3: 2021年12月
-	1.添加拼音搜索和首字母搜索(基于kazhafeizhale的ChToPy脚本),同时RA菜单项值匹配菜单项名称，不再匹配路径
-	2.不再使用onMessage.ahk
-v1.0.4: 2021年12月22日
-	1.新增首次运行没有自启时的提示信息
-	2.插件可设置为鼠标位置
-	3.增加配置文件，可根据当前屏幕分辨率设置外观
-	4.解决缩放显示问题
-	5.新增可接收getZz参数
-	6.新增可以选择记住上次执行的内容
-	7.新增右键加号可以打开配置文件
-v1.0.5: 2021年12月23日
-	1.功能与插件分离，自定义搜索功能用户可通过RunAny_SearchBar_Custom.ahk文件保存
-	2.自定义搜索堆叠优化，上方垂直堆叠
-	3.新增右键搜索功能项可以打开功能配置文件
-	4.新增配置文件打开方式为RA内部关联
-v1.0.6: 2021年12月24日
-	1.修复使用RA内部关联打开配置文件包含变量无法读取的错误
-	2.修复ListView图像列表内存占用问题，降低内存占用
-	3.修复长按退格键导致下方候选框残留问题
-v1.0.7: 2021年12月25日
-	1.新增能够为每个搜索功能设置是否开启大写，对应配置项：对应菜单开启大写
-	2.新增基于系统设置的切换输入法快捷键实现自动切换输入法，对应配置项：切换输入法快捷键
-	3.增加URI转义，修复网页搜索内容存在%等无法搜索的问题，见【RunAny_SearchBar_Custom.ahk】中百度一下搜索功能
-v1.0.8: 2021年12月26日
-	1.修复MenuObj包含无路径缓存内容，造成重复，修复思路基于无路径缓存的MenuObj无对应图标：MenuObjIcon中不存的且EvFullPath中存在的被排除
-v1.0.9: 2021年12月27日
-	1.修复点击切换搜索功能时，候选项没有刷新
-	2.汉字转拼音插件在多音字方面处理存在问题，当出现多个多音词（例如“的”），会产生指数及增长，导致程序崩溃，改为多音字单转换
-v1.1.0: 2021年12月28日
-	1.优化代码，可以更好的自定义搜索功能（例如实现chrome|edge收藏夹）
 v1.1.1: 2021年12月29日
 	1.修复由于v1.1.0自定义搜索功能产生的搜索（例如百度）无内容BUG
 v1.1.2: 2021年1月6日
@@ -83,9 +52,11 @@ v1.1.2: 2021年1月6日
 	3.新增快捷键F1-8快速切换搜索功能
 	4.优化配置项无当前分辨率屏幕的设置时，默认使用1080P下的设置
 	5.新增设置候选框搜索结果和加号字体颜色，【候选框字体颜色=black】、【加号颜色=black】如需要请自行添加至配置项，或删除配置文件后自动生成
+v1.1.3: 2021年1月13日
+	1.修复菜单值中包含=出错情况
 */
 
-global RunAny_Plugins_Version:="1.1.2"
+global RunAny_Plugins_Version:="1.1.3"
 global RunAny_Plugins_Icon:="shell32.dll,23"
 ;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
 #Include %A_ScriptDir%\..\RunAny_ObjReg.ahk
@@ -134,7 +105,7 @@ Label_ScriptSetting: ;脚本前参数设置
 	DetectHiddenWindows on							;显示隐藏窗口
 
 Label_ReadINI:	;读取INI文件配置收缩框
-	global SearchBar_Version:="1.1.2"
+	global SearchBar_Version:="1.1.3"
 	global INI
 	INI = %A_ScriptDir%\RunAny_SearchBar.ini
 	if !FileExist(INI)
@@ -243,30 +214,30 @@ Label_ReadRAINI:	;读取RAINI文件生成菜单项
 	Loop, read, %INI_EvFullPath%
 	{
 		If (A_Index!=1){
-			item := StrSplit(A_LoopReadLine, "=")
-			EvFullPath[(item[1])] := item[2]
+			equalPos := InStr(A_LoopReadLine, "=")
+			EvFullPath[SubStr(A_LoopReadLine, 1, equalPos-1)] := SubStr(A_LoopReadLine, equalPos+1)
 		}
 	}
 	Loop, read, %INI_MenuObjIcon%
 	{
 		If (A_Index!=1){
-			item := StrSplit(A_LoopReadLine, "=")
-			MenuObjIcon[(item[1])] := item[2]
+			equalPos := InStr(A_LoopReadLine, "=")
+			MenuObjIcon[SubStr(A_LoopReadLine, 1, equalPos-1)] := SubStr(A_LoopReadLine, equalPos+1)
 		}
 	}
 	Loop, read, %INI_MenuObj%
 	{
 		If (A_Index!=1){
-			item := StrSplit(A_LoopReadLine, "=")
-			If (MenuObjIcon.HasKey(item[1]) || !EvFullPath.HasKey(item[1] ".exe"))
-				MenuObj[(item[1])] := item[2]
+			equalPos := InStr(A_LoopReadLine, "=")
+			If (MenuObjIcon.HasKey(SubStr(A_LoopReadLine, 1, equalPos-1)) || !EvFullPath.HasKey(SubStr(A_LoopReadLine, 1, equalPos-1) ".exe"))
+				MenuObj[SubStr(A_LoopReadLine, 1, equalPos-1)] := SubStr(A_LoopReadLine, equalPos+1)
 		}
 	}
 	Loop, read, %INI_MenuObjExt%
 	{
 		If (A_Index!=1){
-			item := StrSplit(A_LoopReadLine, "=")
-			MenuObjExt[(item[1])] := item[2]
+			equalPos := InStr(A_LoopReadLine, "=")
+			MenuObjExt[SubStr(A_LoopReadLine, 1, equalPos-1)] := SubStr(A_LoopReadLine, equalPos+1)
 		}
 	}
 
