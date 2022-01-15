@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.01.07
+║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.01.13
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.8.0"     ;~;版本号
-global RunAny_update_time:="2022.01.07"   ;~;更新日期
+global RunAny_update_time:="2022.01.13"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -551,40 +551,16 @@ RunABackupClear(RunABackupDir,RunABackupFile){
 ;══════════════════════════════════════════════════════════════════
 ;~;【多种启动菜单热键】
 #If MenuDoubleCtrlKey=1
-Ctrl::
-	KeyWait,Ctrl
-	KeyWait,Ctrl,d,t0.2
-	if !Errorlevel
-		Gosub,Menu_Show1
-	return
+Ctrl::Gosub,DoubleClickKey
 #If
 #If MenuDoubleAltKey=1
-Alt::
-	KeyWait,Alt
-	KeyWait,Alt,d,t0.2
-	if !Errorlevel
-		Gosub,Menu_Show1
-	return
+Alt::Gosub,DoubleClickKey
 #If
 #If MenuDoubleLWinKey=1
-LWin::
-	KeyWait,LWin
-	KeyWait,LWin,d,t0.2
-	if !Errorlevel
-		Gosub,Menu_Show1
-	else
-		SendInput,{LWin}
-	return
+LWin::Gosub,DoubleClickKey
 #If
 #If MenuDoubleRWinKey=1
-RWin::
-	KeyWait,RWin
-	KeyWait,RWin,d,t0.2
-	if !Errorlevel
-		Gosub,Menu_Show1
-	else
-		SendInput,{RWin}
-	return
+RWin::Gosub,DoubleClickKey
 #If
 #If MenuCtrlRightKey=1
 ~Ctrl & RButton::Gosub,Menu_Show1
@@ -601,6 +577,16 @@ XButton2::Gosub,Menu_Show1
 #If MenuMButtonKey=1 && !WinActive("ahk_group DisableGUI")
 ~MButton::Gosub,Menu_Show1
 #If
+
+DoubleClickKey:
+	KeyWait,%A_ThisHotkey%
+	KeyWait,%A_ThisHotkey%,d,t0.2
+	if !Errorlevel
+		Gosub,Menu_Show1
+	else
+		SendInput,{%A_ThisHotkey%}
+	return
+return
 ;══════════════════════════════════════════════════════════════════
 ;~;【——创建菜单——】
 ;══════════════════════════════════════════════════════════════════
@@ -9241,7 +9227,7 @@ FileAppend,
 	--
 	StrokesPlus鼠标手势|StrokesPlus.exe
 	Ditto剪贴板|Ditto.exe
--办公(wo&Rk)|doc docx xls xlsx ppt pptx wps et dps
+-办公(&Work)|doc docx xls xlsx ppt pptx wps et dps
 	word(&W)|winword.exe
 	Excel(&E)|excel.exe
 	PPT(&T)|powerpnt.exe
@@ -9251,7 +9237,7 @@ FileAppend,
 		ET(&E)|et.exe
 		WPP(&P)|wpp.exe
 	--
--网址(&Web)
+-网址(U&RL)
 	;在别名最末尾添加Tab制表符+热键(参考AHK写法:^代表Ctrl !代表Alt #代表Win +代表Shift)，如选中文字按Alt+z百度
 	百度(&B)	!z|https://www.baidu.com/s?wd=
 	谷歌(&G)	!g|https://www.google.com/search?q=`%s&gws_rd=ssl
