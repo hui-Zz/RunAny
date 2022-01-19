@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.01.13
+║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.01.19
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.8.0"     ;~;版本号
-global RunAny_update_time:="2022.01.13"   ;~;更新日期
+global RunAny_update_time:="2022.01.19"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -8890,6 +8890,8 @@ EverythingIsRun(){
 		ev := new everything
 		;RunAny管理员权限运行后发现Everything非管理员权限则重新以管理员权限运行
 		if(!ev.GetIsAdmin() && A_IsAdmin && EvPathRun){
+			SplitPath, EvPathRun, name, dir
+			SetWorkingDir,%dir%
 			Run,%EvPathRun% -exit
 			Run,%EvPathRun% -startup %evAdminRun%
 			Sleep,500
@@ -8899,9 +8901,12 @@ EverythingIsRun(){
 	}else{
 		EvPathRun:=Get_Transform_Val(EvPath)
 		if(EvPathRun && FileExist(EvPathRun) && !InStr(FileExist(EvPathRun), "D")){
+			SplitPath, EvPathRun, name, dir
+			SetWorkingDir,%dir%
 			Run,%EvPathRun% -startup %evAdminRun%
 			Sleep,500
 		}else if(FileExist(A_ScriptDir "\Everything\Everything.exe")){
+			SetWorkingDir,%A_ScriptDir%\Everything
 			Run,%A_ScriptDir%\Everything\Everything.exe -startup %evAdminRun%
 			EvPath=%A_ScriptDir%\Everything\Everything.exe
 			Sleep,500
@@ -8913,6 +8918,7 @@ EverythingIsRun(){
 			),10,2
 			evExist:=false
 		}
+		SetWorkingDir,%A_ScriptDir%
 	}
 	DetectHiddenWindows,Off
 	return evExist
