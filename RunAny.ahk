@@ -1324,30 +1324,18 @@ Menu_Show:
 					continue
 				}
 				if(RegExMatch(S_LoopField,"S)^(\\\\|.:\\)")){
-					;一键打开目录
-					if(OneKeyFolder && InStr(FileExist(S_LoopField), "D")){
-						Open_Folder_Path(S_LoopField)
-						openFlag:=true
-						continue
-					}
-					;一键打开文件
-					if(OneKeyFile && FileExist(S_LoopField)){
-						Run,%S_LoopField%
-						openFlag:=true
-						continue
-					}
+					One_Open(S_LoopField, 0)
+					One_Open(S_LoopField, 1)
+					openFlag:=true
+					continue
 				}
 				;一键注册表路径
 				S_LoopField_Reg:=RegExReplace(S_LoopField,"S)^(计算机\\|\\)+")
 				regKeyName:="HKEY_CLASSES_ROOT|HKEY_CURRENT_USER|HKEY_LOCAL_MACHINE|HKEY_USERS|HKEY_CURRENT_CONFIG|"
 				regKeyName.="HKCR\\|HKCU\\|HKLM\\|HKU\\|HKCC\\"
 				if(OneKeyRegedit && RegExMatch(S_LoopField_Reg,"i)^(" regKeyName ").*")){
-					if(WinExist("ahk_exe regedit.exe")){
-						Process,Close,regedit.exe
-					}
-					shell:=ComObjCreate("WScript.Shell")
-					shell.RegWrite("HKCU\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit\LastKey","计算机\" RTrim(S_LoopField_Reg,"\"))
-					shell.Run("RegEdit.exe")
+					global any:="huiZz_System[system_regedit_zz](" S_LoopField ")"
+					Gosub,Menu_Run_Plugins_ObjReg
 					openFlag:=true
 					continue
 				}
@@ -2385,6 +2373,14 @@ One_Search:
 		}
 	}
 return
+;~;[一键打开文件或目录]
+One_Open(open, type=0){
+	if(!type && FileExist(open)){
+		Run,%open%
+	}else if(type && InStr(FileExist(open), "D")){
+		Open_Folder_Path(open)
+	}
+}
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 ;~;【══通用函数方法══】
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -2748,12 +2744,7 @@ Receive_WM_COPYDATA(wParam, lParam)
 {
     StringAddress := NumGet(lParam + 2*A_PtrSize)  ; 获取 CopyDataStruct 的 lpData 成员.
     CopyOfData := StrGet(StringAddress)  ; 从结构中复制字符串.
-	if(IsLabel(CopyOfData))
-		Gosub,%CopyOfData%
-	if(RegExMatch(CopyOfData,"S).+?\[.+?\]%?\(.*?\)")){
-		global any:=CopyOfData
-		SetTimer,Menu_Run_Plugins_ObjReg,-1
-	}
+	Remote_Dyna_Run(CopyOfData)
     return true  ; 返回 1(true) 是回复此消息的传统方式.
 }
 ;[系统关机或重启前操作]
@@ -3133,6 +3124,15 @@ LVModifyCol(width, colList*){
 	{
 		LV_ModifyCol(col, width)
 		LV_ModifyCol(col, "center")
+	}
+}
+;~;[外部动态运行函数和插件]
+Remote_Dyna_Run(remoteRun){
+	if(IsLabel(remoteRun))
+		Gosub,%remoteRun%
+	if(RegExMatch(remoteRun,"S).+?\[.+?\]%?\(.*?\)")){
+		global any:=remoteRun
+		SetTimer,Menu_Run_Plugins_ObjReg,-1
 	}
 }
 ;[外部调用菜单运行]
