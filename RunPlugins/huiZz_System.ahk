@@ -3,7 +3,7 @@
 ;*             by hui-Zz 
 ;************************
 global RunAny_Plugins_Name:="ObjReg系统操作脚本"
-global RunAny_Plugins_Version:="1.1.2"
+global RunAny_Plugins_Version:="1.1.3"
 global RunAny_Plugins_Icon:="imageres.dll,61"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
@@ -47,6 +47,7 @@ class RunAnyObj {
 		if(WinExist("ahk_exe regedit.exe")){
 			Process,Close,regedit.exe
 		}
+		getZz:=RegExReplace(getZz,"S)^(计算机\\|\\)+")
 		shell:=ComObjCreate("WScript.Shell")
 		shell.RegWrite("HKCU\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit\LastKey","计算机\" RTrim(getZz,"\"))
 		shell.Run("RegEdit.exe")

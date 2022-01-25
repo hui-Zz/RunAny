@@ -4951,6 +4951,13 @@ LVPluginsAdd:
 	Gui,PluginsDownload: Menu, ahkDownMenu
 	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
 	Gui,PluginsDownload:Show, , %RunAnyZz% 插件下载 %RunAny_update_version% %RunAny_update_time%%AdminMode%
+	Loop % LV_GetCount()
+	{
+		LV_GetText(RowText, A_Index, 2)
+		if(RowText!="已最新"){
+			LV_Modify(A_Index, "Select Focus Check")   ; 高亮选中勾选
+		}
+	}
 return
 LVPluginsCheck:
 	LV_Modify(0, "Check Focus")   ; 勾选所有.
