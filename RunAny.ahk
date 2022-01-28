@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.01.19
+║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.01.25
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.8.0"     ;~;版本号
-global RunAny_update_time:="2022.01.19"   ;~;更新日期
+global RunAny_update_time:="自定义一键直达 2022.01.25"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -198,6 +198,7 @@ MenuObjEv:=MenuObj.Clone()
 if(!NoPathFlag && !EvNo){
 	if(!EvDemandSearch || (EvDemandSearch && EvCommandStr!="")){
 		if(EverythingIsRun()){
+			Menu_Tray_Tip("","开始调用Everything搜索菜单内应用全路径...")
 			RegRead,EvTotResults,HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults
 			if(EvTotResults>0){
 				EverythingQuery(EvCommandStr)
@@ -1291,14 +1292,15 @@ Menu_Show:
 					continue
 				}
 				;一键计算公式数字加减乘除
-				if(RegExMatch(S_LoopField,"S)^[\(\)\.\s\d]*\d+\s*[+*/-]+[\(\)\.+*/-\d\s]+($|=$)")){
+				calcRegex:=OneKeyRegexList["一键计算"]
+				if(calcRegex && RegExMatch(S_LoopField,calcRegex)){
 					formula:=S_LoopField
-					if(RegExMatch(S_LoopField,"S)^[\(\)\.\s\d]*\d+\s*[+*/-]+[\(\)\.+*/-\d\s]+=$")){
+					if(RegExMatch(S_LoopField,"S)=$")){
 						StringTrimRight, formula, formula, 1
 					}
 					calc:=js_eval(formula)
 					selectResult.=A_LoopField
-					if(RegExMatch(S_LoopField,"S)^[\(\)\.\s\d]*\d+\s*[+*/-]+[\(\)\.+*/-\d\s]+=$")){
+					if(RegExMatch(S_LoopField,"S)=$")){
 						calcFlag:=true
 						selectResult.=calc
 					}else{
@@ -1311,33 +1313,14 @@ Menu_Show:
 				}else{
 					notCalcFlag:=true
 				}
-				;一键打开网址
-				if(OneKeyWeb && RegExMatch(S_LoopField,"iS)^([\w-]+://?|www[.]).*")){
-					Run_Search(S_LoopField,"",BrowserPathRun)
-					openFlag:=true
-					continue
-				}
-				;一键磁力下载
-				if(OneKeyMagnet && InStr(S_LoopField,"magnet:?xt=urn:btih:")=1){
-					Run,%S_LoopField%
-					openFlag:=true
-					continue
-				}
-				if(RegExMatch(S_LoopField,"S)^(\\\\|.:\\)")){
-					One_Open(S_LoopField, 0)
-					One_Open(S_LoopField, 1)
-					openFlag:=true
-					continue
-				}
-				;一键注册表路径
-				S_LoopField_Reg:=RegExReplace(S_LoopField,"S)^(计算机\\|\\)+")
-				regKeyName:="HKEY_CLASSES_ROOT|HKEY_CURRENT_USER|HKEY_LOCAL_MACHINE|HKEY_USERS|HKEY_CURRENT_CONFIG|"
-				regKeyName.="HKCR\\|HKCU\\|HKLM\\|HKU\\|HKCC\\"
-				if(OneKeyRegedit && RegExMatch(S_LoopField_Reg,"i)^(" regKeyName ").*")){
-					global any:="huiZz_System[system_regedit_zz](" S_LoopField ")"
-					Gosub,Menu_Run_Plugins_ObjReg
-					openFlag:=true
-					continue
+				;一键直达动态正则匹配
+				For name, regex in OneKeyRegexList
+				{
+					if(name !="一键计算" && RegExMatch(S_LoopField, regex)){
+						Remote_Dyna_Run(OneKeyRunList[name])
+						openFlag:=true
+						continue
+					}
 				}
 			}
 			if(calcResult){
@@ -6346,7 +6329,7 @@ Settings_Gui:
 	GROUP_LISTVIEW_WIDTH_66=650
 	GROUP_CHOOSE_EDIT_WIDTH_66=580
 	GROUP_ICON_EDIT_WIDTH_66=550
-	MARGIN_TOP_66=20
+	MARGIN_TOP_66=15
 	ev := new everything
 	Gui,66:Destroy
 	Gui,66:Default
@@ -6509,22 +6492,28 @@ Settings_Gui:
 	Gosub,SetEvAllSearch
 	
 	Gui,66:Tab,一键直达,,Exact
-	Gui,66:Add,GroupBox,xm-10 y+%MARGIN_TOP_66% w%GROUP_WIDTH_66% h50,一键直达（仅菜单1热键触发，不想触发的菜单项放入菜单2中）
-	Gui,66:Add,Text,xm yp+25 w120,选中后直接一键打开：
-	Gui,66:Add,Checkbox,Checked%OneKeyWeb% x+20 yp vvOneKeyWeb,网址
-	Gui,66:Add,Checkbox,Checked%OneKeyFile% x+10 yp vvOneKeyFile,文件路径
-	Gui,66:Add,Checkbox,Checked%OneKeyFolder% x+10 yp vvOneKeyFolder,文件夹路径
-	Gui,66:Add,Checkbox,Checked%OneKeyMagnet% x+10 yp vvOneKeyMagnet,磁力链接
-	Gui,66:Add,Checkbox,Checked%OneKeyRegedit% x+10 yp vvOneKeyRegedit,注册表路径
-	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% h320 vvOneKeyUrlGroup,一键搜索选中文字 %OneHotKey%
+	Gui,66:Add,Button, xm y+%MARGIN_TOP_66% w50 GLVRunAnyOneKeyAdd, + 增加
+	Gui,66:Add,Button, x+10 yp w50 GLVRunAnyOneKeyEdit, · 修改
+	Gui,66:Add,Button, x+10 yp w50 GLVRunAnyOneKeyRemove, - 减少
+	Gui,66:Add,Link, x+25 yp+5,<a href="https://wyagd001.github.io/zh-cn/docs/misc/RegEx-QuickRef.htm">正则一键直达</a>（仅菜单1热键触发，不想触发的菜单项放入菜单2中）
+	Gui,66:Add,Listview,xm-10 yp+30 w%GROUP_WIDTH_66% r10 grid AltSubmit -ReadOnly vRunAnyOneKeyLV glistviewRunAnyOneKey, 选中内容匹配正则|直达说明|直达功能（支持RunAny插件写法）
+	GuiControl, 66:-Redraw, RunAnyOneKeyLV
+	For onekeyName, onekeyVal in OneKeyRunList
+	{
+		LV_Add(, OneKeyRegexList[onekeyName], onekeyName,onekeyName="一键计算" ? "内置功能" : onekeyVal)
+	}
+	LV_ModifyCol()
+	LV_ModifyCol(1,310)
+	GuiControl, 66:+Redraw, RunAnyOneKeyLV
+	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h240 vvOneKeyUrlGroup,一键搜索选中文字 %OneHotKey%
 	Gui,66:Add,Hotkey,xm yp+30 w150 vvOneKey,%OneKey%
 	Gui,66:Add,Checkbox,Checked%OneWinKey% xm+155 yp+3 vvOneWinKey,Win
 	Gui,66:Add,Checkbox,Checked%OneKeyMenu% x+38 vvOneKeyMenu,绑定菜单1热键为一键搜索
-	Gui,66:Add,Text,xm yp+40 w325,一键搜索网址(`%s为选中文字的替代参数，多行搜索多个网址)
-	Gui,66:Add,Edit,xm yp+20 r12 vvOneKeyUrl,%OneKeyUrl%
-	Gui,66:Add,Text,xm y+30 w325,非默认浏览器打开网址(适用一键搜索和一键网址直达)
+	Gui,66:Add,Text,xm y+15 w325,一键搜索网址(`%s为选中文字的替代参数，多行搜索多个网址)
+	Gui,66:Add,Edit,xm yp+20 r3 vvOneKeyUrl,%OneKeyUrl%
+	Gui,66:Add,Text,xm y+15 w325,非默认浏览器打开网址(适用一键搜索和一键网址直达)
 	Gui,66:Add,Button,xm yp+20 w50 GSetBrowserPath,选择
-	Gui,66:Add,Edit,xm+60 yp r3 -WantReturn vvBrowserPath,%BrowserPath%
+	Gui,66:Add,Edit,xm+60 yp r2 -WantReturn vvBrowserPath,%BrowserPath%
 	
 	Gui,66:Tab,内部关联,,Exact
 	Gui,66:Add,Text,xm y+%MARGIN_TOP_66%,内部关联RunAny.ini菜单内不同后缀的文件，使用指定软件打开
@@ -6818,7 +6807,7 @@ SetOK:
 	SetValueList.Push("ConfigDate","AutoReloadMTime","RunABackupRule","RunABackupMax","RunABackupFormat","RunABackupDir","RunAEvFullPathIniDir","DisableApp"
 		,"EvPath","EvCommand","EvAutoClose","EvShowExt","EvShowFolder","EvExeVerNew","EvExeMTimeNew","EvDemandSearch"
 		,"HideFail","HideWeb","HideGetZz","HideSend","HideAddItem","HideMenuTray","HideSelectZz","RecentMax"
-		,"OneKeyUrl","OneKeyWeb","OneKeyFolder","OneKeyMagnet","OneKeyRegedit","OneKeyFile","OneKeyMenu","BrowserPath","IconFolderPath"
+		,"OneKeyUrl","OneKeyMenu","BrowserPath","IconFolderPath"
 		,"HideMenuTrayIcon","MenuIconSize","MenuTrayIconSize","MenuIcon","AnyIcon","TreeIcon","FolderIcon","UrlIcon","EXEIcon","FuncIcon"
 		,"HideHotStr","HotStrHintLen","HotStrShowLen","HotStrShowTime","HotStrShowTransparent","HotStrShowX","HotStrShowY","SendStrEcKey"
 		,"MenuDoubleCtrlKey", "MenuDoubleAltKey", "MenuDoubleLWinKey", "MenuDoubleRWinKey"
@@ -6848,18 +6837,6 @@ SetOK:
 			IniWrite,%v_winkeyV%,%RunAnyConfig%,Config,%winkeyV%
 		}
 	}
-	;[保存内部关联打开后缀列表]
-	if(OpenExtFlag){
-		Gui, ListView, RunAnyOpenExtLV
-		IniWrite, delete=1, %RunAnyConfig%, OpenExt
-		IniDelete, %RunAnyConfig%, OpenExt, delete
-		Loop % LV_GetCount()
-		{
-			LV_GetText(openExtName, A_Index, 1)
-			LV_GetText(openExtRun, A_Index, 2)
-			IniWrite,%openExtName%,%RunAnyConfig%,OpenExt,%openExtRun%
-		}
-	}
 	;[保存自定义菜单变量]
 	if(MenuVarFlag){
 		Gui, ListView, RunAnyMenuVarLV
@@ -6882,6 +6859,31 @@ SetOK:
 			LV_GetText(menuObjPathName, A_Index, 1)
 			LV_GetText(menuObjPathVal, A_Index, 2)
 			IniWrite,%menuObjPathVal%,%RunAnyEvFullPathIni%,FullPath,%menuObjPathName%
+		}
+	}
+	;[保存一键直达]
+	if(RunAnyOneKeyFlag){
+		Gui, ListView, RunAnyOneKeyLV
+		IniWrite, delete=1, %RunAnyConfig%, OneKey
+		IniDelete, %RunAnyConfig%, OneKey, delete
+		Loop % LV_GetCount()
+		{
+			LV_GetText(oneKeyRegex, A_Index, 1)
+			LV_GetText(oneKeyName, A_Index, 2)
+			LV_GetText(oneKeyRegexRun, A_Index, 3)
+			IniWrite,%oneKeyRegex%,%RunAnyConfig%,OneKey,%oneKeyName%|%oneKeyRegexRun%
+		}
+	}
+	;[保存内部关联打开后缀列表]
+	if(OpenExtFlag){
+		Gui, ListView, RunAnyOpenExtLV
+		IniWrite, delete=1, %RunAnyConfig%, OpenExt
+		IniDelete, %RunAnyConfig%, OpenExt, delete
+		Loop % LV_GetCount()
+		{
+			LV_GetText(openExtName, A_Index, 1)
+			LV_GetText(openExtRun, A_Index, 2)
+			IniWrite,%openExtName%,%RunAnyConfig%,OpenExt,%openExtRun%
 		}
 	}
 	;[保存高级配置]
@@ -7008,7 +7010,7 @@ RunA_Hotkey_Edit:
 	Gui,key:Add,Hotkey,xm yp+20 w180 vvkeyV,%v_keyV%
 	Gui,key:Add,Checkbox,Checked%v_winkeyV% xm+185 yp+3 vvwinkeyV,Win
 	Gui,key:Font
-	Gui,key:Add,Button,Default xm+20 y+25 w75 GSaveRunAHotkey,保存
+	Gui,key:Add,Button,Default xm+35 y+25 w75 GSaveRunAHotkey,保存
 	Gui,key:Add,Button,x+20 w75 GSetCancel,取消
 	Gui,key:Show,,配置热键 %RunAny_update_version% %RunAny_update_time%
 return
@@ -7054,7 +7056,7 @@ Open_Ext_Edit:
 	Gui,SaveExt:Add, Button, xm+5 y+15 w60 GSetOpenExtRun,打开方式软件路径
 	Gui,SaveExt:Add, Edit, x+12 yp w350 r3 -WantReturn vvopenExtRun, %openExtRun%
 	Gui,SaveExt:Font
-	Gui,SaveExt:Add,Button,Default xm+100 y+25 w75 GSaveOpenExt,保存(&Y)
+	Gui,SaveExt:Add,Button,Default xm+140 y+25 w75 GSaveOpenExt,保存(&Y)
 	Gui,SaveExt:Add,Button,x+20 w75 GSetCancel,取消(&C)
 	Gui,SaveExt:Show,,%RunAnyZz% - %openExtItem%内部关联后缀打开方式 %RunAny_update_version% %RunAny_update_time%
 return
@@ -7135,7 +7137,7 @@ Menu_Var_Edit:
 	Gui,SaveVar:Add, Text, xm+5 y+15 w60,菜单变量值
 	Gui,SaveVar:Add, Edit, x+5 yp w350 r3 -WantReturn vvmenuVarVal, %menuVarVal%
 	Gui,SaveVar:Font
-	Gui,SaveVar:Add,Button,Default xm+100 y+25 w75 GSaveMenuVar,保存(&S)
+	Gui,SaveVar:Add,Button,Default xm+140 y+25 w75 GSaveMenuVar,保存(&S)
 	Gui,SaveVar:Add,Button,x+20 w75 GSetCancel,取消(&C)
 	Gui,SaveVar:Show,,%RunAnyZz% - %menuVarItem%菜单变量和变量值 %RunAny_update_version% %RunAny_update_time%
 	if(menuVarType!="用户变量(固定值)")
@@ -7241,7 +7243,7 @@ Menu_Obj_Path_Edit:
 	Gui,SavePath:Add, Text, xm+5 y+15 w60,运行全路径
 	Gui,SavePath:Add, Edit, x+5 yp w350 r3 -WantReturn vvmenuObjPathVal, %menuObjPathVal%
 	Gui,SavePath:Font
-	Gui,SavePath:Add,Button,Default xm+100 y+25 w75 GSaveMenuObjPath,保存(&S)
+	Gui,SavePath:Add,Button,Default xm+140 y+25 w75 GSaveMenuObjPath,保存(&S)
 	Gui,SavePath:Add,Button,x+20 w75 GSetCancel,取消(&C)
 	Gui,SavePath:Show,,%RunAnyZz% - %menuObjPathItem%菜单无路径应用缓存 %RunAny_update_version% %RunAny_update_time%
 return
@@ -7304,6 +7306,88 @@ SaveMenuObjPath:
 	LV_ModifyCol(1, "Sort")  ; 排序
 	Gui,SavePath:Destroy
 return
+;-----------------------------------正则一键直达设置界面-----------------------------------
+RunA_One_Key_Edit:
+	Gui, ListView, RunAnyOneKeyLV
+	if(runAnyOneKeyItem="编辑"){
+		RunRowNumber := LV_GetNext(0, "F")
+		if not RunRowNumber
+			return
+		LV_GetText(oneKeyRegex, RunRowNumber, 1)
+		LV_GetText(oneKeyName, RunRowNumber, 2)
+		LV_GetText(oneKeyRegexRun, RunRowNumber, 3)
+	}
+	
+	Gui,OneKey:Destroy
+	Gui,OneKey:Default
+	Gui,OneKey:+Owner66
+	Gui,OneKey:Margin,20,20
+	Gui,OneKey:Font,,Microsoft YaHei
+	Gui,OneKey:Add, GroupBox,xm y+10 w450 h250, 选中内容匹配正则表达式后运行
+	Gui,OneKey:Add, Text, xm+10 y+35 y35,直达说明
+	Gui,OneKey:Add, Edit, x+5 yp w300 vvoneKeyName, %oneKeyName%
+	Gui,OneKey:Add, Checkbox,Checked%oneKeyRegexMulti% xm+150 yp+3 vvoneKeyRegexMulti,多行匹配
+	Gui,OneKey:Add, Text, xm+10 y+15,匹配正则
+	Gui,OneKey:Add, Edit, x+5 yp w380 r6 -WantReturn vvoneKeyRegex, %oneKeyRegex%
+	Gui,OneKey:Add, Text, xm+10 y+15,直达功能
+	Gui,OneKey:Add, Edit, x+5 yp w380 r2 -WantReturn vvoneKeyRegexRun, %oneKeyRegexRun%
+	Gui,OneKey:Font
+	Gui,OneKey:Add,Button,Default xm+140 y+25 w75 GSaveRunAnyOneKey,保存(&S)
+	Gui,OneKey:Add,Button,x+20 w75 GSetCancel,取消(&C)
+	Gui,OneKey:Show,,%RunAnyZz% - %runAnyOneKeyItem%正则一键直达 %RunAny_update_version% %RunAny_update_time%
+return
+listviewRunAnyOneKey:
+	if A_GuiEvent = DoubleClick
+	{
+		runAnyOneKeyItem:="编辑"
+		Gosub,RunA_One_Key_Edit
+	}
+return
+LVRunAnyOneKeyAdd:
+	runAnyOneKeyItem:="新建"
+	oneKeyRegex:=oneKeyName:=oneKeyRegexRun:=""
+	Gosub,RunA_One_Key_Edit
+return
+LVRunAnyOneKeyEdit:
+	runAnyOneKeyItem:="编辑"
+	Gosub,RunA_One_Key_Edit
+return
+LVRunAnyOneKeyRemove:
+	Gui, ListView, RunAnyOneKeyLV
+	RunAnyOneKeyFlag:=true
+	DelRowList:=""
+	RowNumber:=0
+	Loop
+	{
+		RowNumber := LV_GetNext(RowNumber)  ; 在前一次找到的位置后继续搜索.
+		if not RowNumber  ; 上面返回零, 所以选择的行已经都找到了.
+			break
+		DelRowList:=RowNumber . ":" . DelRowList
+	}
+	stringtrimright, DelRowList, DelRowList, 1
+	loop, parse, DelRowList, :
+		LV_Delete(A_loopfield)
+return
+LVRunAnyOneKeySelect:
+	Gui, ListView, RunAnyOneKeyLV
+	LV_Modify(0, "Select Focus")   ; 选择所有.
+return
+SaveRunAnyOneKey:
+	RunAnyOneKeyFlag:=true
+	Gui,OneKey:Submit, NoHide
+	if(voneKeyName=""){
+		ToolTip, 请填入功能说明,195,35
+		SetTimer,RemoveToolTip,3000
+		return
+	}
+	Gui,66:Default
+	if(runAnyOneKeyItem="新建"){
+		LV_Add("",voneKeyRegex,voneKeyName,voneKeyRegexRun)
+	}else{
+		LV_Modify(RunRowNumber,"",voneKeyRegex,oneKeyName,voneKeyRegexRun)
+	}
+	Gui,OneKey:Destroy
+return
 
 ;--------------------------------------------------------------------------------------------
 listviewAdvancedConfig:
@@ -7361,6 +7445,8 @@ RuleManageGuiEscape:
 RuleConfigGuiEscape:
 99GuiEscape:
 keyGuiEscape:
+OneKeyGuiEscape:
+SavePathGuiEscape:
 SaveExtGuiEscape:
 SaveVarGuiEscape:
 SetCancel:
@@ -7400,6 +7486,7 @@ return
 	GuiControl, Move, vEvPath, % " W" . (A_GuiWidth - 120)
 	GuiControl, Move, vEvCommandGroup, % "H" . (A_GuiHeight * 0.88 - 248) . " W" . (A_GuiWidth - 40)
 	GuiControl, Move, vEvCommand, % "H" . (A_GuiHeight * 0.88 - 408) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, RunAnyOneKeyLV, % " W" . (A_GuiWidth - 40)
 	GuiControl, Move, vOneKeyUrlGroup, % " W" . (A_GuiWidth - 40)
 	GuiControl, Move, vOneKeyUrl, % " W" . (A_GuiWidth - 60)
 	GuiControl, Move, vBrowserPath, % " W" . (A_GuiWidth - 120)
@@ -7417,7 +7504,7 @@ SaveItemGuiSize:
 	GuiControl,SaveItem:MoveDraw, vitemName, % "W" . (A_GuiWidth-360)
 	GuiControl,SaveItem:MoveDraw, vitemPath, % "H" . (A_GuiHeight-230) . " W" . (A_GuiWidth - 120)
 	GuiControl,SaveItem:MoveDraw, vPictureIconAdd,% "x" . (A_GuiWidth-130)
-	GuiControl,SaveItem:MoveDraw, vTextIconAdd,% "x" . (A_GuiWidth-200)
+	GuiControl,SaveItem:MoveDraw, vTextIconAdd,% "x" . (A_GuiWidth-150)
 	GuiControl,SaveItem:MoveDraw, vTextIconDown,% "x" . (A_GuiWidth-100)
 	GuiControl,SaveItem:MoveDraw, vSaveItemSaveBtn,% "x" . (A_GuiWidth / 2 - 100) . " y" . (A_GuiHeight-60)
 	GuiControl,SaveItem:MoveDraw, vSaveItemCancelBtn,% "x" . (A_GuiWidth / 2 + 10) . " y" . (A_GuiHeight-60)
@@ -7547,11 +7634,24 @@ Var_Set:
 	global MenuXButton2Key:=Var_Read("MenuXButton2Key",0)
 	global MenuMButtonKey:=Var_Read("MenuMButtonKey",0)
 	;[一键直达]
-	global OneKeyWeb:=Var_Read("OneKeyWeb",1)
-	global OneKeyFolder:=Var_Read("OneKeyFolder",1)
-	global OneKeyMagnet:=Var_Read("OneKeyMagnet",1)
-	global OneKeyRegedit:=Var_Read("OneKeyRegedit",1)
-	global OneKeyFile:=Var_Read("OneKeyFile",1)
+	global OneKeyRegexList:={}
+	global OneKeyRunList:={}
+	IniRead,OneKeyVar,%RunAnyConfig%,OneKey
+	if(!OneKeyVar){
+		
+	}
+	Loop, parse, OneKeyVar, `n, `r
+	{
+		R_LoopField=%A_LoopField%
+		if(R_LoopField="")
+			continue
+		varList:=StrSplit(R_LoopField,"=",,2)
+		if(varList[1]="")
+			continue
+		itemList:=StrSplit(varList[1],"|",,2)
+		OneKeyRegexList[itemList[1]]:=varList[2]
+		OneKeyRunList[itemList[1]]:=itemList[2]
+	}
 	global OneKeyMenu:=Var_Read("OneKeyMenu",0)
 	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
 	OneKeyUrl:=StrReplace(OneKeyUrl, "|", "`n")
@@ -7842,7 +7942,7 @@ Icon_Set:
 		CreateDir(RunIconDir "\" A_LoopField)
 	}
 	global IconFileSuffix:="*.ico;*.bmp;*.png;*.gif;*.jpg;*.jpeg;*.jpe;*.jfif;*.dib;*.tif;*.tiff;*.heic"
-		. ";*.cur;*.ani,*.cpl,*.scr"
+		. ";*.cur;*.ani;*.cpl;*.scr;"
 	global ResourcesExtractExist:=false
 	global ResourcesExtractDir:=A_ScriptDir "\ResourcesExtract"
 	global ResourcesExtractFile:=A_ScriptDir "\ResourcesExtract\ResourcesExtract.exe"
