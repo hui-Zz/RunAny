@@ -2383,7 +2383,7 @@ Ext_Check(name,len,ext){
 	site:=InStr(name,ext,,0,1)
 	return site!=0 && site=len-len_ext+1
 }
-;~;[输出结果还是仅显示保存到剪贴板]
+;[输出结果还是仅显示保存到剪贴板]
 Send_Or_Show(textResult,isSend:=false,sTime:=1000){
 	textResult:=RegExReplace(textResult,"`r`n$")
 	if(textResult="")
@@ -2396,7 +2396,7 @@ Send_Or_Show(textResult,isSend:=false,sTime:=1000){
 	ToolTip,%textResult%
 	SetTimer,RemoveToolTip,%sTime%
 }
-;~;[粘贴输出短语]
+;[粘贴输出短语]
 Send_Str_Zz(strZz,tf=false){
 	Candy_Saved:=ClipboardAll
 	;切换Win10输入法为英文
@@ -2409,14 +2409,14 @@ Send_Str_Zz(strZz,tf=false){
 	Sleep,80
 	Clipboard:=Candy_Saved
 }
-;~;[键盘输出短语]
+;[键盘输出短语]
 Send_Str_Input_Zz(strZz,tf=false){
 	if(tf){
 		strZz:=Get_Transform_Val(strZz)
 	}
 	SendInput,{Text}%strZz%
 }
-;~;[输出热键]
+;[输出热键]
 Send_Key_Zz(keyZz,keyLevel=0){
 	if(keyLevel=1)
 		SendLevel,1
@@ -2424,7 +2424,7 @@ Send_Key_Zz(keyZz,keyLevel=0){
 	if(keyLevel=1)
 		SendLevel,0
 }
-;~;[获取选中]
+;[获取选中]
 Get_Zz(){
 	global Candy_isFile
 	global Candy_Select
@@ -2507,7 +2507,7 @@ GetKeyByVal(obj, val){
 			return k
 	}
 }
-;~;[获取变量展开转换后的值]
+;[获取变量展开转换后的值]
 Get_Transform_Val(string){
 	try{
 		spo := 1
@@ -2878,7 +2878,7 @@ URLDownloadToFile(URL, FilePath, Options:="", RequestHeaders:="")
 ;══════════════════════════════════════════════════════════════════
 ;~;【══内部函数方法══】
 ;══════════════════════════════════════════════════════════════════
-;~;[写入配置]
+;[写入配置]
 Reg_Set(vGui, var, sz){
 	StringCaseSense, On
 	if(vGui!=var){
@@ -2887,7 +2887,7 @@ Reg_Set(vGui, var, sz){
 	}
 	StringCaseSense, Off
 }
-;~;[读取配置]
+;[读取配置]
 Var_Read(rValue,defVar=""){
 	if(IniConfig){
 		IniRead, regVar,%RunAnyConfig%, Config, %rValue%,% defVar ? defVar : A_Space
@@ -2903,7 +2903,7 @@ Var_Read(rValue,defVar=""){
 		return defVar
 	}
 }
-;~;[控制提示信息的显示时长]
+;[控制提示信息的显示时长]
 RemoveToolTip:
 	if(A_TimeIdle<2500){
 		SetTimer,RemoveToolTip,Off
@@ -2989,7 +2989,7 @@ Get_Menu_Item_Mode(item,fullItemFlag:=false){
 		return 7
 	return 1
 }
-;~;[获取分类名称]
+;[获取分类名称]
 Get_Tree_Name(z_item,show_key=true){
 	if(InStr(z_item,"|")){
 		menuDiy:=StrSplit(z_item,"|",,2)
@@ -3002,7 +3002,7 @@ Get_Tree_Name(z_item,show_key=true){
 	}
 	return RegExReplace(z_item,"S)^-+")
 }
-;~;[获取应用名称]
+;[获取应用名称]
 Get_Obj_Transform_Name(z_item){
 	return Get_Obj_Name(Get_Transform_Val(z_item))
 }
@@ -3017,7 +3017,7 @@ Get_Obj_Name(z_item){
 		return RegExReplace(z_item,"iS)\.exe$")
 	}
 }
-;~;[获取应用路径]
+;[获取应用路径]
 Get_Obj_Path(z_item){
 	obj_path:=""
 	if(InStr(z_item,"|")){
@@ -3050,7 +3050,7 @@ Get_Obj_Path(z_item){
 		return absolute ? absolute : obj_path
 	}
 }
-;~;[获取变量转换后的应用路径]
+;[获取变量转换后的应用路径]
 Get_Obj_Path_Transform(z_item){
 	if(z_item="")
 		return z_item
@@ -3061,7 +3061,7 @@ Get_Obj_Path_Transform(z_item){
 	}
 	return itemPath
 }
-;~;[判断后返回该菜单项最佳的启动路径]
+;[判断后返回该菜单项最佳的启动路径]
 Get_Item_Run_Path(z_item_path){
 	SplitPath,z_item_path,fileName,,,itemName
 	if(InStr(FileExist(z_item_path), "D"))
@@ -3082,7 +3082,7 @@ Open_Folder_Path(path){
 		Run,%path%
 	}
 }
-;~;[检查文件后缀是否支持无路径查找]
+;[检查文件后缀是否支持无路径查找]
 Check_Obj_Ext(filePath){
 	EvExtFlag:=false
 	fileValue:=RegExReplace(filePath,"iS)(.*?\.[a-zA-Z0-9-_]+)($| .*)","$1")	;去掉参数
