@@ -396,7 +396,7 @@ if(NoPathFlag && !EvNo && Trim(evFullPathIniVar," `t`n`r")!="" && rule_check_is_
 		}
 	}
 }
-;~[记录ini文件修改时间]
+;~;[25.记录ini文件修改时间]
 FileGetTime,MTimeIniPath, %iniPath%, M  ; 获取修改时间.
 RegRead, MTimeIniPathReg, HKEY_CURRENT_USER\Software\RunAny, %iniPath%
 RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny, %iniPath%, %MTimeIniPath%
@@ -424,7 +424,7 @@ if(ReloadGosub){
 global TreeImageListID := IL_Create(11)
 Icon_Image_Set(TreeImageListID)
 Icon_Tree_Image_Set(TreeImageListID)
-;自动备份配置文件
+;~;[26.自动备份配置文件]
 if(RunABackupRule && RunABackupDirPath!=A_ScriptDir){
 	RunABackupFormatStr:=Get_Transform_Val(RunABackupFormat)
 	RunABackup(RunABackupDirPath "\", RunAnyZz ".ini*", iniVar1, iniPath, RunAnyZz ".ini" RunABackupFormatStr)
@@ -3578,7 +3578,8 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add,Text, x+5 yp cBlue w200 BackgroundTrans, %itemGlobalHotKey%
 	Gui,SaveItem:Add,Text, xm+10 y+15 w100, 分 隔 符 ：  |
 	Gui,SaveItem:Add,Text, xm+90 yp w355 cRed vvExtPrompt GSetSaveItemFullPath, 注意：RunAny不支持当前后缀无路径运行，%PromptStr%使用全路径
-	Gui,SaveItem:Add, DropDownList,x+30 yp-5 w120 AltSubmit vvItemMode GChooseItemMode Choose%setItemMode%,启动路径|短语模式|模拟打字短语|热键映射|AHK热键映射|网址|文件夹|插件脚本函数
+	Gui,SaveItem:Add, DropDownList,x+30 yp-5 w120 AltSubmit vvItemMode GChooseItemMode Choose%setItemMode%
+		,启动路径|短语模式|模拟打字短语|热键映射|AHK热键映射|网址|文件夹|插件脚本函数
 	
 	Gui,SaveItem:Add,Text, xm+10 yp w60 vvSetFileSuffix,后缀菜单：
 	Gui,SaveItem:Add,Button, xm+6 y+%treeYNum% w60 vvSetItemPath GSetItemPath,启动路径
@@ -3903,7 +3904,10 @@ SetItemIconDown:
 		if(RegExMatch(vitemPath,"iS)^([\w-]+://?|www[.]).*")){
 			website:=RegExReplace(vitemPath,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
 			webIcon:=WebIconDir "\" menuItemIconFileName(vitemName) ".ico"
-			InputBox, webSiteInput, 下载网站图标,确认或修改下面的默认地址并下载图标ico文件`n`n如果下载错误或界面变空要重新下载图标`n`n请打开【修改菜单】界面选中后点“网站图标”按钮,,,,,,,,http://%website%/favicon.ico
+			InputBox, webSiteInput, 下载网站图标,确认或修改下面的默认地址并下载图标ico文件`n`n如果下载错误或界面变空要重新下载图标`n`n
+			(
+请打开【修改菜单】界面选中后点“网站图标”按钮,,,,,,,,http://%website%/favicon.ico
+			)
 			if !ErrorLevel
 			{
 				URLDownloadToFile(webSiteInput,webIcon)
@@ -4662,7 +4666,8 @@ Plugins_Gui:
 	Gui,PluginsManage:Default
 	Gui,PluginsManage:+Resize
 	Gui,PluginsManage:Font, s10, Microsoft YaHei
-	Gui,PluginsManage:Add, Listview, xm w730 r11 grid AltSubmit vRunAnyPluginsLV1 gPluginsListView, %listViewColumnName1%插件脚本|运行状态|自动启动|插件描述|插件说明地址
+	Gui,PluginsManage:Add, Listview, xm w730 r11 grid AltSubmit vRunAnyPluginsLV1 gPluginsListView
+		, %listViewColumnName1%插件脚本|运行状态|自动启动|插件描述|插件说明地址
 	GuiControl,PluginsManage: -Redraw, RunAnyPluginsLV1
 	LV_SetImageList(PluginsImageListID)
 	For runn, runv in PluginsObjList
@@ -4683,7 +4688,8 @@ Plugins_Gui:
 	GuiControl,PluginsManage: +Redraw, RunAnyPluginsLV1
 	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
 
-	Gui,PluginsManage:Add, Listview, xm y+10 w730 r12 grid AltSubmit vRunAnyPluginsLV2 gPluginsListView,  %listViewColumnName2%插件脚本|运行状态|自动启动|插件描述|插件说明地址
+	Gui,PluginsManage:Add, Listview, xm y+10 w730 r12 grid AltSubmit vRunAnyPluginsLV2 gPluginsListView
+		, %listViewColumnName2%插件脚本|运行状态|自动启动|插件描述|插件说明地址
 	GuiControl,PluginsManage: -Redraw, RunAnyPluginsLV2
 	LV_SetImageList(PluginsImageListID)
 	For runn, runv in PluginsObjList
@@ -4924,7 +4930,8 @@ LVPluginsAdd:
 		runStatus:=PluginsPathList[pk] ? "已下载" : "未下载"
 		if(runStatus="已下载" && checkGithub)
 			runStatus:=PluginsVersionList[pk] < pv ? "可更新" : "已最新"
-		LV_Add(LVPluginsSetIcon(PluginsDownImageListID,pk), pk, runStatus, PluginsVersionList[pk], checkGithub ? pv : "网络异常",checkGithub ? pluginsNameList[pk] : PluginsNameList[pk])
+		LV_Add(LVPluginsSetIcon(PluginsDownImageListID,pk), pk, runStatus, PluginsVersionList[pk]
+			, checkGithub ? pv : "网络异常",checkGithub ? pluginsNameList[pk] : PluginsNameList[pk])
 	}
 	GuiControl,PluginsDownload: +Redraw, RunAnyDownLV
 	Menu, ahkDownMenu, Add,全部勾选, LVPluginsCheck
@@ -5284,7 +5291,10 @@ RunCtrl_Manage_Gui:
 	Gui,RunCtrlManage:Show, w755 , RunCtrl 启动管理 %RunAny_update_version% %RunAny_update_time%%AdminMode%(双击修改，右键操作)
 	Sleep,200
 	if(RuleNameStr="" || RunCtrlListBoxVar=""){
-		MsgBox,64,,首次使用请阅读：`n1. 先点击“规则管理”按钮后再点击“添加默认规则”`n2. 然后返回界面点击“添加规则组”`n3. 最后再点击“添加启动应用”`n`n这样就可以自动根据不同规则判断来运行不同的程序了
+		MsgBox,64,,首次使用请阅读：`n1. 先点击“规则管理”按钮后再点击“添加默认规则”`n
+		(
+2. 然后返回界面点击“添加规则组”`n3. 最后再点击“添加启动应用”`n`n这样就可以自动根据不同规则判断来运行不同的程序了
+		)
 	}
 return
 
@@ -6058,7 +6068,8 @@ LVRuleDefault:
 	IfMsgBox Ok
 	{
 		ruleWriteStr:=ruleDefaultStr:=""
-		RunCtrlRuleObj:={"电脑名":"A_ComputerName","用户名":"A_UserName","系统版本":"A_OSVersion","系统64位":"A_Is64bitOS","主屏幕宽度":"A_ScreenWidth","主屏幕高度":"A_ScreenHeight"
+		RunCtrlRuleObj:={"电脑名":"A_ComputerName","用户名":"A_UserName","系统版本":"A_OSVersion","系统64位":"A_Is64bitOS"
+			,"主屏幕宽度":"A_ScreenWidth","主屏幕高度":"A_ScreenHeight"
 			,"本地时间":"A_Now","年":"A_YYYY","月":"A_MM","星期":"A_WDay","日":"A_DD","时":"A_Hour","分":"A_Min","秒":"A_Sec","剪贴板文字":"Clipboard"}
 		For rName, rFunc in RunCtrlRuleObj
 		{
@@ -6336,7 +6347,8 @@ Settings_Gui:
 	Gui,66:+Resize
 	Gui,66:Margin,30,20
 	Gui,66:Font,,Microsoft YaHei
-	Gui,66:Add,Tab3,x10 y10 w%TAB_WIDTH_66% vConfigTab +Theme -Background,RunAny设置|热键配置|菜单变量|无路径缓存|搜索Everything|一键直达|内部关联|热字符串|图标设置|高级配置
+	Gui,66:Add,Tab3,x10 y10 w%TAB_WIDTH_66% vConfigTab +Theme -Background
+		,RunAny设置|热键配置|菜单变量|无路径缓存|搜索Everything|一键直达|内部关联|热字符串|图标设置|高级配置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+%MARGIN_TOP_66% vvAutoRun,开机自动启动
 	Gui,66:Add,Checkbox,Checked%AdminRun% x+25 vvAdminRun,管理员权限运行所有软件和插件
@@ -6422,7 +6434,10 @@ Settings_Gui:
 	Gui,66:Add,Button, xm yp+30 w50 GLVMenuVarAdd, + 增加
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuVarEdit, · 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuVarRemove, - 减少
-	Gui,66:Add,Link, x+15 yp-5,使用方法：变量两边加百分号如：<a href="https://hui-zz.gitee.io/runany/#/article/built-in-variables">`%变量名`%`n</a>编辑菜单项的启动路径中 或 RunAny.ini文件中使用
+	Gui,66:Add,Link, x+15 yp-5,使用方法：变量两边加百分号如：<a href="https://hui-zz.gitee.io/runany/#/article/built-in-variables">`%变量名`%</a>`n
+	(
+编辑菜单项的启动路径中 或 RunAny.ini文件中使用
+	)
 	Gui,66:Add,Listview,xm yp+40 r16 grid AltSubmit vRunAnyMenuVarLV glistviewMenuVar, 菜单变量名|类型|菜单变量值（动态变量不同电脑会自动变化）
 	RunAnyMenuVarImageListID:=IL_Create(2)
 	IL_Add(RunAnyMenuVarImageListID,AnyIconS[1],AnyIconS[2])
@@ -6479,8 +6494,10 @@ Settings_Gui:
 	Gui,66:Add,Button,xm yp+20 w50 GSetEvPath,选择
 	Gui,66:Add,Edit,xm+60 yp+2 w%GROUP_CHOOSE_EDIT_WIDTH_66% vvEvPath,%EvPath%
 	Gui,66:Add,GroupBox,xm-10 y+20 w%GROUP_WIDTH_66% vvEvCommandGroup,RunAny调用Everything搜索参数（搜索结果可在RunAny无路径运行，Everything异常请尝试重建索引）
-	Gui,66:Add,Radio,Checked%EvDemandSearch% xm yp+25 cBlack vvEvDemandSearch gSetEvDemandSearch,按需搜索模式（推荐，只搜索RunAny菜单的无路径文件进行匹配路径，速度快，支持生成更新无路径应用缓存）
-	Gui,66:Add,Radio,Checked%EvAllSearch% xm yp+25 cBlack vvEvAllSearch gSetEvAllSearch,全磁盘搜索模式（搜索全磁盘指定后缀的文件，然后匹配RA菜单取得路径，开机首次加载缓慢，无路径缓存无效！）
+	Gui,66:Add,Radio,Checked%EvDemandSearch% xm yp+25 cBlack vvEvDemandSearch gSetEvDemandSearch
+		,按需搜索模式（推荐，只搜索RunAny菜单的无路径文件进行匹配路径，速度快，支持生成更新无路径应用缓存）
+	Gui,66:Add,Radio,Checked%EvAllSearch% xm yp+25 cBlack vvEvAllSearch gSetEvAllSearch
+		,全磁盘搜索模式（搜索全磁盘指定后缀的文件，然后匹配RA菜单取得路径，开机首次加载缓慢，无路径缓存无效！）
 	Gui,66:Add,Checkbox,Checked%EvExeVerNew% xm yp+25 vvEvExeVerNew,搜索结果优先最新版本的同名exe
 	Gui,66:Add,Checkbox,Checked%EvExeMTimeNew% x+23 vvEvExeMTimeNew,搜索结果优先最新修改时间的同名文件
 	Gui,66:Add,Button,xm y+20 w50 GSetEvCommand,修改
@@ -6600,8 +6617,10 @@ Settings_Gui:
 	LV_Add(HoldCtrlRun ? "Icon1" : "Icon2", HoldCtrlRun,"", "[按住Ctrl键] 回车或点击菜单项（选项数字可互用） 2:打开该软件所在目录","","HoldCtrlRun")
 	LV_Add(HoldShiftRun ? "Icon1" : "Icon2", HoldShiftRun,"", "[按住Shift键] 回车或点击菜单项（选项数字可互用） 5:打开多功能菜单运行方式","","HoldShiftRun")
 	LV_Add(HoldCtrlShiftRun ? "Icon1" : "Icon2", HoldCtrlShiftRun,"", "[按住Ctrl+Shift键] 回车或点击菜单项（选项数字可互用） 3:编辑该菜单项","","HoldCtrlShiftRun")
-	LV_Add(HoldCtrlWinRun ? "Icon1" : "Icon2", HoldCtrlWinRun,"", "[按住Ctrl+Win键] 回车或点击菜单项（选项数字可互用） 11:以管理员权限运行 12:最小化运行 13:最大化运行 14:隐藏运行(部分有效)","","HoldCtrlWinRun")
-	LV_Add(HoldShiftWinRun ? "Icon1" : "Icon2", HoldShiftWinRun,"", "[按住Shift+Win键] 回车或点击菜单项（选项数字可互用） 31:复制运行路径 32:输出运行路径 33:复制软件名 34:输出软件名 35:复制软件名+后缀 36:输出软件名+后缀","","HoldShiftWinRun")
+	LV_Add(HoldCtrlWinRun ? "Icon1" : "Icon2", HoldCtrlWinRun,""
+		, "[按住Ctrl+Win键] 回车或点击菜单项（选项数字可互用） 11:以管理员权限运行 12:最小化运行 13:最大化运行 14:隐藏运行(部分有效)","","HoldCtrlWinRun")
+	LV_Add(HoldShiftWinRun ? "Icon1" : "Icon2", HoldShiftWinRun,""
+		, "[按住Shift+Win键] 回车或点击菜单项（选项数字可互用） 31:复制运行路径 32:输出运行路径 33:复制软件名 34:输出软件名 35:复制软件名+后缀 36:输出软件名+后缀","","HoldShiftWinRun")
 	LV_Add(HoldCtrlShiftWinRun ? "Icon1" : "Icon2", HoldCtrlShiftWinRun,"", "[按住Ctrl+Shift+Win键] 回车或点击菜单项（选项数字可互用） 4:强制结束该软件名进程","","HoldCtrlShiftWinRun")
 	if(RunAnyMenuSpaceFlag)
 		LV_Add(RunAnyMenuSpaceRun ? "Icon1" : "Icon2", RunAnyMenuSpaceRun,"", "[按空格键] 运行菜单项（只能复制上面已设置的选项数字）","RunAny_Menu.ahk","RunAnyMenuSpaceRun")
@@ -6786,7 +6805,8 @@ return
 SetOK:
 	Gui,66:Submit, NoHide
 	if(!vEvDemandSearch && !InStr(vEvCommand,"file:*.exe")){
-		MsgBox, 48, 提示：, 搜索Everything - 全磁盘搜索模式 - 请修改搜索参数编辑框，指定搜索后缀`n`n空格间隔后写入 file:*.exe|*.lnk|*.ahk|*.bat|*.cmd`n`n否则开机加载会非常缓慢！
+		MsgBox, 48, 提示：, 搜索Everything - 全磁盘搜索模式 - 请修改搜索参数编辑框
+			，指定搜索后缀`n`n空格间隔后写入 file:*.exe|*.lnk|*.ahk|*.bat|*.cmd`n`n否则开机加载会非常缓慢！
 		return
 	}
 	Gui,66:Hide
@@ -7721,7 +7741,8 @@ Var_Set:
 	}
 	EvCommandVar:=RegExReplace(EvCommand,"i).*file:(\*\.[^\s]*).*","$1")
 	global EvCommandExtList:=StrSplit(EvCommandVar,"|")
-	global MENU_RUN_NAME_STR:="编辑(&E),同名软件(&S),软件目录(&D),透明运行(&Q),置顶运行(&T),改变大小运行(&W),管理员权限运行(&A),最小化运行(&I),最大化运行(&P),隐藏运行(&H),结束软件进程(&X)"
+	global MENU_RUN_NAME_STR:="编辑(&E),同名软件(&S),软件目录(&D),透明运行(&Q),置顶运行(&T),改变大小运行(&W),管理员权限运行(&A)" 
+		. ",最小化运行(&I),最大化运行(&P),隐藏运行(&H),结束软件进程(&X)"
 	global MENU_RUN_NAME_NOFILE_STR:="复制运行路径(&C),输出运行路径(&V),复制软件名(&N),输出软件名(&M),复制软件名+后缀(&F),输出软件名+后缀(&G)"
 	MENU_RUN_NAME_STR.="," MENU_RUN_NAME_NOFILE_STR
 	MENU_RUN_NAME_NOFILE_STR:="编辑(&E)," MENU_RUN_NAME_NOFILE_STR
