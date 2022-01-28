@@ -1277,6 +1277,17 @@ Menu_Show:
 		getZz:=Get_Transform_Val(getZz)
 		if(MENU_NO=1){
 			openFlag:=false
+			;多行内容一键直达正则匹配
+			For name, regex in OneKeyRegexMultilineList
+			{
+				if(name !="公式计算" && OneKeyRunList[name] && RegExMatch(getZz, regex)){
+					Remote_Dyna_Run(OneKeyRunList[name])
+					openFlag:=true
+					continue
+				}
+			}
+			if(openFlag)
+				return
 			calcFlag:=false
 			notCalcFlag:=false
 			calcResult:=""
@@ -1292,8 +1303,8 @@ Menu_Show:
 					continue
 				}
 				;一键计算公式数字加减乘除
-				calcRegex:=OneKeyRegexList["一键计算"]
-				if(calcRegex && RegExMatch(S_LoopField,calcRegex)){
+				calcRegex:=OneKeyRegexList["公式计算"]
+				if(calcRegex!="" && RegExMatch(S_LoopField,calcRegex)){
 					formula:=S_LoopField
 					if(RegExMatch(S_LoopField,"S)=$")){
 						StringTrimRight, formula, formula, 1
@@ -1316,7 +1327,7 @@ Menu_Show:
 				;一键直达动态正则匹配
 				For name, regex in OneKeyRegexList
 				{
-					if(name !="一键计算" && RegExMatch(S_LoopField, regex)){
+					if(name !="公式计算" && regex!="" && OneKeyRunList[name] && RegExMatch(S_LoopField, regex)){
 						Remote_Dyna_Run(OneKeyRunList[name])
 						openFlag:=true
 						continue
@@ -6512,12 +6523,16 @@ Settings_Gui:
 	Gui,66:Add,Button, xm y+%MARGIN_TOP_66% w50 GLVRunAnyOneKeyAdd, + 增加
 	Gui,66:Add,Button, x+10 yp w50 GLVRunAnyOneKeyEdit, · 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVRunAnyOneKeyRemove, - 减少
-	Gui,66:Add,Link, x+25 yp+5,<a href="https://wyagd001.github.io/zh-cn/docs/misc/RegEx-QuickRef.htm">正则一键直达</a>（仅菜单1热键触发，不想触发的菜单项放入菜单2中）
-	Gui,66:Add,Listview,xm-10 yp+30 w%GROUP_WIDTH_66% r10 grid AltSubmit -ReadOnly vRunAnyOneKeyLV glistviewRunAnyOneKey, 选中内容匹配正则|直达说明|直达功能（支持RunAny插件写法）
+	Gui,66:Add,Link, x+25 yp-5,<a href="https://wyagd001.github.io/zh-cn/docs/misc/RegEx-QuickRef.htm">正则一键直达</a>（仅菜单1热键触发，不想触发的菜单项放入菜单2中）`n
+	(
+i) 不区分大小写匹配  m) 多行匹配模式  S) 研究模式来提高性能
+	)
+	Gui,66:Add,Listview,xm-10 yp+40 w%GROUP_WIDTH_66% r10 grid AltSubmit -ReadOnly vRunAnyOneKeyLV glistviewRunAnyOneKey
+		, 选中内容匹配正则|直达说明|直达功能（支持RunAny插件写法）
 	GuiControl, 66:-Redraw, RunAnyOneKeyLV
 	For onekeyName, onekeyVal in OneKeyRunList
 	{
-		LV_Add(, OneKeyRegexList[onekeyName], onekeyName,onekeyName="一键计算" ? "内置功能" : onekeyVal)
+		LV_Add(, OneKeyRegexList[onekeyName], onekeyName,onekeyName="公式计算" ? "内置功能输出结果" : onekeyVal)
 	}
 	LV_ModifyCol()
 	LV_ModifyCol(1,310)
@@ -6891,6 +6906,8 @@ SetOK:
 			LV_GetText(oneKeyRegex, A_Index, 1)
 			LV_GetText(oneKeyName, A_Index, 2)
 			LV_GetText(oneKeyRegexRun, A_Index, 3)
+			if(oneKeyName="公式计算")
+				oneKeyRegexRun=
 			IniWrite,%oneKeyRegex%,%RunAnyConfig%,OneKey,%oneKeyName%|%oneKeyRegexRun%
 		}
 	}
@@ -7346,7 +7363,6 @@ RunA_One_Key_Edit:
 	Gui,OneKey:Add, GroupBox,xm y+10 w450 h250, 选中内容匹配正则表达式后运行
 	Gui,OneKey:Add, Text, xm+10 y+35 y35,直达说明
 	Gui,OneKey:Add, Edit, x+5 yp w300 vvoneKeyName, %oneKeyName%
-	Gui,OneKey:Add, Checkbox,Checked%oneKeyRegexMulti% xm+150 yp+3 vvoneKeyRegexMulti,多行匹配
 	Gui,OneKey:Add, Text, xm+10 y+15,匹配正则
 	Gui,OneKey:Add, Edit, x+5 yp w380 r6 -WantReturn vvoneKeyRegex, %oneKeyRegex%
 	Gui,OneKey:Add, Text, xm+10 y+15,直达功能
@@ -7655,6 +7671,7 @@ Var_Set:
 	global MenuMButtonKey:=Var_Read("MenuMButtonKey",0)
 	;[一键直达]
 	global OneKeyRegexList:={}
+	global OneKeyRegexMultilineList:={}
 	global OneKeyRunList:={}
 	IniRead,OneKeyVar,%RunAnyConfig%,OneKey
 	if(!OneKeyVar){
@@ -7669,8 +7686,11 @@ Var_Set:
 		if(varList[1]="")
 			continue
 		itemList:=StrSplit(varList[1],"|",,2)
-		OneKeyRegexList[itemList[1]]:=varList[2]
 		OneKeyRunList[itemList[1]]:=itemList[2]
+		OneKeyRegexList[itemList[1]]:=varList[2]
+		if(RegExMatch(varList[2],"m)^[^(]*?m.*?\).*")){
+			OneKeyRegexMultilineList[itemList[1]]:=varList[2]
+		}
 	}
 	global OneKeyMenu:=Var_Read("OneKeyMenu",0)
 	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
