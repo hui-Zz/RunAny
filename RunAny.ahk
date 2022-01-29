@@ -2083,7 +2083,8 @@ Run_Wait(program,topFlag:=false,transRatio=100,winSizeRatio=100,winSize=0){
 		try WinSet,Transparent,% transRatio/100*255,ahk_exe %fName%
 	}
 }
-Run_Search(any,getZz="",browser=""){
+Run_Search(anyUrl, getZz="", browser=""){
+	any:=Get_Transform_Val(anyUrl)
 	if(browser){
 		browserRun:=browser A_Space
 	}else if(RegExMatch(any,"iS)(www[.]).*") && openExtRunList["www"]){
@@ -2098,15 +2099,11 @@ Run_Search(any,getZz="",browser=""){
 			}
 		}
 	}
-	if(InStr(any,"%getZz%")){
-		Run,% browserRun """" StrReplace(any,"%getZz%",getZz) """"
-	}else if(InStr(any,"%Clipboard%")){
-		Run,% browserRun """" StrReplace(any,"%Clipboard%",Clipboard) """"
-	}else if(InStr(any,"%s",true)){
+	if(InStr(any,"%s",true)){
 		Run,% browserRun """" StrReplace(any,"%s",getZz) """"
 	}else if(InStr(any,"%S",true)){
 		Run,% browserRun """" StrReplace(any,"%S",SkSub_UrlEncode(getZz)) """"
-	}else if(AutoGetZz){
+	}else if(AutoGetZz && any=anyUrl){  ;网址中没有变量则在末尾添加选中文字
 		Run,%browserRun%"%any%%getZz%"
 	}else{
 		Run,%browserRun%"%any%"
