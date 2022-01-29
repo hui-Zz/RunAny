@@ -2478,14 +2478,14 @@ StrJoin(sep, params*) {
 	return SubStr(str, 1, -StrLen(sep))
 }
 ;[数组拼接字符]
-StrListJoin(sep, paramList){
+StrListJoin(sep, paramList, join:=":"){
 	str:=""
 	for index,param in paramList
 	{
 		if(paramList.HasKey(1)){
 			str.= param . sep
 		}else{
-			str.= index ":" param . sep
+			str.= index join param . sep
 		}
 	}
     return SubStr(str, 1, -StrLen(sep))
@@ -6522,17 +6522,17 @@ Settings_Gui:
 	Gui,66:Add,Button, x+10 yp w50 GLVRunAnyOneKeyRemove, - 减少
 	Gui,66:Add,Link, x+25 yp-5,<a href="https://wyagd001.github.io/zh-cn/docs/misc/RegEx-QuickRef.htm">正则一键直达</a>（仅菜单1热键触发，不想触发的菜单项放入菜单2中）`n
 	(
-i) 不区分大小写匹配  m) 多行匹配模式  S) 研究模式来提高性能
+AHK正则选项：i) 不区分大小写匹配  m) 多行匹配模式  S) 研究模式来提高性能
 	)
-	Gui,66:Add,Listview,xm-10 yp+40 w%GROUP_WIDTH_66% r10 grid AltSubmit -ReadOnly vRunAnyOneKeyLV glistviewRunAnyOneKey
-		, 选中内容匹配正则|直达说明|直达功能（支持RunAny插件写法）
+	Gui,66:Add,Listview,xm-10 yp+40 w%GROUP_WIDTH_66% r12 grid AltSubmit -ReadOnly vRunAnyOneKeyLV glistviewRunAnyOneKey
+		, 选中内容逐行匹配正则（多行整体匹配使用正则选项 m）|直达说明|直达功能（支持RunAny插件写法）
 	GuiControl, 66:-Redraw, RunAnyOneKeyLV
 	For onekeyName, onekeyVal in OneKeyRunList
 	{
 		LV_Add(, OneKeyRegexList[onekeyName], onekeyName,onekeyName="公式计算" ? "内置功能输出结果" : onekeyVal)
 	}
 	LV_ModifyCol()
-	LV_ModifyCol(1,310)
+	LV_ModifyCol(1,315)
 	GuiControl, 66:+Redraw, RunAnyOneKeyLV
 	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h240 vvOneKeyUrlGroup,一键搜索选中文字 %OneHotKey%
 	Gui,66:Add,Hotkey,xm yp+30 w150 vvOneKey,%OneKey%
@@ -6818,7 +6818,7 @@ SetOK:
 	Gui,66:Submit, NoHide
 	if(!vEvDemandSearch && !InStr(vEvCommand,"file:*.exe")){
 		MsgBox, 48, 提示：, 搜索Everything - 全磁盘搜索模式 - 请修改搜索参数编辑框
-			，指定搜索后缀`n`n空格间隔后写入 file:*.exe|*.lnk|*.ahk|*.bat|*.cmd`n`n否则开机加载会非常缓慢！
+			, 指定搜索后缀`n`n空格间隔后写入 file:*.exe|*.lnk|*.ahk|*.bat|*.cmd`n`n否则开机加载会非常缓慢！
 		return
 	}
 	Gui,66:Hide
@@ -7417,7 +7417,7 @@ SaveRunAnyOneKey:
 	if(runAnyOneKeyItem="新建"){
 		LV_Add("",voneKeyRegex,voneKeyName,voneKeyRegexRun)
 	}else{
-		LV_Modify(RunRowNumber,"",voneKeyRegex,oneKeyName,voneKeyRegexRun)
+		LV_Modify(RunRowNumber,"",voneKeyRegex,voneKeyName,voneKeyRegexRun)
 	}
 	Gui,OneKey:Destroy
 return
@@ -7667,12 +7667,25 @@ Var_Set:
 	global MenuXButton2Key:=Var_Read("MenuXButton2Key",0)
 	global MenuMButtonKey:=Var_Read("MenuMButtonKey",0)
 	;[一键直达]
+	global OneKeyList:={"公式计算":"=S)^[\(\)\.\s\d]*\d+\s*[+*/-]+[\(\)\.+*/-\d\s]+($|=$)"
+		,"打开文件":"runany[One_Open](%getZz%,1)=S)^(\\\\|.:\\)"
+		,"打开目录":"runany[One_Open](%getZz%)=S)^(\\\\|.:\\)"
+		,"磁力链接":"runany[Run_Any](%getZz%)=iS)^magnet:\?xt=urn:btih:.*"
+		,"网页跳转":"runany[Run_Search](%getZz%)=iS)^([\w-]+://?|www[.]).*"}
 	global OneKeyRegexList:={}
 	global OneKeyRegexMultilineList:={}
 	global OneKeyRunList:={}
 	IniRead,OneKeyVar,%RunAnyConfig%,OneKey
 	if(!OneKeyVar){
-		
+		if(Var_Read("OneKeyFile")="0")
+			OneKeyList.Delete("打开文件")
+		if(Var_Read("OneKeyFolder")="0")
+			OneKeyList.Delete("打开目录")
+		if(Var_Read("OneKeyMagnet")="0")
+			OneKeyList.Delete("磁力链接")
+		if(Var_Read("OneKeyWeb")="0")
+			OneKeyList.Delete("网页跳转")
+		OneKeyVar:=StrListJoin("`n", OneKeyList, "|")
 	}
 	Loop, parse, OneKeyVar, `n, `r
 	{
