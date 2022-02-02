@@ -1211,7 +1211,7 @@ Menu_Show:
 				if(MENU_NO=1 && extMenuName && !extMenuHideFlag){
 					if(MenuObjTree%MENU_NO%[extMenuName].MaxIndex()=1){
 						itemContent:=MenuObjTree%MENU_NO%[extMenuName][1]
-						MenuShowMenuRun:=Get_Obj_Transform_Name(itemContent)
+						OutsideMenuItem:=Get_Obj_Transform_Name(itemContent)
 						Gosub,Menu_Run
 					}else{
 						if(!HideAddItem){
@@ -1281,7 +1281,7 @@ Menu_Show:
 			For name, regex in OneKeyRegexMultilineList
 			{
 				if(name !="公式计算" && OneKeyRunList[name] && RegExMatch(getZz, regex)){
-					Remote_Dyna_Run(OneKeyRunList[name])
+					Remote_Dyna_Run(OneKeyRunList[name], getZz)
 					openFlag:=true
 					continue
 				}
@@ -1331,7 +1331,7 @@ Menu_Show:
 						if((name="打开目录" && !InStr(FileExist(S_LoopField), "D")) || (name="打开文件" && !FileExist(S_LoopField))){
 							continue
 						}
-						Remote_Dyna_Run(OneKeyRunList[name])
+						Remote_Dyna_Run(OneKeyRunList[name], S_LoopField)
 						openFlag:=true
 						continue
 					}
@@ -1596,14 +1596,14 @@ return
 Menu_Run:
 	Z_ThisMenuItem:=A_ThisMenuItem
 	any:=MenuObj[(Z_ThisMenuItem)]
-	if(MenuShowMenuRun!=""){
-		any:=MenuObj[(MenuShowMenuRun)]
+	if(OutsideMenuItem!=""){
+		any:=MenuObj[(OutsideMenuItem)]
 		if(any=""){
-			TrayTip,%MenuShowMenuRun% 没有找到,请检查是否存在(在Everything能搜索到)，并重启RunAny重试,5,2
+			TrayTip,%OutsideMenuItem% 没有找到,请检查是否存在(在Everything能搜索到)，并重启RunAny重试,5,2
 		}
 		if(RunCtrlRunFlag)
-			Z_ThisMenuItem:=MenuShowMenuRun
-		RunCtrlRunFlag:=MenuShowMenuRun:=""
+			Z_ThisMenuItem:=OutsideMenuItem
+		RunCtrlRunFlag:=OutsideMenuItem:=""
 	}
 	MenuRunDebugModeShow()
 	if(any="")
@@ -2730,7 +2730,7 @@ Receive_WM_COPYDATA(wParam, lParam)
 {
     StringAddress := NumGet(lParam + 2*A_PtrSize)  ; 获取 CopyDataStruct 的 lpData 成员.
     CopyOfData := StrGet(StringAddress)  ; 从结构中复制字符串.
-	Remote_Dyna_Run(CopyOfData)
+	Remote_Dyna_Run(CopyOfData, "", true)
     return true  ; 返回 1(true) 是回复此消息的传统方式.
 }
 ;[系统关机或重启前操作]
@@ -3113,7 +3113,8 @@ LVModifyCol(width, colList*){
 	}
 }
 ;~;[外部动态运行函数和插件]
-Remote_Dyna_Run(remoteRun){
+Remote_Dyna_Run(remoteRun, remoteGetZz, remoteFlag:=false){
+	getZz:=remoteGetZz
 	if(IsLabel(remoteRun)){
 		Gosub,%remoteRun%
 		return
@@ -3121,16 +3122,19 @@ Remote_Dyna_Run(remoteRun){
 	if(RegExMatch(remoteRun,"S).+?\[.+?\]%?\(.*?\)")){
 		global any:=remoteRun
 		SetTimer,Menu_Run_Plugins_ObjReg,-1
+	}else if(remoteFlag){
+		Remote_Menu_Run(remoteRun, remoteGetZz)
 	}else{
-		Remote_Menu_Run(remoteRun)
+		Run_Any(Get_Obj_Path_Transform(remoteRun))
 	}
 }
-;[外部调用菜单运行]
-Remote_Menu_Run(remoteRun){
-	MenuShowMenuRun:=remoteRun
-	getZz:=""
+;[外部调用运行菜单项]
+Remote_Menu_Run(remoteRun, remoteGetZz:=""){
+	getZz:=remoteGetZz
+	OutsideMenuItem:=remoteRun
 	Gosub, Menu_Run
 }
+;[外部调用显示后缀菜单]
 Remote_Menu_Ext_Show(fileExt){
 	extMenuName:=MenuObjExt[FileExt]
 	If (extMenuName="" || FileExt="public")
@@ -6519,7 +6523,7 @@ Settings_Gui:
 <a href="https://wyagd001.github.io/zh-cn/docs/misc/RegEx-QuickRef.htm">AHK正则选项</a>：i) 不区分大小写匹配  m) 多行匹配模式  S) 研究模式来提高性能
 	)
 	Gui,66:Add,Listview,xm-10 yp+40 w%GROUP_WIDTH_66% r12 grid AltSubmit -ReadOnly vRunAnyOneKeyLV glistviewRunAnyOneKey
-		, 选中内容逐行匹配正则（多行整体匹配使用正则选项 m）|直达说明|直达功能（支持RunAny插件写法）
+		, 选中内容逐行匹配正则（多行整体匹配使用正则选项 m）|直达说明|直达运行（支持无路径、RunAny插件写法）
 	GuiControl, 66:-Redraw, RunAnyOneKeyLV
 	For onekeyName, onekeyVal in OneKeyRunList
 	{
@@ -7357,7 +7361,7 @@ RunA_One_Key_Edit:
 	Gui,OneKey:Add, Text, xm+5 y+15,匹配正则
 	Gui,OneKey:Add, Edit, x+10 yp w380 r6 -WantReturn vvoneKeyRegex, %oneKeyRegex%
 	Gui,OneKey:Add, Button, xm yp+27 w60 GGraphicRegex,图解正则
-	Gui,OneKey:Add, Text, xm+5 y+65,直达功能
+	Gui,OneKey:Add, Text, xm+5 y+65,直达运行
 	Gui,OneKey:Add, Edit, x+10 yp w380 r2 -WantReturn vvoneKeyRegexRun, %oneKeyRegexRun%
 	Gui,OneKey:Font
 	Gui,OneKey:Add,Button,Default xm+140 y+25 w75 GSaveRunAnyOneKey,保存(&S)
@@ -7411,7 +7415,7 @@ SaveRunAnyOneKey:
 		SetTimer,RemoveToolTip,3000
 		return
 	}
-	if(OneKeyRegexList[voneKeyName]){
+	if(runAnyOneKeyItem="新建" && OneKeyRegexList[voneKeyName]){
 		ToolTip, 已存在相同的一键直达名称，请修改,300,35
 		SetTimer,RemoveToolTip,3000
 		return
@@ -7432,7 +7436,7 @@ RunA_One_Key_Down:
 	Gui,OneKeyDown:+Owner66
 	Gui,OneKeyDown:+Resize
 	Gui,OneKeyDown:Font, s10, Microsoft YaHei
-	Gui,OneKeyDown:Add, Listview, xm w620 r15 grid AltSubmit Checked BackgroundF6F6E8 vRunAnyOneKeyDownLV, 状态|选中内容逐行匹配正则|直达说明|直达功能
+	Gui,OneKeyDown:Add, Listview, xm w620 r15 grid AltSubmit Checked BackgroundF6F6E8 vRunAnyOneKeyDownLV, 状态|选中内容逐行匹配正则|直达说明|直达运行
 	GuiControl,OneKeyDown: -Redraw, RunAnyOneKeyDownLV
 	For onekeyName, onekeyVal in OneKeyDownRunList
 	{
@@ -7737,7 +7741,7 @@ Var_Set:
 		ExitApp
 	}
 	global getZz:=""
-	global MenuShowMenuRun:=""
+	global OutsideMenuItem:=""
 	global MENU_NO:=1
 	global RegexEscapeStr:="\\|\.|\*|\?|\+|\[|\{|\||\(|\)|\^|\$"
 	global RegexEscapeNoPointStr:="\\|\*|\?|\+|\[|\{|\||\(|\)|\^|\$"
@@ -7775,8 +7779,8 @@ Var_Set:
 	global MenuMButtonKey:=Var_Read("MenuMButtonKey",0)
 	;[一键直达]
 	global OneKeyList:={"公式计算":"=S)^[\(\)\.\s\d]*\d+\s*[+*/-]+[\(\)\.+*/-\d\s]+($|=$)"
-		,"打开文件|runany[Run_Any](%getZz%)=S)^(\\\\|.:\\).*?\..+"
-		,"打开目录":"打开目录|runany[Open_Folder_Path](%getZz%)=S)^(\\\\|.:\\)"
+		,"打开文件":"runany[Run_Any](%getZz%)=S)^(\\\\|.:\\).*?\..+"
+		,"打开目录":"runany[Open_Folder_Path](%getZz%)=S)^(\\\\|.:\\)"
 		,"磁力链接":"runany[Run_Any](%getZz%)=iS)^magnet:\?xt=urn:btih:.*"
 		,"网页跳转":"runany[Run_Search](%getZz%)=iS)^([\w-]+://?|www[.]).*"}
 	global OneKeyRegexList:={}
@@ -8731,6 +8735,7 @@ Rule_Effect:
 			RuleRunFailStr:=StrListJoin("`n",RuleRunFailList)
 			TrayTip,规则插件脚本没有启动：,%RuleRunFailStr%,5,2
 		}
+		RunCtrlRunFlag:=false
 	} catch e {
 		MsgBox,16,规则判断出错,% "规则名：" rcName 
 			. "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
@@ -8780,7 +8785,7 @@ RunCtrl_RunApps(path,noPath,repeatRun:=0,adminRun:=0,runWay:=1){
 				return
 			}
 			if(NoPathFlag || EvNo){
-				MenuShowMenuRun:=tfPath
+				OutsideMenuItem:=tfPath
 				global NoRecentFlag:=true
 				Gosub, Menu_Run
 				RunCtrl_LastRunTime(path)
@@ -8824,7 +8829,7 @@ RunCtrl_RunMenu:
 				global RunCtrlAdminRunVal:=RuleRunAdminRunList[path]
 				global RunCtrlRunWayVal:=RuleRunRunWayList[path]
 				global NoRecentFlag:=true
-				MenuShowMenuRun:=path
+				OutsideMenuItem:=path
 				Gosub,Menu_Run
 				RunCtrl_LastRunTime(path)
 			}
