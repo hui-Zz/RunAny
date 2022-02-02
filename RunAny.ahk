@@ -1328,7 +1328,7 @@ Menu_Show:
 				For name, regex in OneKeyRegexList
 				{
 					if(name !="公式计算" && regex!="" && OneKeyRunList[name] && RegExMatch(S_LoopField, regex)){
-						if((name="打开文件" || name="打开目录") && !FileExist(S_LoopField)){
+						if((name="打开目录" && !InStr(FileExist(S_LoopField), "D")) || (name="打开文件" && !FileExist(S_LoopField))){
 							continue
 						}
 						Remote_Dyna_Run(OneKeyRunList[name])
@@ -2367,14 +2367,6 @@ One_Search:
 		}
 	}
 return
-;~;[一键打开文件或目录]
-One_Open(open, type=0){
-	if(!type && FileExist(open)){
-		Run,%open%
-	}else if(type && InStr(FileExist(open), "D")){
-		Open_Folder_Path(open)
-	}
-}
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 ;~;【══通用函数方法══】
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -7783,8 +7775,8 @@ Var_Set:
 	global MenuMButtonKey:=Var_Read("MenuMButtonKey",0)
 	;[一键直达]
 	global OneKeyList:={"公式计算":"=S)^[\(\)\.\s\d]*\d+\s*[+*/-]+[\(\)\.+*/-\d\s]+($|=$)"
-		,"打开文件":"runany[One_Open](%getZz%,1)=S)^(\\\\|.:\\)"
-		,"打开目录":"runany[One_Open](%getZz%)=S)^(\\\\|.:\\)"
+		,"打开文件|runany[Run_Any](%getZz%)=S)^(\\\\|.:\\).*?\..+"
+		,"打开目录":"打开目录|runany[Open_Folder_Path](%getZz%)=S)^(\\\\|.:\\)"
 		,"磁力链接":"runany[Run_Any](%getZz%)=iS)^magnet:\?xt=urn:btih:.*"
 		,"网页跳转":"runany[Run_Search](%getZz%)=iS)^([\w-]+://?|www[.]).*"}
 	global OneKeyRegexList:={}
