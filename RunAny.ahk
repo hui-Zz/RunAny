@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.01.25
+║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.02.01
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.8.0"     ;~;版本号
-global RunAny_update_time:="自定义一键直达 2022.01.25"   ;~;更新日期
+global RunAny_update_time:="自定义一键直达 2022.02.01"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -1328,6 +1328,9 @@ Menu_Show:
 				For name, regex in OneKeyRegexList
 				{
 					if(name !="公式计算" && regex!="" && OneKeyRunList[name] && RegExMatch(S_LoopField, regex)){
+						if((name="打开文件" || name="打开目录") && !FileExist(S_LoopField)){
+							continue
+						}
 						Remote_Dyna_Run(OneKeyRunList[name])
 						openFlag:=true
 						continue
@@ -4928,7 +4931,7 @@ LVPluginsAdd:
 	Gui,PluginsDownload:Default
 	Gui,PluginsDownload:+Resize
 	Gui,PluginsDownload:Font, s10, Microsoft YaHei
-	Gui,PluginsDownload:Add, Listview, xm w620 r15 grid AltSubmit Checked vRunAnyDownLV, 插件文件|状态|版本号|最新版本|插件描述
+	Gui,PluginsDownload:Add, Listview, xm w620 r15 grid AltSubmit Checked BackgroundF6F6E8 vRunAnyDownLV, 插件文件|状态|版本号|最新版本|插件描述
 	GuiControl,PluginsDownload: -Redraw, RunAnyDownLV
 	global PluginsDownImageListID:=IL_Create(6)
 	Plugins_LV_Icon_Set(PluginsDownImageListID)
@@ -5075,7 +5078,7 @@ PluginsDownVersion:
 	IfExist,%ObjRegIniPath%
 	{
 		FileGetSize, ObjRegIniSize, %ObjRegIniPath%
-		if(ObjRegIniSize>100){
+		if(ObjRegIniSize>500){
 			IniRead,objRegIniVar,%ObjRegIniPath%,version
 			Loop, parse, objRegIniVar, `n, `r
 			{
@@ -6511,12 +6514,13 @@ Settings_Gui:
 	Gosub,SetEvAllSearch
 	
 	Gui,66:Tab,一键直达,,Exact
-	Gui,66:Add,Button, xm y+%MARGIN_TOP_66% w50 GLVRunAnyOneKeyAdd, + 增加
-	Gui,66:Add,Button, x+10 yp w50 GLVRunAnyOneKeyEdit, · 修改
-	Gui,66:Add,Button, x+10 yp w50 GLVRunAnyOneKeyRemove, - 减少
-	Gui,66:Add,Link, x+25 yp-5,<a href="https://wyagd001.github.io/zh-cn/docs/misc/RegEx-QuickRef.htm">正则一键直达</a>（仅菜单1热键触发，不想触发的菜单项放入菜单2中）`n
+	Gui,66:Add,Button, xm-10 y+%MARGIN_TOP_66% w50 GRunA_One_Key_Down, @ 在线
+	Gui,66:Add,Button, x+5 yp w50 GLVRunAnyOneKeyAdd, + 增加
+	Gui,66:Add,Button, x+5 yp w50 GLVRunAnyOneKeyEdit, · 修改
+	Gui,66:Add,Button, x+5 yp w50 GLVRunAnyOneKeyRemove, - 减少
+	Gui,66:Add,Link, x+20 yp-5,【正则一键直达】（仅菜单1热键触发，不想触发的菜单项放入菜单2中）`n
 	(
-AHK正则选项：i) 不区分大小写匹配  m) 多行匹配模式  S) 研究模式来提高性能
+<a href="https://wyagd001.github.io/zh-cn/docs/misc/RegEx-QuickRef.htm">AHK正则选项</a>：i) 不区分大小写匹配  m) 多行匹配模式  S) 研究模式来提高性能
 	)
 	Gui,66:Add,Listview,xm-10 yp+40 w%GROUP_WIDTH_66% r12 grid AltSubmit -ReadOnly vRunAnyOneKeyLV glistviewRunAnyOneKey
 		, 选中内容逐行匹配正则（多行整体匹配使用正则选项 m）|直达说明|直达功能（支持RunAny插件写法）
@@ -6527,6 +6531,7 @@ AHK正则选项：i) 不区分大小写匹配  m) 多行匹配模式  S) 研究�
 	}
 	LV_ModifyCol()
 	LV_ModifyCol(1,315)
+	LV_ModifyCol(2, "Sort")  ; 排序
 	GuiControl, 66:+Redraw, RunAnyOneKeyLV
 	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h240 vvOneKeyUrlGroup,一键搜索选中文字 %OneHotKey%
 	Gui,66:Add,Hotkey,xm yp+30 w150 vvOneKey,%OneKey%
@@ -7345,19 +7350,19 @@ RunA_One_Key_Edit:
 		LV_GetText(oneKeyName, RunRowNumber, 2)
 		LV_GetText(oneKeyRegexRun, RunRowNumber, 3)
 	}
-	
 	Gui,OneKey:Destroy
 	Gui,OneKey:Default
 	Gui,OneKey:+Owner66
 	Gui,OneKey:Margin,20,20
 	Gui,OneKey:Font,,Microsoft YaHei
 	Gui,OneKey:Add, GroupBox,xm y+10 w450 h250, 选中内容匹配正则表达式后运行
-	Gui,OneKey:Add, Text, xm+10 y+35 y35,直达说明
-	Gui,OneKey:Add, Edit, x+5 yp w300 vvoneKeyName, %oneKeyName%
-	Gui,OneKey:Add, Text, xm+10 y+15,匹配正则
-	Gui,OneKey:Add, Edit, x+5 yp w380 r6 -WantReturn vvoneKeyRegex, %oneKeyRegex%
-	Gui,OneKey:Add, Text, xm+10 y+15,直达功能
-	Gui,OneKey:Add, Edit, x+5 yp w380 r2 -WantReturn vvoneKeyRegexRun, %oneKeyRegexRun%
+	Gui,OneKey:Add, Text, xm+5 y+35 y35,直达说明
+	Gui,OneKey:Add, Edit, x+10 yp w380 vvoneKeyName, %oneKeyName%
+	Gui,OneKey:Add, Text, xm+5 y+15,匹配正则
+	Gui,OneKey:Add, Edit, x+10 yp w380 r6 -WantReturn vvoneKeyRegex, %oneKeyRegex%
+	Gui,OneKey:Add, Button, xm yp+27 w60 GGraphicRegex,图解正则
+	Gui,OneKey:Add, Text, xm+5 y+65,直达功能
+	Gui,OneKey:Add, Edit, x+10 yp w380 r2 -WantReturn vvoneKeyRegexRun, %oneKeyRegexRun%
 	Gui,OneKey:Font
 	Gui,OneKey:Add,Button,Default xm+140 y+25 w75 GSaveRunAnyOneKey,保存(&S)
 	Gui,OneKey:Add,Button,x+20 w75 GSetCancel,取消(&C)
@@ -7390,14 +7395,17 @@ LVRunAnyOneKeyRemove:
 		if not RowNumber  ; 上面返回零, 所以选择的行已经都找到了.
 			break
 		DelRowList:=RowNumber . ":" . DelRowList
+		LV_GetText(oneKeyName, RowNumber, 2)
+		OneKeyRegexList.Delete(oneKeyName)
 	}
 	stringtrimright, DelRowList, DelRowList, 1
 	loop, parse, DelRowList, :
 		LV_Delete(A_loopfield)
 return
-LVRunAnyOneKeySelect:
-	Gui, ListView, RunAnyOneKeyLV
-	LV_Modify(0, "Select Focus")   ; 选择所有.
+GraphicRegex:
+	Gui,OneKey:Submit, NoHide
+	regexper:=RegExReplace(voneKeyRegex,"i)^[imS]+\)")
+	Run,% "https://regexper.com/#" SkSub_UrlEncode(regexper)
 return
 SaveRunAnyOneKey:
 	RunAnyOneKeyFlag:=true
@@ -7415,6 +7423,90 @@ SaveRunAnyOneKey:
 	}
 	Gui,OneKey:Destroy
 return
+;[在线正则一键直达]
+RunA_One_Key_Down:
+	Gosub,RunAnyOneKeyOnline
+	Gui,OneKeyDown:Destroy
+	Gui,OneKeyDown:Default
+	Gui,OneKeyDown:+Owner66
+	Gui,OneKeyDown:+Resize
+	Gui,OneKeyDown:Font, s10, Microsoft YaHei
+	Gui,OneKeyDown:Add, Listview, xm w620 r15 grid AltSubmit Checked BackgroundF6F6E8 vRunAnyOneKeyDownLV, 选中内容逐行匹配正则|直达说明|直达功能
+	GuiControl,OneKeyDown: -Redraw, RunAnyOneKeyDownLV
+	For onekeyName, onekeyVal in OneKeyDownRunList
+	{
+		runCheck:=OneKeyRegexList[onekeyName] ? "-Select -Check" : "Select Check"
+		LV_Add(runCheck, OneKeyDownRegexList[onekeyName], onekeyName,onekeyName="公式计算" ? "内置功能输出结果" : onekeyVal)
+	}
+	GuiControl,OneKeyDown: +Redraw, RunAnyOneKeyDownLV
+	Menu, OneKeyDownMenu, Add,全部勾选, LVRunAnyOneKeyCheck
+	Menu, OneKeyDownMenu, Icon,全部勾选, SHELL32.dll,145
+	Menu, OneKeyDownMenu, Add,添加勾选的正则一键直达, LVRunAnyOneKeyDown
+	Menu, OneKeyDownMenu, Icon,添加勾选的正则一键直达, SHELL32.dll,123
+	Gui,OneKeyDown: Menu, OneKeyDownMenu
+	LV_ModifyCol()
+	LV_ModifyCol(1,280)
+	Gui,OneKeyDown:Show, , %RunAnyZz% 在线正则一键直达 %RunAny_update_version% %RunAny_update_time%%AdminMode%
+return
+LVRunAnyOneKeyCheck:
+	Gui, ListView, RunAnyOneKeyDownLV
+	LV_Modify(0, "Check Focus")   ; 勾选所有.
+return
+LVRunAnyOneKeyDown:
+	RunAnyOneKeyFlag:=true
+	OneKeySameArray:=[]
+	Loop
+	{
+		Gui, OneKeyDown:Default
+		RowNumber := LV_GetNext(RowNumber, "Checked")  ; 再找勾选的行
+		if not RowNumber  ; 上面返回零, 所以选择的行已经都找到了.
+			break
+		LV_GetText(oneKeyRegex, RowNumber, 1)
+		LV_GetText(oneKeyName, RowNumber, 2)
+		LV_GetText(oneKeyRegexRun, RowNumber, 3)
+		if(OneKeyRegexList[onekeyName]){
+			OneKeySameArray.Push(oneKeyName)
+			continue
+		}
+		Gui, 66:Default
+		Gui, ListView, RunAnyOneKeyLV
+		LV_Add("",oneKeyRegex,oneKeyName,oneKeyRegexRun)
+	}
+	if(OneKeySameArray.Length()>0){
+		TrayTip,无法添加重名的正则一键直达：,% StrListJoin("、",OneKeySameArray),5,2
+	}
+	Gui,OneKeyDown:Destroy
+return
+RunAnyOneKeyOnline:
+	global OneKeyDownRunList:={}
+	global OneKeyDownRegexList:={}
+	RunAnyDownDir:=RunAnyGiteePages . "/RunAny"
+	if(!rule_check_network(RunAnyGiteePages)){
+		RunAnyDownDir:=RunAnyGithubPages . "/RunAny"
+		if(!rule_check_network(RunAnyGithubPages)){
+			MsgBox,48,,网络异常，无法连接网络读取最新一键直达，请联网后重试或手动输入
+			return
+		}
+	}
+	OneKeyIniPath=%A_Temp%\%RunAnyZz%\RunAny_OneKey.ini
+	URLDownloadToFile(RunAnyDownDir "/assets/RunAny_OneKey.ini",OneKeyIniPath)
+	IfExist,%OneKeyIniPath%
+	{
+		FileGetSize, OneKeyIniSize, %OneKeyIniPath%
+		if(OneKeyIniSize>500){
+			IniRead,OneKeyIniVar,%OneKeyIniPath%,OneKey
+			Loop, parse, OneKeyIniVar, `n, `r
+			{
+				varList:=StrSplit(A_LoopField,"=",,2)
+				itemList:=StrSplit(varList[1],"|",,2)
+				OneKeyDownRunList[itemList[1]]:=itemList[2]
+				OneKeyDownRegexList[itemList[1]]:=varList[2]
+			}
+			return
+		}
+	}
+return
+
 
 ;--------------------------------------------------------------------------------------------
 listviewAdvancedConfig:
@@ -7473,6 +7565,7 @@ RuleConfigGuiEscape:
 99GuiEscape:
 keyGuiEscape:
 OneKeyGuiEscape:
+OneKeyDownGuiEscape:
 SavePathGuiEscape:
 SaveExtGuiEscape:
 SaveVarGuiEscape:
@@ -7486,6 +7579,7 @@ RunCtrlConfigGuiSize:
 RunCtrlFuncGuiSize:
 PluginsManageGuiSize:
 PluginsDownloadGuiSize:
+OneKeyDownGuiSize:
 	if A_EventInfo = 1
 		return
 	GuiControl, Move, RunAnyTV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
@@ -7493,6 +7587,7 @@ PluginsDownloadGuiSize:
 	GuiControl, Move, RunAnyPluginsLV2, % "H" . (A_GuiHeight * 0.49) . " W" . (A_GuiWidth - 20) . " y" . (A_GuiHeight * 0.50 + 10)
 	GuiControl, Move, RuleLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 	GuiControl, Move, RunAnyDownLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
+	GuiControl, Move, RunAnyOneKeyDownLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 40)
 	GuiControl, Move, FuncGroup, % "H" . (A_GuiHeight-130) . " W" . (A_GuiWidth - 40)
 	GuiControl, Move, FuncLV, % "H" . (A_GuiHeight-270) . " W" . (A_GuiWidth - 60)
 	GuiControl, Move, vFuncValue, % "H" . (A_GuiHeight-230) . " W" . (A_GuiWidth - 40)
