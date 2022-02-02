@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.02.01
+║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.02.02
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.8.0"     ;~;版本号
-global RunAny_update_time:="自定义一键直达 2022.02.01"   ;~;更新日期
+global RunAny_update_time:="自定义一键直达 2022.02.02"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -3122,11 +3122,15 @@ LVModifyCol(width, colList*){
 }
 ;~;[外部动态运行函数和插件]
 Remote_Dyna_Run(remoteRun){
-	if(IsLabel(remoteRun))
+	if(IsLabel(remoteRun)){
 		Gosub,%remoteRun%
+		return
+	}
 	if(RegExMatch(remoteRun,"S).+?\[.+?\]%?\(.*?\)")){
 		global any:=remoteRun
 		SetTimer,Menu_Run_Plugins_ObjReg,-1
+	}else{
+		Remote_Menu_Run(remoteRun)
 	}
 }
 ;[外部调用菜单运行]
@@ -4931,7 +4935,7 @@ LVPluginsAdd:
 	Gui,PluginsDownload:Default
 	Gui,PluginsDownload:+Resize
 	Gui,PluginsDownload:Font, s10, Microsoft YaHei
-	Gui,PluginsDownload:Add, Listview, xm w620 r15 grid AltSubmit Checked BackgroundF6F6E8 vRunAnyDownLV, 插件文件|状态|版本号|最新版本|插件描述
+	Gui,PluginsDownload:Add, Listview, xm w620 r17 grid AltSubmit Checked BackgroundF6F6E8 vRunAnyDownLV, 插件文件|状态|版本号|最新版本|插件描述
 	GuiControl,PluginsDownload: -Redraw, RunAnyDownLV
 	global PluginsDownImageListID:=IL_Create(6)
 	Plugins_LV_Icon_Set(PluginsDownImageListID)
@@ -7411,7 +7415,12 @@ SaveRunAnyOneKey:
 	RunAnyOneKeyFlag:=true
 	Gui,OneKey:Submit, NoHide
 	if(voneKeyName=""){
-		ToolTip, 请填入功能说明,195,35
+		ToolTip, 请填入功能说明,300,35
+		SetTimer,RemoveToolTip,3000
+		return
+	}
+	if(OneKeyRegexList[voneKeyName]){
+		ToolTip, 已存在相同的一键直达名称，请修改,300,35
 		SetTimer,RemoveToolTip,3000
 		return
 	}
@@ -7423,7 +7432,7 @@ SaveRunAnyOneKey:
 	}
 	Gui,OneKey:Destroy
 return
-;[在线正则一键直达]
+;~;[在线正则一键直达]
 RunA_One_Key_Down:
 	Gosub,RunAnyOneKeyOnline
 	Gui,OneKeyDown:Destroy
@@ -7431,12 +7440,19 @@ RunA_One_Key_Down:
 	Gui,OneKeyDown:+Owner66
 	Gui,OneKeyDown:+Resize
 	Gui,OneKeyDown:Font, s10, Microsoft YaHei
-	Gui,OneKeyDown:Add, Listview, xm w620 r15 grid AltSubmit Checked BackgroundF6F6E8 vRunAnyOneKeyDownLV, 选中内容逐行匹配正则|直达说明|直达功能
+	Gui,OneKeyDown:Add, Listview, xm w620 r15 grid AltSubmit Checked BackgroundF6F6E8 vRunAnyOneKeyDownLV, 状态|选中内容逐行匹配正则|直达说明|直达功能
 	GuiControl,OneKeyDown: -Redraw, RunAnyOneKeyDownLV
 	For onekeyName, onekeyVal in OneKeyDownRunList
 	{
-		runCheck:=OneKeyRegexList[onekeyName] ? "-Select -Check" : "Select Check"
-		LV_Add(runCheck, OneKeyDownRegexList[onekeyName], onekeyName,onekeyName="公式计算" ? "内置功能输出结果" : onekeyVal)
+		runStatus:=runCheck:=""
+		if(!OneKeyRegexList[onekeyName]){
+			runStatus:="未使用"
+			runCheck:="Select Check"
+		}else if(OneKeyRegexList[onekeyName]!=OneKeyDownRegexList[onekeyName] || OneKeyRunList[onekeyName]!=onekeyVal){
+			runStatus:="可更新"
+			runCheck:="Select Check"
+		}
+		LV_Add(runCheck, runStatus, OneKeyDownRegexList[onekeyName], onekeyName,onekeyName="公式计算" ? "内置功能输出结果" : onekeyVal)
 	}
 	GuiControl,OneKeyDown: +Redraw, RunAnyOneKeyDownLV
 	Menu, OneKeyDownMenu, Add,全部勾选, LVRunAnyOneKeyCheck
@@ -7445,7 +7461,7 @@ RunA_One_Key_Down:
 	Menu, OneKeyDownMenu, Icon,添加勾选的正则一键直达, SHELL32.dll,123
 	Gui,OneKeyDown: Menu, OneKeyDownMenu
 	LV_ModifyCol()
-	LV_ModifyCol(1,280)
+	LV_ModifyCol(2,170)
 	Gui,OneKeyDown:Show, , %RunAnyZz% 在线正则一键直达 %RunAny_update_version% %RunAny_update_time%%AdminMode%
 return
 LVRunAnyOneKeyCheck:
@@ -7461,16 +7477,26 @@ LVRunAnyOneKeyDown:
 		RowNumber := LV_GetNext(RowNumber, "Checked")  ; 再找勾选的行
 		if not RowNumber  ; 上面返回零, 所以选择的行已经都找到了.
 			break
-		LV_GetText(oneKeyRegex, RowNumber, 1)
-		LV_GetText(oneKeyName, RowNumber, 2)
-		LV_GetText(oneKeyRegexRun, RowNumber, 3)
-		if(OneKeyRegexList[onekeyName]){
+		LV_GetText(oneKeyStatus, RowNumber, 1)
+		LV_GetText(oneKeyRegex, RowNumber, 2)
+		LV_GetText(oneKeyName, RowNumber, 3)
+		LV_GetText(oneKeyRegexRun, RowNumber, 4)
+		if(OneKeyRegexList[onekeyName]=oneKeyRegex && OneKeyRunList[onekeyName]=oneKeyRegexRun){
 			OneKeySameArray.Push(oneKeyName)
 			continue
 		}
 		Gui, 66:Default
 		Gui, ListView, RunAnyOneKeyLV
-		LV_Add("",oneKeyRegex,oneKeyName,oneKeyRegexRun)
+		if(oneKeyStatus="可更新"){
+			Loop % LV_GetCount()
+			{
+				LV_GetText(RowText, A_Index, 2)
+				if(oneKeyName=RowText)
+					LV_Modify(A_Index,"Select",oneKeyRegex,oneKeyName,oneKeyRegexRun)
+			}
+		}else{
+			LV_Add("Select",oneKeyRegex,oneKeyName,oneKeyRegexRun)
+		}
 	}
 	if(OneKeySameArray.Length()>0){
 		TrayTip,无法添加重名的正则一键直达：,% StrListJoin("、",OneKeySameArray),5,2
