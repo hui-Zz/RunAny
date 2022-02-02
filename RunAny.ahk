@@ -1465,7 +1465,7 @@ CtrlGQuickSwitch:
 			Menu %ctrlgMenuName%, Insert,% ctrlgMenuItem.Count() "&"
 		}
 	}catch e{
-		TrayTip,,% "无法显示资源管理器当前目录：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,10,3
+		TrayTip,无法显示资源管理器当前目录：,% e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,10,3
 	}
 ;---------------[ Total Commander ]--------------------------------------
 	tcIcon:=get_process_path("totalcmd.exe")
@@ -1491,7 +1491,7 @@ CtrlGQuickSwitch:
 			Clipboard := ClipSaved
 			ClipSaved := ""
 		}catch e{
-			TrayTip,,% "无法显示TC当前目录：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,10,3
+			TrayTip,无法显示TC当前目录：,% e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,10,3
 		}
 		DetectHiddenWindows,Off
 	}
@@ -1596,7 +1596,7 @@ Menu_Run:
 	if(MenuShowMenuRun!=""){
 		any:=MenuObj[(MenuShowMenuRun)]
 		if(any=""){
-			TrayTip,,%MenuShowMenuRun% 没有找到`n请检查是否存在(在Everything能搜索到)，并重启RunAny重试,5,2
+			TrayTip,%MenuShowMenuRun% 没有找到,请检查是否存在(在Everything能搜索到)，并重启RunAny重试,5,2
 		}
 		if(RunCtrlRunFlag)
 			Z_ThisMenuItem:=MenuShowMenuRun
@@ -2177,7 +2177,7 @@ Menu_Run_Plugins_ObjReg:
 			try {
 				PluginsObjRegActive[appPlugins]:=ComObjActive(PluginsObjRegGUID[appPlugins])
 			} catch e{
-				TrayTip,,%appPlugins% 外接脚本失败`n请检查是否已经启动(在插件管理中设为自动启动)，并重启RunAny重试,5,2
+				TrayTip,%appPlugins% 外接脚本失败,请检查是否已经启动(在插件管理中设为自动启动)，并重启RunAny重试,5,2
 			}
 		}else if(!IsFunc(appFunc)){
 			TrayTip,,没有在%appPlugins%.ahk中找到%appFunc%函数,5,2
@@ -4938,7 +4938,8 @@ LVPluginsAdd:
 		runStatus:=PluginsPathList[pk] ? "已下载" : "未下载"
 		if(runStatus="已下载" && checkGithub)
 			runStatus:=PluginsVersionList[pk] < pv ? "可更新" : "已最新"
-		LV_Add(LVPluginsSetIcon(PluginsDownImageListID,pk), pk, runStatus, PluginsVersionList[pk]
+		runCheck:=runStatus="可更新" ? " Select Check" : ""
+		LV_Add(LVPluginsSetIcon(PluginsDownImageListID,pk) runCheck, pk, runStatus, PluginsVersionList[pk]
 			, checkGithub ? pv : "网络异常",checkGithub ? pluginsNameList[pk] : PluginsNameList[pk])
 	}
 	GuiControl,PluginsDownload: +Redraw, RunAnyDownLV
@@ -4949,13 +4950,6 @@ LVPluginsAdd:
 	Gui,PluginsDownload: Menu, ahkDownMenu
 	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
 	Gui,PluginsDownload:Show, , %RunAnyZz% 插件下载 %RunAny_update_version% %RunAny_update_time%%AdminMode%
-	Loop % LV_GetCount()
-	{
-		LV_GetText(RowText, A_Index, 2)
-		if(RowText!="已最新"){
-			LV_Modify(A_Index, "Select Focus Check")   ; 高亮选中勾选
-		}
-	}
 return
 LVPluginsCheck:
 	LV_Modify(0, "Check Focus")   ; 勾选所有.
@@ -5069,7 +5063,7 @@ PluginsDownVersion:
 	if(!rule_check_network(giteeUrl)){
 		RunAnyDownDir:=githubUrl . RunAnyGithubDir
 		if(!rule_check_network(githubUrl)){
-			TrayTip,,网络异常，无法连接网络读取最新版本文件，请手动下载,5,2
+			TrayTip,网络异常,无法连接网络读取最新版本文件，请手动下载,5,2
 			pluginsDownList:=PluginsObjList
 			checkGithub:=false
 			return
@@ -7799,8 +7793,8 @@ Var_Set:
 	OnMessage(0x004A, "Receive_WM_COPYDATA")
 	OnMessage(0x11, "WM_QUERYENDSESSION")
 	;~[定期自动检查更新]
-	global githubUrl:="https://raw.githubusercontent.com"
 	global giteeUrl:="https://gitee.com"
+	global githubUrl:="https://raw.githubusercontent.com"
 	global RunAnyGiteePages:="https://hui-zz.gitee.io"
 	global RunAnyGithubPages:="https://hui-zz.github.io"
 	global RunAnyGiteeDir:="/hui-Zz/RunAny/raw/master"
@@ -8622,7 +8616,7 @@ Rule_Effect:
 		}
 		if(RuleRunFailList.Count() > 0){
 			RuleRunFailStr:=StrListJoin("`n",RuleRunFailList)
-			TrayTip,,规则插件脚本没有启动：`n%RuleRunFailStr%,5,2
+			TrayTip,规则插件脚本没有启动：,%RuleRunFailStr%,5,2
 		}
 	} catch e {
 		MsgBox,16,规则判断出错,% "规则名：" rcName 
@@ -8646,7 +8640,7 @@ RunCtrl_RunRules(runCtrlObj,show:=0){
 			SetTimer,RemoveToolTip,3000
 			if(RuleRunFailList.Count() > 0){
 				RuleRunFailStr:=StrListJoin("`n",RuleRunFailList)
-				TrayTip,,规则插件脚本没有启动：`n%RuleRunFailStr%,5,2
+				TrayTip,规则插件脚本没有启动：,%RuleRunFailStr%,5,2
 			}
 		}
 		return effectResult
@@ -8840,7 +8834,7 @@ Auto_Update:
 	if(!rule_check_network(giteeUrl)){
 		RunAnyDownDir:=githubUrl . RunAnyGithubDir
 		if(!rule_check_network(githubUrl)){
-			TrayTip,,网络异常，无法连接网络读取最新版本文件,5,2
+			TrayTip,网络异常,无法连接网络读取最新版本文件,5,2
 			return
 		}
 	}
