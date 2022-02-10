@@ -1328,7 +1328,8 @@ Menu_Show:
 				For name, regex in OneKeyRegexList
 				{
 					if(name !="公式计算" && regex!="" && OneKeyRunList[name] && RegExMatch(S_LoopField, regex)){
-						if((name="打开目录" && !InStr(FileExist(S_LoopField), "D")) || (name="打开文件" && !FileExist(S_LoopField))){
+						if((name="打开目录" && !InStr(FileExist(S_LoopField), "D")) 
+								|| (name="打开文件" && (!FileExist(S_LoopField) || InStr(FileExist(S_LoopField), "D")))){
 							continue
 						}
 						Remote_Dyna_Run(OneKeyRunList[name], S_LoopField)
