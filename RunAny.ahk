@@ -2102,7 +2102,11 @@ Run_Search(anyUrl, getZz="", browser=""){
 			}
 		}
 	}
-	if(InStr(any,"%s",true)){
+	if(InStr(any,"%getZz%")){
+		Run,% browserRun """" StrReplace(any,"%getZz%",getZz) """"
+	}else if(InStr(any,"%Clipboard%")){
+		Run,% browserRun """" StrReplace(any,"%Clipboard%",Clipboard) """"
+	}else if(InStr(any,"%s",true)){
 		Run,% browserRun """" StrReplace(any,"%s",getZz) """"
 	}else if(InStr(any,"%S",true)){
 		Run,% browserRun """" StrReplace(any,"%S",SkSub_UrlEncode(getZz)) """"
@@ -7425,6 +7429,7 @@ SaveRunAnyOneKey:
 		LV_Add("",voneKeyRegex,voneKeyName,voneKeyRegexRun)
 	}else{
 		LV_Modify(RunRowNumber,"",voneKeyRegex,voneKeyName,voneKeyRegexRun)
+		LV_ModifyCol(2, "Sort")  ; 排序
 	}
 	Gui,OneKey:Destroy
 return
