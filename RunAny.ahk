@@ -3136,11 +3136,18 @@ Remote_Dyna_Run(remoteRun, remoteGetZz, remoteFlag:=false){
 		Gosub,%remoteRun%
 		return
 	}
+	if(remoteFlag){
+		if(RegExMatch(remoteRun,"S).+?\[.+?\]%?\(.*?\)")){
+			global any:=remoteRun
+			SetTimer,Menu_Run_Plugins_ObjReg,-1
+		}else{
+			Remote_Menu_Run(remoteRun, remoteGetZz)
+		}
+		return
+	}
 	if(RegExMatch(remoteRun,"S).+?\[.+?\]%?\(.*?\)")){
 		global any:=remoteRun
-		SetTimer,Menu_Run_Plugins_ObjReg,-1
-	}else if(remoteFlag){
-		Remote_Menu_Run(remoteRun, remoteGetZz)
+		Gosub,Menu_Run_Plugins_ObjReg
 	}else{
 		Run_Any(Get_Obj_Path_Transform(remoteRun))
 	}
