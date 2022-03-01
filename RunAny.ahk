@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.02.09
+║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.02.19
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.8.0"     ;~;版本号
-global RunAny_update_time:="自定义一键直达 2022.02.09"   ;~;更新日期
+global RunAny_update_time:="自定义一键直达 2022.02.19"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -2431,13 +2431,15 @@ Send_Key_Zz(keyZz,keyLevel=0){
 		SendLevel,0
 }
 ;[获取选中]
-Get_Zz(){
+Get_Zz(copyKey:="^c"){
 	global Candy_isFile
 	global Candy_Select
 	Candy_isFile:=0
 	try Candy_Saved:=ClipboardAll
 	Clipboard=
-	SendInput,^c
+	if(GetZzCopyKey!="" && GetZzCopyKeyApp!="" && WinActive("ahk_group GetZzCopyKeyAppGUI"))
+		copyKey:=GetZzCopyKey
+	SendInput,%copyKey%
 	if (ClipWaitTime != 0.1) && WinActive("ahk_group ClipWaitGUI"){
 		ClipWait,%ClipWaitTime%
 	}else{
@@ -6526,7 +6528,7 @@ Settings_Gui:
 <a href="https://wyagd001.github.io/zh-cn/docs/misc/RegEx-QuickRef.htm">AHK正则选项</a>：i) 不区分大小写匹配  m) 多行匹配模式  S) 研究模式来提高性能
 	)
 	Gui,66:Add,Listview,xm-10 yp+40 w%GROUP_WIDTH_66% r12 grid AltSubmit -ReadOnly vRunAnyOneKeyLV glistviewRunAnyOneKey
-		, 选中内容逐行匹配正则（多行整体匹配使用正则选项 m）|直达说明|直达运行（支持无路径、RunAny插件写法）
+		, 选中内容逐行匹配正则（多行整体匹配使用正则选项 m）|一键直达说明|一键直达运行（支持无路径、RunAny插件写法）
 	GuiControl, 66:-Redraw, RunAnyOneKeyLV
 	For onekeyName, onekeyVal in OneKeyRunList
 	{
@@ -6617,8 +6619,8 @@ Settings_Gui:
 	Gui,66:Add,Edit,xm+60 yp w%GROUP_CHOOSE_EDIT_WIDTH_66% r6 vvIconFolderPath,%IconFolderPath%
 
 	Gui,66:Tab,高级配置,,Exact
-	Gui,66:Add,Link,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%,%RunAnyZz%高级配置列表，请理解说明后修改（双击或按F2进行修改：1或有值=启用，0或空=停用）
-	Gui,66:Add,Listview,xm yp+20 r18 grid AltSubmit -ReadOnly -Multi vAdvancedConfigLV glistviewAdvancedConfig, 配置状态值|单位|配置说明|配置脚本|配置项名
+	Gui,66:Add,Link,xm y+%MARGIN_TOP_66% w%GROUP_WIDTH_66%,%RunAnyZz%高级配置列表，请理解说明后修改（双击或按F2进行修改）
+	Gui,66:Add,Listview,xm yp+20 r18 grid AltSubmit -ReadOnly -Multi vAdvancedConfigLV glistviewAdvancedConfig, 1或有值=启用，0或空=停用|单位|配置说明|配置脚本|配置项名
 	AdvancedConfigImageListID:=IL_Create(2)
 	IL_Add(AdvancedConfigImageListID,(A_OSVersion="WIN_7") ? "imageres.dll" : "shell32.dll",(A_OSVersion="WIN_XP") ? 145 : (A_OSVersion="WIN_7") ? 102 : 297)
 	IL_Add(AdvancedConfigImageListID,"shell32.dll",132)
@@ -6626,8 +6628,10 @@ Settings_Gui:
 	LV_SetImageList(AdvancedConfigImageListID)
 	LV_Add(JumpSearch ? "Icon1" : "Icon2", JumpSearch,, "跳过点击批量搜索时的确认弹窗","","JumpSearch")
 	LV_Add(ShowGetZzLen ? "Icon1" : "Icon2", ShowGetZzLen,"字", "[选中] 菜单第一行显示选中文字最大截取字数","","ShowGetZzLen")
-	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitApp,, "[选中] 指定软件解决剪贴板等待时间过短获取不到选中内容（多个用,分隔）","","ClipWaitApp")
+	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitApp,"逗号分隔", "[选中] 指定软件解决剪贴板等待时间过短获取不到选中内容（多个用,分隔）","","ClipWaitApp")
 	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitTime,"秒", "[选中] 指定软件获取选中目标到剪贴板等待时间，全局其他软件默认0.1秒","","ClipWaitTime")
+	LV_Add(GetZzCopyKey ? "Icon1" : "Icon2", GetZzCopyKey,"热键", "[选中] 自定义在一些软件界面获取选中内容的热键","","GetZzCopyKey")
+	LV_Add(GetZzCopyKey ? "Icon1" : "Icon2", GetZzCopyKeyApp,"逗号分隔", "[选中] 自定义在哪些软件界面改变获取选中内容热键","","GetZzCopyKeyApp")
 	LV_Add(HoldCtrlRun ? "Icon1" : "Icon2", HoldCtrlRun,"", "[按住Ctrl键] 回车或点击菜单项（选项数字可互用） 2:打开该软件所在目录","","HoldCtrlRun")
 	LV_Add(HoldShiftRun ? "Icon1" : "Icon2", HoldShiftRun,"", "[按住Shift键] 回车或点击菜单项（选项数字可互用） 5:打开多功能菜单运行方式","","HoldShiftRun")
 	LV_Add(HoldCtrlShiftRun ? "Icon1" : "Icon2", HoldCtrlShiftRun,"", "[按住Ctrl+Shift键] 回车或点击菜单项（选项数字可互用） 3:编辑该菜单项","","HoldCtrlShiftRun")
@@ -7770,6 +7774,11 @@ Var_Set:
 	global HideMenuTray:=Var_Read("HideMenuTray",0)
 	global HideSelectZz:=Var_Read("HideSelectZz",0)
 	global RecentMax:=Var_Read("RecentMax",3)
+	DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe,SunloginClient.exe,War3.exe,dota2.exe,League of Legends.exe")
+	Loop,parse,DisableApp,`,
+	{
+		GroupAdd,DisableGUI,ahk_exe %A_LoopField%
+	}
 	;[热键配置]
 	global MenuDoubleCtrlKey:=Var_Read("MenuDoubleCtrlKey",0)
 	global MenuDoubleAltKey:=Var_Read("MenuDoubleAltKey",0)
@@ -7833,6 +7842,8 @@ Var_Set:
 	if(scoopPath)
 		EvCommandDefault.=" !" RegExReplace(scoopPath,".(:\\.*)","?$1") "\shims\*"
 	global EvCommand:=Var_Read("EvCommand",EvDemandSearch ? EvCommandDefault : EvCommandDefault " file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
+	EvCommandVar:=RegExReplace(EvCommand,"i).*file:(\*\.[^\s]*).*","$1")
+	global EvCommandExtList:=StrSplit(EvCommandVar,"|")
 	;[热字符串]
 	global HideHotStr:=Var_Read("HideHotStr",0)
 	global HotStrHintLen:=Var_Read("HotStrHintLen",3)
@@ -7853,10 +7864,16 @@ Var_Set:
 	global EvNo:=Var_Read("EvNo",0)
 	global JumpSearch:=Var_Read("JumpSearch",0)
 	global AutoGetZz:=Var_Read("AutoGetZz",1)
+	global GetZzCopyKey:=Var_Read("GetZzCopyKey")
+	global GetZzCopyKeyApp:=Var_Read("GetZzCopyKeyApp")
+	Loop,parse,GetZzCopyKeyApp,`,
+	{
+		GroupAdd,GetZzCopyKeyAppGUI,ahk_exe %A_LoopField%
+	}
 	global DisableExeIcon:=Var_Read("DisableExeIcon",0)
 	global RunAEncoding:=Var_Read("RunAEncoding",A_Language!=0804 ? "UTF-8" : "")
 	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)
-	global ClipWaitApp:=Var_Read("ClipWaitApp","")
+	global ClipWaitApp:=Var_Read("ClipWaitApp")
 	global HoldKeyShowTime:=Var_Read("HoldKeyShowTime",1000)
 	global RUNANY_SELF_MENU_ITEM1:=Var_Read("RUNANY_SELF_MENU_ITEM1","&1批量搜索")
 	global RUNANY_SELF_MENU_ITEM2:=Var_Read("RUNANY_SELF_MENU_ITEM2","RunAny设置")
@@ -7879,13 +7896,6 @@ Var_Set:
 		}
 	}
 	;[高级配置]结束
-	DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe,SunloginClient.exe,War3.exe,dota2.exe,League of Legends.exe")
-	Loop,parse,DisableApp,`,
-	{
-		GroupAdd,DisableGUI,ahk_exe %A_LoopField%
-	}
-	EvCommandVar:=RegExReplace(EvCommand,"i).*file:(\*\.[^\s]*).*","$1")
-	global EvCommandExtList:=StrSplit(EvCommandVar,"|")
 	global MENU_RUN_NAME_STR:="编辑(&E),同名软件(&S),软件目录(&D),透明运行(&Q),置顶运行(&T),改变大小运行(&W),管理员权限运行(&A)" 
 		. ",最小化运行(&I),最大化运行(&P),隐藏运行(&H),结束软件进程(&X)"
 	global MENU_RUN_NAME_NOFILE_STR:="复制运行路径(&C),输出运行路径(&V),复制软件名(&N),输出软件名(&M),复制软件名+后缀(&F),输出软件名+后缀(&G)"
