@@ -1676,6 +1676,10 @@ Menu_Run:
 			return
 		;[解析选中变量%getZz%]
 		getZzFlag:=InStr(any,"%getZz%") ? true : false
+		if(getZzFlag && InStr(getZz,A_Space) && !InStr(any,"""%getZz%""")){
+			;如果选中变量中有空格，自动包上双引号
+			any:=StrReplace(any,"%getZz%","""%getZz%""")
+		}
 		any:=Get_Transform_Val(any)
 		any:=RTrim(any," `t`n`r")
 		anyRun:=""
@@ -1901,6 +1905,10 @@ Menu_Key_Run_Run:
 		
 		;[解析选中变量%getZz%]
 		getZzFlag:=InStr(any,"%getZz%") ? true : false
+		if(getZzFlag && InStr(getZz,A_Space) && !InStr(any,"""%getZz%""")){
+			;如果选中变量中有空格，自动包上双引号
+			any:=StrReplace(any,"%getZz%","""%getZz%""")
+		}
 		any:=Get_Transform_Val(any)
 		any:=RTrim(any," `t`n`r")
 		;[打开文件夹]
