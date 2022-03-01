@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.02.19
+║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.03.01
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.8.0"     ;~;版本号
-global RunAny_update_time:="自定义一键直达 2022.02.19"   ;~;更新日期
+global RunAny_update_time:="自定义一键直达 2022.03.01"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -139,13 +139,13 @@ Loop,%MenuCount%
 	menuRoot%A_Index%:=[M%A_Index%]
 }
 ;══════════════════════════════════════════════════════════════════
-global NoPathFlag:=false                   ;是否拿到无路径搜索结果
-global MenuObjEv:=Object()                 ;Everything搜索结果程序全路径
-global MenuObjSame:=Object()               ;Everything搜索结果重名程序全路径
-global MenuObjSearch:=Object()             ;Everything搜索无路径菜单项
-global MenuObjCache:=Object()              ;Everything搜索无路径应用缓存
-global MenuObjNew:=Object()                ;Everything搜索新增加
-EvCommandStr:=""                           ;Everything搜索字符
+global NoPathFlag:=false                    ;是否拿到无路径搜索结果
+global MenuObjEv:=Object()                  ;Everything搜索结果程序全路径
+global MenuObjSame:=Object()                ;Everything搜索结果重名程序全路径
+global MenuObjSearch:=Object()              ;Everything搜索无路径菜单项
+global MenuObjCache:=Object()               ;Everything搜索无路径应用缓存
+global MenuObjNew:=Object()                 ;Everything搜索新增加
+EvCommandStr:=""                            ;Everything搜索字符
 ;~;[14.获取无路径应用的运行全路径缓存]
 if(EvDemandSearch){
 	EvCommandStr:=EverythingNoPathSearchStr()
@@ -586,7 +586,7 @@ DoubleClickKey:
 	return
 return
 ;══════════════════════════════════════════════════════════════════
-;~;【——创建菜单——】
+;~;【——🏗创建菜单——】
 ;══════════════════════════════════════════════════════════════════
 Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 	MenuObjName:=Object()    ;~程序菜单项名称
@@ -1126,7 +1126,7 @@ MenuShowTime:
 	}
 return
 ;══════════════════════════════════════════════════════════════════
-;~;【——显示菜单——】
+;~;【——📺显示菜单——】
 ;══════════════════════════════════════════════════════════════════
 Menu_Show:
 	try{
@@ -1590,7 +1590,7 @@ FeedExplorerOpenSaveEdit2:
 	ControlSend,Edit2,{Enter}
 return
 ;══════════════════════════════════════════════════════════════════
-;~;【——菜单运行——】
+;~;【——🚀菜单运行——】
 ;══════════════════════════════════════════════════════════════════
 Menu_Run:
 	Z_ThisMenuItem:=A_ThisMenuItem
@@ -2097,87 +2097,7 @@ Run_Wait(program,topFlag:=false,transRatio=100,winSizeRatio=100,winSize=0){
 		try WinSet,Transparent,% transRatio/100*255,ahk_exe %fName%
 	}
 }
-Run_Search(anyUrl, getZz="", browser=""){
-	any:=Get_Transform_Val(anyUrl)
-	if(browser){
-		browserRun:=browser A_Space
-	}else if(RegExMatch(any,"iS)(www[.]).*") && openExtRunList["www"]){
-		browserRun:=openExtRunList["www"] A_Space
-	}else{
-		HyperList:=["http","https","ftp"]
-		For i, v in HyperList
-		{
-			if(RegExMatch(any,"iS)(" v "://?).*") && openExtRunList[v]){
-				browserRun:=openExtRunList[v] A_Space
-				break
-			}
-		}
-	}
-	if(InStr(any,"%getZz%")){
-		Run,% browserRun """" StrReplace(any,"%getZz%",getZz) """"
-	}else if(InStr(any,"%Clipboard%")){
-		Run,% browserRun """" StrReplace(any,"%Clipboard%",Clipboard) """"
-	}else if(InStr(any,"%s",true)){
-		Run,% browserRun """" StrReplace(any,"%s",getZz) """"
-	}else if(InStr(any,"%S",true)){
-		Run,% browserRun """" StrReplace(any,"%S",SkSub_UrlEncode(getZz)) """"
-	}else if(AutoGetZz && any=anyUrl){  ;网址中没有变量则在末尾添加选中文字
-		Run,%browserRun%"%any%%getZz%"
-	}else{
-		Run,%browserRun%"%any%"
-	}
-}
-;~;【执行批量搜索】
-Web_Run:
-	webName:=RegExReplace(A_ThisMenuItem,"iS)^" RUNANY_SELF_MENU_ITEM1)
-	if(webName){
-		webList:=(A_ThisHotkey=MenuHotKey2) ? menuWebList2[(webName)] : menuWebList1[(webName)]
-	}else{
-		webList:=(A_ThisHotkey=MenuHotKey2) ? menuWebList2[(menuRoot2[1])] : menuWebList1[(menuRoot1[1])]
-	}
-	if(JumpSearch){
-		Gosub,Web_Search
-	}else{
-		MsgBox,33,开始批量搜索%webName%,确定用【%getZz%】批量搜索以下网站：`n%webList%
-		IfMsgBox Ok
-		{
-			Gosub,Web_Search
-		}
-	}
-return
-Web_Search:
-	Loop,parse,webList,`n
-	{
-		if(A_LoopField){
-			any:=MenuObj[(A_LoopField)]
-			Run_Search(any,getZz,BrowserPathRun)
-		}
-	}
-return
-;调用huiZz_Text插件函数
-SendStrDecrypt(any,key:=""){
-	try{
-		if(encryptFlag){
-			key:=(key="") ? SendStrDcKey : key
-			PluginsObjRegActive["huiZz_Text"]:=ComObjActive(PluginsObjRegGUID["huiZz_Text"])
-			anyval:=PluginsObjRegActive["huiZz_Text"]["runany_decrypt"](any,key)
-			return anyval
-		}
-	} catch {}
-	return any
-}
-SendStrEncrypt(any,key:=""){
-	try{
-		if(encryptFlag){
-			key:=(key="") ? SendStrDcKey : key
-			PluginsObjRegActive["huiZz_Text"]:=ComObjActive(PluginsObjRegGUID["huiZz_Text"])
-			anyval:=PluginsObjRegActive["huiZz_Text"]["runany_encrypt"](any,key)
-			return anyval
-		}
-	} catch {}
-	return any
-}
-;~;【脚本插件函数运行】
+;~;【🧩脚本插件函数运行】
 Menu_Run_Plugins_ObjReg:
 	appPlugins:=RegExReplace(any,"iS)(.+?)\[.+?\]%?\(.*?\)$","$1")	;取插件名
 	appFunc:=RegExReplace(any,"iS).+?\[(.+?)\]%?\(.*?\)$","$1")	;取函数名
@@ -2254,7 +2174,7 @@ PluginsObjRegRun(appPlugins, appFunc, appParms){
 	}
 	return effectResult
 }
-;~;【菜单最近运行】
+;~;【🕒菜单最近运行】
 Menu_Recent:
 	recentAny:=any
 	regMenuItem:=A_ThisMenuItem
@@ -2328,7 +2248,81 @@ Menu_Recent:
 	RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny, MenuCommonList, %commonStr%
 return
 ;══════════════════════════════════════════════════════════════════
-;~;【一键Everything】[搜索选中文字][激活][隐藏]
+;~;【🔎一键搜索】
+One_Show:
+	getZz:=Get_Zz()
+	Gosub,One_Search
+return
+One_Search:
+	Loop,parse,OneKeyUrl,`n
+	{
+		if(A_LoopField){
+			if(Candy_isFile){
+				SplitPath, getZz,FileName
+				Run_Search(A_LoopField,FileName,BrowserPathRun)
+			}else{
+				Run_Search(A_LoopField,getZz,BrowserPathRun)
+			}
+		}
+	}
+return
+Run_Search(anyUrl, getZz="", browser=""){
+	any:=Get_Transform_Val(anyUrl)
+	if(browser){
+		browserRun:=browser A_Space
+	}else if(RegExMatch(any,"iS)(www[.]).*") && openExtRunList["www"]){
+		browserRun:=openExtRunList["www"] A_Space
+	}else{
+		HyperList:=["http","https","ftp"]
+		For i, v in HyperList
+		{
+			if(RegExMatch(any,"iS)(" v "://?).*") && openExtRunList[v]){
+				browserRun:=openExtRunList[v] A_Space
+				break
+			}
+		}
+	}
+	if(InStr(any,"%getZz%")){
+		Run,% browserRun """" StrReplace(any,"%getZz%",getZz) """"
+	}else if(InStr(any,"%Clipboard%")){
+		Run,% browserRun """" StrReplace(any,"%Clipboard%",Clipboard) """"
+	}else if(InStr(any,"%s",true)){
+		Run,% browserRun """" StrReplace(any,"%s",getZz) """"
+	}else if(InStr(any,"%S",true)){
+		Run,% browserRun """" StrReplace(any,"%S",SkSub_UrlEncode(getZz)) """"
+	}else if(AutoGetZz && any=anyUrl){  ;网址中没有变量则在末尾添加选中文字
+		Run,%browserRun%"%any%%getZz%"
+	}else{
+		Run,%browserRun%"%any%"
+	}
+}
+Web_Run:
+	webName:=RegExReplace(A_ThisMenuItem,"iS)^" RUNANY_SELF_MENU_ITEM1)
+	if(webName){
+		webList:=(A_ThisHotkey=MenuHotKey2) ? menuWebList2[(webName)] : menuWebList1[(webName)]
+	}else{
+		webList:=(A_ThisHotkey=MenuHotKey2) ? menuWebList2[(menuRoot2[1])] : menuWebList1[(menuRoot1[1])]
+	}
+	if(JumpSearch){
+		Gosub,Web_Search
+	}else{
+		MsgBox,33,开始批量搜索%webName%,确定用【%getZz%】批量搜索以下网站：`n%webList%
+		IfMsgBox Ok
+		{
+			Gosub,Web_Search
+		}
+	}
+return
+Web_Search:
+	Loop,parse,webList,`n
+	{
+		if(A_LoopField){
+			any:=MenuObj[(A_LoopField)]
+			Run_Search(any,getZz,BrowserPathRun)
+		}
+	}
+return
+;~;[一键Everything][搜索选中文字][激活][隐藏]
 Ev_Show:
 	getZz:=Get_Zz()
 	EverythingIsRun()
@@ -2363,24 +2357,6 @@ Ev_Show:
 	else
 		Run % EvPathRun (evSearch ? " -search """ evSearch EvShowFolderSpace """" : "")
 	DetectHiddenWindows,Off
-return
-;~;【一键搜索】
-One_Show:
-	getZz:=Get_Zz()
-	Gosub,One_Search
-return
-One_Search:
-	Loop,parse,OneKeyUrl,`n
-	{
-		if(A_LoopField){
-			if(Candy_isFile){
-				SplitPath, getZz,FileName
-				Run_Search(A_LoopField,FileName,BrowserPathRun)
-			}else{
-				Run_Search(A_LoopField,getZz,BrowserPathRun)
-			}
-		}
-	}
 return
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 ;~;【══通用函数方法══】
@@ -3168,7 +3144,29 @@ Remote_Menu_Ext_Show(fileExt){
 ;══════════════════════════════════════════════════════════════════
 ;~;【══插件函数方法══】
 ;══════════════════════════════════════════════════════════════════
-
+;调用huiZz_Text插件函数
+SendStrDecrypt(any,key:=""){
+	try{
+		if(encryptFlag){
+			key:=(key="") ? SendStrDcKey : key
+			PluginsObjRegActive["huiZz_Text"]:=ComObjActive(PluginsObjRegGUID["huiZz_Text"])
+			anyval:=PluginsObjRegActive["huiZz_Text"]["runany_decrypt"](any,key)
+			return anyval
+		}
+	} catch {}
+	return any
+}
+SendStrEncrypt(any,key:=""){
+	try{
+		if(encryptFlag){
+			key:=(key="") ? SendStrDcKey : key
+			PluginsObjRegActive["huiZz_Text"]:=ComObjActive(PluginsObjRegGUID["huiZz_Text"])
+			anyval:=PluginsObjRegActive["huiZz_Text"]["runany_encrypt"](any,key)
+			return anyval
+		}
+	} catch {}
+	return any
+}
 ;RunAny搜索框插件
 RunAny_SearchBar:
 	if(rule_check_is_run(PluginsPathList["RunAny_SearchBar.ahk"])){
@@ -6358,7 +6356,7 @@ KnowAhkFuncZz(ahkPath){
 	return funcnameStr
 }
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-;~;【——设置选项Gui——】
+;~;【——⚙设置选项Gui——】
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 Settings_Gui:
 	Critical  ;防止短时间内打开多次界面出现问题
