@@ -9155,6 +9155,7 @@ Ini_Run(ini){
 ;~;【Everything搜索所有exe程序】
 ;══════════════════════════════════════════════════════════════════
 EverythingIsRun(){
+	global EvPathRun
 	evExist:=true
 	evAdminRun:=A_IsAdmin ? "-admin" : ""
 	DetectHiddenWindows,On
@@ -9182,7 +9183,7 @@ EverythingIsRun(){
 		}else if(FileExist(A_ScriptDir "\Everything\Everything.exe")){
 			SetWorkingDir,%A_ScriptDir%\Everything
 			Run,%A_ScriptDir%\Everything\Everything.exe -startup %evAdminRun%
-			EvPath=%A_ScriptDir%\Everything\Everything.exe
+			EvPathRun=EvPath=%A_ScriptDir%\Everything\Everything.exe
 			Sleep,500
 		}else{
 			TrayTip,,RunAny需要Everything快速识别无路径应用`n
