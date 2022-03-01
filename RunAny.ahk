@@ -314,9 +314,6 @@ Loop,%MenuCount%
 	}
 	;~;[20.最近运行项]
 	if(RecentMax>0){
-		Menu,% menuDefaultRoot%M_Index%[1],Add
-		Menu,% menuWebRoot%M_Index%[1],Add
-		Menu,% menuFileRoot%M_Index%[1],Add
 		For mci, mcItem in MenuCommonList
 		{
 			if(A_Index>RecentMax)
@@ -898,6 +895,7 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 		Menu,% menuRootFn[1],add,%RUNANY_SELF_MENU_ITEM2%,:Tray,%MenuBar%
 		Menu,% menuRootFn[1],Icon,%RUNANY_SELF_MENU_ITEM2%,% AnyIconS[1],% AnyIconS[2],%MenuIconSize%
 	}
+	Menu,% menuRootFn[1],add,
 }
 ;[统一集合菜单中软件运行项]
 MenuExeArrayPush(menuName,menuItem,itemFile,itemAny,TREE_NO){
@@ -3615,7 +3613,7 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add,Button,Default xm+220 y+15 w75 vvSaveItemSaveBtn G%SaveLabel%,保存
 	Gui,SaveItem:Add,Button,x+20 w75 vvSaveItemCancelBtn GSetCancel,取消
 	Gui,SaveItem:Add,Text, xm+10 w590 cBlue vvStatusBar, %thisMenuStr% %thisMenuItemStr%
-	Gui,SaveItem:Show,H365,新增修改菜单项 - %RunAnyZz% - 支持拖放应用
+	Gui,SaveItem:Show,H365,新增修改菜单项 - %RunAnyZz% - 支持拖放应用 %RunAny_update_version% %RunAny_update_time%%AdminMode%
 	GuiControl,SaveItem:Hide, vExtPrompt
 	if(fExt!="lnk")
 		GuiControl,SaveItem:Hide, vSetShortcut
@@ -6397,7 +6395,7 @@ Settings_Gui:
 	Gui,66:Add,Button,xm yp+25 GSetRunABackupDir,RunAny.ini自动备份目录
 	Gui,66:Add,Edit,x+11 yp+2 w400 r1 vvRunABackupDir,%RunABackupDir%
 	
-	Gui,66:Add,GroupBox,xm-10 y+25 w%GROUP_WIDTH_66% vvDisableAppGroup,屏蔽RunAny程序列表（逗号分隔）
+	Gui,66:Add,GroupBox,xm-10 y+25 w%GROUP_WIDTH_66% vvDisableAppGroup,屏蔽RunAny程序列表（英文逗号分隔）
 	Gui,66:Font,,Consolas
 	Gui,66:Add,Edit,xm yp+25 r4 -WantReturn vvDisableApp,%DisableApp%
 	Gui,66:Font,,Microsoft YaHei
