@@ -1748,8 +1748,12 @@ Menu_Run:
 		}
 		Gosub, MenuRunAny
 	} catch e {
-		MsgBox,16,%Z_ThisMenuItem%运行出错,% "运行路径：" any "`n出错命令：" e.What 
-			. "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+		MsgBox,20,%Z_ThisMenuItem%运行出错,% "运行路径：" any "`n出错命令：" e.What 
+			. "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message "`n`n是否在命令行中运行测试？"
+		IfMsgBox Yes, {
+			; Run,% ComSpec " /k ""echo 【运行命令:】start """" """ any """ & echo. & start """" """ any """"""
+			Run,%ComSpec% /k "echo 【运行命令:】start "" "%any%" & echo. & start "" "%any%""
+		}
 	}finally{
 		SetWorkingDir,%A_ScriptDir%
 	}
