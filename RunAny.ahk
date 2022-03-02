@@ -1637,7 +1637,6 @@ Menu_Run:
 			TVEditItem:=Z_ThisMenuItem
 			TVEditItem:=RegExReplace(TVEditItem,"重名$")
 			Gosub,Menu_Edit%MENU_NO%
-			TVEditItem:=""
 			return
 		}
 		;[复制或输出菜单项内容]
@@ -3394,8 +3393,10 @@ Menu_Edit_Gui:
 				TV_Modify(ItemID, "Expand Select")
 				selIDTVEdit:=ItemID
 				Gosub,TVEdit
+				break
 			}
 		}
+		TVEditItem=
 	}
 return
 Menu_Edit1:
@@ -3574,7 +3575,7 @@ Menu_Item_Edit:
 		itemPath:=StrReplace(itemPath,"``t","`t")
 		itemPath:=StrReplace(itemPath,"``n","`n")
 	}
-	if(InStr(itemName,"-")){
+	if(InStr(itemName,"-")=1){
 		treeYNum:=20
 		itemNameText:="菜单分类"
 	}else{
@@ -3595,7 +3596,7 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add, Picture, x+50 yp+3 w64 h-1 vvPictureIconAdd gSetItemIconPath, %itemIconFile%
 	Gui,SaveItem:Add, Text,yp+8 w72 cGreen vvTextIconAdd gSetItemIconPath BackgroundTrans, 点击添加图标
 	Gui,SaveItem:Add, Text,yp w72 cGreen vvTextIconDown gSetItemIconDown BackgroundTrans, 下载网站图标
-	if(!InStr(itemName,"-")){
+	if(InStr(itemName,"-")!=1){
 		Gui,SaveItem:Add, Text, xm+10 y+4 w60 vvTextHotStr, 热字符串：
 		Gui,SaveItem:Font,,Consolas
 		Gui,SaveItem:Add, Edit, x+5 yp-1 w60 vvhotStrOption, % hotStrShow="" ? ":*X:" : hotStrOption
@@ -3801,7 +3802,7 @@ ChooseItemMode:
 	}else if((vItemMode=1 || vItemMode!=5) && getItemMode=5){		;清除AHK热键映射
 		StringTrimRight, vitemPath, vitemPath, 3
 	}
-	if(InStr(vitemName,"-"))
+	if(InStr(vitemName,"-")=1)
 		return
 	if(vItemMode=2 && getItemMode!=2){
 		vitemPath.=";"
@@ -4299,7 +4300,6 @@ TV_Move(moveMode = true){
 		TV_Modify(moveID, Set_Icon(TreeImageListID,selVar))
 		TVFlag:=true
 	}
-
 }
 ;~;[批量移动项目到指定树节点]
 TV_MoveMenu(moveMenuName){
@@ -4308,7 +4308,7 @@ TV_MoveMenu(moveMenuName){
 	Menu,%moveMenuName%,add,%moveMenuName%,Move_Menu
 	try {
 		Menu,% moveRoot[moveLevel],add,%moveItem%, :%moveMenuName%
-		Menu,% moveRoot[moveLevel],Icon,%moveItem%,% TreeIconS[1],% TreeIconS[2]
+		try Menu,% moveRoot[moveLevel],Icon,%moveItem%,% TreeIconS[1],% TreeIconS[2]
 	} catch e {
 		TrayTip,,% "右键操作菜单创建错误：" moveMenuName "`n出错命令：" e.What 
 			. "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,10,3
