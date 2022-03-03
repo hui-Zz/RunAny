@@ -1302,7 +1302,7 @@ Menu_Show:
 				}
 				;一键计算公式数字加减乘除
 				calcRegex:=OneKeyRegexList["公式计算"]
-				if(calcRegex!="" && RegExMatch(S_LoopField,calcRegex)){
+				if(calcRegex!="" && !OneKeyDisableList["公式计算"] && RegExMatch(S_LoopField,calcRegex)){
 					formula:=S_LoopField
 					if(RegExMatch(S_LoopField,"S)=$")){
 						StringTrimRight, formula, formula, 1
@@ -1325,7 +1325,7 @@ Menu_Show:
 				;一键直达动态正则匹配
 				For name, regex in OneKeyRegexList
 				{
-					if(name !="公式计算" && regex!="" && OneKeyRunList[name] && RegExMatch(S_LoopField, regex)){
+					if(name !="公式计算" && !OneKeyDisableList[name] && regex!="" && OneKeyRunList[name] && RegExMatch(S_LoopField, regex)){
 						if((name="打开目录" && !InStr(FileExist(S_LoopField), "D")) 
 								|| (name="打开文件" && (!FileExist(S_LoopField) || InStr(FileExist(S_LoopField), "D")))){
 							continue
@@ -2322,7 +2322,7 @@ Web_Search:
 		}
 	}
 return
-;~;[一键Everything][搜索选中文字][激活][隐藏]
+;~;[🔎一键Everything][搜索选中文字][激活][隐藏]
 Ev_Show:
 	getZz:=Get_Zz()
 	EverythingIsRun()
