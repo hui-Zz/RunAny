@@ -4618,53 +4618,7 @@ ToggleAllTheWay(_ItemID=0, _ChkUchk=True ) {
 	}
 	Return
 }
-;Treeview自定义项目颜色
-;https://www.autohotkey.com/boards/viewtopic.php?f=6&t=2632&hilit=TreeView+colour
-class treeview{
-	static list:=[]
-	__New(hwnd){
-		this.list[hwnd]:=this
-		OnMessage(0x4e,"WM_NOTIFY")
-		this.hwnd:=hwnd,this.selectcolor:=""
-	}
-	add(info){
-		Gui,TreeView,% this.hwnd
-		hwnd:=TV_Add(info.Label,info.parent,info.option)
-		if info.fore!=""
-			this.control["|" hwnd,"fore"]:=info.fore
-		if info.back!=""
-			this.control["|" hwnd,"back"]:=info.back
-		return hwnd
-	}
-	modify(info){
-		this.control["|" info.hwnd,"fore"]:=info.fore
-		this.control["|" info.hwnd,"back"]:=info.back
-		WinSet,Redraw,,A
-	}
-	Remove(hwnd){
-		this.control.Remove("|" hwnd)
-	}
-}
-WM_NOTIFY(Param*){
-	static list:=[],ll:=""
-	control:=""
-	if (this:=treeview.list[NumGet(Param.2)])&&(NumGet(Param.2,2*A_PtrSize,"int")=-12){
-		stage:=NumGet(Param.2,3*A_PtrSize,"uint")
-		if (stage=1)
-			return 0x20 ;sets CDRF_NOTIFYITEMDRAW
-		if (stage=0x10001&&info:=this.control["|" numget(Param.2,A_PtrSize=4?9*A_PtrSize:7*A_PtrSize,"uint")]){ ;NM_CUSTOMDRAW && Control is in the list
-			if info.fore!=""
-				NumPut(info.fore,Param.2,A_PtrSize=4?12*A_PtrSize:10*A_PtrSize,"int") ;sets the foreground
-			if info.back!=""
-				NumPut(info.back,Param.2,A_PtrSize=4?13*A_PtrSize:10.5*A_PtrSize,"int") ;sets the background
-		}
-		if (this.selectcolor){
-			Gui,TreeView,% NumGet(param.2)
-			if (NumGet(param.2,9*A_PtrSize)=TV_GetSelection())
-				NumPut(this.selectcolor,Param.2,A_PtrSize=4?13*A_PtrSize:10.5*A_PtrSize,"int") ;sets the background
-		}
-	}
-}
+
 ;══════════════════════════════════════════════════════════════════
 ;~;【——🧩插件Gui——】
 ;══════════════════════════════════════════════════════════════════
@@ -7754,6 +7708,101 @@ PluginsManageGuiDropFiles:
 		Gosub,Plugins_Gui
 	}
 return
+;TreeView自定义项目颜色
+;https://www.autohotkey.com/boards/viewtopic.php?f=6&t=2632
+class treeview{
+	static list:=[]
+	__New(hwnd){
+		this.list[hwnd]:=this
+		OnMessage(0x4e,"WM_NOTIFY_TV")
+		this.hwnd:=hwnd,this.selectcolor:=""
+	}
+	add(info){
+		Gui,TreeView,% this.hwnd
+		hwnd:=TV_Add(info.Label,info.parent,info.option)
+		if info.fore!=""
+			this.control["|" hwnd,"fore"]:=info.fore
+		if info.back!=""
+			this.control["|" hwnd,"back"]:=info.back
+		return hwnd
+	}
+	modify(info){
+		this.control["|" info.hwnd,"fore"]:=info.fore
+		this.control["|" info.hwnd,"back"]:=info.back
+		WinSet,Redraw,,A
+	}
+	Remove(hwnd){
+		this.control.Remove("|" hwnd)
+	}
+}
+WM_NOTIFY_TV(Param*){
+	static list:=[],ll:=""
+	control:=""
+	if (this:=treeview.list[NumGet(Param.2)])&&(NumGet(Param.2,2*A_PtrSize,"int")=-12){
+		stage:=NumGet(Param.2,3*A_PtrSize,"uint")
+		if (stage=1)
+			return 0x20 ;sets CDRF_NOTIFYITEMDRAW
+		if (stage=0x10001&&info:=this.control["|" numget(Param.2,A_PtrSize=4?9*A_PtrSize:7*A_PtrSize,"uint")]){ ;NM_CUSTOMDRAW && Control is in the list
+			if info.fore!=""
+				NumPut(info.fore,Param.2,A_PtrSize=4?12*A_PtrSize:10*A_PtrSize,"int") ;sets the foreground
+			if info.back!=""
+				NumPut(info.back,Param.2,A_PtrSize=4?13*A_PtrSize:10.5*A_PtrSize,"int") ;sets the background
+		}
+		if (this.selectcolor){
+			Gui,TreeView,% NumGet(param.2)
+			if (NumGet(param.2,9*A_PtrSize)=TV_GetSelection())
+				NumPut(this.selectcolor,Param.2,A_PtrSize=4?13*A_PtrSize:10.5*A_PtrSize,"int") ;sets the background
+		}
+	}
+}
+;ListView自定义行颜色
+;https://www.autohotkey.com/boards/viewtopic.php?f=6&t=3286&p=304384
+class ListView{
+	static list:=[]
+	__New(hwnd){
+		this.list[hwnd]:=this
+		OnMessage(0x4e,"WM_NOTIFY_LV")
+		this.hwnd:=hwnd
+		this.control:=[]
+	}
+	add(options,items*){
+		Gui,ListView,% this.hwnd
+		for a,b in items{
+			if A_Index=1
+				item:=LV_Add(options,b)
+			Else
+				LV_Modify(item,"col" A_Index,b)
+		}
+	}
+	clear(){
+		this.control:=[]
+	}
+	Color(item,fore="",back=""){
+		LV_GetText(text,item)
+		if fore!=""
+			this.Control[text,"fore"]:=fore
+		if Back!=""
+			this.Control[text,"back"]:=back
+	}
+}
+WM_NOTIFY_LV(Param*){
+	Critical
+	control:=
+	if (this:=ListView.list[NumGet(Param.2)])&&(NumGet(Param.2,2*A_PtrSize,"int")=-12){
+		stage:=NumGet(Param.2,3*A_PtrSize,"uint")
+		if (stage=1)
+			return 0x20 ;sets CDRF_NOTIFYITEMDRAW
+		if (stage=0x10001){ ;NM_CUSTOMDRAW && Control is in the list
+			index:=numget(Param.2,A_PtrSize=4?9*A_PtrSize:7*A_PtrSize,"uint")
+			LV_GetText(text,index+1)
+			info:=this.Control[text]
+			if info.fore!=""
+				NumPut(info.fore,Param.2,A_PtrSize=4?12*A_PtrSize:10*A_PtrSize,"int") ;sets the foreground
+			if info.back!=""
+				NumPut(info.back,Param.2,A_PtrSize=4?13*A_PtrSize:10.5*A_PtrSize,"int") ;sets the background
+		}
+	}
+}
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 ;~;【——🔛初始化——】
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
