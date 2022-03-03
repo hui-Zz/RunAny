@@ -6545,11 +6545,11 @@ Settings_Gui:
 <a href="https://wyagd001.github.io/zh-cn/docs/misc/RegEx-QuickRef.htm">AHK正则选项</a>：i) 不区分大小写匹配  m) 多行匹配模式  S) 研究模式来提高性能
 	)
 	Gui,66:Add,Listview,xm-10 yp+40 w%GROUP_WIDTH_66% r12 grid AltSubmit -ReadOnly vRunAnyOneKeyLV glistviewRunAnyOneKey
-		, 选中内容逐行匹配正则（多行整体匹配使用正则选项 m）|一键直达说明|一键直达运行（支持无路径、RunAny插件写法）
+		, 选中内容逐行匹配正则（多行整体匹配使用正则选项 m）|一键直达说明|状态|一键直达运行（支持无路径、RunAny插件写法）
 	GuiControl, 66:-Redraw, RunAnyOneKeyLV
 	For onekeyName, onekeyVal in OneKeyRunList
 	{
-		LV_Add(, OneKeyRegexList[onekeyName], onekeyName,onekeyName="公式计算" ? "内置功能输出结果" : onekeyVal)
+		LV_Add("", OneKeyRegexList[onekeyName], onekeyName,OneKeyDisableList[onekeyName] ? "禁用" : "启用" ,onekeyName="公式计算" ? "内置功能输出结果" : onekeyVal)
 	}
 	LV_ModifyCol()
 	LV_ModifyCol(1,315)
@@ -6921,15 +6921,20 @@ SetOK:
 		Gui, ListView, RunAnyOneKeyLV
 		IniWrite, delete=1, %RunAnyConfig%, OneKey
 		IniDelete, %RunAnyConfig%, OneKey, delete
+		OneKeyDisableSaveList:=[]
 		Loop % LV_GetCount()
 		{
 			LV_GetText(oneKeyRegex, A_Index, 1)
 			LV_GetText(oneKeyName, A_Index, 2)
-			LV_GetText(oneKeyRegexRun, A_Index, 3)
+			LV_GetText(oneKeyStatus, A_Index, 3)
+			LV_GetText(oneKeyRegexRun, A_Index, 4)
 			if(oneKeyName="公式计算")
 				oneKeyRegexRun=
 			IniWrite,%oneKeyRegex%,%RunAnyConfig%,OneKey,%oneKeyName%|%oneKeyRegexRun%
+			if(oneKeyStatus="禁用")
+				OneKeyDisableSaveList.Push(oneKeyName)
 		}
+		Reg_Set(StrListJoin("|",OneKeyDisableSaveList),OneKeyDisableStr,"OneKeyDisableList")
 	}
 	;[保存内部关联打开后缀列表]
 	if(OpenExtFlag){
@@ -7372,16 +7377,20 @@ RunA_One_Key_Edit:
 			return
 		LV_GetText(oneKeyRegex, RunRowNumber, 1)
 		LV_GetText(oneKeyName, RunRowNumber, 2)
-		LV_GetText(oneKeyRegexRun, RunRowNumber, 3)
+		LV_GetText(oneKeyStatus, RunRowNumber, 3)
+		LV_GetText(oneKeyRegexRun, RunRowNumber, 4)
+		oneKeyStatusText:=oneKeyStatus="启用" ? "Green" : ""
+		oneKeyStatus:=oneKeyStatus="启用" ? 1 : 0
 	}
 	Gui,OneKey:Destroy
 	Gui,OneKey:Default
 	Gui,OneKey:+Owner66
 	Gui,OneKey:Margin,20,20
 	Gui,OneKey:Font,,Microsoft YaHei
-	Gui,OneKey:Add, GroupBox,xm y+10 w450 h250, 选中内容匹配正则表达式后运行
-	Gui,OneKey:Add, Text, xm+5 y+35 y35,直达说明
-	Gui,OneKey:Add, Edit, x+10 yp w380 vvoneKeyName, %oneKeyName%
+	Gui,OneKey:Add, GroupBox, xm y+10 w450 h230, 选中内容匹配正则表达式后运行
+	Gui,OneKey:Add, Text, xm+5 yp+35 y35,直达说明
+	Gui,OneKey:Add, Edit, x+10 yp-3 w250 vvoneKeyName, %oneKeyName%
+	Gui,OneKey:Add, CheckBox, x+15 yp+3 Checked%oneKeyStatus% vvoneKeyStatus c%oneKeyStatusText%, 启用
 	Gui,OneKey:Add, Text, xm+5 y+15,匹配正则
 	Gui,OneKey:Add, Edit, x+10 yp w380 r6 -WantReturn vvoneKeyRegex, %oneKeyRegex%
 	Gui,OneKey:Add, Button, xm yp+27 w60 GGraphicRegex,图解正则
@@ -7401,7 +7410,7 @@ listviewRunAnyOneKey:
 return
 LVRunAnyOneKeyAdd:
 	runAnyOneKeyItem:="新建"
-	oneKeyRegex:=oneKeyName:=oneKeyRegexRun:=""
+	oneKeyRegex:=oneKeyName:=oneKeyStatus:=oneKeyRegexRun:=""
 	Gosub,RunA_One_Key_Edit
 return
 LVRunAnyOneKeyEdit:
@@ -7439,6 +7448,10 @@ SaveRunAnyOneKey:
 		SetTimer,RemoveToolTip,3000
 		return
 	}
+	if(InStr(voneKeyName,"|")){
+		MsgBox, 48, ,一键直达名称不能包含有“|”分割符
+		return
+	}
 	if(runAnyOneKeyItem="新建" && OneKeyRegexList[voneKeyName]){
 		ToolTip, 已存在相同的一键直达名称，请修改,300,35
 		SetTimer,RemoveToolTip,3000
@@ -7446,9 +7459,9 @@ SaveRunAnyOneKey:
 	}
 	Gui,66:Default
 	if(runAnyOneKeyItem="新建"){
-		LV_Add("",voneKeyRegex,voneKeyName,voneKeyRegexRun)
+		LV_Add("",voneKeyRegex,voneKeyName,voneKeyStatus ? "启用" : "禁用",voneKeyRegexRun)
 	}else{
-		LV_Modify(RunRowNumber,"",voneKeyRegex,voneKeyName,voneKeyRegexRun)
+		LV_Modify(RunRowNumber,"",voneKeyRegex,voneKeyName,voneKeyStatus ? "启用" : "禁用",voneKeyRegexRun)
 		LV_ModifyCol(2, "Sort")  ; 排序
 	}
 	Gui,OneKey:Destroy
@@ -7513,10 +7526,10 @@ LVRunAnyOneKeyDown:
 			{
 				LV_GetText(RowText, A_Index, 2)
 				if(oneKeyName=RowText)
-					LV_Modify(A_Index,"Select",oneKeyRegex,oneKeyName,oneKeyRegexRun)
+					LV_Modify(A_Index,"Select",oneKeyRegex,oneKeyName,"启用",oneKeyRegexRun)
 			}
 		}else{
-			LV_Add("Select",oneKeyRegex,oneKeyName,oneKeyRegexRun)
+			LV_Add("Select",oneKeyRegex,oneKeyName,"启用",oneKeyRegexRun)
 		}
 	}
 	if(OneKeySameArray.Length()>0){
@@ -7812,10 +7825,16 @@ Var_Set:
 		,"打开文件":"runany[Run_Any](%getZz%)=S)^(\\\\|.:\\).*?\..+"
 		,"打开目录":"runany[Open_Folder_Path](%getZz%)=S)^(\\\\|.:\\)"
 		,"磁力链接":"runany[Run_Any](%getZz%)=iS)^magnet:\?xt=urn:btih:.*"
-		,"网页跳转":"runany[Run_Search](%getZz%)=iS)^([\w-]+://?|www[.]).*"}
+		,"网页跳转":"runany[Run_Search](%getZz%)=iS)^([\w-]+:\/\/?|www[.]).*"}
 	global OneKeyRegexList:={}
 	global OneKeyRegexMultilineList:={}
 	global OneKeyRunList:={}
+	global OneKeyDisableList:={}
+	global OneKeyDisableStr:=Var_Read("OneKeyDisableList")
+	Loop, parse, OneKeyDisableStr, |
+	{
+		OneKeyDisableList[A_LoopField]:=true
+	}
 	IniRead,OneKeyVar,%RunAnyConfig%,OneKey
 	if(!OneKeyVar){
 		if(Var_Read("OneKeyFile")="0")
