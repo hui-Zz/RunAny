@@ -1278,7 +1278,7 @@ Menu_Show:
 			;多行内容一键直达正则匹配
 			For name, regex in OneKeyRegexMultilineList
 			{
-				if(name !="公式计算" && OneKeyRunList[name] && RegExMatch(getZz, regex)){
+				if(name !="一键公式计算" && OneKeyRunList[name] && RegExMatch(getZz, regex)){
 					Remote_Dyna_Run(OneKeyRunList[name], getZz)
 					openFlag:=true
 					continue
@@ -1301,8 +1301,8 @@ Menu_Show:
 					continue
 				}
 				;一键计算公式数字加减乘除
-				calcRegex:=OneKeyRegexList["公式计算"]
-				if(calcRegex!="" && !OneKeyDisableList["公式计算"] && RegExMatch(S_LoopField,calcRegex)){
+				calcRegex:=OneKeyRegexList["一键公式计算"]
+				if(calcRegex!="" && !OneKeyDisableList["一键公式计算"] && RegExMatch(S_LoopField,calcRegex)){
 					formula:=S_LoopField
 					if(RegExMatch(S_LoopField,"S)=$")){
 						StringTrimRight, formula, formula, 1
@@ -1325,9 +1325,11 @@ Menu_Show:
 				;一键直达动态正则匹配
 				For name, regex in OneKeyRegexList
 				{
-					if(name !="公式计算" && !OneKeyDisableList[name] && regex!="" && OneKeyRunList[name] && RegExMatch(S_LoopField, regex)){
-						if((name="打开目录" && !InStr(FileExist(S_LoopField), "D")) 
-								|| (name="打开文件" && (!FileExist(S_LoopField) || InStr(FileExist(S_LoopField), "D")))){
+					if(name !="一键公式计算" && !OneKeyDisableList[name] && regex!="" && OneKeyRunList[name] && RegExMatch(S_LoopField, regex)){
+						if((name="一键打开目录" && !InStr(FileExist(S_LoopField), "D")) 
+								|| (name="一键打开文件" && (!FileExist(S_LoopField) || InStr(FileExist(S_LoopField), "D")))
+								|| (name="一键打开网址" && OneKeyRegexList["网盘链接识别"] && !OneKeyDisableList["网盘链接识别"] 
+									&& RegExMatch(S_LoopField, OneKeyRegexList["网盘链接识别"])) ){
 							continue
 						}
 						Remote_Dyna_Run(OneKeyRunList[name], S_LoopField)
@@ -6504,7 +6506,7 @@ Settings_Gui:
 	CLV := New LV_Colors(HLV)
 	For onekeyName, onekeyVal in OneKeyRunList
 	{
-		LV_Add("", OneKeyRegexList[onekeyName], onekeyName,OneKeyDisableList[onekeyName] ? "禁用" : "启用" ,onekeyName="公式计算" ? "内置功能输出结果" : onekeyVal)
+		LV_Add("", OneKeyRegexList[onekeyName], onekeyName,OneKeyDisableList[onekeyName] ? "禁用" : "启用" ,onekeyName="一键公式计算" ? "内置功能输出结果" : onekeyVal)
 		if(OneKeyList[onekeyName])
 			CLV.Row(A_Index,,0xa4a61d)
 		if(OneKeyDisableList[onekeyName])
@@ -6887,7 +6889,7 @@ SetOK:
 			LV_GetText(oneKeyName, A_Index, 2)
 			LV_GetText(oneKeyStatus, A_Index, 3)
 			LV_GetText(oneKeyRegexRun, A_Index, 4)
-			if(oneKeyName="公式计算")
+			if(oneKeyName="一键公式计算")
 				oneKeyRegexRun=
 			IniWrite,%oneKeyRegex%,%RunAnyConfig%,OneKey,%oneKeyName%|%oneKeyRegexRun%
 			if(oneKeyStatus="禁用")
@@ -7438,14 +7440,14 @@ RunA_One_Key_Down:
 	For onekeyName, onekeyVal in OneKeyDownRunList
 	{
 		runStatus:=runCheck:=""
-		if(!OneKeyRegexList[onekeyName]){
+		if(!OneKeyRegexList[onekeyName] && !GetKeyByVal(OneKeyRegexList,OneKeyDownRegexList[onekeyName])){  ;本地列表未使用在线正则库正则
 			runStatus:="未使用"
 			runCheck:="Select Check"
-		}else if(OneKeyRegexList[onekeyName]!=OneKeyDownRegexList[onekeyName] || OneKeyRunList[onekeyName]!=onekeyVal){
+		}else if(OneKeyRegexList[onekeyName]!=OneKeyDownRegexList[onekeyName] || OneKeyRunList[onekeyName]!=onekeyVal ){
 			runStatus:="可更新"
 			runCheck:="Select Check"
 		}
-		LV_Add(runCheck, runStatus, OneKeyDownRegexList[onekeyName], onekeyName,onekeyName="公式计算" ? "内置功能输出结果" : onekeyVal)
+		LV_Add(runCheck, runStatus, OneKeyDownRegexList[onekeyName], onekeyName,onekeyName="一键公式计算" ? "内置功能输出结果" : onekeyVal)
 	}
 	GuiControl,OneKeyDown: +Redraw, RunAnyOneKeyDownLV
 	Menu, OneKeyDownMenu, Add,全部勾选, LVRunAnyOneKeyCheck
@@ -7483,8 +7485,9 @@ LVRunAnyOneKeyDown:
 		if(oneKeyStatus="可更新"){
 			Loop % LV_GetCount()
 			{
+				LV_GetText(RowRegText, A_Index, 1)
 				LV_GetText(RowText, A_Index, 2)
-				if(oneKeyName=RowText)
+				if(oneKeyName=RowText || oneKeyRegex=RowRegText)
 					LV_Modify(A_Index,"Select",oneKeyRegex,oneKeyName,"启用",oneKeyRegexRun)
 			}
 		}else{
@@ -7984,11 +7987,11 @@ Var_Set:
 	global MenuXButton2Key:=Var_Read("MenuXButton2Key",0)
 	global MenuMButtonKey:=Var_Read("MenuMButtonKey",0)
 	;[一键直达]
-	global OneKeyList:={"公式计算":"=S)^[\(\)\.\s\d]*\d+\s*[+*/-]+[\(\)\.+*/-\d\s]+($|=$)"
-		,"打开文件":"runany[Run_Any](%getZz%)=S)^(\\\\|.:\\).*?\..+"
-		,"打开目录":"runany[Open_Folder_Path](%getZz%)=S)^(\\\\|.:\\)"
-		,"磁力链接":"runany[Run_Any](%getZz%)=iS)^magnet:\?xt=urn:btih:.*"
-		,"网页跳转":"runany[Run_Search](%getZz%)=iS)^([\w-]+:\/\/?|www[.]).*"}
+	global OneKeyList:={"一键公式计算":"=S)^[\(\)\.\s\d]*\d+\s*[+*/-]+[\(\)\.+*/-\d\s]+($|=$)"
+		,"一键打开文件":"runany[Run_Any](%getZz%)=S)^(\\\\|.:\\).*?\..+"
+		,"一键打开目录":"runany[Open_Folder_Path](%getZz%)=S)^(\\\\|.:\\)"
+		,"一键打开网址":"runany[Run_Search](%getZz%)=iS)^([\w-]+:\/\/?|www[.]).*"
+		,"一键磁力链接":"runany[Run_Any](%getZz%)=iS)^magnet:\?xt=urn:btih:.*"}
 	global OneKeyRegexList:={}
 	global OneKeyRegexMultilineList:={}
 	global OneKeyRunList:={}
@@ -8001,13 +8004,13 @@ Var_Set:
 	IniRead,OneKeyVar,%RunAnyConfig%,OneKey
 	if(!OneKeyVar){
 		if(Var_Read("OneKeyFile")="0")
-			OneKeyList.Delete("打开文件")
+			OneKeyList.Delete("一键打开文件")
 		if(Var_Read("OneKeyFolder")="0")
-			OneKeyList.Delete("打开目录")
-		if(Var_Read("OneKeyMagnet")="0")
-			OneKeyList.Delete("磁力链接")
+			OneKeyList.Delete("一键打开目录")
 		if(Var_Read("OneKeyWeb")="0")
-			OneKeyList.Delete("网页跳转")
+			OneKeyList.Delete("一键打开网址")
+		if(Var_Read("OneKeyMagnet")="0")
+			OneKeyList.Delete("一键磁力链接")
 		OneKeyVar:=StrListJoin("`n", OneKeyList, "|")
 	}
 	Loop, parse, OneKeyVar, `n, `r
@@ -9013,6 +9016,9 @@ RunCtrl_RunApps(path,noPath,repeatRun:=0,adminRun:=0,runWay:=1){
 			global any:=Get_Transform_Val(path)
 			SplitPath,% any, name, dir
 			if(!repeatRun && runWay!=6 && rule_check_is_run(any)){
+				return
+			}else if(runWay=6){
+				cmdClipReturn("taskkill /f /im """ name """")
 				return
 			}
 			if(dir && FileExist(dir))
