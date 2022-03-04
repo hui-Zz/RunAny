@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.03.03
+║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.03.04
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.8.0"     ;~;版本号
-global RunAny_update_time:="自定义一键直达 2022.03.03"   ;~;更新日期
+global RunAny_update_time:="自定义一键直达 2022.03.04"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -6330,7 +6330,7 @@ Settings_Gui:
 	Gui,66:+Resize
 	Gui,66:Margin,30,20
 	Gui,66:Font,,Microsoft YaHei
-	Gui,66:Add,Tab3,x10 y10 w%TAB_WIDTH_66% vConfigTab +Theme -Background
+	Gui,66:Add,Tab3,x10 y10 w%TAB_WIDTH_66% vConfigTab gConfigTabSelect +Theme -Background
 		,RunAny设置|热键配置|菜单变量|无路径缓存|搜索Everything|一键直达|内部关联|热字符串|图标设置|高级配置
 	Gui,66:Tab,RunAny设置,,Exact
 	Gui,66:Add,Checkbox,Checked%AutoRun% xm y+%MARGIN_TOP_66% vvAutoRun,开机自动启动
@@ -6446,15 +6446,18 @@ Settings_Gui:
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuObjPathRemove, - 减少
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuObjPathSelect, A 全选
 	Gui,66:Add,Text, x+25 yp-5,无路径说明：每次新增或移动无路径应用文件后`n会使用Everything获得它最新的运行全路径
-	Gui,66:Add,Listview,xm yp+40 r16 grid AltSubmit vRunAnyMenuObjPathLV glistviewMenuObjPath, 无路径应用名|当前电脑运行全路径（来自Everything）
+	Gui,66:Add,Listview,xm yp+40 r16 grid AltSubmit vRunAnyMenuObjPathLV hwndWLJLV glistviewMenuObjPath, 无路径应用名|当前电脑运行全路径（来自Everything）
 	RunAnyMenuObjPathImageListID := IL_Create(11)
 	Icon_Image_Set(RunAnyMenuObjPathImageListID)
 	GuiControl, 66:-Redraw, RunAnyMenuObjPathLV
 	LV_SetImageList(RunAnyMenuObjPathImageListID)
+	NWLJLV := New ListView(WLJLV)
 	Loop, parse, evFullPathIniVar, `n, `r
 	{
 		varList:=StrSplit(A_LoopField,"=",,2)
 		LV_Add(varList[2]="" ? "Icon3" : Set_Icon(RunAnyMenuObjPathImageListID,varList[2],false,false,varList[2]), varList[1], varList[2])
+		if(!varList[2])
+			NWLJLV.Color(A_Index,0x999999)
 	}
 	LV_ModifyCol()
 	LV_ModifyCol(1, "Sort")  ; 排序
@@ -6500,17 +6503,17 @@ Settings_Gui:
 	(
 <a href="https://wyagd001.github.io/zh-cn/docs/misc/RegEx-QuickRef.htm">AHK正则选项</a>：i) 不区分大小写匹配  m) 多行匹配模式  S) 研究模式来提高性能
 	)
-	Gui,66:Add,Listview,xm-10 yp+40 w%GROUP_WIDTH_66% r12 grid AltSubmit -ReadOnly vRunAnyOneKeyLV hwndHLV glistviewRunAnyOneKey
+	Gui,66:Add,Listview,xm-10 yp+40 w%GROUP_WIDTH_66% r12 grid AltSubmit -ReadOnly vRunAnyOneKeyLV hwndYJLV glistviewRunAnyOneKey
 		, 选中内容逐行匹配正则（多行整体匹配使用正则选项 m）|一键直达说明|状态|一键直达运行（支持无路径、RunAny插件写法）
 	GuiControl, 66:-Redraw, RunAnyOneKeyLV
-	CLV := New LV_Colors(HLV)
+	NYJLV := New ListView(YJLV)
 	For onekeyName, onekeyVal in OneKeyRunList
 	{
 		LV_Add("", OneKeyRegexList[onekeyName], onekeyName,OneKeyDisableList[onekeyName] ? "禁用" : "启用" ,onekeyName="一键公式计算" ? "内置功能输出结果" : onekeyVal)
 		if(OneKeyList[onekeyName])
-			CLV.Row(A_Index,,0xa4a61d)
+			NYJLV.Color(A_Index,0x1DA6A4)
 		if(OneKeyDisableList[onekeyName])
-			CLV.Row(A_Index,,0x999999)
+			NYJLV.Color(A_Index,0x999999)
 	}
 	LV_ModifyCol()
 	LV_ModifyCol(1,295)
@@ -6670,6 +6673,14 @@ Settings_Gui:
 			SetValueList.Push(keyV)
 			SetValueList.Push(winkeyV)
 		}
+	}
+return
+ConfigTabSelect:
+	Gui,66:Submit, NoHide
+	if(ConfigTab="无路径缓存"){
+		Gui,ListView,% WLJLV
+	}else if(ConfigTab="一键直达"){
+		Gui,ListView,% YJLV
 	}
 return
 ;~;【关于Gui】
@@ -7763,161 +7774,52 @@ WM_NOTIFY_TV(Param*){
 	}
 }
 ;ListView自定义行颜色
-;修改于：https://github.com/AHK-just-me/Class_LV_Colors
-Class LV_Colors {
-   __New(HWND, StaticMode := False, NoSort := True, NoSizing := True) {
-      If (This.Base.Base.__Class) ; do not instantiate instances
-         Return False
-      If This.Attached[HWND] ; HWND is already attached
-         Return False
-      If !DllCall("IsWindow", "Ptr", HWND) ; invalid HWND
-         Return False
-      VarSetCapacity(Class, 512, 0)
-      DllCall("GetClassName", "Ptr", HWND, "Str", Class, "Int", 256)
-      If (Class <> "SysListView32") ; HWND doesn't belong to a ListView
-         Return False
-      ; ----------------------------------------------------------------------------------------------------------------
-      ; Set LVS_EX_DOUBLEBUFFER (0x010000) style to avoid drawing issues.
-      SendMessage, 0x1036, 0x010000, 0x010000, , % "ahk_id " . HWND ; LVM_SETEXTENDEDLISTVIEWSTYLE
-      ; Get the default colors
-      SendMessage, 0x1025, 0, 0, , % "ahk_id " . HWND ; LVM_GETTEXTBKCOLOR
-      This.BkClr := ErrorLevel
-      SendMessage, 0x1023, 0, 0, , % "ahk_id " . HWND ; LVM_GETTEXTCOLOR
-      This.TxClr := ErrorLevel
-      ; Get the header control
-      SendMessage, 0x101F, 0, 0, , % "ahk_id " . HWND ; LVM_GETHEADER
-      This.Header := ErrorLevel
-      ; Set other properties
-      This.HWND := HWND
-      This.IsStatic := !!StaticMode
-      This.AltCols := False
-      This.AltRows := False
-      This.NoSort(false)
-      This.OnMessage()
-      This.Critical := "Off"
-      This.Attached[HWND] := True
-      Static OSVersion := DllCall("GetVersion", "UChar")
-      If (OSVersion > 5)
-         Control, Style, -0x0800, , % "ahk_id " . This.Header ; HDS_NOSIZING
-      This.ResizeColumns := True
-   }
-   Row(Row, BkColor := "", TxColor := "") {
-      If !(This.HWND)
-         Return False
-      If This.IsStatic
-         Row := This.MapIndexToID(Row)
-      This["Rows"].Remove(Row, "")
-      If (BkColor = "") && (TxColor = "")
-         Return True
-      BkBGR := This.BGR(BkColor)
-      TxBGR := This.BGR(TxColor)
-      If (BkBGR = "") && (TxBGR = "")
-         Return False
-      This["Rows", Row, "B"] := (BkBGR <> "") ? BkBGR : This.BkClr
-      This["Rows", Row, "T"] := (TxBGR <> "") ? TxBGR : This.TxClr
-      Return True
-   }
-   NoSort(Apply := True) {
-      If !(This.HWND)
-         Return False
-      If (Apply)
-         This.SortColumns := False
-      Else
-         This.SortColumns := True
-      Return True
-   }
-   OnMessage(Apply := True) {
-      If (Apply) && !This.HasKey("OnMessageFunc") {
-         This.OnMessageFunc := ObjBindMethod(This, "On_WM_Notify")
-         OnMessage(0x004E, This.OnMessageFunc) ; add the WM_NOTIFY message handler
-      }
-      Else If !(Apply) && This.HasKey("OnMessageFunc") {
-         OnMessage(0x004E, This.OnMessageFunc, 0) ; remove the WM_NOTIFY message handler
-         This.OnMessageFunc := ""
-         This.Remove("OnMessageFunc")
-      }
-      WinSet, Redraw, , % "ahk_id " . This.HWND
-      Return True
-   }
-   On_WM_NOTIFY(W, L, M, H) {
-      ; Notifications: NM_CUSTOMDRAW = -12, LVN_COLUMNCLICK = -108, HDN_BEGINTRACKA = -306, HDN_BEGINTRACKW = -326
-      Critical, % This.Critical
-      If ((HCTL := NumGet(L + 0, 0, "UPtr")) = This.HWND) || (HCTL = This.Header) {
-         Code := NumGet(L + (A_PtrSize * 2), 0, "Int")
-         If (Code = -12)
-            Return This.NM_CUSTOMDRAW(This.HWND, L)
-         If !This.SortColumns && (Code = -108)
-            Return 0
-         If !This.ResizeColumns && ((Code = -306) || (Code = -326))
-            Return True
-      }
-   }
-   ; ; -------------------------------------------------------------------------------------------------------------------
-   NM_CUSTOMDRAW(H, L) {
-      ; Return values: 0x00 (CDRF_DODEFAULT), 0x20 (CDRF_NOTIFYITEMDRAW / CDRF_NOTIFYSUBITEMDRAW)
-      Static SizeNMHDR := A_PtrSize * 3                  ; Size of NMHDR structure
-      Static SizeNCD := SizeNMHDR + 16 + (A_PtrSize * 5) ; Size of NMCUSTOMDRAW structure
-      Static OffItem := SizeNMHDR + 16 + (A_PtrSize * 2) ; Offset of dwItemSpec (NMCUSTOMDRAW)
-      Static OffItemState := OffItem + A_PtrSize         ; Offset of uItemState  (NMCUSTOMDRAW)
-      Static OffCT :=  SizeNCD                           ; Offset of clrText (NMLVCUSTOMDRAW)
-      Static OffCB := OffCT + 4                          ; Offset of clrTextBk (NMLVCUSTOMDRAW)
-      Static OffSubItem := OffCB + 4                     ; Offset of iSubItem (NMLVCUSTOMDRAW)
-      ; ----------------------------------------------------------------------------------------------------------------
-      DrawStage := NumGet(L + SizeNMHDR, 0, "UInt")
-      , Row := NumGet(L + OffItem, "UPtr") + 1
-      , Col := NumGet(L + OffSubItem, "Int") + 1
-      , Item := Row - 1
-      If This.IsStatic
-         Row := This.MapIndexToID(Row)
-      ; CDDS_SUBITEMPREPAINT = 0x030001 --------------------------------------------------------------------------------
-      If (DrawStage = 0x030001) {
-         UseAltCol := !(Col & 1) && (This.AltCols)
-         , ColColors := This["Cells", Row, Col]
-         , ColB := (ColColors.B <> "") ? ColColors.B : UseAltCol ? This.ACB : This.RowB
-         , ColT := (ColColors.T <> "") ? ColColors.T : UseAltCol ? This.ACT : This.RowT
-         , NumPut(ColT, L + OffCT, "UInt"), NumPut(ColB, L + OffCB, "UInt")
-         Return (!This.AltCols && !This.HasKey(Row) && (Col > This["Cells", Row].MaxIndex())) ? 0x00 : 0x20
-      }
-      ; CDDS_ITEMPREPAINT = 0x010001 -----------------------------------------------------------------------------------
-      If (DrawStage = 0x010001) {
-         ; LVM_GETITEMSTATE = 0x102C, LVIS_SELECTED = 0x0002
-         If (This.SelColors) && DllCall("SendMessage", "Ptr", H, "UInt", 0x102C, "Ptr", Item, "Ptr", 0x0002, "UInt") {
-            ; Remove the CDIS_SELECTED (0x0001) and CDIS_FOCUS (0x0010) states from uItemState and set the colors.
-            NumPut(NumGet(L + OffItemState, "UInt") & ~0x0011, L + OffItemState, "UInt")
-            If (This.SELB <> "")
-               NumPut(This.SELB, L + OffCB, "UInt")
-            If (This.SELT <> "")
-               NumPut(This.SELT, L + OffCT, "UInt")
-            Return 0x02 ; CDRF_NEWFONT
-         }
-         UseAltRow := (Item & 1) && (This.AltRows)
-         , RowColors := This["Rows", Row]
-         , This.RowB := RowColors ? RowColors.B : UseAltRow ? This.ARB : This.BkClr
-         , This.RowT := RowColors ? RowColors.T : UseAltRow ? This.ART : This.TxClr
-         If (This.AltCols || This["Cells"].HasKey(Row))
-            Return 0x20
-         NumPut(This.RowT, L + OffCT, "UInt"), NumPut(This.RowB, L + OffCB, "UInt")
-         Return 0x00
-      }
-      ; CDDS_PREPAINT = 0x000001 ---------------------------------------------------------------------------------------
-      Return (DrawStage = 0x000001) ? 0x20 : 0x00
-   }
-   ; ; -------------------------------------------------------------------------------------------------------------------
-   MapIndexToID(Row) { ; provides the unique internal ID of the given row number
-      SendMessage, 0x10B4, % (Row - 1), 0, , % "ahk_id " . This.HWND ; LVM_MAPINDEXTOID
-      Return ErrorLevel
-   }
-   ; ; -------------------------------------------------------------------------------------------------------------------
-   BGR(Color, Default := "") { ; converts colors to BGR
-      Static Integer := "Integer" ; v2
-      ; HTML Colors (BGR)
-      Static HTML := {AQUA: 0xFFFF00, BLACK: 0x000000, BLUE: 0xFF0000, FUCHSIA: 0xFF00FF, GRAY: 0x808080, GREEN: 0x008000
-                    , LIME: 0x00FF00, MAROON: 0x000080, NAVY: 0x800000, OLIVE: 0x008080, PURPLE: 0x800080, RED: 0x0000FF
-                    , SILVER: 0xC0C0C0, TEAL: 0x808000, WHITE: 0xFFFFFF, YELLOW: 0x00FFFF}
-      If Color Is Integer
-         Return ((Color >> 16) & 0xFF) | (Color & 0x00FF00) | ((Color & 0xFF) << 16)
-      Return (HTML.HasKey(Color) ? HTML[Color] : Default)
-   }
+;https://www.autohotkey.com/boards/viewtopic.php?f=6&t=3286&p=304384
+class ListView{
+	static list:=[]
+	__New(hwnd){
+		this.list[hwnd]:=this
+		OnMessage(0x4e,"WM_NOTIFY")
+		this.hwnd:=hwnd
+		this.control:=[]
+	}
+	add(options,items*){
+		Gui,ListView,% this.hwnd
+		for a,b in items{
+			if A_Index=1
+				item:=LV_Add(options,b)
+			Else
+				LV_Modify(item,"col" A_Index,b)
+		}
+	}
+	clear(){
+		this.control:=[]
+	}
+	Color(item,fore="",back=""){
+		LV_GetText(text,item)
+		if fore!=""
+			this.Control[text,"fore"]:=fore
+		if Back!=""
+			this.Control[text,"back"]:=back
+	}
+}
+WM_NOTIFY(Param*){
+	Critical
+	control:=
+	if (this:=ListView.list[NumGet(Param.2)])&&(NumGet(Param.2,2*A_PtrSize,"int")=-12){
+		stage:=NumGet(Param.2,3*A_PtrSize,"uint")
+		if (stage=1)
+			return 0x20 ;sets CDRF_NOTIFYITEMDRAW
+		if (stage=0x10001){ ;NM_CUSTOMDRAW && Control is in the list
+			index:=numget(Param.2,A_PtrSize=4?9*A_PtrSize:7*A_PtrSize,"uint")
+			LV_GetText(text,index+1)
+			info:=this.Control[text]
+			if info.fore!=""
+				NumPut(info.fore,Param.2,A_PtrSize=4?12*A_PtrSize:10*A_PtrSize,"int") ;sets the foreground
+			if info.back!=""
+				NumPut(info.back,Param.2,A_PtrSize=4?13*A_PtrSize:10.5*A_PtrSize,"int") ;sets the background
+		}
+	}
 }
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 ;~;【——🔛初始化——】
