@@ -6510,13 +6510,11 @@ Settings_Gui:
 	For onekeyName, onekeyVal in OneKeyRunList
 	{
 		LV_Add("", OneKeyRegexList[onekeyName], onekeyName,OneKeyDisableList[onekeyName] ? "禁用" : "启用" ,onekeyName="一键公式计算" ? "内置功能输出结果" : onekeyVal)
-		if(OneKeyList[onekeyName])
-			NYJLV.Color(A_Index,0x1DA6A4)
 		if(OneKeyDisableList[onekeyName])
 			NYJLV.Color(A_Index,0x999999)
 	}
 	LV_ModifyCol()
-	LV_ModifyCol(1,295)
+	LV_ModifyCol(1,280)
 	LV_ModifyCol(2, "Sort")  ; 排序
 	GuiControl, 66:+Redraw, RunAnyOneKeyLV
 	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h240 vvOneKeyUrlGroup,一键搜索选中文字 %OneHotKey%
