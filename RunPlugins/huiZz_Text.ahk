@@ -3,7 +3,7 @@
 ;*             by hui-Zz 
 ;************************
 global RunAny_Plugins_Name:="ObjReg文本操作脚本"
-global RunAny_Plugins_Version:="1.3.0"
+global RunAny_Plugins_Version:="1.3.1"
 global RunAny_Plugins_Icon:="SHELL32.dll,270"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
@@ -219,7 +219,7 @@ class RunAnyObj {
 			return
 		}
 		;蓝奏云
-		RegExMatch(getZz,"i)(?:[A-Za-z0-9\-.]+)?lanzou[six]\.com\/[A-Za-z0-9_\-]+",url)
+		RegExMatch(getZz,"i)(?:[A-Za-z0-9\-.]+)?lanzou[a-z]\.com\/[A-Za-z0-9_\-]+",url)
 		if(url!=""){
 			code:=this.text_pan_code(getZz,autoClear)
 			if(code!=""){
