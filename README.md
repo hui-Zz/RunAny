@@ -5,7 +5,7 @@
 
 # 【RunAny】一劳永逸的快速启动工具
 
-[![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?label=最新版本&style=flat-square&logo=github&color=red)![GitHub stars](https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=flat-square&color=yellow)![GitHub forks](https://img.shields.io/github/forks/hui-Zz/RunAny?style=flat-square)](https://github.com/hui-Zz/RunAny)![Lines of code](https://img.shields.io/tokei/lines/github/hui-Zz/RunAny?label=代码行数&style=flat-square&color=99ccff)![history](https://img.shields.io/badge/2017--2021-yellowgreen.svg?style=flat-square)  
+[![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny.svg?label=最新版本&style=flat-square&logo=github&color=red)![GitHub stars](https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=flat-square&color=yellow)![GitHub forks](https://img.shields.io/github/forks/hui-Zz/RunAny?style=flat-square)](https://github.com/hui-Zz/RunAny)![history](https://img.shields.io/badge/2017--2022-yellowgreen.svg?style=flat-square)  
 [![Autohotkey](https://img.shields.io/badge/autohotkey-1.1.33.10-green.svg?style=flat-square&logo=autohotkey)](http://ahkscript.org)
 [![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fhui-Zz%2FRunAny&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=%E5%BD%93%E6%97%A5%2F%E6%80%BB%E6%B5%8F%E8%A7%88&edge_flat=true)](https://hits.seeyoufarm.com)
 </div>
