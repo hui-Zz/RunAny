@@ -17,7 +17,7 @@ SplitPath, RunAnyPath, exeName, exeDir, ext, name_no_ext
 
 RunAnyConfig:=A_ScriptDir "\RunAnyConfig.ini"
 if(!FileExist(RunAnyConfig)){
-	RunAnyConfig:=exeDir
+	RunAnyConfig:=exeDir "\RunAnyConfig.ini"
 }
 if(!FileExist(RunAnyConfig)){
 	Msgbox,16,没有找到RunAny！,请把脚本放入RunAny目录运行 或 在RunAny启动时运行该脚本。
