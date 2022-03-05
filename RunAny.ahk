@@ -7926,9 +7926,10 @@ Var_Set:
 			OneKeyRunList[RegExReplace(varList[1],"(.+)_Run$","$1")]:=varList[2]
 		}
 		if(RegExMatch(varList[1],".+_Regex$")){
-			OneKeyRegexList[RegExReplace(varList[1],"(.+)_Regex$","$1")]:=varList[2]
+			name:=RegExReplace(varList[1],"(.+)_Regex$","$1")
+			OneKeyRegexList[name]:=varList[2]
 			if(RegExMatch(varList[2],"m)^[^(]*?m.*?\).*")){
-				OneKeyRegexMultilineList[itemList[1]]:=varList[2]
+				OneKeyRegexMultilineList[name]:=varList[2]
 			}
 		}
 	}
