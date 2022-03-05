@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.03.04
+║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.03.05
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +23,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.8.0"     ;~;版本号
-global RunAny_update_time:="自定义一键直达 2022.03.04"   ;~;更新日期
+global RunAny_update_time:="自定义一键直达 2022.03.05"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -6902,7 +6902,8 @@ SetOK:
 			LV_GetText(oneKeyRegexRun, A_Index, 4)
 			if(oneKeyName="一键公式计算")
 				oneKeyRegexRun=
-			IniWrite,%oneKeyRegex%,%RunAnyConfig%,OneKey,%oneKeyName%|%oneKeyRegexRun%
+			IniWrite,%oneKeyRegex%,%RunAnyConfig%,OneKey,%oneKeyName%_Regex
+			IniWrite,%oneKeyRegexRun%,%RunAnyConfig%,OneKey,%oneKeyName%_Run
 			if(oneKeyStatus="禁用")
 				OneKeyDisableSaveList.Push(oneKeyName)
 		}
@@ -7420,8 +7421,8 @@ SaveRunAnyOneKey:
 		SetTimer,RemoveToolTip,3000
 		return
 	}
-	if(InStr(voneKeyName,"|")){
-		MsgBox, 48, ,一键直达名称不能包含有“|”分割符
+	if(InStr(voneKeyName,"=")){
+		MsgBox, 48, ,一键直达名称不能包含有“=”分割符
 		return
 	}
 	if(runAnyOneKeyItem="新建" && OneKeyRegexList[voneKeyName]){
@@ -7889,11 +7890,16 @@ Var_Set:
 	global MenuXButton2Key:=Var_Read("MenuXButton2Key",0)
 	global MenuMButtonKey:=Var_Read("MenuMButtonKey",0)
 	;[一键直达]
-	global OneKeyList:={"一键公式计算":"=S)^[\(\)\.\s\d]*\d+\s*[+*/-]+[\(\)\.+*/-\d\s]+($|=$)"
-		,"一键打开文件":"runany[Run_Any](%getZz%)=S)^(\\\\|.:\\).*?\..+"
-		,"一键打开目录":"runany[Open_Folder_Path](%getZz%)=S)^(\\\\|.:\\)"
-		,"一键打开网址":"runany[Run_Search](%getZz%)=iS)^([\w-]+:\/\/?|www[.]).*"
-		,"一键磁力链接":"runany[Run_Any](%getZz%)=iS)^magnet:\?xt=urn:btih:.*"}
+	global OneKeyRun:={"一键公式计算":""
+		,"一键打开文件":"runany[Run_Any](%getZz%)"
+		,"一键打开目录":"runany[Open_Folder_Path](%getZz%)"
+		,"一键打开网址":"runany[Run_Search](%getZz%)"
+		,"一键磁力链接":"runany[Run_Any](%getZz%)"}
+	global OneKeyRegex:={"一键公式计算":"S)^[\(\)\.\s\d]*\d+\s*[+*/-]+[\(\)\.+*/-\d\s]+($|=$)"
+		,"一键打开文件":"S)^(\\\\|.:\\).*?\..+"
+		,"一键打开目录":"S)^(\\\\|.:\\)"
+		,"一键打开网址":"iS)^([\w-]+:\/\/?|www[.]).*"
+		,"一键磁力链接":"iS)^magnet:\?xt=urn:btih:.*"}
 	global OneKeyRegexList:={}
 	global OneKeyRegexMultilineList:={}
 	global OneKeyRunList:={}
@@ -7905,15 +7911,8 @@ Var_Set:
 	}
 	IniRead,OneKeyVar,%RunAnyConfig%,OneKey
 	if(!OneKeyVar){
-		if(Var_Read("OneKeyFile")="0")
-			OneKeyList.Delete("一键打开文件")
-		if(Var_Read("OneKeyFolder")="0")
-			OneKeyList.Delete("一键打开目录")
-		if(Var_Read("OneKeyWeb")="0")
-			OneKeyList.Delete("一键打开网址")
-		if(Var_Read("OneKeyMagnet")="0")
-			OneKeyList.Delete("一键磁力链接")
-		OneKeyVar:=StrListJoin("`n", OneKeyList, "|")
+		OneKeyRunList:=OneKeyRun
+		OneKeyRegexList:=OneKeyRegex
 	}
 	Loop, parse, OneKeyVar, `n, `r
 	{
@@ -7923,11 +7922,14 @@ Var_Set:
 		varList:=StrSplit(R_LoopField,"=",,2)
 		if(varList[1]="")
 			continue
-		itemList:=StrSplit(varList[1],"|",,2)
-		OneKeyRunList[itemList[1]]:=itemList[2]
-		OneKeyRegexList[itemList[1]]:=varList[2]
-		if(RegExMatch(varList[2],"m)^[^(]*?m.*?\).*")){
-			OneKeyRegexMultilineList[itemList[1]]:=varList[2]
+		if(RegExMatch(varList[1],".+_Run$")){
+			OneKeyRunList[RegExReplace(varList[1],"(.+)_Run$","$1")]:=varList[2]
+		}
+		if(RegExMatch(varList[1],".+_Regex$")){
+			OneKeyRegexList[RegExReplace(varList[1],"(.+)_Regex$","$1")]:=varList[2]
+			if(RegExMatch(varList[2],"m)^[^(]*?m.*?\).*")){
+				OneKeyRegexMultilineList[itemList[1]]:=varList[2]
+			}
 		}
 	}
 	global OneKeyMenu:=Var_Read("OneKeyMenu",0)
