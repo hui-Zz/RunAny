@@ -409,7 +409,7 @@ if(rule_check_is_run(PluginsPathList["RunAny_SearchBar.ahk"])
 		|| !FileExist(RunAEvFullPathIniDirPath "\RunAnyMenuObjExt.ini") 
 		|| !FileExist(RunAEvFullPathIniDirPath "\RunAnyMenuObjIcon.ini"))){
 	Gosub,RunAny_SearchBar
-	Run,% A_AhkPath A_Space "" PluginsPathList["RunAny_SearchBar.ahk"] ""
+	Run,% A_AhkPath A_Space """" PluginsPathList["RunAny_SearchBar.ahk"] """"
 }
 ;如果有需要继续执行的操作
 RegRead, ReloadGosub, HKEY_CURRENT_USER\Software\RunAny, ReloadGosub
@@ -5145,6 +5145,8 @@ LVDown:
 			IfExist,%A_ScriptDir%\%pluginsDownPath%\%FileName%
 				FileMove,%A_ScriptDir%\%pluginsDownPath%\%FileName%,%A_Temp%\%RunAnyZz%\%pluginsDownPath%\%FileName%,1
 			URLDownloadToFile(RunAnyDownDir "/" StrReplace(pluginsDownPath,"\","/") "/" FileName,A_ScriptDir "\" pluginsDownPath "\" FileName)
+			Sleep,1000
+			Plugins_Down_Check(FileName, A_ScriptDir "\" pluginsDownPath "\" FileName)
 			downFlag:=true
 			if(FileStatus="未下载"){
 				firstUpdateFlag:=true
