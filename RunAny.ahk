@@ -1,6 +1,5 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.03.05
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -23,7 +22,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.8.0"     ;~;版本号
-global RunAny_update_time:="自定义一键直达 2022.03.05"   ;~;更新日期
+global RunAny_update_time:="自定义一键直达 2022.03.07"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -1278,7 +1277,7 @@ Menu_Show:
 			;多行内容一键直达正则匹配
 			For name, regex in OneKeyRegexMultilineList
 			{
-				if(name !="一键公式计算" && OneKeyRunList[name] && RegExMatch(getZz, regex)){
+				if(name !="一键公式计算" && !OneKeyDisableList[name] && OneKeyRunList[name] && RegExMatch(getZz, regex)){
 					Remote_Dyna_Run(OneKeyRunList[name], getZz)
 					openFlag:=true
 					continue
@@ -6516,7 +6515,7 @@ Settings_Gui:
 			NYJLV.Color(A_Index,0x999999)
 	}
 	LV_ModifyCol()
-	LV_ModifyCol(1,280)
+	LV_ModifyCol(1,270)
 	LV_ModifyCol(2, "Sort")  ; 排序
 	GuiControl, 66:+Redraw, RunAnyOneKeyLV
 	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h240 vvOneKeyUrlGroup,一键搜索选中文字 %OneHotKey%
@@ -7924,8 +7923,7 @@ Var_Set:
 			continue
 		if(RegExMatch(varList[1],".+_Run$")){
 			OneKeyRunList[RegExReplace(varList[1],"(.+)_Run$","$1")]:=varList[2]
-		}
-		if(RegExMatch(varList[1],".+_Regex$")){
+		}else if(RegExMatch(varList[1],".+_Regex$")){
 			name:=RegExReplace(varList[1],"(.+)_Regex$","$1")
 			OneKeyRegexList[name]:=varList[2]
 			if(RegExMatch(varList[2],"m)^[^(]*?m.*?\).*")){
