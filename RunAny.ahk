@@ -2983,7 +2983,7 @@ Get_Menu_Item_Mode(item,fullItemFlag:=false){
 		return 6
 	if(RegExMatch(item,"S).+?\[.+?\]%?\(.*?\)"))
 		return 8
-	if(InStr(FileExist(item), "D"))
+	if((RegExMatch(S_LoopField,"S)^.:\\.*") && InStr(FileExist(item), "D")))
 		return 7
 	return 1
 }
