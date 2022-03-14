@@ -98,7 +98,7 @@ if(!iniFlag){
 }
 ;══════════════════════════════════════════════════════════════════
 ;~;[13.创建初始菜单]
-t2:=A_TickCount-StartTick
+t2:=t3:=A_TickCount-StartTick
 Menu_Tray_Tip("初始化+运行插件：" Round(t2/1000,3) "s`n","开始创建无图标菜单...")
 global MenuObj:=Object()                    ;~程序全路径
 global MenuObjKey:=Object()                 ;~程序热键
@@ -196,6 +196,7 @@ MenuObjEv:=MenuObj.Clone()
 ;~;[15.判断有无路径应用则需要使用Everything]
 if(!NoPathFlag && !EvNo){
 	if(!EvDemandSearch || (EvDemandSearch && EvCommandStr!="")){
+		t3:=A_TickCount-StartTick
 		if(EverythingIsRun()){
 			Menu_Tray_Tip("","开始调用Everything搜索菜单内应用全路径...")
 			RegRead,EvTotResults,HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults
@@ -231,8 +232,9 @@ if(!NoPathFlag && !EvNo){
 	}
 }
 ;══════════════════════════════════════════════════════════════════
-t3:=A_TickCount-StartTick
-Menu_Tray_Tip("调用Everything搜索应用全路径：" Round((t3-t2)/1000,3) "s`n","开始加载完整菜单功能...")
+t4:=A_TickCount-StartTick
+t32:=t3-t2 ? Round((t3-t2)/1000,3) "+" : ""
+Menu_Tray_Tip("调用Everything搜索应用全路径：" t32 Round((t4-t3)/1000,3) "s`n","开始加载完整菜单功能...")
 Menu_Read(iniVar1,menuRoot1,"",1)
 ;~;[16.如果有第2菜单则开始加载]
 if(MENU2FLAG){
@@ -240,18 +242,18 @@ if(MENU2FLAG){
 	Menu_Read(iniVar2,menuRoot2,"",2)
 }
 MenuShowFlag:=true
-t4:=A_TickCount-StartTick
-Menu_Tray_Tip("菜单创建：" Round((t4-t3)/1000,3) "s`n")
+t5:=A_TickCount-StartTick
+Menu_Tray_Tip("菜单创建：" Round((t5-t4)/1000,3) "s`n")
 ;~;[17.初始菜单加载后操作]
 if(SendStrEcKey!="")
 	SendStrDcKey:=SendStrDecrypt(SendStrEcKey,RunAnyZz ConfigDate)
 
-t5:=t6:=A_TickCount-StartTick
+t6:=t7:=A_TickCount-StartTick
 ;~;[18.规则启动程序]
 if(RunCtrlListBoxVar!=""){
 	Gosub,Rule_Effect
-	t6:=A_TickCount-StartTick
-	Menu_Tray_Tip("规则启动：" Round((t6-t5)/1000,3) "s`n")
+	t7:=A_TickCount-StartTick
+	Menu_Tray_Tip("规则启动：" Round((t7-t6)/1000,3) "s`n")
 }
 ;~;[19.对菜单内容项进行过滤调整]
 Loop,%MenuCount%
@@ -337,8 +339,8 @@ Loop,%MenuCount%
 		}
 	}
 }
-t7:=A_TickCount-StartTick
-Menu_Tray_Tip("菜单加载：" Round((t7-t6)/1000,3) "s`n")
+t8:=A_TickCount-StartTick
+Menu_Tray_Tip("菜单加载：" Round((t8-t7)/1000,3) "s`n")
 
 ;~;[21.内部关联后缀打开方式]
 Gosub,Open_Ext_Set
@@ -362,8 +364,8 @@ For k, v in MenuExeArray
 }
 ;-------------------------------------------------------------------------------------------
 ;~;[23.菜单已经加载完毕，托盘图标变化]
-t8:=A_TickCount-StartTick
-Menu_Tray_Tip("菜单加载exe图标：" Round((t8-t7)/1000,3) "s`n","总加载时间：" Round(t8/1000,3) "s")
+t9:=A_TickCount-StartTick
+Menu_Tray_Tip("菜单加载exe图标：" Round((t9-t8)/1000,3) "s`n","总加载时间：" Round(t9/1000,3) "s")
 Menu,Tray,Icon,% AnyIconS[1],% AnyIconS[2]
 MenuIconFlag:=true
 
