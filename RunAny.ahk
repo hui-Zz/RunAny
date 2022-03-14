@@ -1662,7 +1662,7 @@ Menu_Run:
 		}
 		;[结束软件进程]
 		if((menuholdkey=HoldKeyRun4 || M_ThisMenuItem="结束软件进程(&X)" || RunCtrlRunWayVal=6) && (itemMode=1 || itemMode=60)){
-			cmdClipReturn("taskkill /f /im """ name """")
+			Run,% ComSpec " /C taskkill /f /im """ name """", , Hide
 			RunCtrlRunWayVal=
 			return
 		}
@@ -8921,7 +8921,7 @@ RunCtrl_RunApps(path,noPath,repeatRun:=0,adminRun:=0,runWay:=1){
 			if(!repeatRun && runWay!=6 && rule_check_is_run(any)){
 				return
 			}else if(runWay=6){
-				cmdClipReturn("taskkill /f /im """ name """")
+				Run,% ComSpec " /C taskkill /f /im """ name """", , Hide
 				return
 			}
 			if(dir && FileExist(dir))
