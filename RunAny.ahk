@@ -1,8 +1,10 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
+║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.03.14
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
+║ 运行单脚本需要AutoHotKey版本：1.1.31 以上
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：246308937
 ╚══════════════════════════════════════════════════
@@ -22,7 +24,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.8.0"     ;~;版本号
-global RunAny_update_time:="自定义一键直达 2022.03.07"   ;~;更新日期
+global RunAny_update_time:="自定义一键直达 2022.03.14"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -144,6 +146,7 @@ global MenuObjSame:=Object()                ;Everything搜索结果重名程序�
 global MenuObjSearch:=Object()              ;Everything搜索无路径菜单项
 global MenuObjCache:=Object()               ;Everything搜索无路径应用缓存
 global MenuObjNew:=Object()                 ;Everything搜索新增加
+global MenuObjEvPathEmptyReason:=Object()   ;Everything无路径应用搜索不到的原因
 EvCommandStr:=""                            ;Everything搜索字符
 ;~;[14.获取无路径应用的运行全路径缓存]
 if(EvDemandSearch){
@@ -378,21 +381,7 @@ if(iniFlag){
 }
 ;~;[24.检查无路径应用缓存是否有新的版本]
 if(NoPathFlag && !EvNo && Trim(evFullPathIniVar," `t`n`r")!="" && rule_check_is_run("Everything.exe")){
-	MenuObjUpdateList:=Object(),MenuObjEv:=Object(),MenuObjSearch:=Object()
-	if(EverythingQuery(EvCommandStr)){
-		for k,v in MenuObjCache
-		{
-			if(MenuObjSearch[k] && v!=MenuObjSearch[k]){
-				IniWrite, % MenuObjSearch[k], %RunAnyEvFullPathIni%, FullPath, %k%
-				MenuObjUpdateList.Push(k)
-			}
-		}
-		if(MenuObjUpdateList.Length()>0){
-			Gosub,RunAny_SearchBar
-			ShowTrayTip("以下无路径应用缓存更新：",StrListJoin("、",MenuObjUpdateList),10,17)
-			Gosub,Menu_Reload
-		}
-	}
+	Gosub,RunAEvFullPathSync
 }
 ;~;[25.记录ini文件修改时间]
 FileGetTime,MTimeIniPath, %iniPath%, M  ; 获取修改时间.
@@ -547,6 +536,27 @@ RunABackupClear(RunABackupDir,RunABackupFile){
 		}
 	}
 }
+;~;[无路径应用缓存同步更新]
+RunAEvFullPathSync:
+	MenuObjUpdateList:=Object(),MenuObjEv:=Object(),MenuObjSearch:=Object()
+	if(EverythingQuery(EvCommandStr)){
+		for k,v in MenuObjCache
+		{
+			if(MenuObjSearch[k] && v!=MenuObjSearch[k]){
+				IniWrite, % MenuObjSearch[k], %RunAnyEvFullPathIni%, FullPath, %k%
+				MenuObjUpdateList.Push(k)
+			}else if(MenuObjCache[k]=""){
+				MenuObjEvPathEmptyReason[k]:="在EV中没有搜索到"
+				RunAEvFullPathSyncFlag:=true
+			}
+		}
+		if(MenuObjUpdateList.Length()>0){
+			Gosub,RunAny_SearchBar
+			ShowTrayTip("以下无路径应用缓存更新：",StrListJoin("、",MenuObjUpdateList),10,17)
+			Gosub,Menu_Reload
+		}
+	}
+return
 ;══════════════════════════════════════════════════════════════════
 ;~;【多种启动菜单热键】
 #If MenuDoubleCtrlKey=1
@@ -2983,7 +2993,7 @@ Get_Menu_Item_Mode(item,fullItemFlag:=false){
 		return 6
 	if(RegExMatch(item,"S).+?\[.+?\]%?\(.*?\)"))
 		return 8
-	if((RegExMatch(S_LoopField,"S)^.:\\.*") && InStr(FileExist(item), "D")))
+	if((RegExMatch(item,"S)^.:\\.*") && InStr(FileExist(item), "D")))
 		return 7
 	return 1
 }
@@ -6318,6 +6328,10 @@ KnowAhkFuncZz(ahkPath){
 ;~;【——🔧设置选项Gui——】
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 Settings_Gui:
+	if(!MenuIconFlag){
+		TrayTip,,RunAny正在初始化，请完成后再打开设置,5,1
+		return
+	}
 	Critical  ;防止短时间内打开多次界面出现问题
 	HotKeyFlag:=MenuVarFlag:=OpenExtFlag:=AdvancedConfigFlag:=false
 	GUI_WIDTH_66=700
@@ -6440,6 +6454,13 @@ Settings_Gui:
 	LV_ModifyCol()
 	GuiControl, 66:+Redraw, RunAnyMenuVarLV
 
+	evCurrentRunPath:=get_process_path("Everything.exe")
+	emptyReasonStr:="无路径说明"
+	if(!evCurrentRunPath){
+		emptyReasonStr:="Everything未启动"
+	}else if(!RunAEvFullPathSyncFlag){
+		emptyReasonStr:="正在更新缓存中...重新打开设置再看"
+	}
 	Gui,66:Tab,无路径缓存,,Exact
 	Gui,66:Add,Text,xm y+%MARGIN_TOP_66%,RunAny菜单中无路径的缓存全路径
 	Gui,66:Add,Button,x+10 yp-5 GSetRunAEvFullPathIniDir,无路径缓存文件目录
@@ -6448,8 +6469,9 @@ Settings_Gui:
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuObjPathEdit, · 修改
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuObjPathRemove, - 减少
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuObjPathSelect, A 全选
-	Gui,66:Add,Text, x+25 yp-5,无路径说明：每次新增或移动无路径应用文件后`n会使用Everything获得它最新的运行全路径
-	Gui,66:Add,Listview,xm yp+40 r16 grid AltSubmit vRunAnyMenuObjPathLV hwndWLJLV glistviewMenuObjPath, 无路径应用名|当前电脑运行全路径（来自Everything）
+	Gui,66:Add,Button, x+10 yp w75 GLVMenuObjPathSync, EV更新同步
+	Gui,66:Add,Text, x+15 yp-5,无路径说明：每次新增或移动无路径应用文件后`n会使用Everything获得它最新的运行全路径
+	Gui,66:Add,Listview,xm yp+40 r16 grid AltSubmit vRunAnyMenuObjPathLV hwndWLJLV glistviewMenuObjPath, 无路径应用名|当前电脑运行全路径（来自Everything）|%emptyReasonStr%
 	RunAnyMenuObjPathImageListID := IL_Create(11)
 	Icon_Image_Set(RunAnyMenuObjPathImageListID)
 	GuiControl, 66:-Redraw, RunAnyMenuObjPathLV
@@ -6458,11 +6480,18 @@ Settings_Gui:
 	Loop, parse, evFullPathIniVar, `n, `r
 	{
 		varList:=StrSplit(A_LoopField,"=",,2)
-		LV_Add(varList[2]="" ? "Icon3" : Set_Icon(RunAnyMenuObjPathImageListID,varList[2],false,false,varList[2]), varList[1], varList[2])
+		LV_Add(varList[2]="" ? "Icon3" : Set_Icon(RunAnyMenuObjPathImageListID,varList[2],false,false,varList[2])
+		    , varList[1], varList[2], MenuObjEvPathEmptyReason[(varList[1])])
 		if(!varList[2])
 			NWLJLV.Color(A_Index,0x999999)
 	}
-	LV_ModifyCol()
+	if(emptyReasonStr="无路径说明"){
+		LV_ModifyCol()
+	}else{
+		LV_ModifyCol("Auto")
+	}
+	LV_ModifyCol(1, 150)
+	LV_ModifyCol(2, 350)
 	LV_ModifyCol(1, "Sort")  ; 排序
 	GuiControl, 66:+Redraw, RunAnyMenuObjPathLV
 	
@@ -6473,7 +6502,7 @@ Settings_Gui:
 	Gui,66:Add,Text,xm y+%MARGIN_TOP_66%,Everything当前权限：【%EvIsAdminStatus%】
 	Gui,66:Add,Checkbox,Checked%EvAutoClose% x+20 yp vvEvAutoClose,Everything自动关闭(不常驻后台)
 	Gui,66:Add,Button,x+10 w80 h20 gSetEvReindex,重建索引
-	Gui,66:Add,Text,xm yp+28,% "Everything当前运行路径：" get_process_path("Everything.exe")
+	Gui,66:Add,Text,xm yp+28,% "Everything当前运行路径：" evCurrentRunPath
 	Gui,66:Add,GroupBox,xm-10 y+12 w%GROUP_WIDTH_66% h55,一键Everything [搜索选中文字，支持多选文件、再按为隐藏/激活] %EvHotKey%
 	Gui,66:Add,Hotkey,xm+10 yp+20 w130 vvEvKey,%EvKey%
 	Gui,66:Add,Checkbox,Checked%EvWinKey% xm+150 yp+3 vvEvWinKey,Win
@@ -6518,7 +6547,7 @@ Settings_Gui:
 	}
 	LV_ModifyCol()
 	LV_ModifyCol(1,270)
-	LV_ModifyCol(2, "Sort")  ; 排序
+	LV_ModifyCol(2, "Sort Auto")  ; 排序
 	GuiControl, 66:+Redraw, RunAnyOneKeyLV
 	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h240 vvOneKeyUrlGroup,一键搜索选中文字 %OneHotKey%
 	Gui,66:Add,Hotkey,xm yp+30 w150 vvOneKey,%OneKey%
@@ -7318,6 +7347,15 @@ return
 LVMenuObjPathSelect:
 	Gui, ListView, RunAnyMenuObjPathLV
 	LV_Modify(0, "Select Focus")   ; 选择所有.
+return
+LVMenuObjPathSync:
+	if(EverythingIsRun()){
+		RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny, ReloadGosub, Settings_Gui
+		EvCommandStr:=EverythingNoPathSearchStr()
+		Gosub,RunAEvFullPathSync
+		RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny, ReloadGosub, 0
+		ShowTrayTip("","无路径应用缓存已经最新",3,17)
+	}
 return
 SaveMenuObjPath:
 	MenuObjPathFlag:=true
@@ -9464,17 +9502,23 @@ EverythingNoPathSearchStr(){
 			itemMode:=Get_Menu_Item_Mode(itemVar)
 			outVar:=RegExReplace(itemVar,"iS)^([^|]+?\.[a-zA-Z0-9-_]+)($| .*)","$1")	;去掉参数
 			;[过滤掉所有不是无路径的菜单项]
-			if(InStr(EvCommandStr,"|^" outVar "$|") || (itemMode!=1 && itemMode!=8)){
+			if(InStr(EvCommandStr,"|^" outVar "$|")){
+				MenuObjEvPathEmptyReason[itemVar]:="重复的无路径应用"
+				continue
+			}else if(itemMode!=1 && itemMode!=8){
+				MenuObjEvPathEmptyReason[itemVar]:="启动模式不是程序"
 				continue
 			}else if(outVar="iexplore.exe" && FileExist(A_ProgramFiles "\Internet Explorer\iexplore.exe")){
 				MenuObj["iexplore"]:=A_ProgramFiles "\Internet Explorer\iexplore.exe"
 				continue
-			}else if(itemMode=1 && (InStr(outVar,"..\")
-					|| RegExMatch(outVar,"S)\\|\/|\:|\*|\?|\""|\<|\>|\|") 
-					|| RegExMatch(outVar,"S)^%.*?%$") 
-					|| FileExist(A_WinDir "\" outVar) || FileExist(A_WinDir "\system32\" outVar))){
+			}else if(itemMode=1 && (InStr(outVar,"..\") || RegExMatch(outVar,"S)\\|\/|\:|\*|\?|\""|\<|\>|\|") || RegExMatch(outVar,"S)^%.*?%$") )){
+				MenuObjEvPathEmptyReason[outVar]:="启动软件名带有特殊字符"
+				continue
+			}else if(itemMode=1 && (FileExist(A_WinDir "\" outVar) || FileExist(A_WinDir "\system32\" outVar))){
+				MenuObjEvPathEmptyReason[outVar]:="属于Windows和System32系统路径软件"
 				continue
 			}else if(itemMode=8){
+				MenuObjEvPathEmptyReason[outVar]:="插件脚本函数格式"
 				if(RegExMatch(itemVar,"iS).+?\[.+?\]%?\(.*?%"".+?""%.*?\)")){
 					outVar:=RegExReplace(itemVar,"iS).+?\[.+?\]%?\(.*?%""(.+?)""%.*?\)","$1")
 					if(InStr(outVar,"..\")
