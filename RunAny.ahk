@@ -7583,9 +7583,12 @@ RunAnyOneKeyOnline:
 			Loop, parse, OneKeyIniVar, `n, `r
 			{
 				varList:=StrSplit(A_LoopField,"=",,2)
-				itemList:=StrSplit(varList[1],"|",,2)
-				OneKeyDownRunList[itemList[1]]:=itemList[2]
-				OneKeyDownRegexList[itemList[1]]:=varList[2]
+				if(RegExMatch(varList[1],".+_Run$")){
+					OneKeyDownRunList[RegExReplace(varList[1],"(.+)_Run$","$1")]:=varList[2]
+				}
+				if(RegExMatch(varList[1],".+_Regex$")){
+					OneKeyDownRegexList[RegExReplace(varList[1],"(.+)_Regex$","$1")]:=varList[2]
+				}
 			}
 			return
 		}
