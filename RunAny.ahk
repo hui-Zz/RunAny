@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.03.14
+║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.03.15
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -24,7 +24,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.8.0"     ;~;版本号
-global RunAny_update_time:="自定义一键直达 2022.03.14"   ;~;更新日期
+global RunAny_update_time:="自定义一键直达 2022.03.15"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -2518,6 +2518,18 @@ GetKeyByVal(obj, val){
 ;[获取变量展开转换后的值]
 Get_Transform_Val(string){
 	try{
+		if(InStr(string,"%getZz%")){
+			string:=StrReplace(string, "%getZz%", getZz)
+		}
+		if(InStr(string,"%Clipboard%") || InStr(string,"%ClipboardAll%")){
+			string:=StrReplace(string, "%Clipboard%", Clipboard)
+			string:=StrReplace(string, "%ClipboardAll%", ClipboardAll)
+		}
+		For mVarName, mVarVal in MenuVarIniList
+		{
+			if(InStr(string,"%" mVarName "%"))
+				string:=StrReplace(string, "%" mVarName "%", mVarVal)
+		}
 		spo := 1
 		out := ""
 		while (fpo:=RegexMatch(string, "(%(.*?)%)|``(.)", m, spo))
@@ -6459,7 +6471,7 @@ Settings_Gui:
 	if(!evCurrentRunPath){
 		emptyReasonStr:="Everything未启动"
 	}else if(!RunAEvFullPathSyncFlag){
-		emptyReasonStr:="正在更新缓存中...重新打开设置再看"
+		emptyReasonStr:="自动更新中...可以重新打开设置查看或点击EV更新同步"
 	}
 	Gui,66:Tab,无路径缓存,,Exact
 	Gui,66:Add,Text,xm y+%MARGIN_TOP_66%,RunAny菜单中无路径的缓存全路径
@@ -6490,7 +6502,7 @@ Settings_Gui:
 	}else{
 		LV_ModifyCol("Auto")
 	}
-	LV_ModifyCol(1, 150)
+	LV_ModifyCol(1, 155)
 	LV_ModifyCol(2, 350)
 	LV_ModifyCol(1, "Sort")  ; 排序
 	GuiControl, 66:+Redraw, RunAnyMenuObjPathLV
@@ -7353,8 +7365,8 @@ LVMenuObjPathSync:
 		RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny, ReloadGosub, Settings_Gui
 		EvCommandStr:=EverythingNoPathSearchStr()
 		Gosub,RunAEvFullPathSync
-		RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny, ReloadGosub, 0
 		ShowTrayTip("","无路径应用缓存已经最新",3,17)
+		Gosub,Menu_Reload
 	}
 return
 SaveMenuObjPath:
