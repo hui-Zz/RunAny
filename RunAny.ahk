@@ -545,7 +545,7 @@ RunAEvFullPathSync:
 			if(MenuObjSearch[k] && v!=MenuObjSearch[k]){
 				IniWrite, % MenuObjSearch[k], %RunAnyEvFullPathIni%, FullPath, %k%
 				MenuObjUpdateList.Push(k)
-			}else if(MenuObjCache[k]=""){
+			}else if(MenuObjCache[k]="" && !MenuObjEvPathEmptyReason[k]){
 				MenuObjEvPathEmptyReason[k]:="在EV中没有搜索到"
 				RunAEvFullPathSyncFlag:=true
 			}
