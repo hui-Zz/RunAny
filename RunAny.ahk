@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.03.15
+║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.03.16
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -24,7 +24,7 @@ global RunAnyZz:="RunAny"                 ;~;名称
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.8.0"     ;~;版本号
-global RunAny_update_time:="自定义一键直达 2022.03.15"   ;~;更新日期
+global RunAny_update_time:="2022.03.16"   ;~;更新日期
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -2899,27 +2899,31 @@ URLDownloadToFile(URL, FilePath, Options:="", RequestHeaders:="")
 ;~;【══🔩内部函数方法══】
 ;══════════════════════════════════════════════════════════════════
 ;[写入配置]
-Reg_Set(vGui, var, sz){
+Var_Set(vGui, var, sz){
 	StringCaseSense, On
 	if(vGui!=var){
-		RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny, %sz%, %vGui%
-		IniWrite,%vGui%,%RunAnyConfig%,Config,%sz%
+		if(vGui=""){
+			IniDelete,%RunAnyConfig%,Config,%sz%
+		}else{
+			IniWrite,%vGui%,%RunAnyConfig%,Config,%sz%
+		}
 	}
 	StringCaseSense, Off
 }
 ;[读取配置]
 Var_Read(rValue,defVar=""){
-	if(IniConfig){
-		IniRead, regVar,%RunAnyConfig%, Config, %rValue%,% defVar ? defVar : A_Space
-	}else{
-		RegRead, regVar, HKEY_CURRENT_USER\SOFTWARE\RunAny, %rValue%
-	}
+	varDefaultList[rValue]:=defVar
+	IniRead, regVar,%RunAnyConfig%, Config, %rValue%,% defVar ? defVar : A_Space
 	if(regVar!=""){
+		if(defVar!="" && regVar=defVar){
+			IniDelete, %RunAnyConfig%, Config, %rValue%
+		}
 		if(InStr(regVar,"ZzIcon.dll") && !FileExist(A_ScriptDir "\ZzIcon.dll"))
 			return defVar
 		else
 			return regVar
 	}else{
+		IniDelete, %RunAnyConfig%, Config, %rValue%
 		return defVar
 	}
 }
@@ -4333,11 +4337,11 @@ TV_MoveMenu(moveMenuName){
 	Menu,%moveMenuName%,add,%moveMenuName%,Move_Menu
 	try {
 		Menu,% moveRoot[moveLevel],add,%moveItem%, :%moveMenuName%
-		try Menu,% moveRoot[moveLevel],Icon,%moveItem%,% TreeIconS[1],% TreeIconS[2]
 	} catch e {
 		TrayTip,,% "右键操作菜单创建错误：" moveMenuName "`n出错命令：" e.What 
 			. "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,10,3
 	}
+	try Menu,% moveRoot[moveLevel],Icon,%moveItem%,% TreeIconS[1],% TreeIconS[2]
 	moveLevel+=1
 	moveRoot[moveLevel]:=moveMenuName
 }
@@ -6889,7 +6893,7 @@ SetOK:
 	For vi, vv in SetValueList
 	{
 		vValue:="v" . vv
-		Reg_Set(%vValue%,%vv%,vv)
+		Var_Set(%vValue%,%vv%,vv)
 	}
 	;[保存热键配置列表]
 	if(HotKeyFlag){
@@ -6949,7 +6953,7 @@ SetOK:
 			if(oneKeyStatus="禁用")
 				OneKeyDisableSaveList.Push(oneKeyName)
 		}
-		Reg_Set(StrListJoin("|",OneKeyDisableSaveList),OneKeyDisableStr,"OneKeyDisableList")
+		Var_Set(StrListJoin("|",OneKeyDisableSaveList),OneKeyDisableStr,"OneKeyDisableList")
 	}
 	;[保存内部关联打开后缀列表]
 	if(OpenExtFlag){
@@ -6970,7 +6974,7 @@ SetOK:
 		{
 			LV_GetText(AdvancedConfigVal, A_Index, 1)
 			LV_GetText(AdvancedConfigName, A_Index, 5)
-			Reg_Set(AdvancedConfigVal,%AdvancedConfigName%,AdvancedConfigName)
+			Var_Set(AdvancedConfigVal,%AdvancedConfigName%,AdvancedConfigName)
 		}
 	}
 	Gosub,Menu_Reload
@@ -7880,18 +7884,15 @@ WM_NOTIFY(Param*){
 ;~;【——🔛初始化——】
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 Var_Set:
+	;#判断配置文件
+	if(!FileExist(RunAnyConfig)){
+		IniWrite,%IniConfig%,%RunAnyConfig%,Config,IniConfig
+	}
+	global varDefaultList:=Object()
 	;[RunAny设置参数]
 	global Z_ScriptName:=FileExist(RunAnyZz ".exe") ? RunAnyZz ".exe" : A_ScriptName
 	RegRead, AutoRun, HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run, RunAny
 	AutoRun:=AutoRun=A_ScriptDir "\" Z_ScriptName ? 1 : 0
-	;优先读取配置文件，后读注册表
-	global IniConfig:=1
-	if(FileExist(RunAnyConfig)){
-		IniRead,IniConfig,%RunAnyConfig%,Config,IniConfig,1
-		RegRead, regVar, HKEY_CURRENT_USER\Software\RunAny, IniConfig
-		if ErrorLevel
-			IniConfig:=1
-	}
 	global AdminRun:=Var_Read("AdminRun",0)
 	;#判断管理员权限#
 	if(AdminRun && !A_IsAdmin){
@@ -7994,10 +7995,10 @@ Var_Set:
 	global EvShowExt:=Var_Read("EvShowExt",1)
 	global EvShowFolder:=Var_Read("EvShowFolder",1)
 	global EvAutoClose:=Var_Read("EvAutoClose",0)
-	global EvExeVerNew:=Var_Read("EvExeVerNew",0)
-	global EvExeMTimeNew:=Var_Read("EvExeMTimeNew",0)
+	global EvExeVerNew:=Var_Read("EvExeVerNew",1)
+	global EvExeMTimeNew:=Var_Read("EvExeMTimeNew",1)
 	global EvDemandSearch:=Var_Read("EvDemandSearch",1)
-	EvCommandDefault:="!" A_WinDir "* !?:\$RECYCLE.BIN* !?:\Users\*\AppData\Local\Temp\* !?:\Users\*\AppData\Roaming\*"
+	EvCommandDefault:="!" A_WinDir "* !?:\$RECYCLE.BIN* !?:\Users\*\AppData\Local\Temp\* !?:\Users\*\AppData\Roaming\*.exe"
 	try EnvGet, scoopPath, scoop
 	if(scoopPath)
 		EvCommandDefault.=" !" RegExReplace(scoopPath,".(:\\.*)","?$1") "\shims\*"
@@ -8234,10 +8235,6 @@ Run_Exist:
 		MENU2FLAG:=true
 		FileRead, iniVar2, %iniPath2%
 		CreateDir(RunABackupDirPath "\" RunAnyZz "2.ini")
-	}
-	;#判断配置文件
-	if(!FileExist(RunAnyConfig)){
-		IniWrite,%IniConfig%,%RunAnyConfig%,Config,IniConfig
 	}
 	global iniFileVar:=iniVar1
 	global EvPathRun:=Get_Transform_Val(EvPath)
