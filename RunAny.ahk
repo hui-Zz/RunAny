@@ -24,7 +24,7 @@ global RunAnyZz:="RunAny"                   ;~;名称
 global PluginsDir:="RunPlugins"             ;~;插件目录
 global RunAnyConfig:="RunAnyConfig.ini"     ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini"   ;~;插件注册配置文件
-global RunAny_update_version:="5.8.0.1"       ;~;版本号
+global RunAny_update_version:="5.8.0.2"       ;~;版本号
 global RunAny_update_time:="2022.03.16"     ;~;更新日期
 global iniPath:=A_ScriptDir "\RunAny.ini"     ;~;菜单1
 global iniPath2:=A_ScriptDir "\RunAny2.ini"   ;~;菜单2
@@ -182,6 +182,7 @@ if(EvDemandSearch){
 		{
 			;发现有新的无路径应用
 			if(!MenuObjCache.HasKey(k)){
+				MenuObjCache[k]:=""
 				if(RegExMatch(k, RegexEscapeNoPointStr)){
 					k:=StrListEscapeReplace(k, RegexEscapeNoPointList, "\")
 				}
