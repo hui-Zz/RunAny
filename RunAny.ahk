@@ -24,7 +24,7 @@ global RunAnyZz:="RunAny"                   ;~;名称
 global PluginsDir:="RunPlugins"             ;~;插件目录
 global RunAnyConfig:="RunAnyConfig.ini"     ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini"   ;~;插件注册配置文件
-global RunAny_update_version:="5.8.0"       ;~;版本号
+global RunAny_update_version:="5.8.0.1"       ;~;版本号
 global RunAny_update_time:="2022.03.16"     ;~;更新日期
 global iniPath:=A_ScriptDir "\RunAny.ini"     ;~;菜单1
 global iniPath2:=A_ScriptDir "\RunAny2.ini"   ;~;菜单2
@@ -6479,7 +6479,7 @@ Settings_Gui:
 	emptyReasonStr:="无路径说明"
 	if(!evCurrentRunPath){
 		emptyReasonStr:="Everything未启动"
-	}else if(!RunAEvFullPathSyncFlag){
+	}else if(!EvNo && !RunAEvFullPathSyncFlag){
 		emptyReasonStr:="自动更新中...可以重新打开设置查看或点击EV更新同步"
 	}
 	Gui,66:Tab,无路径缓存,,Exact
@@ -7370,6 +7370,7 @@ LVMenuObjPathSelect:
 	LV_Modify(0, "Select Focus")   ; 选择所有.
 return
 LVMenuObjPathSync:
+	Gosub,Ev_Exist
 	if(EverythingIsRun()){
 		RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny, ReloadGosub, Settings_Gui
 		EvCommandStr:=EverythingNoPathSearchStr()
@@ -8241,25 +8242,35 @@ Run_Exist:
 	global EvPathRun:=Get_Transform_Val(EvPath)
 	;#判断Everything拓展DLL文件#
 	if(!EvNo){
-		global everyDLL:="Everything.dll"
-		if(FileExist(A_ScriptDir "\Everything.dll")){
-			everyDLL:=DllCall("LoadLibrary", str, "Everything.dll") ? "Everything.dll" : "Everything64.dll"
-		}else if(FileExist(A_ScriptDir "\Everything64.dll")){
-			everyDLL:=DllCall("LoadLibrary", str, "Everything64.dll") ? "Everything64.dll" : "Everything.dll"
-		}
-		if(!FileExist(A_ScriptDir "\" everyDLL)){
-			MsgBox,17,,没有找到%everyDLL%，将不能识别菜单中程序的路径`n需要将%everyDLL%放到【%A_ScriptDir%】目录下`n是否需要从网上下载%everyDLL%？
-			IfMsgBox Ok
-			{
-				URLDownloadToFile(RunAnyDownDir "/" everyDLL,A_ScriptDir "\" everyDLL)
-				Gosub,Menu_Reload
-			}
-		}
+		Gosub,Ev_Exist
 		;~Everything搜索检查准备
 		global RunAnyTickCount:=0
 		RegRead,RunAnyTickCount,HKEY_CURRENT_USER\SOFTWARE\RunAny,RunAnyTickCount
 		if(!RunAnyTickCount || A_TickCount<RunAnyTickCount){
 			RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults,0
+		}
+	}
+return
+Ev_Exist:
+	global everyDLL:="Everything.dll"
+	if(FileExist(A_ScriptDir "\Everything.dll")){
+		everyDLL:=DllCall("LoadLibrary", str, "Everything.dll") ? "Everything.dll" : "Everything64.dll"
+	}else if(FileExist(A_ScriptDir "\Everything64.dll")){
+		everyDLL:=DllCall("LoadLibrary", str, "Everything64.dll") ? "Everything64.dll" : "Everything.dll"
+	}
+	if(!FileExist(A_ScriptDir "\" everyDLL)){
+		MsgBox,17,,没有找到%everyDLL%，将不能识别菜单中程序的路径`n需要将%everyDLL%放到【%A_ScriptDir%】目录下`n是否需要从网上下载%everyDLL%？
+		IfMsgBox Ok
+		{
+			URLDownloadToFile(RunAnyDownDir "/" everyDLL,A_ScriptDir "\" everyDLL)
+			Gosub,Menu_Reload
+		}else{
+			MsgBox,17,【慎改】,是否需要开启不使用Everything模式？所有无路径应用可以通过手动新增修改同步来识别运行路径。`n`n（也可在高级配置中修改）
+			IfMsgBox Ok
+			{
+				Var_Set(1,EvNo,"EvNo")
+				EvNo:=1
+			}
 		}
 	}
 return
@@ -8312,6 +8323,14 @@ Icon_Set:
 		MoveIcon:="ZzIcon.dll,4"
 		UpIcon:="ZzIcon.dll,5"
 		DownIcon:="ZzIcon.dll,6"
+		try{
+			Menu,exeTestMenu,Icon,SetCancel,ZzIcon.dll,7
+			ZzIconPath:="ZzIcon.dll,7"
+		} catch {
+			ZzIconPath:="ZzIcon.dll,1"
+		}
+	}else{
+		ZzIconPath:="shell32.dll,194"
 	}
 	MonitorHeight:=true
 	SysGet, MonitorCount, MonitorCount
@@ -8342,12 +8361,6 @@ Icon_Set:
 	global RunCtrlManageIconS:=StrSplit(RunCtrlManageIcon,",")
 	global CheckUpdateIcon:=Var_Read("CheckUpdateIcon","shell32.dll,14")
 	global CheckUpdateIconS:=StrSplit(CheckUpdateIcon,",")
-	try{
-		Menu,exeTestMenu,Icon,SetCancel,ZzIcon.dll,7
-		ZzIconPath:="ZzIcon.dll,7"
-	} catch {
-		ZzIconPath:="ZzIcon.dll,1"
-	}
 	global ZzIconS:=StrSplit(ZzIconPath,",")
 return
 ;~;[后缀图标初始化]
