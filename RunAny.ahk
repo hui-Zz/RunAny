@@ -4,7 +4,7 @@
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
-║ 运行单脚本需要AutoHotKey版本：1.1.31 以上
+║ 直接运行本脚本需要AutoHotKey版本：1.1.31 以上
 ║ by hui-Zz 建议：hui0.0713@gmail.com
 ║ 讨论QQ群：246308937
 ╚══════════════════════════════════════════════════
@@ -18,14 +18,16 @@ AutoTrim,On             ;~;自动去除变量中前导和尾随空格制表符
 SendMode,Input          ;~;使用更速度和可靠方式发送键鼠点击
 CoordMode,Menu          ;~;相对于整个屏幕
 SetBatchLines,-1        ;~;脚本全速执行
-SetWorkingDir,%A_ScriptDir%               ;~;脚本当前工作目录
-global StartTick:=A_TickCount             ;~;评估RunAny初始化时间
-global RunAnyZz:="RunAny"                 ;~;名称
-global PluginsDir:="RunPlugins"           ;~;插件目录
-global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
-global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
-global RunAny_update_version:="5.8.0"     ;~;版本号
-global RunAny_update_time:="2022.03.16"   ;~;更新日期
+SetWorkingDir,%A_ScriptDir%                 ;~;脚本当前工作目录
+global StartTick:=A_TickCount               ;~;评估初始化时间
+global RunAnyZz:="RunAny"                   ;~;名称
+global PluginsDir:="RunPlugins"             ;~;插件目录
+global RunAnyConfig:="RunAnyConfig.ini"     ;~;配置文件
+global RunAny_ObjReg:="RunAny_ObjReg.ini"   ;~;插件注册配置文件
+global RunAny_update_version:="5.8.0"       ;~;版本号
+global RunAny_update_time:="2022.03.16"     ;~;更新日期
+global iniPath=%A_ScriptDir%\RunAny.ini     ;~;菜单1
+global iniPath2:=%A_ScriptDir%\RunAny2.ini  ;~;菜单2
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -8198,8 +8200,6 @@ return
 ;~;【调用环境判断】
 Run_Exist:
 	;#判断菜单配置文件初始化#
-	global iniPath:=A_ScriptDir "\" RunAnyZz ".ini"
-	global iniPath2:=A_ScriptDir "\" RunAnyZz "2.ini"
 	global iniFile:=iniPath
 	global iniVar1:=""
 	global both:=1
