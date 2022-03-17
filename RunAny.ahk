@@ -6024,9 +6024,10 @@ Rule_Manage_Gui:
 	Gui,RuleManage:Default
 	Gui,RuleManage:+Resize
 	Gui,RuleManage:Font, s10, Microsoft YaHei
-	Gui,RuleManage:Add, Listview, xm w685 r18 grid AltSubmit BackgroundF6F6E8 vRuleLV glistrule, 规则名|规则函数|状态|类型|参数|示例|规则插件名
+	Gui,RuleManage:Add, Listview, xm w685 r18 grid AltSubmit BackgroundF6F6E8 vRuleLV hwndRLV glistrule, 规则名|规则函数|状态|类型|参数|示例|规则插件名
 	;[读取规则内容写入列表]
 	GuiControl, -Redraw, RuleLV
+	NRLV := New ListView(RLV)
 	For kName, kVal in rulefileList
 	{
 		ruleStatus:=rulestatusList[kName] ? "正常" : "未找到"
@@ -6038,6 +6039,8 @@ Rule_Manage_Gui:
 			ruleResult:=InStr(kVal,"RunCtrl_Network.ahk") ? "http://ip-api.com/json" : RunCtrl_RuleResult(kName, ruleitemList[kName], "")
 		}
 		LV_Add("", kName, rulefuncList[kName], ruleStatus ,ruletypelist[kName] ? "变量" : "插件",ruleparamList[kName] ? "传参" : ""	,ruleResult , kVal)
+		if(ruleStatus!="正常")
+			NRLV.Color(A_Index,0x999999)
 	}
 	GuiControl, +Redraw, RuleLV
 	Menu, ruleGuiMenu, Add, 新增, LVRulePlus
@@ -9237,7 +9240,7 @@ if exist "%A_Temp%\temp_RunAny.exe" `(
   `)
   goto BEGIN
 `)
-start "" "%A_ScriptDir%\%A_ScriptName%"
+start "" "%A_ScriptDir%\RunAny.exe"
 exit
 ),%A_Temp%\%RunAnyZz%\RunAny_Update.bat
 return
