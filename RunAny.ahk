@@ -21,6 +21,7 @@ SetBatchLines,-1        ;~;脚本全速执行
 SetWorkingDir,%A_ScriptDir%               ;~;脚本当前工作目录
 global StartTick:=A_TickCount             ;~;评估RunAny初始化时间
 global RunAnyZz:="RunAny"                 ;~;名称
+global PluginsDir:="RunPlugins"           ;~;插件目录
 global RunAnyConfig:="RunAnyConfig.ini"   ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini" ;~;插件注册配置文件
 global RunAny_update_version:="5.8.0"     ;~;版本号
@@ -2912,7 +2913,6 @@ Var_Set(vGui, var, sz){
 }
 ;[读取配置]
 Var_Read(rValue,defVar=""){
-	varDefaultList[rValue]:=defVar
 	IniRead, regVar,%RunAnyConfig%, Config, %rValue%,% defVar ? defVar : A_Space
 	if(regVar!=""){
 		if(defVar!="" && regVar=defVar){
@@ -5029,7 +5029,7 @@ LVPluginsLib:
 	Gui,PluginsLib:Font,,Microsoft YaHei
 	Gui,PluginsLib:Add, GroupBox,xm y+10 w460 h220
 	Gui,PluginsLib:Add, Text, xm+5 y+35 y35 w80,%A_Space%默认插件库：
-	Gui,PluginsLib:Add, Text, x+5 yp,%A_ScriptDir%\RunPlugins
+	Gui,PluginsLib:Add, Text, x+5 yp,%A_ScriptDir%\%PluginsDir%
 	Gui,PluginsLib:Add, Button, xm+10 y+15 w80 gSetPluginsDirPath,其他插件库：`n支持多行`n支持变量
 	Gui,PluginsLib:Add, Edit, x+5 yp w350 r5 vvPluginsDirPath, %PluginsDirPath%
 	Gui,PluginsLib:Add, Button, xm+10 y+10 w80 gSetPluginsEditor,插件编辑器：`n支持无路径%A_Tab%
@@ -5078,8 +5078,8 @@ PluginsDownVersion:
 		}
 	}
 	CreateDir(A_Temp "\" RunAnyZz "\" PluginsDir)
-	ObjRegIniPath=%A_Temp%\%RunAnyZz%\%PluginsDir%\RunAny_ObjReg.ini
-	URLDownloadToFile(RunAnyDownDir "/" PluginsDir "/RunAny_ObjReg.ini",ObjRegIniPath)
+	ObjRegIniPath=%A_Temp%\%RunAnyZz%\%PluginsDir%\%RunAny_ObjReg%
+	URLDownloadToFile(RunAnyDownDir "/" PluginsDir "/" RunAny_ObjReg, ObjRegIniPath)
 	IfExist,%ObjRegIniPath%
 	{
 		FileGetSize, ObjRegIniSize, %ObjRegIniPath%
@@ -5162,11 +5162,11 @@ LVDown:
 					CreateDir(A_ScriptDir "\" PluginsDir "\Lib\ChToPy_dll_64")
 					URLDownloadToFile(RunAnyDownDir "/" PluginsDir "/Lib/ChToPy_dll_64/cpp2ahk.dll",A_ScriptDir "\" PluginsDir "\Lib\ChToPy_dll_64\cpp2ahk.dll")
 					Sleep, 1000
-					Plugins_Down_Check("RunPlugins\Lib\ChToPy_dll_64\cpp2ahk.dll", A_ScriptDir "\" PluginsDir "\Lib\ChToPy_dll_64\cpp2ahk.dll")
+					Plugins_Down_Check(PluginsDir "\Lib\ChToPy_dll_64\cpp2ahk.dll", A_ScriptDir "\" PluginsDir "\Lib\ChToPy_dll_64\cpp2ahk.dll")
 				}
 				Sleep, 1000
 				Plugins_Down_Check("RunAny_SearchBar.ahk需要下载汉字转拼音组件ChToPy.ahk", A_ScriptDir "\" PluginsDir "\Lib\ChToPy.ahk")
-				Plugins_Down_Check("RunPlugins\Lib\ChToPy_dll_32\cpp2ahk.dll", A_ScriptDir "\" PluginsDir "\Lib\ChToPy_dll_32\cpp2ahk.dll")
+				Plugins_Down_Check(PluginsDir "\Lib\ChToPy_dll_32\cpp2ahk.dll", A_ScriptDir "\" PluginsDir "\Lib\ChToPy_dll_32\cpp2ahk.dll")
 			}
 			;[下载插件脚本]
 			IfExist,%A_ScriptDir%\%pluginsDownPath%\%FileName%
@@ -7891,7 +7891,6 @@ Var_Set:
 	if(!FileExist(RunAnyConfig)){
 		IniWrite,%IniConfig%,%RunAnyConfig%,Config,IniConfig
 	}
-	global varDefaultList:=Object()
 	;[RunAny设置参数]
 	global Z_ScriptName:=FileExist(RunAnyZz ".exe") ? RunAnyZz ".exe" : A_ScriptName
 	RegRead, AutoRun, HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run, RunAny
@@ -8208,7 +8207,6 @@ Run_Exist:
 	global RunAEvFullPathIniDir:=Var_Read("RunAEvFullPathIniDir","`%AppData`%\" RunAnyZz)
 	global RunAEvFullPathIniDirPath:=Get_Transform_Val(RunAEvFullPathIniDir)
 	global RunAnyEvFullPathIni:=RunAEvFullPathIniDirPath "\RunAnyEvFullPath.ini"
-	global PluginsDir:="RunPlugins"	;~插件目录
 	CreateDir(A_ScriptDir "\" PluginsDir "\" Lib)
 	CreateDir(A_AppData "\" RunAnyZz)
 	CreateDir(RunABackupDirPath "\" RunAnyConfig)
@@ -8537,7 +8535,7 @@ Plugins_Read:
 	global PluginsEditor:=Var_Read("PluginsEditor")
 	global PluginsDirPath:=Var_Read("PluginsDirPath")
 	global PluginsListViewSwap:=Var_Read("PluginsListViewSwap",0)
-	global PluginsDirPathList:="%A_ScriptDir%\RunPlugins|" PluginsDirPath
+	global PluginsDirPathList:="%A_ScriptDir%\%PluginsDir%|" PluginsDirPath
 	Loop, parse, PluginsDirPathList, |
 	{
 		PluginsFolder:=Get_Transform_Val(A_LoopField)
@@ -8553,7 +8551,7 @@ Plugins_Read:
 			PluginsNameList[(A_LoopFileName)]:=Plugins_Read_Name(A_LoopFileFullPath)
 			PluginsVersionList[(A_LoopFileName)]:=Plugins_Read_Version(A_LoopFileFullPath)
 			PluginsIconList[(A_LoopFileName)]:=Plugins_Read_Icon(A_LoopFileFullPath)
-			if(A_LoopField="%A_ScriptDir%\RunPlugins"){
+			if(A_LoopField="%A_ScriptDir%\%PluginsDir%"){
 				FileRead,pluginsContent,%A_LoopFileFullPath%
 				PluginsContentList[(A_LoopFileName)]:=pluginsContent
 			}
@@ -8568,7 +8566,7 @@ Plugins_Read:
 				PluginsNameList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Name(A_LoopFileFullPath "\" A_LoopFileName ".ahk")
 				PluginsVersionList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Version(A_LoopFileFullPath "\" A_LoopFileName ".ahk")
 				PluginsIconList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Icon(A_LoopFileFullPath "\" A_LoopFileName ".ahk")
-				if(A_LoopField="%A_ScriptDir%\RunPlugins"){
+				if(A_LoopField="%A_ScriptDir%\%PluginsDir%"){
 					FileRead,pluginsContent,% A_LoopFileFullPath "\" A_LoopFileName ".ahk"
 					PluginsContentList[(A_LoopFileName . ".ahk")]:=pluginsContent
 				}
@@ -9167,7 +9165,6 @@ Auto_Update:
 			{
 				TrayTip,,RunAny开始下载最新版本并替换老版本...,3,17
 				SetTimer, HideTrayTip, -3000
-				Gosub,Config_Update
 				;[下载插件脚本]
 				if(pluginUpdateStr!=""){
 					For pk, pv in pluginsDownList
@@ -9195,14 +9192,6 @@ Auto_Update:
 			FileDelete, %A_Temp%\temp_RunAny.ahk
 			TrayTip,,RunAny已经是最新版本。,5,1
 			checkUpdateFlag:=false
-		}
-	}
-return
-Config_Update:
-	if(FileExist(A_ScriptDir "\ZzIcon.dll")){
-		FileGetSize, ZzIconSize, %A_ScriptDir%\ZzIcon.dll
-		if(ZzIconSize=610304){
-			URLDownloadToFile(RunAnyDownDir "/ZzIcon.dll",A_ScriptDir "\ZzIcon.dll")
 		}
 	}
 return
