@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.0 @2022.03.16
+║【RunAny】一劳永逸的快速启动工具 v5.8.0.3 @2022.03.17
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -18,16 +18,16 @@ AutoTrim,On             ;~;自动去除变量中前导和尾随空格制表符
 SendMode,Input          ;~;使用更速度和可靠方式发送键鼠点击
 CoordMode,Menu          ;~;相对于整个屏幕
 SetBatchLines,-1        ;~;脚本全速执行
-SetWorkingDir,%A_ScriptDir%                 ;~;脚本当前工作目录
-global StartTick:=A_TickCount               ;~;评估初始化时间
-global RunAnyZz:="RunAny"                   ;~;名称
-global PluginsDir:="RunPlugins"             ;~;插件目录
-global RunAnyConfig:="RunAnyConfig.ini"     ;~;配置文件
-global RunAny_ObjReg:="RunAny_ObjReg.ini"   ;~;插件注册配置文件
-global RunAny_update_version:="5.8.0.2"       ;~;版本号
-global RunAny_update_time:="2022.03.16"     ;~;更新日期
-global iniPath:=A_ScriptDir "\RunAny.ini"     ;~;菜单1
-global iniPath2:=A_ScriptDir "\RunAny2.ini"   ;~;菜单2
+SetWorkingDir,%A_ScriptDir%                  ;~;脚本当前工作目录
+global StartTick:=A_TickCount                ;~;评估初始化时间
+global RunAnyZz:="RunAny"                    ;~;名称
+global PluginsDir:="RunPlugins"              ;~;插件目录
+global RunAnyConfig:="RunAnyConfig.ini"      ;~;配置文件
+global RunAny_ObjReg:="RunAny_ObjReg.ini"    ;~;插件注册配置文件
+global RunAny_update_version:="5.8.0.3"      ;~;版本号
+global RunAny_update_time:="2022.03.17"      ;~;更新日期
+global iniPath:=A_ScriptDir "\RunAny.ini"    ;~;菜单1
+global iniPath2:=A_ScriptDir "\RunAny2.ini"  ;~;菜单2
 Gosub,Var_Set           ;~;01.参数初始化
 Gosub,Menu_Var_Set      ;~;02.自定义变量
 Gosub,Icon_Set          ;~;03.图标初始化
@@ -8107,8 +8107,22 @@ Var_Set:
 			FormatTime,tempTimeDD,%tempMTime%,dd
 			if(t1=0 && (tempTimeDD=01 || tempTimeDD=15))
 				return
+			Gosub,Old_Config_Clear
 		}
 		Gosub,Auto_Update
+	}
+return
+Old_Config_Clear:
+	EvCommandDefaultOld1:="!" A_WinDir "* !?:\$RECYCLE.BIN* !?:\Users\*\AppData\Local\Temp\* !?:\Users\*\AppData\Roaming\*"
+	try EnvGet, scoopPath, scoop
+	if(scoopPath)
+		EvCommandDefaultOld1.=" !" RegExReplace(scoopPath,".(:\\.*)","?$1") "\shims\*"
+	EvCommand_Old1:=EvDemandSearch ? EvCommandDefaultOld1 : EvCommandDefaultOld1 " file:*.exe|*.lnk|*.ahk|*.bat|*.cmd"
+	IniRead,readVar,%RunAnyConfig%,Config,EvCommand,A_Space
+	if(readVar!=""){
+		if(readVar=EvCommand_Old1){
+			IniDelete,%RunAnyConfig%,Config,EvCommand
+		}
 	}
 return
 ;~;【菜单自定义变量】
