@@ -6557,13 +6557,14 @@ Settings_Gui:
 	(
 <a href="https://wyagd001.github.io/zh-cn/docs/misc/RegEx-QuickRef.htm">AHK正则选项</a>：i) 不区分大小写匹配  m) 多行匹配模式  S) 研究模式来提高性能
 	)
-	Gui,66:Add,Listview,xm-10 yp+40 w%GROUP_WIDTH_66% r12 grid AltSubmit -ReadOnly vRunAnyOneKeyLV hwndYJLV glistviewRunAnyOneKey
+	Gui,66:Add,Listview,xm-10 yp+40 w%GROUP_WIDTH_66% r12 grid AltSubmit -ReadOnly Checked vRunAnyOneKeyLV hwndYJLV glistviewRunAnyOneKey
 		, 选中内容逐行匹配正则（多行整体匹配使用正则选项 m）|一键直达说明|状态|一键直达运行（支持无路径、RunAny插件写法）
 	GuiControl, 66:-Redraw, RunAnyOneKeyLV
 	NYJLV := New ListView(YJLV)
 	For onekeyName, onekeyVal in OneKeyRunList
 	{
-		LV_Add("", OneKeyRegexList[onekeyName], onekeyName,OneKeyDisableList[onekeyName] ? "禁用" : "启用" ,onekeyName="一键公式计算" ? "内置功能输出结果" : onekeyVal)
+		LV_Add(OneKeyDisableList[onekeyName] ? "" : "Check", OneKeyRegexList[onekeyName], onekeyName
+			,OneKeyDisableList[onekeyName] ? "禁用" : "启用" ,onekeyName="一键公式计算" ? "内置功能输出结果" : onekeyVal)
 		if(OneKeyDisableList[onekeyName])
 			NYJLV.Color(A_Index,0x999999)
 	}
@@ -7441,6 +7442,17 @@ listviewRunAnyOneKey:
 	{
 		runAnyOneKeyItem:="编辑"
 		Gosub,RunA_One_Key_Edit
+	}
+	if (A_GuiEvent = "I"){
+		if(errorlevel == "c"){
+			RunAnyOneKeyFlag:=true
+			LV_Modify(A_EventInfo,"",,,"禁用")
+			NYJLV.Color(A_EventInfo,0x999999)
+		}else if(errorlevel == "C"){
+			RunAnyOneKeyFlag:=true
+			LV_Modify(A_EventInfo,"",,,"启用")
+			NYJLV.Color(A_EventInfo,0x000000)
+		}
 	}
 return
 LVRunAnyOneKeyAdd:
