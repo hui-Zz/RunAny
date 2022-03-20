@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.0.3 @2022.03.17
+║【RunAny】一劳永逸的快速启动工具 v5.8.0.4 @2022.03.20
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -24,8 +24,8 @@ global RunAnyZz:="RunAny"                    ;~;名称
 global PluginsDir:="RunPlugins"              ;~;插件目录
 global RunAnyConfig:="RunAnyConfig.ini"      ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini"    ;~;插件注册配置文件
-global RunAny_update_version:="5.8.0.3"      ;~;版本号
-global RunAny_update_time:="2022.03.17"      ;~;更新日期
+global RunAny_update_version:="5.8.0.4"      ;~;版本号
+global RunAny_update_time:="2022.03.20"      ;~;更新日期
 global iniPath:=A_ScriptDir "\RunAny.ini"    ;~;菜单1
 global iniPath2:=A_ScriptDir "\RunAny2.ini"  ;~;菜单2
 Gosub,Var_Set           ;~;01.参数初始化
@@ -4695,10 +4695,12 @@ Plugins_Gui:
 	Gui,PluginsManage:Default
 	Gui,PluginsManage:+Resize
 	Gui,PluginsManage:Font, s10, Microsoft YaHei
-	Gui,PluginsManage:Add, Listview, xm w730 r11 grid AltSubmit vRunAnyPluginsLV1 gPluginsListView
+	Gui,PluginsManage:Add, Listview, xm w730 r11 grid AltSubmit Checked vRunAnyPluginsLV1 hwndPLLV1 gPluginsListView1
 		, %listViewColumnName1%插件脚本|运行状态|自动启动|插件描述|插件说明地址
 	GuiControl,PluginsManage: -Redraw, RunAnyPluginsLV1
 	LV_SetImageList(PluginsImageListID)
+	NPLLV1 := New ListView(PLLV1)
+	NPLLV_Index:=0
 	For runn, runv in PluginsObjList
 	{
 		SplitPath,runn,,,,pname_no_ext
@@ -4708,19 +4710,25 @@ Plugins_Gui:
 		}else if(!PluginsObjRegGUID[pname_no_ext] && pname_no_ext!="RunAny_Menu" && pname_no_ext!="RunAny_ObjReg"){
 			Continue
 		}
+		NPLLV_Index++
 		runStatus:=rule_check_is_run(PluginsPathList[runn]) ? "启动" : ""
 		pluginsConfig:=runv ? "自启" : ""
 		if(!PluginsPathList[runn])
 			pluginsConfig:="未找到"
-		LV_Add(LVPluginsSetIcon(PluginsImageListID,runn), runn, runStatus, pluginsConfig, PluginsNameList[runn], PluginsHelpList[runn])
+		pluginsConfigChenk:=pluginsConfig="自启" ? "Check" : ""
+		LV_Add(LVPluginsSetIcon(PluginsImageListID,runn) " " pluginsConfigChenk, runn, runStatus, pluginsConfig, PluginsNameList[runn], PluginsHelpList[runn])
+		if(pluginsConfig!="自启" && !runStatus)
+			NPLLV1.Color(NPLLV_Index,0x999999)
 	}
 	GuiControl,PluginsManage: +Redraw, RunAnyPluginsLV1
 	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
 
-	Gui,PluginsManage:Add, Listview, xm y+10 w730 r12 grid AltSubmit vRunAnyPluginsLV2 gPluginsListView
+	Gui,PluginsManage:Add, Listview, xm y+10 w730 r12 grid AltSubmit Checked vRunAnyPluginsLV2 hwndPLLV2 gPluginsListView2
 		, %listViewColumnName2%插件脚本|运行状态|自动启动|插件描述|插件说明地址
 	GuiControl,PluginsManage: -Redraw, RunAnyPluginsLV2
 	LV_SetImageList(PluginsImageListID)
+	NPLLV2 := New ListView(PLLV2)
+	NPLLV_Index:=0
 	For runn, runv in PluginsObjList
 	{
 		SplitPath,runn,,,,pname_no_ext
@@ -4730,11 +4738,15 @@ Plugins_Gui:
 		}else if(PluginsObjRegGUID[pname_no_ext] || pname_no_ext="RunAny_Menu" || pname_no_ext="RunAny_ObjReg"){
 			Continue
 		}
+		NPLLV_Index++
 		runStatus:=rule_check_is_run(PluginsPathList[runn]) ? "启动" : ""
 		pluginsConfig:=runv ? "自启" : ""
 		if(!PluginsPathList[runn])
 			pluginsConfig:="未找到"
-		LV_Add(LVPluginsSetIcon(PluginsImageListID,runn), runn, runStatus, pluginsConfig, PluginsNameList[runn], PluginsHelpList[runn])
+		pluginsConfigChenk:=pluginsConfig="自启" ? "Check" : ""
+		LV_Add(LVPluginsSetIcon(PluginsImageListID,runn) " " pluginsConfigChenk, runn, runStatus, pluginsConfig, PluginsNameList[runn], PluginsHelpList[runn])
+		if(pluginsConfig!="自启" && !runStatus)
+			NPLLV2.Color(NPLLV_Index,0x999999)
 	}
 	GuiControl,PluginsManage: +Redraw, RunAnyPluginsLV2
 	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
@@ -4935,12 +4947,26 @@ Plugins_Edit(FilePath){
 	F10::Gosub,LVPluginsLib
 	F11::Gosub,LVPluginsCreate
 #If
-PluginsListView:
+PluginsListView1:
+PluginsListView2:
+	LV_Num:=A_ThisLabel="PluginsListView1" ? 1 : 2
     if A_GuiEvent = DoubleClick
     {
 		menuItem:="启动"
 		Gosub,LVApply
-    }
+    }else if(A_GuiEvent = "I"){
+		Gui,ListView,% PLLV%LV_Num%
+		LV_GetText(FileName, A_EventInfo, 1)
+		if(errorlevel == "c"){
+			IniWrite,0,%RunAnyConfig%,Plugins,%FileName%
+			NPLLV%LV_Num%.Color(A_EventInfo,0x999999)
+			LV_Modify(A_EventInfo, "", , ,"禁用")
+		}else if(errorlevel == "C"){
+			IniWrite,1,%RunAnyConfig%,Plugins,%FileName%
+			NPLLV%LV_Num%.Color(A_EventInfo,0x000000)
+			LV_Modify(A_EventInfo, "", , ,"自启")
+		}
+	}
 return
 ;~;【插件-下载插件】
 LVPluginsAdd:
@@ -6579,7 +6605,7 @@ Settings_Gui:
 			NYJLV.Color(A_Index,0x999999)
 	}
 	LV_ModifyCol()
-	LV_ModifyCol(1,270)
+	LV_ModifyCol(1,255)
 	LV_ModifyCol(2, "Sort Auto")  ; 排序
 	GuiControl, 66:+Redraw, RunAnyOneKeyLV
 	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h240 vvOneKeyUrlGroup,一键搜索选中文字 %OneHotKey%
@@ -7454,6 +7480,7 @@ listviewRunAnyOneKey:
 		Gosub,RunA_One_Key_Edit
 	}
 	if (A_GuiEvent = "I"){
+		Gui, ListView, RunAnyOneKeyLV
 		if(errorlevel == "c"){
 			RunAnyOneKeyFlag:=true
 			LV_Modify(A_EventInfo,"",,,"禁用")
@@ -7516,9 +7543,9 @@ SaveRunAnyOneKey:
 	}
 	Gui,66:Default
 	if(runAnyOneKeyItem="新建"){
-		LV_Add("",voneKeyRegex,voneKeyName,voneKeyStatus ? "启用" : "禁用",voneKeyRegexRun)
+		LV_Add("Check",voneKeyRegex,voneKeyName,voneKeyStatus ? "启用" : "禁用",voneKeyRegexRun)
 	}else{
-		LV_Modify(RunRowNumber,"",voneKeyRegex,voneKeyName,voneKeyStatus ? "启用" : "禁用",voneKeyRegexRun)
+		LV_Modify(RunRowNumber,voneKeyStatus ? "Check" : "-Check",voneKeyRegex,voneKeyName,voneKeyStatus ? "启用" : "禁用",voneKeyRegexRun)
 		LV_ModifyCol(2, "Sort")  ; 排序
 	}
 	Gui,OneKey:Destroy
