@@ -3084,7 +3084,10 @@ Get_Obj_Path_Transform(z_item){
 	itemPath:=Get_Transform_Val(z_item) ; 变量转换
 	objPathItem:=Get_Obj_Path(itemPath) ; 自动添加完整路径
 	if(objPathItem){
-		itemPath:=objPathItem . RegExReplace(itemPath,"iS).*?\.exe($| .*)","$1")
+		appParm:=RegExReplace(itemPath,"iS).*?\.exe($| .*)","$1")	;去掉应用名，取参数
+		if(appParm!=""){
+			itemPath:=objPathItem . appParm
+		}
 	}
 	return itemPath
 }
@@ -3152,11 +3155,18 @@ Remote_Dyna_Run(remoteRun, remoteGetZz, remoteFlag:=false){
 		}
 		return
 	}
+	global any:=remoteRun
 	if(RegExMatch(remoteRun,"S).+?\[.+?\]%?\(.*?\)")){
-		global any:=remoteRun
 		Gosub,Menu_Run_Plugins_ObjReg
 	}else{
-		Run_Any(Get_Obj_Path_Transform(remoteRun))
+		;[获取菜单项启动模式]
+		global itemMode:=Get_Menu_Item_Mode(any)
+		;[根据菜单项模式运行]
+		global returnFlag:=false
+		Gosub,Menu_Run_Mode_Label
+		if(returnFlag)
+			return
+		Run_Any(Get_Obj_Path_Transform(any))
 	}
 }
 ;[外部调用运行菜单项]
