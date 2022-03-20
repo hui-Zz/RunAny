@@ -6529,7 +6529,7 @@ Settings_Gui:
 	Gui,66:Add,Button, x+10 yp w50 GLVMenuObjPathSelect, A 全选
 	Gui,66:Add,Button, x+10 yp w75 GLVMenuObjPathSync, EV更新同步
 	Gui,66:Add,Text, x+15 yp-5,无路径说明：每次新增或移动无路径应用文件后`n会使用Everything获得它最新的运行全路径
-	Gui,66:Add,Listview,xm yp+40 r16 grid AltSubmit vRunAnyMenuObjPathLV hwndWLJLV glistviewMenuObjPath, 无路径应用名|当前电脑运行全路径（来自Everything）|%emptyReasonStr%
+	Gui,66:Add,Listview,xm yp+40 r16 grid AltSubmit vRunAnyMenuObjPathLV hwndWLJLV glistviewMenuObjPath, 无路径应用名(不能有等号=)|当前电脑运行全路径（来自Everything）|%emptyReasonStr%
 	RunAnyMenuObjPathImageListID := IL_Create(11)
 	Icon_Image_Set(RunAnyMenuObjPathImageListID)
 	GuiControl, 66:-Redraw, RunAnyMenuObjPathLV
@@ -6537,6 +6537,8 @@ Settings_Gui:
 	NWLJLV := New ListView(WLJLV)
 	Loop, parse, evFullPathIniVar, `n, `r
 	{
+		if(A_LoopField="")
+			continue
 		varList:=StrSplit(A_LoopField,"=",,2)
 		LV_Add(varList[2]="" ? "Icon3" : Set_Icon(RunAnyMenuObjPathImageListID,varList[2],false,false,varList[2])
 		    , varList[1], varList[2], MenuObjEvPathEmptyReason[(varList[1])])
@@ -8277,7 +8279,8 @@ Run_Exist:
 	CreateDir(RunABackupDirPath "\" RunAnyConfig)
 	CreateDir(RunAEvFullPathIniDirPath)
 	CreateDir(A_Temp "\" RunAnyZz)
-	IniRead, evFullPathIniVar, %RunAnyEvFullPathIni%, FullPath
+	FileRead, evFullPathIniVar, %RunAnyEvFullPathIni%
+	evFullPathIniVar:=StrReplace(evFullPathIniVar, "[FullPath]`r`n", "")
 	if(RunAEncoding){
 		try{
 			FileEncoding,%RunAEncoding%
