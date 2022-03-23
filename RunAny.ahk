@@ -6607,7 +6607,7 @@ Settings_Gui:
 			NYJLV.Color(A_Index,0x999999)
 	}
 	LV_ModifyCol()
-	LV_ModifyCol(1,255)
+	LV_ModifyCol(1,240)
 	LV_ModifyCol(2, "Sort Auto")  ; 排序
 	GuiControl, 66:+Redraw, RunAnyOneKeyLV
 	Gui,66:Add,GroupBox,xm-10 y+10 w%GROUP_WIDTH_66% h240 vvOneKeyUrlGroup,一键搜索选中文字 %OneHotKey%
@@ -6970,6 +6970,7 @@ SetOK:
 	;[保存无路径应用缓存]
 	if(MenuObjPathFlag){
 		Gui, ListView, RunAnyMenuObjPathLV
+		FileDelete, %RunAnyEvFullPathIni%
 		IniWrite, delete=1, %RunAnyEvFullPathIni%, FullPath
 		IniDelete, %RunAnyEvFullPathIni%, FullPath, delete
 		Loop % LV_GetCount()
