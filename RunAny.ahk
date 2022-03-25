@@ -162,7 +162,7 @@ if(EvDemandSearch){
 		MenuObj[objFileNameNoExeExt]:=varList[2]
 		MenuObjCache[outVarStr]:=varList[2]
 		;检查缓存中的无路径应用被删除或移动
-		if(Trim(varList[2]," `t`n`r")!="" && !FileExist(varList[2])){
+		if(Trim(varList[2]," `t`r`n")!="" && !FileExist(varList[2])){
 			MenuObjCache[outVarStr]:=""  ;缓存失效则置空
 			if(RegExMatch(outVarStr, RegexEscapeNoPointStr)){
 				outVarStr:=StrListEscapeReplace(outVarStr, RegexEscapeNoPointList, "\")
@@ -176,7 +176,7 @@ if(EvDemandSearch){
 		}
 	}
 	;发现有新增的无路径菜单项
-	if(Trim(evFullPathIniVar," `t`n`r")!=""){
+	if(Trim(evFullPathIniVar," `t`r`n")!=""){
 		NoPathFlag:=true
 		for k,v in MenuObjSearch
 		{
@@ -384,7 +384,7 @@ if(iniFlag){
 	Gosub,Menu_Show1
 }
 ;~;[24.检查无路径应用缓存是否有新的版本]
-if(NoPathFlag && !EvNo && Trim(evFullPathIniVar," `t`n`r")!="" && rule_check_is_run("Everything.exe")){
+if(NoPathFlag && !EvNo && Trim(evFullPathIniVar," `t`r`n")!="" && rule_check_is_run("Everything.exe")){
 	Gosub,RunAEvFullPathSync
 }
 ;~;[25.记录ini文件修改时间]
@@ -1151,7 +1151,7 @@ Menu_Show:
 		}
 		if(!extMenuHideFlag && !noGetZz)
 			getZz:=Get_Zz()
-		selectCheck:=Trim(getZz," `t`n`r")
+		selectCheck:=Trim(getZz," `t`r`n")
 		if(selectCheck=""){
 			;#无选中内容
 			;加载顺序：无Everything菜单 -> 无图标菜单 -> 有图标无路径识别菜单
@@ -1426,7 +1426,7 @@ Menu_All_Show:
 	Menu_Show_Show(menuDefaultRoot%MENU_NO%[1],getZz)
 return
 Menu_Show_Show(menuName, itemName, Candy_isFile:=0){
-	selectCheck:=Trim(itemName," `t`n`r")
+	selectCheck:=Trim(itemName," `t`r`n")
 	if(!HideSelectZz && selectCheck!=""){
 		if(StrLen(itemName)>ShowGetZzLen)
 			itemName:=SubStr(itemName, 1, ShowGetZzLen) . "..."
@@ -1698,7 +1698,7 @@ Menu_Run:
 			any:=StrReplace(any,"%getZz%","""%getZz%""")
 		}
 		any:=Get_Transform_Val(any)
-		any:=RTrim(any," `t`n`r")
+		any:=RTrim(any," `t`r`n")
 		anyRun:=""
 		if(getZz="" && !Candy_isFile){
 			;[打开应用所在目录，只有目录则直接打开]
@@ -1930,7 +1930,7 @@ Menu_Key_Run_Run:
 			any:=StrReplace(any,"%getZz%","""%getZz%""")
 		}
 		any:=Get_Transform_Val(any)
-		any:=RTrim(any," `t`n`r")
+		any:=RTrim(any," `t`r`n")
 		;[打开文件夹]
 		if(itemMode=7 && InStr(FileExist(any), "D")){
 			WinGetClass,pclass,A
@@ -2343,7 +2343,7 @@ Ev_Show:
 	getZz:=Get_Zz()
 	EverythingIsRun()
 	evSearch:=EvShowFolderSpace:=""
-	if(Trim(getZz," `t`n`r")!=""){
+	if(Trim(getZz," `t`r`n")!=""){
 		getZzLength:=StrSplit(getZz,"`n").Length()
 		Loop, parse, getZz, `n, `r
 		{
@@ -2471,7 +2471,7 @@ SkSub_UrlEncode(str, enc="UTF-8")
    encoded .= hex
    Return encoded
 }
-;[拼接字符]
+;[拼接字符Zz]
 StrJoin(sep, params*) {
 	str:=""
 	for index,param in params
@@ -2481,7 +2481,7 @@ StrJoin(sep, params*) {
 	}
 	return SubStr(str, 1, -StrLen(sep))
 }
-;[数组拼接字符]
+;[数组拼接字符Zz]
 StrListJoin(sep, paramList, join:=":"){
 	str:=""
 	for index,param in paramList
@@ -3524,7 +3524,7 @@ TVClick:
 		TV_GetText(selVar, A_EventInfo)
 		if(!RegExMatch(selVar,"S)^-+[^-]+.*"))
 			Gosub,TVEdit
-	}else if (A_GuiControl = "RunAnyTV") {
+	}else if (A_GuiEvent == "Normal" && A_GuiControl = "RunAnyTV") {
 		TV_Modify(A_EventInfo, "Select Vis")
 		TV_CheckUncheckWalk(A_GuiEvent,A_EventInfo,A_GuiControl)
 	}
@@ -4916,7 +4916,7 @@ return
 ;[插件脚本编辑操作]
 Plugins_Edit(FilePath){
 	try{
-		if(Trim(PluginsEditor," `t`n`r")!=""){
+		if(Trim(PluginsEditor," `t`r`n")!=""){
 			Run,% Get_Obj_Path_Transform(PluginsEditor) A_Space """" FilePath """"
 		}else{
 			PostMessage, 0x111, 65401,,, %FilePath% ahk_class AutoHotkey
@@ -9033,7 +9033,7 @@ RunCtrl_RunApps(path,noPath,repeatRun:=0,adminRun:=0,runWay:=1){
 		global RunCtrlAdminRunVal:=adminRun
 		global RunCtrlRunWayVal:=runWay
 		if(noPath){
-			tfPath:=Get_Obj_Transform_Name(Trim(path," `t`n`r"))
+			tfPath:=Get_Obj_Transform_Name(Trim(path," `t`r`n"))
 			if(!repeatRun && runWay!=6 && rule_check_is_run(MenuObj[tfPath])){
 				return
 			}
