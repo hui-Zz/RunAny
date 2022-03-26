@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.0.4 @2022.03.20
+║【RunAny】一劳永逸的快速启动工具 v5.8.1 @2022.03.26
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -24,8 +24,8 @@ global RunAnyZz:="RunAny"                    ;~;名称
 global PluginsDir:="RunPlugins"              ;~;插件目录
 global RunAnyConfig:="RunAnyConfig.ini"      ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini"    ;~;插件注册配置文件
-global RunAny_update_version:="5.8.0.4"      ;~;版本号
-global RunAny_update_time:="2022.03.20"      ;~;更新日期
+global RunAny_update_version:="5.8.1"        ;~;版本号
+global RunAny_update_time:="2022.03.26"      ;~;更新日期
 global iniPath:=A_ScriptDir "\RunAny.ini"    ;~;菜单1
 global iniPath2:=A_ScriptDir "\RunAny2.ini"  ;~;菜单2
 Gosub,Var_Set           ;~;01.参数初始化
