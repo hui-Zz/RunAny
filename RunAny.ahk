@@ -1,5 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
+║【RunAny】一劳永逸的快速启动工具 v5.8.1 @2022.03.27
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
