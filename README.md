@@ -234,8 +234,8 @@ RunAny追求就是：<u>**一劳永逸**</u>
 | AHK-工兵（4）  | 2019-08-22 12:13:49 | L*u               | 2021-12-04 09:54:21 |
 | AHK-工兵（5）  | 2019-08-23 15:22:22 | **AHK-工兵（7）** | 2021-12-06 19:28:38 |
 | Mr.Liu         | 2019-08-23 15:24:37 | *晔               | 2021-12-31 18:21:26 |
-| 过客           | 2019-10-01 14:33:37 | **S*w（3）**      | 2022-01-03 09:09:32 |
-|                |                     |                   |                     |
+| 过客           | 2019-10-01 14:33:37 | **S\*w（3）**      | 2022-01-03 09:09:32 |
+|                |                     | Mickey            | 2022-03-15 14:30:54 |
 
 ---
 ![GitHub release](https://img.shields.io/github/release/hui-Zz/RunAny?style=social) ![GitHub stars](https://img.shields.io/github/stars/hui-Zz/RunAny.svg?style=social) ![Lines of code](https://img.shields.io/tokei/lines/github/hui-Zz/RunAny?style=social&logo=github) ![history](https://img.shields.io/badge/2017--2022-yellowgreen.svg?style=social&logo=github) [![Autohotkey](https://img.shields.io/badge/Autohotkey-1.1.33.10-white.svg?style=social&logo=autohotkey)![GitHub top language](https://img.shields.io/github/languages/top/hui-Zz/RunAny?style=social&logo=autohotkey)](http://ahkscript.org) ![windows](https://img.shields.io/badge/Windows-0078D6?style=social&logo=windows) [![码云Gitee](https://img.shields.io/badge/dynamic/json?style=flat-square&label=stars&logo=gitee&logoColor=red&url=https://gitee.com/api/v5/repos/hui-Zz/RunAny&query=$.stargazers_count)](https://gitee.com/hui-Zz/RunAny)
