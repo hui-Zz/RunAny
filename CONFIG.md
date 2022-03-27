@@ -49,6 +49,8 @@ QQ.exe
 
 ## 【菜单动态显示分类配置】
 
+![RunAny菜单打开功能图](/assets/images/RunAny菜单打开功能图.png)
+
 选中视频文件按<kbd>\`</kbd>只弹出`影音(&Video)`分类内容，多款播放软件选择使用
 
 ![RunAny新增修改菜单分类](/assets/images/RunAny新增修改菜单分类.jpg)
