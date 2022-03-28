@@ -6617,7 +6617,7 @@ Settings_Gui:
 	Gui,66:Add,Checkbox,Checked%OneKeyMenu% x+38 vvOneKeyMenu,绑定菜单1热键为一键搜索
 	Gui,66:Add,Text,xm y+15 w325,一键搜索网址(`%s为选中文字的替代参数，多行搜索多个网址)
 	Gui,66:Add,Edit,xm yp+20 r3 vvOneKeyUrl,%OneKeyUrl%
-	Gui,66:Add,Text,xm y+15 w325,非默认浏览器打开网址(适用一键搜索和一键网址直达)
+	Gui,66:Add,Text,xm y+15 w600,一键搜索非默认浏览器打开网址（新版一键网址直达请在上面列表中设置一键打开网址：浏览器.exe "`%getZz`%"）
 	Gui,66:Add,Button,xm yp+20 w50 GSetBrowserPath,选择
 	Gui,66:Add,Edit,xm+60 yp r2 -WantReturn vvBrowserPath,%BrowserPath%
 	
