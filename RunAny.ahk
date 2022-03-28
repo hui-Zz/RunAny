@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.1 @2022.03.27
+║【RunAny】一劳永逸的快速启动工具 v5.8.1 @2022.03.28
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -25,7 +25,7 @@ global PluginsDir:="RunPlugins"              ;~;插件目录
 global RunAnyConfig:="RunAnyConfig.ini"      ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini"    ;~;插件注册配置文件
 global RunAny_update_version:="5.8.1"        ;~;版本号
-global RunAny_update_time:="2022.03.27"      ;~;更新日期
+global RunAny_update_time:="2022.03.28"      ;~;更新日期
 global iniPath:=A_ScriptDir "\RunAny.ini"    ;~;菜单1
 global iniPath2:=A_ScriptDir "\RunAny2.ini"  ;~;菜单2
 Gosub,Config_Set        ;~;01.配置初始化
@@ -3084,8 +3084,8 @@ Get_Obj_Path_Transform(z_item){
 	itemPath:=Get_Transform_Val(z_item) ; 变量转换
 	objPathItem:=Get_Obj_Path(itemPath) ; 自动添加完整路径
 	if(objPathItem && itemPath!=objPathItem){
-		itemPath:=objPathItem
 		appParm:=RegExReplace(itemPath,"iS).*?\.exe($| .*)","$1")	;去掉应用名，取参数
+		itemPath:=objPathItem
 		if(appParm!=""){
 			itemPath:=objPathItem . appParm
 		}
@@ -7485,14 +7485,19 @@ listviewRunAnyOneKey:
 	}
 	if (A_GuiEvent = "I"){
 		Gui, ListView, RunAnyOneKeyLV
+		LV_GetText(oneKeyStatus, A_EventInfo, 3)
 		if(errorlevel == "c"){
-			RunAnyOneKeyFlag:=true
-			LV_Modify(A_EventInfo,"",,,"禁用")
-			NYJLV.Color(A_EventInfo,0x999999)
+			if(oneKeyStatus!="禁用"){
+				RunAnyOneKeyFlag:=true
+				LV_Modify(A_EventInfo,"",,,"禁用")
+				NYJLV.Color(A_EventInfo,0x999999)
+			}
 		}else if(errorlevel == "C"){
-			RunAnyOneKeyFlag:=true
-			LV_Modify(A_EventInfo,"",,,"启用")
-			NYJLV.Color(A_EventInfo,0x000000)
+			if(oneKeyStatus!="启用"){
+				RunAnyOneKeyFlag:=true
+				LV_Modify(A_EventInfo,"",,,"启用")
+				NYJLV.Color(A_EventInfo,0x000000)
+			}
 		}
 	}
 return
@@ -8004,11 +8009,15 @@ Config_Set:
 	global MenuXButton2Key:=Var_Read("MenuXButton2Key",0)
 	global MenuMButtonKey:=Var_Read("MenuMButtonKey",0)
 	;[一键直达]
+	global BrowserPath:=Var_Read("BrowserPath")
 	global OneKeyRun:={"一键公式计算":""
 		,"一键打开文件":"runany[Run_Any](%getZz%)"
 		,"一键打开目录":"runany[Open_Folder_Path](%getZz%)"
 		,"一键打开网址":"runany[Run_Search](%getZz%)"
 		,"一键磁力链接":"runany[Run_Any](%getZz%)"}
+	if(BrowserPath!=""){
+		OneKeyRun["一键打开网址"]:=BrowserPath " %getZz%"
+	}
 	global OneKeyRegex:={"一键公式计算":"S)^[\(\)\.\s\d]*\d+\s*[+*/-]+[\(\)\.+*/-\d\s]+($|=$)"
 		,"一键打开文件":"S)^(\\\\|.:\\).*?\..+"
 		,"一键打开目录":"S)^(\\\\|.:\\)"
@@ -8217,7 +8226,6 @@ return
 ;~;【内部关联后缀打开方式】
 Open_Ext_Set:
 	;支持一键直达浏览器无路径识别
-	global BrowserPath:=Var_Read("BrowserPath")
 	global BrowserPathRun:=Get_Obj_Path_Transform(BrowserPath)
 	global openExtIniList:={}
 	global openExtRunList:={}
