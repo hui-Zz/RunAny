@@ -8016,7 +8016,7 @@ Config_Set:
 		,"一键打开网址":"runany[Run_Search](%getZz%)"
 		,"一键磁力链接":"runany[Run_Any](%getZz%)"}
 	if(BrowserPath!=""){
-		OneKeyRun["一键打开网址"]:=BrowserPath " %getZz%"
+		OneKeyRun["一键打开网址"]:=BrowserPath " ""%getZz%"""
 	}
 	global OneKeyRegex:={"一键公式计算":"S)^[\(\)\.\s\d]*\d+\s*[+*/-]+[\(\)\.+*/-\d\s]+($|=$)"
 		,"一键打开文件":"S)^(\\\\|.:\\).*?\..+"
