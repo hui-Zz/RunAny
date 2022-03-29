@@ -1,7 +1,7 @@
 ﻿/*
 【ObjReg插件对象注册工具（不用自启）】
 */
-global RunAny_Plugins_Version:="1.0.3"
+global RunAny_Plugins_Version:="1.0.4"
 SplitPath, A_LineFile,,RunAny_ObjReg_Dir
 global RunAny_ObjReg:=RunAny_ObjReg_Dir "\RunAny_ObjReg.ini" ;~插件注册配置文件
 global objreg:="objreg"
@@ -20,7 +20,7 @@ if(!objGUID && nameNotExt!="RunAny_ObjReg"){
 	if ErrorLevel
 	{
         WinGet, RunAnyPath, ProcessPath, ahk_exe RunAny.exe
-        Run,%RunAnyPath%
+        RunAny_Send_WM_COPYDATA("Menu_Reload","RunAny.ahk ahk_class AutoHotkey")
     }
     IfWinExist, RunAny.ahk ahk_class AutoHotkey
     {
@@ -61,4 +61,23 @@ CreateGUID()
             return StrGet(&sguid)
     }
     return ""
+}
+;[AHK脚本间传递消息]
+RunAny_Send_WM_COPYDATA(ByRef StringToSend, ByRef TargetScriptTitle)
+{
+    VarSetCapacity(CopyDataStruct, 3*A_PtrSize, 0)  ; 分配结构的内存区域.
+    ; 首先设置结构的 cbData 成员为字符串的大小, 包括它的零终止符:
+    SizeInBytes := (StrLen(StringToSend) + 1) * (A_IsUnicode ? 2 : 1)
+    NumPut(SizeInBytes, CopyDataStruct, A_PtrSize)  ; 操作系统要求这个需要完成.
+    NumPut(&StringToSend, CopyDataStruct, 2*A_PtrSize)  ; 设置 lpData 为到字符串自身的指针.
+    Prev_DetectHiddenWindows := A_DetectHiddenWindows
+    Prev_TitleMatchMode := A_TitleMatchMode
+    DetectHiddenWindows On
+    SetTitleMatchMode 2
+    TimeOutTime := 4000  ; 可选的. 等待 receiver.ahk 响应的毫秒数. 默认是 5000
+    ; 必须使用发送 SendMessage 而不是投递 PostMessage.
+    SendMessage, 0x004A, 0, &CopyDataStruct,, %TargetScriptTitle%  ; 0x004A 为 WM_COPYDAT
+    DetectHiddenWindows %Prev_DetectHiddenWindows%  ; 恢复调用者原来的设置.
+    SetTitleMatchMode %Prev_TitleMatchMode%         ; 同样.
+    return ErrorLevel  ; 返回 SendMessage 的回复给我们的调用者.
 }
