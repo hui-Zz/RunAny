@@ -58,7 +58,14 @@
 
 如果选中的文字就是网址，那按<kbd>\`</kbd>直接会在浏览器打开。
 
-如果是文件夹目录、文件路径、磁力链接，一样一键打开，**就是这么高效！**
+- 按<kbd>\`</kbd>一键打开选中路径的文件或程序
+- 按<kbd>\`</kbd>一键打开选中路径的文件夹
+- 按<kbd>\`</kbd>一键用默认BT下载工具下载选中磁力链接
+- 按<kbd>\`</kbd>一键打开注册表路径并自动定位到键值
+**<font color="red">v5.8.1新功能：可用正则实现自定义一键直达！</font>**  
+如：bilibili的BV号跳转、IP地址选中一键ping、选中23位字母（1qxbYAx0UA-u1dkoY-RXZJg）一键跳转百度云  
+**选中的内容中含有7大网盘地址，就可以智能识别出网址和提取码，自动打开（百度网盘、蓝奏云、阿里云盘、微云、天翼云、和彩云、迅雷云盘）**
+![RunAny一键正则直达功能](https://hui-zz.github.io/RunAny/assets/images/RunAny一键正则直达功能.jpg)
 
 <img src="https://hui-zz.github.io/RunAny/assets/images/RunAny一键直达功能.gif" alt="RunAny一键直达功能">
 
