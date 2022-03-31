@@ -4667,6 +4667,7 @@ Plugins_Gui:
 		Open_Folder_Path(A_ScriptDir "\" PluginsDir)
 		return
 	}
+	Critical  ;防止短时间内打开多次界面出现问题
 	Gosub,Plugins_Read
 	;根据网络自动选择对应插件说明网页地址
 	pagesPluginsUrl:=RunAnyGiteePages . "/runany/#"
@@ -4719,8 +4720,9 @@ Plugins_Gui:
 		if(pluginsConfig!="自启" && !runStatus)
 			NPLLV1.Color(NPLLV_Index,0x999999)
 	}
-	GuiControl,PluginsManage: +Redraw, RunAnyPluginsLV1
+	LV_ModifyCol(ColumnStatus, "SortDesc")  ; 排序
 	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
+	GuiControl,PluginsManage: +Redraw, RunAnyPluginsLV1
 
 	Gui,PluginsManage:Add, Listview, xm y+10 w730 r12 grid AltSubmit Checked vRunAnyPluginsLV2 hwndPLLV2 gPluginsListView2
 		, %listViewColumnName2%插件脚本|运行状态|自动启动|插件描述|插件说明地址
@@ -4747,12 +4749,14 @@ Plugins_Gui:
 		if(pluginsConfig!="自启" && !runStatus)
 			NPLLV2.Color(NPLLV_Index,0x999999)
 	}
-	GuiControl,PluginsManage: +Redraw, RunAnyPluginsLV2
+	LV_ModifyCol(ColumnStatus, "SortDesc")  ; 排序
 	LVModifyCol(65,ColumnStatus,ColumnAutoRun)
+	GuiControl,PluginsManage: +Redraw, RunAnyPluginsLV2
 	LVMenu("LVMenu")
 	LVMenu("ahkGuiMenu")
 	Gui,PluginsManage: Menu, ahkGuiMenu
 	Gui,PluginsManage:Show, , %RunAnyZz% 插件管理 - 支持拖放 %RunAny_update_version% %RunAny_update_time%%AdminMode%
+	Critical,Off
 return
 
 LVMenu(addMenu){
@@ -4956,11 +4960,12 @@ PluginsListView2:
     }else if(A_GuiEvent = "I"){
 		Gui,ListView,% PLLV%LV_Num%
 		LV_GetText(FileName, A_EventInfo, 1)
-		if(errorlevel == "c"){
+		LV_GetText(FileAutoRun, A_EventInfo, 3)
+		if(errorlevel == "c" && FileAutoRun="自启"){
 			IniWrite,0,%RunAnyConfig%,Plugins,%FileName%
 			NPLLV%LV_Num%.Color(A_EventInfo,0x999999)
 			LV_Modify(A_EventInfo, "", , ,"禁用")
-		}else if(errorlevel == "C"){
+		}else if(errorlevel == "C" && FileAutoRun="禁用"){
 			IniWrite,1,%RunAnyConfig%,Plugins,%FileName%
 			NPLLV%LV_Num%.Color(A_EventInfo,0x000000)
 			LV_Modify(A_EventInfo, "", , ,"自启")
@@ -7484,18 +7489,14 @@ listviewRunAnyOneKey:
 	if (A_GuiEvent = "I"){
 		Gui, ListView, RunAnyOneKeyLV
 		LV_GetText(oneKeyStatus, A_EventInfo, 3)
-		if(errorlevel == "c"){
-			if(oneKeyStatus!="禁用"){
-				RunAnyOneKeyFlag:=true
-				LV_Modify(A_EventInfo,"",,,"禁用")
-				NYJLV.Color(A_EventInfo,0x999999)
-			}
-		}else if(errorlevel == "C"){
-			if(oneKeyStatus!="启用"){
-				RunAnyOneKeyFlag:=true
-				LV_Modify(A_EventInfo,"",,,"启用")
-				NYJLV.Color(A_EventInfo,0x000000)
-			}
+		if(errorlevel == "c" && oneKeyStatus!="禁用"){
+			RunAnyOneKeyFlag:=true
+			LV_Modify(A_EventInfo,"",,,"禁用")
+			NYJLV.Color(A_EventInfo,0x999999)
+		}else if(errorlevel == "C" && oneKeyStatus!="启用"){
+			RunAnyOneKeyFlag:=true
+			LV_Modify(A_EventInfo,"",,,"启用")
+			NYJLV.Color(A_EventInfo,0x000000)
 		}
 	}
 return
