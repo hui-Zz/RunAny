@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.1 @2022.03.28
+║【RunAny】一劳永逸的快速启动工具 v5.8.1 @2022.03.31
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -25,7 +25,7 @@ global PluginsDir:="RunPlugins"              ;~;插件目录
 global RunAnyConfig:="RunAnyConfig.ini"      ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini"    ;~;插件注册配置文件
 global RunAny_update_version:="5.8.1"        ;~;版本号
-global RunAny_update_time:="2022.03.28"      ;~;更新日期
+global RunAny_update_time:="2022.03.31"      ;~;更新日期
 global iniPath:=A_ScriptDir "\RunAny.ini"    ;~;菜单1
 global iniPath2:=A_ScriptDir "\RunAny2.ini"  ;~;菜单2
 Gosub,Config_Set        ;~;01.配置初始化
@@ -986,7 +986,7 @@ Menu_HotStr_Hint_Run:
 		ToolTip,%HintTip%
 	else
 		ToolTip,%HintTip%,% MouseX+HotStrShowX,% MouseY+HotStrShowY
-	Sleep,100
+	WinWait,ahk_class tooltips_class32,,0
 	WinSet, Transparent, % HotStrShowTransparent/100*255, ahk_class tooltips_class32
 	SetTimer,RemoveToolTip,%HotStrShowTime%
 return
@@ -1342,9 +1342,7 @@ Menu_Show:
 				{
 					if(name !="一键公式计算" && !OneKeyDisableList[name] && regex!="" && OneKeyRunList[name] && RegExMatch(S_LoopField, regex)){
 						if((name="一键打开目录" && !InStr(FileExist(S_LoopField), "D")) 
-								|| (name="一键打开文件" && (!FileExist(S_LoopField) || InStr(FileExist(S_LoopField), "D")))
-								|| (name="一键打开网址" && OneKeyRegexList["网盘链接识别"] && !OneKeyDisableList["网盘链接识别"] 
-									&& RegExMatch(S_LoopField, OneKeyRegexList["网盘链接识别"])) ){
+								|| (name="一键打开文件" && (!FileExist(S_LoopField) || InStr(FileExist(S_LoopField), "D")))){
 							continue
 						}
 						Remote_Dyna_Run(OneKeyRunList[name], S_LoopField)
