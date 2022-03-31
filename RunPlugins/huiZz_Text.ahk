@@ -3,7 +3,7 @@
 ;*             by hui-Zz 
 ;************************
 global RunAny_Plugins_Name:="ObjReg文本操作脚本"
-global RunAny_Plugins_Version:="1.3.1"
+global RunAny_Plugins_Version:="1.3.2"
 global RunAny_Plugins_Icon:="SHELL32.dll,270"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
@@ -204,7 +204,7 @@ class RunAnyObj {
 			return
 		}
 		;百度网盘
-		RegExMatch(getZz,"i)((?:yun|pan)\.baidu\.com\/s\/)?(?![a-zA-Z]{23})(?![0-9]{23})(?!-{23})([a-z-\dA-Z])`{23`}",url)
+		RegExMatch(getZz,"i)((?:yun|pan)\.baidu\.com\/s\/)?(?<![A-Z]|[a-z]|[0-9]|-)(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])([A-Za-z0-9_\-])`{23`}$",url)
 		if(url=""){
 			RegExMatch(getZz,"i)(?:yun|pan)\.baidu\.com\/s\/[A-Za-z0-9_\-]+",url)
 		}
