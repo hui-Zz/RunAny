@@ -17,7 +17,7 @@
 - ☑ 一键菜单分类界面，找应用零记忆负担，快搜索启动几倍效率
 - ☑ 分类定位，三键启动，极简极速
 - ☑ 一次配置，到处运行，永久使用
-- ☑ [一键直达](#oneKey)，[一键计算](#oneKeyCalc)，[一键批量搜索](#oneKeySearch)
+- ☑ [一键直达](#oneKey) <font color="red"><b>全新升级自定义正则直达！</b></font>，[一键计算](#oneKeyCalc)，[一键批量搜索](#oneKeySearch)
 - ☑ [全局热键，热键映射](#advancedConfig)，[热字符串](https://hui-zz.github.io/RunAny/#/hotstring)，多样快捷
 - ☑ [短语输出](#wordOutput)，[透明化启动](#advancedConfig)，[快捷打开文件方式](#quickOpenFile)
 - ☑ [外接脚本，个性函数，自由定制](#runPlugins)
