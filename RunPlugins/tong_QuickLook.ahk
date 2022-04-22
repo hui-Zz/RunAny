@@ -1,7 +1,7 @@
 ﻿;****************************
-;* 【基于RA内部关联实现快速预览：空格打开，ESC关闭，需要生效的资源管理器需要自己添加（默认：win、q-dir、ev）】 *
+;* 【基于RA内部关联实现快速预览：空格打开，ESC关闭】 *
 ;****************************
-global RunAny_Plugins_Version:="1.0.3"
+global RunAny_Plugins_Version:="1.0.4"
 global RunAny_Plugins_Icon:="shell32.dll,246"
 ;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
 
@@ -25,18 +25,27 @@ Label_ScriptSetting: ;脚本前参数设置
 	SendMode Input									;更速度和可靠方式发送键盘点击
 	SetTitleMatchMode 2								;窗口标题模糊匹配;RegEx正则匹配
 	DetectHiddenWindows on							;显示隐藏窗口
-	; SetWorkingDir, DirName
-	
 
-Label_DefVar: ;初始化变量
-	;添加资源管理器
-	GroupAdd, Explorer, ahk_class ExploreWClass
+Label_Custom: ;用户自定义资源管理器
+	;添加资源管理器（需要生效的在此添加，不需要的注释或删除）
+	GroupAdd, Explorer, ahk_class ExploreWClass		;win资源管理器（下面三个都是）
 	GroupAdd, Explorer, ahk_class CabinetWClass
 	GroupAdd, Explorer, ahk_class WorkerW
-	GroupAdd, Explorer, ahk_exe Q-Dir_x64.exe
-	GroupAdd, Explorer, ahk_exe Everything.exe
-	GroupAdd, Explorer, ahk_exe TOTALCMD.EXE
+	GroupAdd, Explorer, ahk_exe Q-Dir_x64.exe 		;Q-Dir资源管理器
+	GroupAdd, Explorer, ahk_exe Everything.exe 		;Everything资源管理器
+	GroupAdd, Explorer, ahk_exe XYplorer.exe 		;XYplorer资源管理器
+	GroupAdd, Explorer, ahk_exe dopus.exe 			;Directory Opus资源管理器
+	GroupAdd, Explorer, ahk_exe TOTALCMD.EXE 		;TC资源管理器
+	GroupAdd, Explorer, ahk_exe doublecmd.exe 		;DC资源管理器
+	GroupAdd, Explorer, ahk_class _cls_desk_ 		;酷呆桌面
+	GroupAdd, Explorer, ahk_exe DesktopMgr64.exe  	;腾讯桌面
 
+	;获取选中文件信息最多等待1.5s的应用
+	GroupAdd, ClipWaitGUI, ahk_exe TOTALCMD.EXE  	;TC资源管理器
+	GroupAdd, ClipWaitGUI, ahk_exe TCMDX64.EXE  	;TC资源管理器64位
+	GroupAdd, ClipWaitGUI, ahk_exe TCMDX32.EXE  	;TC资源管理器32位
+
+Label_DefVar: ;初始化变量
 	global SpaceExePidObj := Object()
 	global openExtRunList := Object()
 	global RunAEvFullPathIniDir
@@ -53,31 +62,34 @@ Label_ReadExtRunList: ;读取内部关联
 		INI_Open_Exe_Parm := ""
 		itemList := StrSplit(A_LoopField,"=",,2)
 		Transform, INI_Open_Exe, Deref, % itemList[1]
-		INI_Open_Exe_Parm_Pos := InStr(INI_Open_Exe, " ")
+		INI_Open_Exe_Parm_Pos := InStr(INI_Open_Exe, ".exe ")
 		If (INI_Open_Exe_Parm_Pos!=0){
-			INI_Open_Exe_Parm := SubStr(INI_Open_Exe, INI_Open_Exe_Parm_Pos+1)
-			INI_Open_Exe := SubStr(INI_Open_Exe, 1, INI_Open_Exe_Parm_Pos-1)
+			INI_Open_Exe_Parm := SubStr(INI_Open_Exe, INI_Open_Exe_Parm_Pos+5)
+			INI_Open_Exe := SubStr(INI_Open_Exe, 1, INI_Open_Exe_Parm_Pos+3)
 		}
 		INI_Open_Exe := GetOpenExe(INI_Open_Exe)
-		Loop, parse,% itemList[2], %A_Space%
-		{
-			extLoopField:=RegExReplace(A_LoopField,"^\.","")
-			If (INI_Open_Exe != "")
-				openExtRunList[extLoopField] := INI_Open_Exe A_Space INI_Open_Exe_Parm
-		}
+		If (INI_Open_Exe!=""){
+			Loop, parse,% itemList[2], %A_Space%
+			{
+				extLoopField:=RegExReplace(A_LoopField,"^\.","")
+				If (INI_Open_Exe_Parm="")
+					openExtRunList[extLoopField] := INI_Open_Exe
+				Else
+					openExtRunList[extLoopField] := INI_Open_Exe A_Space INI_Open_Exe_Parm
+			}
+		}	
 	}
 Return
 
-GetOpenExe(OpenExe){ ;获取打开后缀的应用(无路径)
-	If !FileExist(OpenExe){
-		IniRead, OpenExe, %RunAEvFullPathIniDir%\RunAnyEvFullPath.ini, FullPath, %OpenExe%, %A_Space%
-		If !FileExist(OpenExe)
-			OpenExe := ""
-	}
+;获取打开后缀的应用(无路径)
+GetOpenExe(OpenExe){
+	If !FileExist(OpenExe)
+		IniRead, OpenExe, %RunAEvFullPathIniDir%\RunAnyEvFullPath.ini, FullPath, %OpenExe%, %OpenExe%
 	Return OpenExe
 }
 
-Get_Zz(copyKey:="^c"){ ;获取选中内容
+;获取选中内容
+Get_Zz(copyKey:="^c",extraHotKey:=""){
 	global Candy_isFile
 	global Candy_Select
 	Candy_isFile:=0
@@ -86,16 +98,20 @@ Get_Zz(copyKey:="^c"){ ;获取选中内容
 	if(GetZzCopyKey!="" && GetZzCopyKeyApp!="" && WinActive("ahk_group GetZzCopyKeyAppGUI"))
 		copyKey:=GetZzCopyKey
 	SendInput,%copyKey%
-	if (ClipWaitTime != 0.1) && WinActive("ahk_group ClipWaitGUI"){
-		ClipWait,%ClipWaitTime%
+	SendInput,{Ctrl up}
+	if WinActive("ahk_group ClipWaitGUI"){
+		ClipWait,1.5
 	}else{
 		ClipWait,0.1
 	}
 	If(ErrorLevel){
 		Clipboard:=Candy_Saved
+		SendInput,{%extraHotKey%}
 		return ""
 	}
 	Candy_isFile:=DllCall("IsClipboardFormatAvailable","UInt",15)
+	If !Candy_isFile
+		SendInput,{%extraHotKey%}
 	CandySel=%Clipboard%
 	Candy_Select=%ClipboardAll%
 	Clipboard:=Candy_Saved
@@ -124,31 +140,44 @@ CheckSpaceExePid:
 	}
 Return
 
+RunFile: ;内部关联程序运行选中文件
+	selectFile:=RegExReplace(selectFile,"S)(.*)(\n|\r).*","$1")  ;取第一行
+	SplitPath, selectFile,FileName,, FileExt  ; 获取文件扩展名.
+	If (FileExt="lnk") {
+		FileGetShortcut, %selectFile%, selectFile
+		SplitPath, selectFile,FileName,, FileExt
+	}Else If (FileExt=""){
+		FileGetSize, FileSize, %selectFile%
+		if FileSize=0
+			FileExt := "folder"
+		Else
+			FileExt := "file"
+	}
+	selectFileOpenExe := openExtRunList[FileExt]
+	try
+		Run, %selectFileOpenExe% "%selectFile%",,,OutputVarPID
+	Catch {
+		try {
+			Run, "%selectFile%", , , OutputVarPID
+		}Catch {
+			SendInput {Enter}
+		}
+	}
+	SpaceExePidObj[OutputVarPID] := OutputVarPID ;保存已开启的程序pid
+	SetTimer,CheckSpaceExePid,5000 ;对于手动关闭的程序pid从中去除
+Return
+
 ;在资源管理器中生效
 #if WinActive("ahk_group Explorer")
-~Space::
-	selectFile := Get_Zz(copyKey:="^c")
-	If (Candy_isFile){
-		selectFile:=RegExReplace(selectFile,"S)(.*)(\n|\r).*","$1")  ;取第一行
-		SplitPath, selectFile,FileName,, FileExt  ; 获取文件扩展名.
-		If (FileExt="lnk") {
-			FileGetShortcut, %selectFile%, selectFile
-			SplitPath, selectFile,FileName,, FileExt
-		}Else If (FileExt=""){
-			FileGetSize, FileSize, %selectFile%
-			if FileSize=0
-				FileExt := "folder"
-			Else
-				FileExt := "file"
-		}
-		selectFileOpenExe := openExtRunList[FileExt]
-		If (selectFileOpenExe!="")
-			Run, %selectFileOpenExe% "%selectFile%",,,OutputVarPID
-		Else
-			Run, "%selectFile%", , , OutputVarPID
-		SpaceExePidObj[OutputVarPID] := OutputVarPID ;保存已开启的程序pid
-		SetTimer,CheckSpaceExePid,5000 ;对于手动关闭的程序pid从中去除
-	}    
+Space::
+	ControlGetFocus, OutputVar, A
+	If RegExMatch(OutputVar, "iS).*edit.*"){
+		SendInput,{Space}
+		Return
+	}
+	selectFile := Get_Zz(copyKey:="^c","Space")
+	If (Candy_isFile)
+		Gosub, RunFile
 Return
 
 ;激活已开启的程序pid，则ESC关闭程序
@@ -164,4 +193,6 @@ Esc::
 	}
 	If !WinExist("ahk_pid" PID)
 		SpaceExePidObj.Delete(PID)
+	If WinActive("ahk_exe Everything.exe")
+		SendInput,{Tab}
 Return
