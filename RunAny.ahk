@@ -2442,7 +2442,7 @@ Get_Zz(copyKey:="^c"){
 	if(GetZzCopyKey!="" && GetZzCopyKeyApp!="" && WinActive("ahk_group GetZzCopyKeyAppGUI"))
 		copyKey:=GetZzCopyKey
 	SendInput,%copyKey%
-	if (ClipWaitTime != 0.1) && WinActive("ahk_group ClipWaitGUI"){
+	if(ClipWaitTime != 0.1) && WinActive("ahk_group ClipWaitGUI"){
 		ClipWait,%ClipWaitTime%
 	}else{
 		ClipWait,0.1
@@ -8094,8 +8094,8 @@ Config_Set:
 	global EvNo:=Var_Read("EvNo",0)
 	global JumpSearch:=Var_Read("JumpSearch",0)
 	global AutoGetZz:=Var_Read("AutoGetZz",1)
-	global GetZzCopyKey:=Var_Read("GetZzCopyKey")
-	global GetZzCopyKeyApp:=Var_Read("GetZzCopyKeyApp")
+	global GetZzCopyKey:=Var_Read("GetZzCopyKey","^{Insert}")
+	global GetZzCopyKeyApp:=Var_Read("GetZzCopyKeyApp","cmd.exe,powershell.exe")
 	Loop,parse,GetZzCopyKeyApp,`,
 	{
 		GroupAdd,GetZzCopyKeyAppGUI,ahk_exe %A_LoopField%
@@ -8253,7 +8253,7 @@ Open_Ext_Set:
 	; 解决指定软件界面剪贴板等待时间过短获取不到选中内容
 	Sort, ClipWaitAppStr ,U D,
 	if(ClipWaitAppStr!=""){
-		ClipWaitTime:=Var_Read("ClipWaitTime", 1.5)
+		ClipWaitTime:=Var_Read("ClipWaitTime", 1.2)
 		ClipWaitApp:=Var_Read("ClipWaitApp", ClipWaitAppStr)
 	}
 	Loop,parse,ClipWaitApp,`,
