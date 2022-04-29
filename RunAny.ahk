@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.1 @2022.03.31
+║【RunAny】一劳永逸的快速启动工具 v5.8.1 @2022.04.13
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -25,7 +25,7 @@ global PluginsDir:="RunPlugins"              ;~;插件目录
 global RunAnyConfig:="RunAnyConfig.ini"      ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini"    ;~;插件注册配置文件
 global RunAny_update_version:="5.8.1"        ;~;版本号
-global RunAny_update_time:="2022.03.31"      ;~;更新日期
+global RunAny_update_time:="2022.04.13"      ;~;更新日期
 global iniPath:=A_ScriptDir "\RunAny.ini"    ;~;菜单1
 global iniPath2:=A_ScriptDir "\RunAny2.ini"  ;~;菜单2
 Gosub,Config_Set        ;~;01.配置初始化
@@ -1036,7 +1036,7 @@ Menu_Add(menuName,menuItem,itemContent,itemMode,TREE_NO){
 			}
 			return
 		}
-		if(itemMode=7){  ; {目录}
+		if(itemMode=7 || itemMode=71){  ; {目录}
 			Menu,%menuName%,Icon,%menuItem%,% FolderIconS[1],% FolderIconS[2],%MenuIconSize%
 		}else if(FileExt="lnk"){  ; {快捷方式}
 			try{
@@ -3012,6 +3012,8 @@ Get_Menu_Item_Mode(item,fullItemFlag:=false){
 		return 8
 	if((RegExMatch(item,"S)^.:\\.*") && InStr(FileExist(item), "D")))
 		return 7
+	if(RegExMatch(item,"S)^\\.*"))
+		return 71
 	return 1
 }
 ;[获取分类名称]
@@ -4498,7 +4500,7 @@ Set_Icon(ImageListID,itemVar,editVar=true,fullItemFlag=true,itemName=""){
 		return itemStyle . "Icon6"
 	if(setItemMode=11)
 		return "Icon8"
-	if(setItemMode=7)
+	if(setItemMode=7 || setItemMode=71)
 		return "Icon4"
 	if(setItemMode=4)	; {发送热键}
 		return "Icon9"
