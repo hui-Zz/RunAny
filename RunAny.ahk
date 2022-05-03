@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.1 @2022.04.13
+║【RunAny】一劳永逸的快速启动工具 v5.8.1 @2022.05.03
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -25,7 +25,7 @@ global PluginsDir:="RunPlugins"              ;~;插件目录
 global RunAnyConfig:="RunAnyConfig.ini"      ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini"    ;~;插件注册配置文件
 global RunAny_update_version:="5.8.1"        ;~;版本号
-global RunAny_update_time:="2022.04.13"      ;~;更新日期
+global RunAny_update_time:="2022.05.03"      ;~;更新日期
 global iniPath:=A_ScriptDir "\RunAny.ini"    ;~;菜单1
 global iniPath2:=A_ScriptDir "\RunAny2.ini"  ;~;菜单2
 Gosub,Config_Set        ;~;01.配置初始化
@@ -788,10 +788,10 @@ Menu_Read(iniReadVar,menuRootFn,TREE_TYPE,TREE_NO){
 				}
 				;[设置热键启动方式][不重复]
 				if(TREE_TYPE_FLAG && InStr(menuDiy[1],"`t") && menuKeys[2]){
-					MenuObj[menuKeys[1]]:=itemParam
+					; MenuObj[menuKeys[1]]:=itemParam
 					MenuObjKey[menuKeys[2]]:=itemParam
 					MenuObjKeyName[menuKeys[2]]:=menuKeys[1]
-					MenuObjKeyList[menuDiy[1]]:=true
+					MenuObjKeyList[menuDiy[1]]:=menuKeys[2]
 					if(!InStr(menuDiy[2],"%getZz%") && RegExMatch(menuDiy[2],"iS).+?\[.+?\]%?\(.*?\)")){
 						Hotkey,% menuKeys[2],Menu_Key_NoGet_Run,On
 					}else if(itemMode=4 || itemMode=5){ ;热键映射不去获取当前选中内容
@@ -7664,8 +7664,35 @@ RunAnyOneKeyOnline:
 		}
 	}
 return
-
-
+;[RunAny所有菜单运行项]
+RunA_MenuObj_Show:
+	Gui,MenuObjShow:Destroy
+	Gui,MenuObjShow:Default
+	Gui,MenuObjShow:+Resize
+	Gui,MenuObjShow:Font, s10, Microsoft YaHei
+	Gui,MenuObjShow:Add, Listview, xm w1000 r30 grid AltSubmit vRunAnyMenuObjShowLV, 菜单项名|全局热键|菜单运行路径
+	RunAnyMenuObjShowImageListID := IL_Create(11)
+	Icon_Image_Set(RunAnyMenuObjShowImageListID)
+	GuiControl,MenuObjShow: -Redraw, RunAnyMenuObjShowLV
+	LV_SetImageList(RunAnyMenuObjShowImageListID)
+	for k,v in MenuObj
+	{
+		if(v="")
+			continue
+		kname:=k
+		if(MenuObjKeyList[k]){
+			klist:=StrSplit(k,"`t",,2)
+			kname:=klist[1]
+		}
+		LV_Add(Set_Icon(RunAnyMenuObjShowImageListID,v,false,false,v), kname, MenuObjKeyList[k], v)
+	}
+	GuiControl,MenuObjShow: +Redraw, RunAnyMenuObjShowLV
+	; Gui,MenuObjShow:Add, StatusBar,,% "RunAny菜单项数量总共：" MenuObj.Count()
+	LV_ModifyCol()
+	LV_ModifyCol(1, 200)
+	LV_ModifyCol(1, "Sort")  ; 排序
+	Gui,MenuObjShow:Show, , %RunAnyZz% 所有菜单运行项 %RunAny_update_version% %RunAny_update_time%%AdminMode%
+return
 ;--------------------------------------------------------------------------------------------
 listviewAdvancedConfig:
 	if A_GuiEvent = DoubleClick
@@ -7709,6 +7736,7 @@ MenuEditGuiClose:
 return
 ;[GuiEscape]
 MenuEditGuiEscape:
+MenuObjShowGuiEscape:
 SaveItemGuiEscape:
 PluginsManageGuiEscape:
 PluginsDownloadGuiEscape:
@@ -7732,6 +7760,7 @@ SetCancel:
 return
 ;[GuiSize]
 MenuEditGuiSize:
+MenuObjShowGuiSize:
 RuleManageGuiSize:
 RunCtrlConfigGuiSize:
 RunCtrlFuncGuiSize:
@@ -7746,6 +7775,7 @@ OneKeyDownGuiSize:
 	GuiControl, Move, RuleLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 	GuiControl, Move, RunAnyDownLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 	GuiControl, Move, RunAnyOneKeyDownLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 40)
+	GuiControl, Move, RunAnyMenuObjShowLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 40)
 	GuiControl, Move, FuncGroup, % "H" . (A_GuiHeight-130) . " W" . (A_GuiWidth - 40)
 	GuiControl, Move, FuncLV, % "H" . (A_GuiHeight-270) . " W" . (A_GuiWidth - 60)
 	GuiControl, Move, vFuncValue, % "H" . (A_GuiHeight-230) . " W" . (A_GuiWidth - 40)
@@ -9342,6 +9372,7 @@ Menu_Tray_Add:
 	Menu,Tray,add,插件管理(&C)`t%PluginsManageHotKey%,Plugins_Gui
 	Menu,Tray,add,启动管理(&Q)`t%RunCtrlManageHotKey%,RunCtrl_Manage_Gui
 	Menu,Tray,add
+	Menu,Tray,add,所有菜单项(&T),RunA_MenuObj_Show
 	Menu,Tray,add,设置RunAny(&D)`t%RunASetHotKey%,Settings_Gui
 	Menu,Tray,add,关于RunAny(&A)...,Menu_About
 	Menu,Tray,add,检查更新(&U),Check_Update
@@ -9362,6 +9393,7 @@ Menu_Tray_Add:
 			Menu,Tray,Icon,修改菜单2(&W)`t%TreeHotKey2%,% TreeIconS[1],% TreeIconS[2],%MenuTrayIconSize%
 			Menu,Tray,Icon,修改文件2(&G)`t%TreeIniHotKey2%,% EditFileIconS[1],% EditFileIconS[2],%MenuTrayIconSize%
 		}
+		Menu,Tray,Icon,所有菜单项(&T),imageres.dll,112,%MenuTrayIconSize%
 		Menu,Tray,Icon,插件管理(&C)`t%PluginsManageHotKey%,% PluginsManageIconS[1],% PluginsManageIconS[2],%MenuTrayIconSize%
 		Menu,Tray,Icon,启动管理(&Q)`t%RunCtrlManageHotKey%,% RunCtrlManageIconS[1],% RunCtrlManageIconS[2],%MenuTrayIconSize%
 		Menu,Tray,Icon,设置RunAny(&D)`t%RunASetHotKey%,% MenuIconS[1],% MenuIconS[2],%MenuTrayIconSize%
