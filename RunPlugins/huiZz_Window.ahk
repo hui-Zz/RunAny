@@ -1,8 +1,10 @@
-﻿;**************************************
-;* 【ObjReg窗口操作脚本[窗口函数.ini]】 *
-;*                          by hui-Zz *
-;**************************************
-global RunAny_Plugins_Version:="1.0.2"
+﻿;************************
+;* 【ObjReg窗口操作脚本】 
+;*             by hui-Zz 
+;************************
+global RunAny_Plugins_Name:="ObjReg窗口操作脚本"
+global RunAny_Plugins_Version:="1.1.2"
+global RunAny_Plugins_Icon:="SHELL32.dll,241"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
@@ -22,11 +24,23 @@ class RunAnyObj {
 	;[窗口居中]
 	win_center_zz(){
 		WinGetActiveStats,zTitle,var_width,var_height,var_x,var_y
-		WinMove,%zTitle%,,(A_ScreenWidth-var_width)/2,(A_ScreenHeight-var_height)/2+15,var_width,var_height
+		WinGetPos,,,,h,ahk_class Shell_TrayWnd
+		h:=(h>=A_ScreenHeight) ? 0 : h
+		WinMove,%zTitle%,,(A_ScreenWidth-var_width)/2,(A_ScreenHeight-var_height-h)/2
+	}
+	;[窗口移动]
+	win_move_zz(var_x,var_y){
+		WinMove,A,,%var_x%,%var_y%
 	}
 	;[窗口改变大小]
 	win_size_zz(var_width,var_height){
+		WinRestore, A
 		WinMove,A,,,,%var_width%,%var_height%
+	}
+	;[窗口改变大小并移动]
+	win_move_size_zz(var_x,var_y,var_width,var_height){
+		WinRestore, A
+		WinMove,A,,%var_x%,%var_y%,%var_width%,%var_height%
 	}
 	;[窗口置顶]
 	win_top_zz(t=1){
@@ -39,21 +53,24 @@ class RunAnyObj {
 			WinSet,AlwaysOnTop,Off,A
 		}
 	}
-	;[窗口边角置顶观影]
+	;[窗口改变大小移至边角置顶观影] v1.0.9
 	;参数说明：
 	;mode：1-左上,2-右上,3-左下,4-右下
 	;x：正数向左偏移像素，负数向右偏移像素
 	;y：正数向下偏移像素，负数向上偏移像素
 	;title：0-显示标题栏，1-隐藏标题栏
-	win_movie_zz(mode=1,x=0,y=0,title=0){
-		MouseGetPos,,,zId
-		WinGetTitle,zTitle,ahk_id %zId%
-		WinSet,AlwaysOnTop,on,ahk_id %zId%
+	;w：改变窗口宽度
+	;h：改变窗口高度
+	win_movie_zz(mode=1,x=0,y=0,title=0,w=0,h=0){
+		WinRestore, A
+		WinGetActiveStats,zTitle,var_width,var_height,var_x,var_y
+		WinSet,AlwaysOnTop,on,A  ;开启置顶
 		if(title)
-			WinSet,Style,-0xC00000,ahk_id %zId%
+			WinSet,Style,-0xC00000,A
 		else
-			WinSet,Style,+0xC00000,ahk_id %zId%
-		WinGetPos,var_x,var_y,var_width,var_height,ahk_id %zId%
+			WinSet,Style,+0xC00000,A
+		var_width:=w=0 ? var_width : w
+		var_height:=h=0 ? var_height : h
 		if(mode=1){
 			var_x:=0
 			var_y:=0
@@ -67,7 +84,7 @@ class RunAnyObj {
 			var_x:=A_ScreenWidth-var_width
 			var_y:=A_ScreenHeight-var_height
 		}
-		WinMove,%zTitle%,,% var_x + x,% var_y + y
+		WinMove,%zTitle%,,% var_x + x,% var_y + y,%var_width%,%var_height%
 	}
 	;[窗口透明度]
 	win_transparency_zz(flag = 1,amount = 10)
@@ -136,7 +153,48 @@ class RunAnyObj {
 		}
 		return
 	}
+	;[多屏窗口最大化]
+	win_max_max(){
+		SysGet, VirtualWidth, 78
+		SysGet, VirtualHeight, 79
+		WinMove,A,,0,0,%VirtualWidth%,%VirtualHeight%
+	}
+	;[当前窗口关闭] v1.0.4
+	win_close_zz(){
+		WinClose,A
+	}
+	;[当前窗口进程结束] v1.0.4
+	win_kill_zz(){
+		WinGet,name,ProcessName,A
+		Process,Close,%name%
+	}
+	;[当前窗口进程pid结束] v1.0.7
+	win_kill_pid_zz(){
+		WinGet,pid,PID,A
+		Process,Close,%pid%
+	}
+	;[打开当前窗口进程所在目录] v1.0.6
+	;openFolder：填写第三方文件管理器全路径打开文件夹，可选填，特殊写法：%"无路径软件"%
+	;openParams：第三方文件管理器的打开参数，可选填
+	;资源管理器打开当前窗口目录|huiZz_Window[win_folder_zz]()
+	;无路径TotalCommander写法示例：
+	;当前窗口目录|huiZz_Window[win_folder_zz](%"Totalcmd64.exe"%, /O /S)
+	win_folder_zz(openFolder:="",openParams:=""){
+		WinGet,path,ProcessPath ,A
+		if(openFolder){
+			if(openParams!="")
+				openParams:=A_Space openParams
+			Run,%openFolder%%openParams%%A_Space%"%path%"
+		}else{
+			Run,% "explorer.exe /select," path
+		}
+	}
+
+;══════════════════════════大括号以上是RunAny菜单调用的函数══════════════════════════
+
 }
+
+;═══════════════════════════以下是脚本自己调用依赖的函数═══════════════════════════
 
 ;独立使用方式
 ;F1::

@@ -1,8 +1,10 @@
-﻿;**************************************
-;* 【ObjReg系统操作脚本[系统函数.ini]】 *
-;*                          by hui-Zz *
-;**************************************
-global RunAny_Plugins_Version:="1.0.4"
+﻿;************************
+;* 【ObjReg系统操作脚本】 
+;*             by hui-Zz 
+;************************
+global RunAny_Plugins_Name:="ObjReg系统操作脚本"
+global RunAny_Plugins_Version:="1.1.3"
+global RunAny_Plugins_Icon:="imageres.dll,61"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
 #WinActivateForce       ;~强制激活窗口
@@ -14,7 +16,7 @@ SetControlDelay,0       ;~控件修改命令自动延时(默认20)
 SetWinDelay,0           ;~执行窗口命令自动延时(默认100)
 SetTitleMatchMode,2     ;~窗口标题模糊匹配
 CoordMode,Menu,Window   ;~坐标相对活动窗口
-;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+;SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 #Include %A_ScriptDir%\RunAny_ObjReg.ahk
 
 class RunAnyObj {
@@ -26,10 +28,10 @@ class RunAnyObj {
 	;refresh：1-自动刷新生效；0-手动刷新
 	system_hidefile_zz(hide=0,sys=0,ext=0,refresh=1){
 		DetectHiddenWindows,On
-		hideFileRegPath:="Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
-		RegWrite,REG_DWORD,HKEY_CURRENT_USER,%hideFileRegPath%,Hidden,%hide%
-		RegWrite,REG_DWORD,HKEY_CURRENT_USER,%hideFileRegPath%,HideFileExt,%ext%
-		RegWrite,REG_DWORD,HKEY_CURRENT_USER,%hideFileRegPath%,ShowSuperHidden,%sys%
+		hideFileRegPath:="HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
+		RegWrite,REG_DWORD,%hideFileRegPath%,Hidden,%hide%
+		RegWrite,REG_DWORD,%hideFileRegPath%,HideFileExt,%ext%
+		RegWrite,REG_DWORD,%hideFileRegPath%,ShowSuperHidden,%sys%
 		if(refresh){
 			if !WinActive("ahk_class Program Manager") && !WinActive("ahk_class Progman")
 			{
@@ -43,22 +45,17 @@ class RunAnyObj {
 	;参数说明：getZz：选中的文本内容
 	system_regedit_zz(getZz:=""){
 		if(WinExist("ahk_exe regedit.exe")){
-			ToolTip,注册表已打开`n要关闭情况下才能进行定位
-			Sleep,3000
-			ToolTip
-			return
+			Process,Close,regedit.exe
 		}
-		getZz:=StrReplace(getZz,"HKCU","HKEY_CURRENT_USER")
-		getZz:=StrReplace(getZz,"HKLM","HKEY_LOCAL_MACHINE")
+		getZz:=RegExReplace(getZz,"S)^(计算机\\|\\)+")
 		shell:=ComObjCreate("WScript.Shell")
-		strRegAddress:="计算机\" getZz
-		shell.RegWrite("HKCU\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit\LastKey",strRegAddress)
+		shell.RegWrite("HKCU\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit\LastKey","计算机\" RTrim(getZz,"\"))
 		shell.Run("RegEdit.exe")
 	}
 	;[获取本地IP]
 	;参数说明：output：1-输出IP；0-显示IP并复制到剪贴板
 	system_ip_zz(output=0){
-		ip:=this.cmdClipReturn("for /f ""tokens=4"" %a in ('route print^|findstr 0.0.0.0.*0.0.0.0') do echo %a",%output%)
+		ip:=cmdClipReturn("for /f ""tokens=4"" %a in ('route print^|findstr 0.0.0.0.*0.0.0.0') do echo %a",%output%)
 		ip:=StrReplace(ip,"`r`n")
 		ip:=StrReplace(ip," ")
 		if(output){
@@ -74,23 +71,6 @@ class RunAnyObj {
 	system_ping_zz(getZz:=""){
 		Run,% ComSpec " /C ping " getZz " -t"
 	}
-	/*
-	【隐藏运行cmd命令并将结果存入剪贴板后取回 @hui-Zz】
-	*/
-	cmdClipReturn(command,save=0){
-		cmdInfo:=""
-		if(save)
-			Clip_Saved:=ClipboardAll
-		try{
-			Clipboard=
-			Run,% ComSpec " /C " command " | CLIP", , Hide
-			ClipWait,2
-			cmdInfo:=Clipboard
-		}catch{}
-		if(save)
-			Clipboard:=Clip_Saved
-		return cmdInfo
-	}
 	;[重启桌面]
 	system_explorer_zz(){
 		DetectHiddenWindows, Off
@@ -98,14 +78,21 @@ class RunAnyObj {
 		;~ WinWaitClose,ahk_exe explorer.exe
 		;~ Run,explorer.exe
 	}
-	;[复制选中文件路径]
+	;[复制选中文件路径] v1.0.7
 	;复制文件说明：path路径, name名称, dir目录, ext后缀, nameNoExt无后缀名称, drive盘符
 	;复制快捷方式说明：lnkTarget指向路径, lnkDir指向目录, lnkArgs参数, lnkDesc注释, lnkIcon图标文件名, lnkIconNum图标编号, lnkRunState初始运行方式
 	system_file_path_zz(path:="",copy:=""){
-		SplitPath, path, name, dir, ext, nameNoExt, drive
-		if(ext="lnk")
-			FileGetShortcut, %path%, lnkTarget, lnkDir, lnkArgs, lnkDesc, lnkIcon, lnkIconNum, lnkRunState
-		Clipboard:=%copy%
+		textResult:=""
+		Loop, parse, path, `n, `r, %A_Space%%A_Tab%
+		{
+			if(!A_LoopField)
+				continue
+			SplitPath, A_LoopField, name, dir, ext, nameNoExt, drive
+			if(ext="lnk")
+				FileGetShortcut, %A_LoopField%, lnkTarget, lnkDir, lnkArgs, lnkDesc, lnkIcon, lnkIconNum, lnkRunState
+			textResult.=(copy="path") ? A_LoopField "`n" : %copy% "`n"
+		}
+		Clipboard:=Trim(textResult, ",`n ")
 	}
 	;[创建目标快捷方式]
 	;参数说明：getZz：选中的文件路径
@@ -119,6 +106,102 @@ class RunAnyObj {
 			lnk:=nameNoExt ".lnk"
 		FileCreateShortcut, %getZz%, %target%\%lnk%
 	}
+	;[控制系统音量增减] v1.0.5
+	;参数说明：
+	;flag：0-减少音量；1-增加音量；2-固定音量
+	;amount：音量调整比例0-100%
+	system_sound_volume(flag = 1,amount = 10){
+		if(flag=0){
+			SoundSet, -%amount%
+		}else if(flag=1){
+			SoundSet, +%amount%
+		}else if(flag=2){
+			SoundSet, %amount%
+		}
+	}
+	;[管理员权限运行选中目标]
+	;注：仅限于右键可以用管理员身份运行的后缀文件
+	system_runas_zz(getZz:=""){
+		Run *RunAs "%getZz%"
+	}
+	;[系统代理一键修改] v1.1.0
+	;参数说明：serverAddress 代理地址:代理端口
+	system_proxy_zz(serverAddress:=""){
+		InternetSettings:="HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings"
+		if(serverAddress!=""){
+			RegWrite,REG_DWORD,%InternetSettings%,ProxyEnable,1
+			RegWrite,REG_SZ,%InternetSettings%,ProxyServer,%serverAddress%
+		}else{
+			RegWrite,REG_DWORD,%InternetSettings%,ProxyEnable,0
+		}
+	}
+	;[清空回收站]
+	;参数说明：drive 如果省略，则清空所有驱动器的回收站，否则，指定多个驱动器字母
+	;保存到RunAny.ini为：
+	;清空回收站CD区|huiZz_System[system_recycle_empty](c,d)
+	system_recycle_empty(drives*){
+		str:=""
+		for index,drive in drives
+		{
+			if(drive!=""){
+				FileRecycleEmpty, %drive%:\
+				str.= drive
+			}
+		}
+		if(str="")
+			FileRecycleEmpty
+	}
+	;[批量ping命令]
+	;参数说明：getZz：选中的多个IP地址内容
+	;splitStr：每个IP地址中间分隔的符号(默认回车，逗号为特殊字符，转义写成`,)
+	;批量ping命令|huiZz_System[system_batch_ping](%getZz%,"`n")
+	system_batch_ping(getZz:="",splitStr:="`n"){
+		getZzLoop:=Trim(getZz," `t`n`r")
+		textResult:=""
+		Loop, Parse, getZzLoop, %splitStr%
+		{
+			str=%A_LoopField%
+			if(str!="")
+				Run,%ComSpec% /c "title ping %str% -t & ping %str% -t"
+		}
+	}
+	;[批量执行cmd命令]
+	;参数说明：getZz：选中的多个cmd命令内容
+	;splitStr：每个cmd命令中间分隔的符号(默认回车，逗号为特殊字符，转义写成`,)
+	;批量cmd命令|huiZz_System[system_batch_cmd](%getZz%,"`n")
+	system_batch_cmd(getZz:="",splitStr:="`n"){
+		getZzLoop:=Trim(getZz," `t`n`r")
+		textResult:=""
+		Loop, Parse, getZzLoop, %splitStr%
+		{
+			str=%A_LoopField%
+			if(str!="")
+				Run,%ComSpec% /c "title %str% & %str%"
+		}
+	}
+
+;══════════════════════════大括号以上是RunAny菜单调用的函数══════════════════════════
+
+}
+
+;═══════════════════════════以下是脚本自己调用依赖的函数═══════════════════════════
+
+/*
+【隐藏运行cmd命令并将结果存入剪贴板后取回 @hui-Zz】
+*/
+cmdClipReturn(command,save=0){
+	cmdInfo:=""
+	try{
+		if(save)
+			Clip_Saved:=ClipboardAll
+		Clipboard=
+		Run,% ComSpec " /C " command " | CLIP", , Hide
+		ClipWait,2
+		cmdInfo:=Clipboard
+		if(save)
+			Clipboard:=Clip_Saved
+	}catch{}
+	return cmdInfo
 }
 
 ;独立使用方式
