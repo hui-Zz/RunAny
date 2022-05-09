@@ -1100,6 +1100,21 @@ Menu_Item_Icon(menuName,menuItem,iconPath,iconNo=0,treeLevel=""){
 		MenuObjName[menuItemSet]:=1
 	}catch{}
 }
+menuItemIconFileName(menuItem){
+	if(InStr(menuItem,"`t")){
+		menuKeyStr:=RegExReplace(menuItem, "S)\t+", A_Tab)
+		menuKeys:=StrSplit(menuKeyStr,"`t")
+		menuItem:=menuKeys[1]
+	}
+	if(RegExMatch(menuItem,"S).*_:\d{1,2}$"))
+		menuItem:=RegExReplace(menuItem,"S)(.*)_:\d{1,2}$","$1")
+	if(RegExMatch(menuItem,"S):[*?a-zA-Z0-9]+?:[^:]*")){
+		menuItemTemp:=RegExReplace(menuItem,"S)^([^:]*?):[*?a-zA-Z0-9]+?:[^:]*","$1")
+		if(menuItemTemp)
+			menuItem:=menuItemTemp
+	}
+	return menuItem
+}
 Menu_Tray_Show:
 	if(GetKeyState("Ctrl") && GetKeyState("Shift")){
 		Gosub,Menu_Config
@@ -3237,6 +3252,1932 @@ RunAny_SearchBar:
 		}
 	}
 return
+Plugins_Down_Check(name, path){
+	FileRead, content, %path%
+	if(!content || InStr(content,"404: Not Found") || InStr(content,"404 Not Found")){
+		MsgBox,48,,%name% 下载失败，请重新勾选下载！
+	}
+}
+;[插件检查版本更新]
+PluginsDownVersion:
+	if(!rule_check_network(giteeUrl)){
+		RunAnyDownDir:=githubUrl . RunAnyGithubDir
+		if(!rule_check_network(githubUrl)){
+			TrayTip,网络异常,无法连接网络读取最新版本文件，请手动下载,5,2
+			pluginsDownList:=PluginsObjList
+			checkGithub:=false
+			return
+		}
+	}
+	CreateDir(A_Temp "\" RunAnyZz "\" PluginsDir)
+	ObjRegIniPath=%A_Temp%\%RunAnyZz%\%PluginsDir%\%RunAny_ObjReg%
+	URLDownloadToFile(RunAnyDownDir "/" PluginsDir "/" RunAny_ObjReg, ObjRegIniPath)
+	IfExist,%ObjRegIniPath%
+	{
+		FileGetSize, ObjRegIniSize, %ObjRegIniPath%
+		if(ObjRegIniSize>500){
+			IniRead,objRegIniVar,%ObjRegIniPath%,version
+			Loop, parse, objRegIniVar, `n, `r
+			{
+				varList:=StrSplit(A_LoopField,"=",,2)
+				pluginsDownList[(varList[1])]:=varList[2]
+			}
+			IniRead,objRegIniVar,%ObjRegIniPath%,name
+			Loop, parse, objRegIniVar, `n, `r
+			{
+				varList:=StrSplit(A_LoopField,"=",,2)
+				pluginsNameList[(varList[1])]:=varList[2]
+			}
+			checkGithub:=true
+			return
+		}
+	}
+	pluginsDownList:=PluginsObjList
+	checkGithub:=false
+return
+;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+;~;【——🔛配置初始化——】
+;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+Config_Set:
+	;#判断配置文件
+	if(!FileExist(RunAnyConfig)){
+		IniWrite,%IniConfig%,%RunAnyConfig%,Config,IniConfig
+	}
+	;[RunAny设置参数]
+	global Z_ScriptName:=FileExist(RunAnyZz ".exe") ? RunAnyZz ".exe" : A_ScriptName
+	RegRead, AutoRun, HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run, RunAny
+	AutoRun:=AutoRun=A_ScriptDir "\" Z_ScriptName ? 1 : 0
+	global AdminRun:=Var_Read("AdminRun",0)
+	;#判断管理员权限#
+	if(AdminRun && !A_IsAdmin){
+		adminahkpath:=""
+		if(!A_IsCompiled)
+			adminahkpath:=A_AhkPath A_Space
+		Run *RunAs %adminahkpath%"%A_ScriptFullPath%"
+		ExitApp
+	}
+	global getZz:=""
+	global OutsideMenuItem:=""
+	global MENU_NO:=1
+	global RegexEscapeStr:="\\|\.|\*|\?|\+|\[|\{|\||\(|\)|\^|\$"
+	global RegexEscapeNoPointStr:="\\|\*|\?|\+|\[|\{|\||\(|\)|\^|\$"
+	global RegexEscapeList:=StrSplit("\.*?+[{|()^$")
+	global RegexEscapeNoPointList:=StrSplit("\*?+[{|()^$")
+	global HideMenuTrayIcon:=Var_Read("HideMenuTrayIcon",0)
+	if(HideMenuTrayIcon)
+		Menu, Tray, NoIcon
+	global AdminMode:=A_IsAdmin ? "【管理员】" : ""
+	global MenuTrayTipText:=RunAnyZz . AdminMode "`n"
+	global AutoReloadMTime:=Var_Read("AutoReloadMTime",2500)
+	global ConfigDate:=Var_Read("ConfigDate")
+	global RunABackupDir:=Var_Read("RunABackupDir","`%A_ScriptDir`%\RunBackup")
+	global RunABackupRule:=Var_Read("RunABackupRule",1)
+	global RunABackupMax:=Var_Read("RunABackupMax",15)
+	global RunABackupFormat:=Var_Read("RunABackupFormat",".`%A_Now`%.bak")
+	global HideFail:=Var_Read("HideFail",1)
+	global HideWeb:=Var_Read("HideWeb",0)
+	global HideGetZz:=Var_Read("HideGetZz",0)
+	global HideSend:=Var_Read("HideSend",0)
+	global HideAddItem:=Var_Read("HideAddItem",0)
+	global HideMenuTray:=Var_Read("HideMenuTray",0)
+	global HideSelectZz:=Var_Read("HideSelectZz",0)
+	global RecentMax:=Var_Read("RecentMax",3)
+	DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe,SunloginClient.exe,War3.exe,dota2.exe,League of Legends.exe")
+	Loop,parse,DisableApp,`,
+	{
+		GroupAdd,DisableGUI,ahk_exe %A_LoopField%
+	}
+	;[热键配置]
+	global MenuDoubleCtrlKey:=Var_Read("MenuDoubleCtrlKey",0)
+	global MenuDoubleAltKey:=Var_Read("MenuDoubleAltKey",0)
+	global MenuDoubleLWinKey:=Var_Read("MenuDoubleLWinKey",0)
+	global MenuDoubleRWinKey:=Var_Read("MenuDoubleRWinKey",0)
+	global MenuMButtonKey:=Var_Read("MenuMButtonKey",0)
+	global MenuCtrlRightKey:=Var_Read("MenuCtrlRightKey",0)
+	global MenuShiftRightKey:=Var_Read("MenuShiftRightKey",0)
+	global MenuXButton1Key:=Var_Read("MenuXButton1Key",0)
+	global MenuXButton2Key:=Var_Read("MenuXButton2Key",0)
+	global MenuMButtonKey:=Var_Read("MenuMButtonKey",0)
+	;[一键直达]
+	global BrowserPath:=Var_Read("BrowserPath")
+	global OneKeyRun:={"一键公式计算":""
+		,"一键打开文件":"runany[Run_Any](%getZz%)"
+		,"一键打开目录":"runany[Open_Folder_Path](%getZz%)"
+		,"一键打开网址":"runany[Run_Search](%getZz%)"
+		,"一键磁力链接":"runany[Run_Any](%getZz%)"}
+	if(BrowserPath!=""){
+		OneKeyRun["一键打开网址"]:=BrowserPath " ""%getZz%"""
+	}
+	global OneKeyRegex:={"一键公式计算":"S)^[\(\)\.\s\d]*\d+\s*[+*/-]+[\(\)\.+*/-\d\s]+($|=$)"
+		,"一键打开文件":"S)^(\\\\|.:\\).*?\..+"
+		,"一键打开目录":"S)^(\\\\|.:\\)"
+		,"一键打开网址":"iS)^([\w-]+:\/\/?|www[.]).*"
+		,"一键磁力链接":"iS)^magnet:\?xt=urn:btih:.*"}
+	global OneKeyRegexList:={}
+	global OneKeyRegexMultilineList:={}
+	global OneKeyRunList:={}
+	global OneKeyDisableList:={}
+	global OneKeyDisableStr:=Var_Read("OneKeyDisableList")
+	Loop, parse, OneKeyDisableStr, |
+	{
+		OneKeyDisableList[A_LoopField]:=true
+	}
+	IniRead,OneKeyVar,%RunAnyConfig%,OneKey
+	if(!OneKeyVar){
+		OneKeyRunList:=OneKeyRun
+		OneKeyRegexList:=OneKeyRegex
+	}
+	Loop, parse, OneKeyVar, `n, `r
+	{
+		R_LoopField=%A_LoopField%
+		if(R_LoopField="")
+			continue
+		varList:=StrSplit(R_LoopField,"=",,2)
+		if(varList[1]="")
+			continue
+		if(RegExMatch(varList[1],".+_Run$")){
+			OneKeyRunList[RegExReplace(varList[1],"(.+)_Run$","$1")]:=varList[2]
+		}else if(RegExMatch(varList[1],".+_Regex$")){
+			name:=RegExReplace(varList[1],"(.+)_Regex$","$1")
+			OneKeyRegexList[name]:=varList[2]
+			if(RegExMatch(varList[2],"m)^[^(]*?m.*?\).*")){
+				OneKeyRegexMultilineList[name]:=varList[2]
+			}
+		}
+	}
+	global OneKeyMenu:=Var_Read("OneKeyMenu",0)
+	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
+	OneKeyUrl:=StrReplace(OneKeyUrl, "|", "`n")
+	;[搜索Everything]
+	global EvPath:=Var_Read("EvPath")
+	global EvShowExt:=Var_Read("EvShowExt",1)
+	global EvShowFolder:=Var_Read("EvShowFolder",1)
+	global EvAutoClose:=Var_Read("EvAutoClose",0)
+	global EvExeVerNew:=Var_Read("EvExeVerNew",1)
+	global EvExeMTimeNew:=Var_Read("EvExeMTimeNew",1)
+	global EvDemandSearch:=Var_Read("EvDemandSearch",1)
+	EvCommandDefault:="!" A_WinDir "* !?:\$RECYCLE.BIN* !?:\Users\*\AppData\Local\Temp\* !?:\Users\*\AppData\Roaming\*.exe"
+	try EnvGet, scoopPath, scoop
+	if(scoopPath)
+		EvCommandDefault.=" !" RegExReplace(scoopPath,".(:\\.*)","?$1") "\shims\*"
+	global EvCommand:=Var_Read("EvCommand",EvDemandSearch ? EvCommandDefault : EvCommandDefault " file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
+	EvCommandVar:=RegExReplace(EvCommand,"i).*file:(\*\.[^\s]*).*","$1")
+	global EvCommandExtList:=StrSplit(EvCommandVar,"|")
+	;[热字符串]
+	global HideHotStr:=Var_Read("HideHotStr",0)
+	global HotStrHintLen:=Var_Read("HotStrHintLen",3)
+	global HotStrShowLen:=Var_Read("HotStrShowLen",30)
+	global HotStrShowTime:=Var_Read("HotStrShowTime",3000)
+	global HotStrShowTransparent:=Var_Read("HotStrShowTransparent",80)
+	global HotStrShowX:=Var_Read("HotStrShowX",0)
+	global HotStrShowY:=Var_Read("HotStrShowY",0)
+	global SendStrEcKey:=Var_Read("SendStrEcKey")
+	global SendStrDcKey:=Var_Read("SendStrDcKey")
+	;[高级配置]开始
+	global ShowGetZzLen:=Var_Read("ShowGetZzLen",30)
+	global DebugMode:=Var_Read("DebugMode",0)
+	global DebugModeShowTime:=Var_Read("DebugModeShowTime",8000)
+	global DebugModeShowTrans:=Var_Read("DebugModeShowTrans",70)
+	global DebugModeShowText:=""
+	global DebugModeShowTextLen:=0
+	global EvNo:=Var_Read("EvNo",0)
+	global JumpSearch:=Var_Read("JumpSearch",0)
+	global AutoGetZz:=Var_Read("AutoGetZz",1)
+	global GetZzCopyKey:=Var_Read("GetZzCopyKey","^{Insert}")
+	global GetZzCopyKeyApp:=Var_Read("GetZzCopyKeyApp","cmd.exe,powershell.exe")
+	Loop,parse,GetZzCopyKeyApp,`,
+	{
+		GroupAdd,GetZzCopyKeyAppGUI,ahk_exe %A_LoopField%
+	}
+	global DisableExeIcon:=Var_Read("DisableExeIcon",0)
+	global RunAEncoding:=Var_Read("RunAEncoding",A_Language!=0804 ? "UTF-8" : "")
+	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)
+	global ClipWaitApp:=Var_Read("ClipWaitApp")
+	global HoldKeyShowTime:=Var_Read("HoldKeyShowTime",1000)
+	global RUNANY_SELF_MENU_ITEM1:=Var_Read("RUNANY_SELF_MENU_ITEM1","&1批量搜索")
+	global RUNANY_SELF_MENU_ITEM2:=Var_Read("RUNANY_SELF_MENU_ITEM2","RunAny设置")
+	global RUNANY_SELF_MENU_ITEM3:=Var_Read("RUNANY_SELF_MENU_ITEM3","0【添加到此菜单】")
+	global RUNANY_SELF_MENU_ITEM4:=Var_Read("RUNANY_SELF_MENU_ITEM4","-【显示全部菜单】")
+	global RunAnyMenuTransparent:=Var_Read("RunAnyMenuTransparent",225)
+	global RunAnyMenuSpaceRun:=Var_Read("RunAnyMenuSpaceRun",2)
+	global RunAnyMenuRButtonRun:=Var_Read("RunAnyMenuRButtonRun",3)
+	global RunAnyMenuMButtonRun:=Var_Read("RunAnyMenuMButtonRun",0)
+	global RunAnyMenuXButton1Run:=Var_Read("RunAnyMenuXButton1Run",0)
+	global RunAnyMenuXButton2Run:=Var_Read("RunAnyMenuXButton2Run",0)
+	global HoldKeyList:={"HoldCtrlRun":2,"HoldCtrlShiftRun":3,"HoldCtrlWinRun":4,"HoldShiftRun":5,"HoldShiftWinRun":6,"HoldCtrlShiftWinRun":7}
+	global HoldKeyValList:={"HoldCtrlRun":2,"HoldCtrlShiftRun":3,"HoldCtrlWinRun":11,"HoldShiftRun":5,"HoldShiftWinRun":31,"HoldCtrlShiftWinRun":4}
+	for k, v in HoldKeyList
+	{
+		%k%:=Var_Read(k,HoldKeyValList[k])
+		j:=%k%
+		if(j){
+			HoldKeyRun%j%:=v
+		}
+	}
+	;[高级配置]结束
+	global MENU_RUN_NAME_STR:="编辑(&E),同名软件(&S),软件目录(&D),透明运行(&Q),置顶运行(&T),改变大小运行(&W),管理员权限运行(&A)" 
+		. ",最小化运行(&I),最大化运行(&P),隐藏运行(&H),结束软件进程(&X)"
+	global MENU_RUN_NAME_NOFILE_STR:="复制运行路径(&C),输出运行路径(&V),复制软件名(&N),输出软件名(&M),复制软件名+后缀(&F),输出软件名+后缀(&G)"
+	MENU_RUN_NAME_STR.="," MENU_RUN_NAME_NOFILE_STR
+	MENU_RUN_NAME_NOFILE_STR:="编辑(&E)," MENU_RUN_NAME_NOFILE_STR
+	Loop, 9
+	{
+		MENU_RUN_NAME_STR.=",透明运行:&" A_Index*10 "%"
+	}
+	;~[最近运行项]
+	if(RecentMax>0){
+		global MenuCommonList:={}
+		RegRead, MenuCommonListReg, HKEY_CURRENT_USER\Software\RunAny, MenuCommonList
+		if(MenuCommonListReg){
+			Loop, parse, MenuCommonListReg, |
+			{
+				R_ThisMenuItem:=RegExReplace(A_LoopField,"^&\d+ ","")
+				if R_ThisMenuItem not in %MENU_RUN_NAME_STR%
+				{
+					MenuCommonList.Push(A_LoopField)
+				}
+			}
+		}
+	}
+	OnExit("ExitFunc")
+	OnMessage(0x004A, "Receive_WM_COPYDATA")
+	OnMessage(0x11, "WM_QUERYENDSESSION")
+	;~[定期自动检查更新]
+	global giteeUrl:="https://gitee.com"
+	global githubUrl:="https://raw.githubusercontent.com"
+	global RunAnyGiteePages:="https://hui-zz.gitee.io"
+	global RunAnyGithubPages:="https://hui-zz.github.io"
+	global RunAnyGiteeDir:="/hui-Zz/RunAny/raw/master"
+	global RunAnyGithubDir:="/hui-Zz/RunAny/master"
+	global RunAnyDownDir:=giteeUrl . RunAnyGiteeDir ; 初始使用gitee地址
+	if(A_DD=01 || A_DD=15){
+		;当天已经检查过就不再更新
+		if(FileExist(A_Temp "\temp_RunAny.ahk")){
+			FileGetTime,tempMTime, %A_Temp%\temp_RunAny.ahk, M  ; 获取修改时间.
+			t1 := A_Now
+			t1 -= %tempMTime%, Days
+			FormatTime,tempTimeDD,%tempMTime%,dd
+			if(t1=0 && (tempTimeDD=01 || tempTimeDD=15))
+				return
+			Gosub,Old_Config_Clear
+		}
+		Gosub,Auto_Update
+	}
+return
+Old_Config_Clear:
+	EvCommandDefaultOld1:="!" A_WinDir "* !?:\$RECYCLE.BIN* !?:\Users\*\AppData\Local\Temp\* !?:\Users\*\AppData\Roaming\*"
+	try EnvGet, scoopPath, scoop
+	if(scoopPath)
+		EvCommandDefaultOld1.=" !" RegExReplace(scoopPath,".(:\\.*)","?$1") "\shims\*"
+	EvCommand_Old1:=EvDemandSearch ? EvCommandDefaultOld1 : EvCommandDefaultOld1 " file:*.exe|*.lnk|*.ahk|*.bat|*.cmd"
+	IniRead,readVar,%RunAnyConfig%,Config,EvCommand,A_Space
+	if(readVar!=""){
+		if(readVar=EvCommand_Old1){
+			IniDelete,%RunAnyConfig%,Config,EvCommand
+		}
+	}
+return
+;~;【菜单自定义变量】
+Menu_Var_Set:
+	global MenuVarIniList:={}
+	global MenuVarTypeList:={}
+	IniRead,menuVarVar,%RunAnyConfig%,MenuVar
+	SplitPath, A_ScriptDir,,,,,A_ScriptDrive
+	if(!menuVarVar){
+		menuVarVar:="A_Desktop`nA_MyDocuments`nA_ScriptDir`nA_ScriptDrive`n"
+		menuVarVar.="AppData`nComputerName`nComSpec`nLocalAppData`nOneDrive`nProgramFiles`n"
+		if(A_Is64bitOS)
+			menuVarVar.="ProgramW6432`n"
+		menuVarVar.="UserName`nUserProfile`nWinDir"
+	}
+	Loop, parse, menuVarVar, `n, `r
+	{
+		if(A_LoopField="")
+			continue
+		itemList:=StrSplit(A_LoopField,"=",,2)
+		menuVarName:=itemList[1]
+		menuVarVal:=itemList[2]
+		if(%menuVarName%){
+			MenuVarIniList[itemList[1]]:=%menuVarName%
+			MenuVarTypeList[menuVarName]:=1
+		}else{
+			try EnvGet, %menuVarName%, %menuVarName%
+			if(%menuVarName%){
+				MenuVarIniList[itemList[1]]:=%menuVarName%
+				MenuVarTypeList[menuVarName]:=2
+			}else{
+				%menuVarName%:=menuVarVal
+				MenuVarTypeList[menuVarName]:=3
+				MenuVarIniList[itemList[1]]:=itemList[2]
+			}
+		}
+	}
+return
+;~;【内部关联后缀打开方式】
+Open_Ext_Set:
+	;支持一键直达浏览器无路径识别
+	global BrowserPathRun:=Get_Obj_Path_Transform(BrowserPath)
+	global openExtIniList:={}
+	global openExtRunList:={}
+	ClipWaitAppStr:=""
+	IniRead,openExtVar,%RunAnyConfig%,OpenExt
+	Loop, parse, openExtVar, `n, `r
+	{
+		itemList:=StrSplit(A_LoopField,"=",,2)
+		openExtIniList[itemList[1]]:=itemList[2]
+		Loop, parse,% itemList[2], %A_Space%
+		{
+			extLoopField:=RegExReplace(A_LoopField,"^\.","")
+			openExtRunList[extLoopField]:=Get_Obj_Path_Transform(itemList[1])
+		}
+		if(InStr(itemList[1],"dopus.exe") || MenuObjEv["dopus"])
+			ClipWaitAppStr:=StrJoin(",",ClipWaitAppStr,"dopus.exe")
+		if(InStr(itemList[1],"xyplorer.exe") || MenuObjEv["xyplorer"])
+			ClipWaitAppStr:=StrJoin(",",ClipWaitAppStr,"xyplorer.exe")
+		if(InStr(itemList[1],"totalcmd.exe") || MenuObjEv["totalcmd"])
+			ClipWaitAppStr:=StrJoin(",",ClipWaitAppStr,"totalcmd.exe")
+		if(InStr(itemList[1],"TotalCMD64.exe") || MenuObjEv["TotalCMD64"])
+			ClipWaitAppStr:=StrJoin(",",ClipWaitAppStr,"totalcmd64.exe")
+	}
+	; 解决指定软件界面剪贴板等待时间过短获取不到选中内容
+	Sort, ClipWaitAppStr ,U D,
+	if(ClipWaitAppStr!=""){
+		ClipWaitTime:=Var_Read("ClipWaitTime", 1.2)
+		ClipWaitApp:=Var_Read("ClipWaitApp", ClipWaitAppStr)
+	}
+	Loop,parse,ClipWaitApp,`,
+	{
+		GroupAdd,ClipWaitGUI,ahk_exe %A_LoopField%
+	}
+	if(!openExtRunList["folder"]){
+		TcPath:=Var_Read("TcPath")
+		if(TcPath){
+			openExtName:="folder"
+			if(openExtIniList[TcPath]){ ; 如果已存在旧打开方式，则加在末尾
+				openExtName:=openExtIniList[TcPath] A_Space "folder"
+			}
+			IniWrite,%openExtName%,%RunAnyConfig%,OpenExt,%TcPath%
+			openExtRunList["folder"]:=Get_Obj_Path_Transform(TcPath)
+			openExtIniList[TcPath]:=openExtName
+			IniDelete,%RunAnyConfig%,Config,TcPath
+		}
+	}
+	global OpenFolderPathRun:=openExtRunList["folder"]
+return
+;~;【调用环境判断】
+Run_Exist:
+	;#判断菜单配置文件初始化#
+	global iniFile:=iniPath
+	global iniVar1:=""
+	global both:=1
+	global RunABackupDirPath:=Get_Transform_Val(RunABackupDir)
+	global RunAEvFullPathIniDir:=Var_Read("RunAEvFullPathIniDir","`%AppData`%\" RunAnyZz)
+	global RunAEvFullPathIniDirPath:=Get_Transform_Val(RunAEvFullPathIniDir)
+	global RunAnyEvFullPathIni:=RunAEvFullPathIniDirPath "\RunAnyEvFullPath.ini"
+	CreateDir(A_ScriptDir "\" PluginsDir "\" Lib)
+	CreateDir(A_AppData "\" RunAnyZz)
+	CreateDir(RunABackupDirPath "\" RunAnyConfig)
+	CreateDir(RunAEvFullPathIniDirPath)
+	CreateDir(A_Temp "\" RunAnyZz)
+	FileRead, evFullPathIniVar, %RunAnyEvFullPathIni%
+	evFullPathIniVar:=StrReplace(evFullPathIniVar, "[FullPath]`r`n", "")
+	if(RunAEncoding){
+		try{
+			FileEncoding,%RunAEncoding%
+		}catch e {
+			MsgBox,16,文件编码出错,% "请设置正确的编码读取RunAny.ini!`n参考：https://wyagd001.github.io/zh-cn/docs/commands/FileEncoding.htm"
+			. "`n`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+		}
+	}
+	FileGetSize,iniFileSize,%iniFile%
+	If(!FileExist(iniFile) || iniFileSize=0){
+		TrayTip,,RunAny初始化中...,2,17
+		SetTimer, HideTrayTip, -2000
+		Gosub,First_Run
+	}
+	FileRead, iniVar1, %iniPath%
+	;#判断第2菜单ini#
+	global MENU2FLAG:=false
+	IfExist,%iniPath2%
+	{
+		global iniVar2:=""
+		MENU2FLAG:=true
+		FileRead, iniVar2, %iniPath2%
+		CreateDir(RunABackupDirPath "\" RunAnyZz "2.ini")
+	}
+	global iniFileVar:=iniVar1
+	global EvPathRun:=Get_Transform_Val(EvPath)
+	;#判断Everything拓展DLL文件#
+	if(!EvNo){
+		Gosub,Ev_Exist
+		;~Everything搜索检查准备
+		global RunAnyTickCount:=0
+		RegRead,RunAnyTickCount,HKEY_CURRENT_USER\SOFTWARE\RunAny,RunAnyTickCount
+		if(!RunAnyTickCount || A_TickCount<RunAnyTickCount){
+			RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults,0
+		}
+	}
+return
+Ev_Exist:
+	global everyDLL:="Everything.dll"
+	if(FileExist(A_ScriptDir "\Everything.dll")){
+		everyDLL:=DllCall("LoadLibrary", str, "Everything.dll") ? "Everything.dll" : "Everything64.dll"
+	}else if(FileExist(A_ScriptDir "\Everything64.dll")){
+		everyDLL:=DllCall("LoadLibrary", str, "Everything64.dll") ? "Everything64.dll" : "Everything.dll"
+	}
+	if(!FileExist(A_ScriptDir "\" everyDLL)){
+		MsgBox,17,,没有找到%everyDLL%，将不能识别菜单中程序的路径`n需要将%everyDLL%放到【%A_ScriptDir%】目录下`n是否需要从网上下载%everyDLL%？
+		IfMsgBox Ok
+		{
+			URLDownloadToFile(RunAnyDownDir "/" everyDLL,A_ScriptDir "\" everyDLL)
+			Gosub,Menu_Reload
+		}else{
+			MsgBox,17,【慎改】,是否需要开启不使用Everything模式？所有无路径应用可以通过手动新增修改同步来识别运行路径。`n`n（也可在高级配置中修改）
+			IfMsgBox Ok
+			{
+				Var_Set(1,EvNo,"EvNo")
+				EvNo:=1
+			}
+		}
+	}
+return
+;~;【——⭕️图标初始化——】
+Icon_Set:
+	Menu,exeTestMenu,add,SetCancel	;只用于测试应用图标正常添加
+	global RunIconDir:=A_ScriptDir "\RunIcon"
+	global WebIconDir:=RunIconDir "\WebIcon"
+	global ExeIconDir:=RunIconDir "\ExeIcon"
+	global MenuIconDir:=RunIconDir "\MenuIcon"
+	IconDirs:="ExeIcon,WebIcon,MenuIcon"
+	Loop, Parse, IconDirs, `,
+	{
+		CreateDir(RunIconDir "\" A_LoopField)
+	}
+	global IconFileSuffix:="*.ico;*.bmp;*.png;*.gif;*.jpg;*.jpeg;*.jpe;*.jfif;*.dib;*.tif;*.tiff;*.heic"
+		. ";*.cur;*.ani;*.cpl;*.scr;"
+	global ResourcesExtractExist:=false
+	global ResourcesExtractDir:=A_ScriptDir "\ResourcesExtract"
+	global ResourcesExtractFile:=A_ScriptDir "\ResourcesExtract\ResourcesExtract.exe"
+	if(!FileExist(ResourcesExtractFile)){
+		ResourcesExtractFile:=RunIconDir "\ResourcesExtract\ResourcesExtract.exe"
+		if(FileExist(ResourcesExtractFile)){
+			ResourcesExtractExist:=true
+			ResourcesExtractDir:=RunIconDir "\ResourcesExtract"
+		}
+	}else{
+		ResourcesExtractExist:=true
+	}
+	iconAny:="shell32.dll,190"
+	iconMenu:="shell32.dll,195"
+	iconTree:="shell32.dll,53"
+	if(A_OSVersion="WIN_XP"){
+		MoveIcon:="shell32.dll,53"
+		UpIcon:="shell32.dll,53"
+		DownIcon:="shell32.dll,53"
+	}else{
+		MoveIcon:="shell32.dll,246"
+		UpIcon:="shell32.dll,247"
+		DownIcon:="shell32.dll,248"
+	}
+	if(A_IsCompiled=1){
+		iconAny:=A_ScriptName ",1"
+		iconMenu:=A_ScriptName ",2"
+	}
+	if(FileExist(A_ScriptDir "\ZzIcon.dll")){
+		iconAny:="ZzIcon.dll,1"
+		iconMenu:="ZzIcon.dll,2"
+		iconTree:="ZzIcon.dll,3"
+		MoveIcon:="ZzIcon.dll,4"
+		UpIcon:="ZzIcon.dll,5"
+		DownIcon:="ZzIcon.dll,6"
+		try{
+			Menu,exeTestMenu,Icon,SetCancel,ZzIcon.dll,7
+			ZzIconPath:="ZzIcon.dll,7"
+		} catch {
+			ZzIconPath:="ZzIcon.dll,1"
+		}
+	}else{
+		ZzIconPath:="shell32.dll,194"
+	}
+	MonitorHeight:=true
+	SysGet, MonitorCount, MonitorCount
+	Loop, %MonitorCount%
+	{
+		SysGet, Monitor, Monitor, %A_Index%
+		if(MonitorBottom<1080){
+			MonitorHeight:=false
+		}
+	}
+	;如果所有显示器分辨率都大于等于1080高度则菜单图标默认24像素大小
+	global MenuIconSize:=Var_Read("MenuIconSize",MonitorHeight ? 24 : "")
+	global MenuTrayIconSize:=Var_Read("MenuTrayIconSize")
+	global AnyIcon:=Var_Read("AnyIcon",iconAny)
+	global AnyIconS:=StrSplit(Get_Transform_Val(AnyIcon),",")
+	global MenuIcon:=Var_Read("MenuIcon",iconMenu)
+	global MenuIconS:=StrSplit(Get_Transform_Val(MenuIcon),",")
+	global TreeIcon:=Var_Read("TreeIcon",iconTree)
+	global TreeIconS:=StrSplit(Get_Transform_Val(TreeIcon),",")
+	global MoveIconS:=StrSplit(MoveIcon,",")
+	global UpIconS:=StrSplit(UpIcon,",")
+	global DownIconS:=StrSplit(DownIcon,",")
+	global EditFileIcon:=Var_Read("EditFileIcon","shell32.dll,134")
+	global EditFileIconS:=StrSplit(EditFileIcon,",")
+	global PluginsManageIcon:=Var_Read("PluginsManageIcon","shell32.dll,166")
+	global PluginsManageIconS:=StrSplit(PluginsManageIcon,",")
+	global RunCtrlManageIcon:=Var_Read("RunCtrlManageIcon","shell32.dll,25")
+	global RunCtrlManageIconS:=StrSplit(RunCtrlManageIcon,",")
+	global CheckUpdateIcon:=Var_Read("CheckUpdateIcon","shell32.dll,14")
+	global CheckUpdateIconS:=StrSplit(CheckUpdateIcon,",")
+	global ZzIconS:=StrSplit(ZzIconPath,",")
+return
+;~;[后缀图标初始化]
+Icon_FileExt_Set:
+	global FolderIcon:=Var_Read("FolderIcon","shell32.dll,4")
+	global FolderIconS:=StrSplit(Get_Transform_Val(FolderIcon),",")
+	global UrlIcon:=Var_Read("UrlIcon","shell32.dll,44")
+	global UrlIconS:=StrSplit(Get_Transform_Val(UrlIcon),",")
+	global EXEIcon:=Var_Read("EXEIcon","shell32.dll,3")
+	global EXEIconS:=StrSplit(Get_Transform_Val(EXEIcon),",")
+	global LNKIcon:="shell32.dll,264"
+	if(A_OSVersion="WIN_XP"){
+		LNKIcon:="shell32.dll,30"
+	}
+	global LNKIconS:=StrSplit(LNKIcon,",")
+	FuncIcon:=Var_Read("FuncIcon","shell32.dll,131")
+	global FuncIconS:=StrSplit(Get_Transform_Val(FuncIcon),",")
+	;~;[引入菜单项图标识别库]
+	global IconFolderPath:=Var_Read("IconFolderPath","%A_ScriptDir%\RunIcon\ExeIcon|%A_ScriptDir%\RunIcon\WebIcon|%A_ScriptDir%\RunIcon\MenuIcon")
+	global IconFolderList:={}
+	Loop, parse, IconFolderPath, |
+	{
+		IconFolder:=Get_Transform_Val(A_LoopField)
+		IfExist,%IconFolder%
+		{
+			Loop,%IconFolder%\*.*,0,1
+			{
+				SplitPath,% A_LoopFileFullPath, ,, ext, name_no_ext
+				IconFolderList[(name_no_ext)]:=A_LoopFileFullPath
+			}
+		}
+	}
+	IconFolderPath:=StrReplace(IconFolderPath, "|", "`n")
+return
+;══════════════════════════════════════════════════════════════════
+;~;【——🧩插件脚本——】
+;══════════════════════════════════════════════════════════════════
+;~;【AHK插件脚本Read】
+Plugins_Read:
+	global PluginsObjList:=Object(),PluginsPathList:=Object(),PluginsRelativePathList:=Object(),PluginsNameList:=Object(),pluginsDownList:=Object()
+	global PluginsVersionList:=Object(),PluginsIconList:=Object(),PluginsContentList:=Object()
+	global PluginsObjNum:=0
+	global PluginsDirList:=[]
+	global PluginsEditor:=Var_Read("PluginsEditor")
+	global PluginsDirPath:=Var_Read("PluginsDirPath")
+	global PluginsListViewSwap:=Var_Read("PluginsListViewSwap",0)
+	global PluginsDirPathList:="%A_ScriptDir%\%PluginsDir%|" PluginsDirPath
+	Loop, parse, PluginsDirPathList, |
+	{
+		PluginsFolder:=Get_Transform_Val(A_LoopField)
+		PluginsFolder:=RegExReplace(PluginsFolder,"(.*)\\$","$1")
+		if(!FileExist(PluginsFolder))
+			continue
+		PluginsDirList.Push(PluginsFolder)
+		Loop,%PluginsFolder%\*.ahk,0	;Plugins目录下AHK脚本
+		{
+			PluginsObjList[(A_LoopFileName)]:=0
+			PluginsPathList[(A_LoopFileName)]:=A_LoopFileFullPath
+			PluginsRelativePathList[(A_LoopFileName)]:=StrReplace(A_LoopFileFullPath,A_ScriptDir "\")
+			PluginsNameList[(A_LoopFileName)]:=Plugins_Read_Name(A_LoopFileFullPath)
+			PluginsVersionList[(A_LoopFileName)]:=Plugins_Read_Version(A_LoopFileFullPath)
+			PluginsIconList[(A_LoopFileName)]:=Plugins_Read_Icon(A_LoopFileFullPath)
+			if(A_LoopField="%A_ScriptDir%\%PluginsDir%"){
+				FileRead,pluginsContent,%A_LoopFileFullPath%
+				PluginsContentList[(A_LoopFileName)]:=pluginsContent
+			}
+		}
+		Loop,%PluginsFolder%\*.*,2	;Plugins目录下文件夹内同名AHK脚本
+		{
+			IfExist,%A_LoopFileFullPath%\%A_LoopFileName%.ahk
+			{
+				PluginsObjList[(A_LoopFileName . ".ahk")]:=0
+				PluginsPathList[(A_LoopFileName . ".ahk")]:=A_LoopFileFullPath "\" A_LoopFileName ".ahk"
+				PluginsRelativePathList[(A_LoopFileName . ".ahk")]:=StrReplace(A_LoopFileFullPath "\" A_LoopFileName ".ahk",A_ScriptDir "\")
+				PluginsNameList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Name(A_LoopFileFullPath "\" A_LoopFileName ".ahk")
+				PluginsVersionList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Version(A_LoopFileFullPath "\" A_LoopFileName ".ahk")
+				PluginsIconList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Icon(A_LoopFileFullPath "\" A_LoopFileName ".ahk")
+				if(A_LoopField="%A_ScriptDir%\%PluginsDir%"){
+					FileRead,pluginsContent,% A_LoopFileFullPath "\" A_LoopFileName ".ahk"
+					PluginsContentList[(A_LoopFileName . ".ahk")]:=pluginsContent
+				}
+			}
+		}
+	}
+	IniRead,pluginsVar,%RunAnyConfig%,Plugins
+	Loop, parse, pluginsVar, `n, `r
+	{
+		varList:=StrSplit(A_LoopField,"=",,2)
+		SplitPath,% varList[1], name,, ext, name_no_ext
+		PluginsObjList[(varList[1])]:=varList[2]
+		if(varList[2])
+			PluginsObjNum++
+		Loop,% PluginsDirList.MaxIndex()
+		{
+			if(FileExist(PluginsDirList[A_Index] "\" varList[1]))
+				PluginsPathList[(varList[1])]:=PluginsDirList[A_Index] "\" varList[1]
+			if(FileExist(PluginsDirList[A_Index] "\" name_no_ext "\" varList[1]))
+				PluginsPathList[(varList[1])]:=PluginsDirList[A_Index] "\" name_no_ext "\" varList[1]
+		}
+	}
+return
+;~;【AHK脚本对象注册】
+Plugins_Object_Register:
+	global PluginsObjRegGUID:=Object()      ;~插件对象注册GUID列表
+	global PluginsObjRegActive:=Object()    ;~插件对象注册Active列表
+	global RunAny_ObjReg_Path
+	RunAny_ObjReg_Path=%A_ScriptDir%\%PluginsDir%\%RunAny_ObjReg%
+	IfExist,%RunAny_ObjReg_Path%
+	{
+		IniRead,objRegVar,%RunAny_ObjReg_Path%,objreg
+		Loop, parse, objRegVar, `n, `r
+		{
+			varList:=StrSplit(A_LoopField,"=",,2)
+			PluginsObjRegGUID[(varList[1])]:=varList[2]
+		}
+	}
+	if(PluginsObjRegGUID["huiZz_Text"] && PluginsObjList["huiZz_Text.ahk"]){
+		;#判断huiZz_Text插件是否可以文字加解密
+		if(InStr(PluginsContentList["huiZz_Text.ahk"],"runany_encrypt(text,key){")
+				&& InStr(PluginsContentList["huiZz_Text.ahk"],"runany_decrypt(text,key){")){
+			global encryptFlag:=true
+		}
+	}
+	;#判断RunAny_Menu插件是否启用
+	if(PluginsObjList["RunAny_Menu.ahk"]){
+		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"SetTimer,Transparent_Show"))
+			global RunAnyMenuTransparentFlag:=true
+		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~Space Up::"))
+			global RunAnyMenuSpaceFlag:=true
+		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~RButton Up::"))
+			global RunAnyMenuRButtonFlag:=true
+		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~MButton Up::"))
+			global RunAnyMenuMButtonFlag:=true
+		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~XButton1 Up::"))
+			global RunAnyMenuXButton1Flag:=true
+		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~XButton2 Up::"))
+			global RunAnyMenuXButton2Flag:=true
+	}
+return
+Plugins_Read_Name(filePath){
+	returnStr:=""
+	strRegOld:="iS).*?【(.*?)】.*"
+	strRegNew=iS)^\t*\s*global RunAny_Plugins_Name:="(.+?)"
+	Loop, read, %filePath%
+	{
+		if(RegExMatch(A_LoopReadLine,strRegNew)){
+			returnStr:=RegExReplace(A_LoopReadLine,strRegNew,"$1")
+			break
+		}else if(RegExMatch(A_LoopReadLine,strRegOld)){
+			returnStr:=RegExReplace(A_LoopReadLine,strRegOld,"$1")
+			break
+		}
+	}
+	return returnStr
+}
+Plugins_Read_Version(filePath){
+	returnStr:=""
+	strReg=iS)^\t*\s*global RunAny_Plugins_Version:="([\d\.]*)"
+	Loop, read, %filePath%
+	{
+		if(RegExMatch(A_LoopReadLine,strReg)){
+			returnStr:=RegExReplace(A_LoopReadLine,strReg,"$1")
+			break
+		}
+	}
+	return returnStr
+}
+;[获取插件图标的路径]
+Plugins_Read_Icon(filePath){
+	returnStr:=""
+	strReg=iS)^\t*\s*global RunAny_Plugins_Icon:="(.+?)"
+	Loop, read, %filePath%
+	{
+		if(RegExMatch(A_LoopReadLine,strReg)){
+			returnStr:=RegExReplace(A_LoopReadLine,strReg,"$1")
+			break
+		}
+	}
+	if(returnStr=""){
+		PluginsFile:=RegExReplace(filePath,"iS)\.ahk$")
+		Loop, Parse,% IconFileSuffix "*.exe;", `;
+		{
+			suffix:=StrReplace(A_LoopField, "*")
+			if(FileExist(PluginsFile suffix)){
+				return PluginsFile suffix ",1"
+			}
+		}
+	}
+	return returnStr
+}
+;~;【自动启动插件】
+AutoRun_Plugins:
+	if(!A_AhkPath)
+		return
+	try {
+		For runn, runv in PluginsPathList	;循环启动项
+		{
+			;需要自动启动的项
+			if(PluginsObjList[runn]){
+				runValue:=RegExReplace(runv,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
+				SplitPath, runValue, name, dir, ext  ; 获取扩展名
+				if(dir && FileExist(dir)){
+					SetWorkingDir,%dir%
+				}
+				if(ext="ahk"){
+					Run,%A_AhkPath%%A_Space%"%runv%"
+				}else{
+					Run,%runv%
+				}
+			}
+		}
+	} catch e {
+		MsgBox,16,自动启动插件出错,% "启动插件名：" runn "`n启动插件路径：" runv 
+			. "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+	} finally {
+		SetWorkingDir,%A_ScriptDir%
+	}
+return
+;[随RunAny自动关闭插件]
+AutoClose_Plugins:
+	DetectHiddenWindows,On
+	For runn, runv in PluginsPathList
+	{
+		if(PluginsObjList[runn]){
+			runValue:=RegExReplace(runv,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
+			SplitPath, runValue, name,, ext  ; 获取扩展名
+			if(ext="ahk"){
+				PostMessage, 0x111, 65405,,, %runv% ahk_class AutoHotkey
+			}else if(name){
+				Process,Close,%name%
+			}
+		}
+	}
+	DetectHiddenWindows,Off
+return
+;══════════════════════════════════════════════════════════════════
+;~;【——🔗规则启动——】
+;══════════════════════════════════════════════════════════════════
+;~;[规则启动项Read]
+RunCtrl_Read:
+	;规则名-脚本路径；规则名-脚本插件名；规则名-函数名；规则名-状态；规则名-类型；规则名-是否传参
+	global rulefileList:=Object(),ruleitemList:=Object(),rulefuncList:=Object(),rulestatusList:=Object(),ruletypelist:=Object(),ruleparamList:=Object()
+	global RuleNameStr:=""
+	global RunCtrlLastTimeIni:=A_AppData "\" RunAnyZz "\RunCtrlLastTime.ini"
+	ruleitemVar:=rulefuncVar:=""
+	IniRead,ruleitemVar,%RunAnyConfig%,RunCtrlRule
+	Loop, parse, ruleitemVar, `n, `r
+	{
+		varList:=StrSplit(A_LoopField,"=",,2)
+		itemList:=StrSplit(varList[1],"|",,2)
+		if(varList[1]="" || varList[2]="" || itemList[1]="" || itemList[2]="")
+			continue
+		RuleNameStr.=itemList[1] "|"
+		rulefuncList[(rulefuncList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=itemList[2]
+		rulefileList[(rulefileList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=varList[2]
+		SplitPath,% varList[2],fileName,,,nameNotExt
+		ruleitemList[itemList[1]]:=nameNotExt
+		;判断规则状态
+		if(varList[2]=RunAnyZz ".ahk"){
+			rulestatusList[(rulestatusList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=IsFunc(itemList[2])
+		}else if(varList[2]="0"){
+			ruletypelist[(ruletypelist[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=true
+			if(Get_Transform_Val("%" itemList[2] "%")!=itemList[2]){
+				rulestatusList[(rulestatusList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=true
+			}
+		}else{
+			rulestatusList[(rulestatusList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=InStr(PluginsContentList[(varList[2])],itemList[2] "(") ? 1 : 0
+		}
+		;判断规则是否需要传参
+		if(varList[2]=RunAnyZz ".ahk"){
+			ruleparamList[(ruleparamList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=IsFunc(itemList[2]) > 1
+		}else if(varList[2]!="0" && !InStr(PluginsContentList[(varList[2])],itemList[2] "()")){
+			ruleparamList[(ruleparamList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=true
+		}
+	}
+	RuleNameStr:=SubStr(RuleNameStr, 1, -StrLen("|"))
+	if(ruleparamList.HasKey("联网状态")){
+		ruleparamList["联网状态"]:=1
+	}
+	;---规则启动项---
+	global RunCtrlList:=Object(),RunCtrlListBoxList:=Object(),RunCtrlListContentList:=Object()
+	global RunCtrlLogicEnum:={"eq":"相等","ne":"不相等","ge":"大于等于","le":"小于等于","gt":"大于","lt":"小于","regex":"正则表达式"}
+	global RunCtrlRunWayList:=["启动","置顶启动","最小化启动","最大化启动","隐藏启动","结束软件进程_启动"]
+	global RunCtrlListBoxVar:=""
+	IniRead,runCtrlListVar,%RunAnyConfig%,RunCtrlList
+	Loop, parse, runCtrlListVar, `n, `r
+	{
+		R_LoopField=%A_LoopField%
+		if(R_LoopField="")
+			continue
+		varList:=StrSplit(R_LoopField,"=",,2)
+		if(varList[1]="")
+			continue
+		runCtrlName:=varList[1]
+		RunCtrlListBoxVar.=runCtrlName "|"
+		RunCtrlListBoxList.Push(runCtrlName)
+		RunCtrlListContentList[runCtrlName]:=varList[2]
+		itemList:=StrSplit(varList[2],"|",,5)
+		RunCtrlObj:=new RunCtrl(runCtrlName,itemList[1],itemList[2],itemList[3],itemList[4],itemList[5])
+		RunCtrlList[runCtrlName]:=RunCtrlObj
+		try{
+			if(itemList[1] && itemList[5]!=""){
+				funcEffect:=Func("RunCtrl_RunRules").Bind(RunCtrlObj,true)
+				Hotkey,% itemList[5],% funcEffect,On
+			}
+		} catch {
+			MsgBox,16,规则组%runCtrlName%：热键配置不正确,% "热键错误：`n" itemList[5] "`n请设置正确热键后重启RunAny"
+		}
+	}
+	RunCtrlListBoxVar:=SubStr(RunCtrlListBoxVar, 1, -StrLen("|"))
+return
+
+class RunCtrl
+{
+	name:=""                ;运行组名
+	enable:=false           ;运行组启用状态
+	noPath:=true            ;无全路径应用
+	noMenu:=true            ;无菜单项应用
+	key:=""                 ;规则组全局热键
+	ruleLogic:=true         ;规则组逻辑：与、或
+	ruleMostRun:=0          ;规则循环最大次数
+	ruleIntervalTime:=0     ;循环间隔时间(秒)
+	runNums:=""             ;运行次数
+	runList:=Object()       ;应用运行队列
+	ruleFile:=Object()      ;规则文件
+	ruleList:=Object()      ;规则队列
+	__New(name,enable,ruleLogic,ruleMostRun,ruleIntervalTime,key){
+		this.name:=name
+		this.enable:=enable
+		this.ruleLogic:=ruleLogic
+		this.ruleMostRun:=ruleMostRun
+		this.ruleIntervalTime:=ruleIntervalTime
+		this.key:=key
+		IniRead,ctrlAppsVar,%RunAnyConfig%,%name%_Run
+		Loop, parse, ctrlAppsVar, `n, `r
+		{
+			varList:=StrSplit(A_LoopField,"=",,2)
+			if(varList[1]="")
+				continue
+			runObj:=new RunCtrlRun
+			runObj.path:=varList[2]
+
+			itemList:=StrSplit(varList[1],"|",,4)
+			noPathStr:=itemList[1]
+			runObj.repeatRun:=itemList[2]!="" ? itemList[2] : 0
+			runObj.adminRun:=itemList[3]!="" ? itemList[3] : 0
+			runObj.runWay:=itemList[4]!="" ? itemList[4] : 1
+			if(noPathStr="path"){
+				this.noPath:=false
+				runObj.noPath:=false
+			}else if(noPathStr="menu"){
+				this.noMenu:=false
+			}
+			IniRead, lastRunTime, %RunCtrlLastTimeIni%, last_run_time,% runObj.path, %A_Space%
+			runObj.lastRunTime:=lastRunTime
+			this.runList.push(runObj)
+		}
+		IniRead,ruleAppsVar,%RunAnyConfig%,%name%_Rule
+		Loop, parse, ruleAppsVar, `n, `r
+		{
+			varList:=StrSplit(A_LoopField,"=",,2)
+			itemList:=StrSplit(varList[1],"|",,3)
+			if(varList[1]="" || itemList[1]="")
+				continue
+			runRuleObj:=new RunCtrlRunRule
+			runRuleObj.value:=varList[2]
+			runRuleObj.name:=itemList[1]
+			runRuleObj.logic:=itemList[2]
+			runRuleObj.ruleBreak:=itemList[3]
+			runRuleObj.file:=ruleitemList[itemList[1]]
+			this.ruleList.push(runRuleObj)
+			if(rulestatusList[runRuleObj.name]){
+				this.ruleFile[ruleitemList[runRuleObj.name]]:=true
+			}
+		}
+	}
+}
+class RunCtrlRun
+{
+	num:=0
+	path:=""
+	noPath:=true        ;无路径标记
+	repeatRun:=false    ;重复运行
+	adminRun:=false     ;管理员运行
+	runWay:=1           ;运行方式
+	lastRunTime:=""     ;最后运行时间
+}
+class RunCtrlRunRule
+{
+	file:="",name:="",value:="",ruleBreak:=""
+	logic:=1
+}
+
+;~;[规则生效]
+Rule_Effect:
+	global runIndex:=Object(), RuleRunFailList:=Object(), RuleRunNoPathList:=Object()
+	try{
+		for n,obj in RunCtrlList
+		{
+			runCtrlObj:=RunCtrlList[n]
+			if(!runCtrlObj.enable){
+				continue
+			}
+			rcName:=runCtrlObj.name
+			;规则循环
+			if(runCtrlObj.ruleMostRun!="" && runCtrlObj.ruleMostRun>0){
+				runIndex[rcName]:=0	;规则定时器初始计数为0
+				funcEffect%rcName%:=Func("RunCtrl_RunRules").Bind(runCtrlObj)	;规则定时器
+				ruleTime:=runCtrlObj.ruleIntervalTime>0 ? runCtrlObj.ruleIntervalTime * 1000 : 1000		;规则定时器间隔时间(秒)
+				SetTimer,% funcEffect%rcName%, %ruleTime%
+			}else{
+				RunCtrl_RunRules(runCtrlObj)
+			}
+		}
+		if(RuleRunFailList.Count() > 0){
+			RuleRunFailStr:=StrListJoin("`n",RuleRunFailList)
+			TrayTip,规则插件脚本没有启动：,%RuleRunFailStr%,5,2
+		}
+		RunCtrlRunFlag:=false
+	} catch e {
+		MsgBox,16,规则判断出错,% "规则名：" rcName 
+			. "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+	}
+return
+;~;[规则启动]
+RunCtrl_RunRules(runCtrlObj,show:=0){
+	try {
+		rcName:=runCtrlObj.name
+		effectResult:=RunCtrl_RuleEffect(runCtrlObj)
+		if(effectResult){
+			for i,runv in runCtrlObj.runList
+			{
+				if(!runCtrlObj.noPath || !runCtrlObj.noMenu){
+					RunCtrl_RunApps(runv.path, runv.noPath, runv.repeatRun, runv.adminRun, runv.runWay)
+				}
+			}
+		}else if(show){
+			ToolTip, ❎ 规则验证失败
+			SetTimer,RemoveToolTip,3000
+			if(RuleRunFailList.Count() > 0){
+				RuleRunFailStr:=StrListJoin("`n",RuleRunFailList)
+				TrayTip,规则插件脚本没有启动：,%RuleRunFailStr%,5,2
+			}
+		}
+		return effectResult
+	} catch e {
+		MsgBox,16,启动规则出错,% "启动规则名：" rcName "`n启动规则脚本：" StrListJoin(",",runCtrlObj.ruleFile)
+			. "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+	} finally {
+		runIndex[rcName]++	;规则定时器运行计数+1
+		;规则运行计数达到最大循环次数 || 启动项已达到最多运行次数 => 结束定时器
+		if((runIndex[rcName] && runIndex[rcName] >= runCtrlObj.ruleMostRun)){
+			try SetTimer,% funcEffect%rcName%, Off
+		}
+	}
+}
+;~;[规则应用启动]
+RunCtrl_RunApps(path,noPath,repeatRun:=0,adminRun:=0,runWay:=1){
+	try {
+		global RunCtrlRunFlag:=true
+		global RunCtrlAdminRunVal:=adminRun
+		global RunCtrlRunWayVal:=runWay
+		if(noPath){
+			tfPath:=Get_Obj_Transform_Name(Trim(path," `t`r`n"))
+			if(!repeatRun && runWay!=6 && rule_check_is_run(MenuObj[tfPath])){
+				return
+			}
+			if(NoPathFlag || EvNo){
+				OutsideMenuItem:=tfPath
+				global NoRecentFlag:=true
+				Gosub, Menu_Run
+				RunCtrl_LastRunTime(path)
+			}else{
+				RuleRunNoPathList[tfPath]:=true
+				RuleRunAdminRunList[tfPath]:=adminRun
+				RuleRunRunWayList[tfPath]:=runWay
+				;定时等待无路径程序可运行后再运行
+				SetTimer,RunCtrl_RunMenu,100
+			}
+		}else{
+			global any:=Get_Transform_Val(path)
+			SplitPath,% any, name, dir
+			if(!repeatRun && runWay!=6 && rule_check_is_run(any)){
+				return
+			}else if(runWay=6){
+				Run,% ComSpec " /C taskkill /f /im """ name """", , Hide
+				return
+			}
+			if(dir && FileExist(dir))
+				SetWorkingDir,%dir%
+			global anyRun:=""
+			global way:=""
+			Gosub, MenuRunWay
+			Gosub, MenuRunAny
+			RunCtrlRunFlag:=false
+			RunCtrl_LastRunTime(path)
+		}
+	} catch e {
+		MsgBox,16,规则启动应用出错,% "启动应用：" path
+			. "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
+	} finally {
+		SetWorkingDir,%A_ScriptDir%
+	}
+}
+RunCtrl_RunMenu:
+	if(NoPathFlag || EvNo){
+		SetTimer,RunCtrl_RunMenu,Off
+		For path, isRun in RuleRunNoPathList
+		{
+			if(isRun){
+				RuleRunNoPathList[path]:=false
+				global RunCtrlRunFlag:=true
+				global RunCtrlAdminRunVal:=RuleRunAdminRunList[path]
+				global RunCtrlRunWayVal:=RuleRunRunWayList[path]
+				global NoRecentFlag:=true
+				OutsideMenuItem:=path
+				Gosub,Menu_Run
+				RunCtrl_LastRunTime(path)
+			}
+		}
+	}
+return
+RunCtrl_LastRunTime(path){
+	IniWrite, %A_Now%, %RunCtrlLastTimeIni%, last_run_time, %path%
+}
+;~;[规则判断是否成立]
+RunCtrl_RuleEffect(runCtrlObj){
+	effectFlag:=false
+	ruleRunCount:=0
+	rcName:=runCtrlObj.name
+	for ruleFile,ruleStatus in runCtrlObj.ruleFile
+	{
+		if(ruleStatus && ruleFile!="0" && ruleFile!="RunAny"){
+			if(rule_check_is_run(PluginsPathList[ruleFile ".ahk"])){
+				PluginsObjRegActive[ruleFile]:=ComObjActive(PluginsObjRegGUID[ruleFile])
+			}else{
+				RuleRunFailList[ruleFile]:=""
+			}
+		}
+	}
+	for i,rulev in runCtrlObj.ruleList
+	{
+		ruleRunCount++
+		if(!rulefuncList[rulev.name])
+			continue
+		;获取变量规则、插件规则函数的执行结果
+		effectResult:=RunCtrl_RuleResult(rulev.name, rulev.file, rulev.value)
+		;根据运算符计算规则最终是否成立
+		if(ruleparamList[rulev.name]){
+			;如果规则设定条件为（假、不相等），而脚本执行结果是真，则判定为假；执行结果是假，则判定为真
+			if(rulev.logic=0 || rulev.logic="ne"){
+				effectFlag:=!effectResult
+			}else{
+				effectFlag:=effectResult
+			}
+		}else{
+			;根据不同的运算符判断结果为真或假
+			if(rulev.value=""){
+				if(rulev.logic=0 || rulev.logic="ne"){
+					effectFlag:=!effectResult
+				}else{
+					effectFlag:=effectResult
+				}
+			}else if(rulev.logic=1 || rulev.logic="eq"){
+				effectFlag:=effectResult = rulev.value
+			}else if(rulev.logic=0 || rulev.logic="ne"){
+				effectFlag:=effectResult != rulev.value
+			}else if(rulev.logic="gt"){
+				effectFlag:=effectResult > rulev.value
+			}else if(rulev.logic="ge"){
+				effectFlag:=effectResult >= rulev.value
+			}else if(rulev.logic="lt"){
+				effectFlag:=effectResult < rulev.value
+			}else if(rulev.logic="le"){
+				effectFlag:=effectResult <= rulev.value
+			}else if(rulev.logic="regex"){
+				effectFlag:=RegExMatch(effectResult, rulev.value)
+			}else{
+				effectFlag:=effectResult
+			}
+		}
+		;有中断标记的规则不满足时，则直接中断后续判断并停止规则循环
+		if(rulev.ruleBreak){
+			if(!effectFlag){
+				try SetTimer,% funcEffect%rcName%, Off
+				break
+			}else{
+				continue
+			}
+		}
+		;该启动项所有规则必须全部为真时，如有一假就退出循环
+		;该启动项只需要有一项规则为真时，如有一真就退出循环
+		if(runCtrlObj.ruleLogic){
+			if(!effectFlag)
+				break
+		}else if(effectFlag){
+			break
+		}
+	}
+	return ruleRunCount>0 ? effectFlag : true
+}
+;~;[规则结果返回]
+RunCtrl_RuleResult(ruleName,ruleFile,ruleValue:=""){
+	effectResult=
+	if(ruleparamList[ruleName]){
+		;传参模式仅判断真假，不做运算符计算
+		if(ruleFile=RunAnyZz && IsFunc(rulefuncList[ruleName])){
+			effectResult:=Func(rulefuncList[ruleName]).Call(ruleValue)
+		}else{
+			appParms:=StrSplit(ruleValue,"``n")
+			effectResult:=PluginsObjRegRun(ruleFile, rulefuncList[ruleName], appParms)
+		}
+	}else{
+		if(ruletypelist[ruleName]){
+			effectResult:=Get_Transform_Val("%" rulefuncList[ruleName] "%")
+		}else if(ruleFile=RunAnyZz && IsFunc(rulefuncList[ruleName])){
+			effectResult:=Func(rulefuncList[ruleName]).Call()
+		}else{
+			effectResult:=PluginsObjRegActive[(ruleitemList[ruleName])][(rulefuncList[ruleName])]()
+		}
+	}
+	return effectResult
+}
+;══════════════════════════════════════════════════════════════════
+;~;【——🌏检查更新——】
+;══════════════════════════════════════════════════════════════════
+Check_Update:
+	checkUpdateFlag:=true
+	TrayTip,,RunAny检查更新中……,2,17
+	SetTimer, HideTrayTip, -2000
+	Gosub,Auto_Update
+return
+Auto_Update:
+	DeleteFile(A_Temp "\" RunAnyZz "\RunAny_Update.bat")
+	;[下载最新的更新脚本]
+	if(!rule_check_network(giteeUrl)){
+		RunAnyDownDir:=githubUrl . RunAnyGithubDir
+		if(!rule_check_network(githubUrl)){
+			TrayTip,网络异常,无法连接网络读取最新版本文件,5,2
+			return
+		}
+	}
+	URLDownloadToFile(RunAnyDownDir "/RunAny.ahk",A_Temp "\temp_RunAny.ahk")
+	versionReg=iS)^\t*\s*global RunAny_update_version:="([\d\.]*)".*
+	Loop, read, %A_Temp%\temp_RunAny.ahk
+	{
+		if(RegExMatch(A_LoopReadLine,versionReg)){
+			versionStr:=RegExReplace(A_LoopReadLine,versionReg,"$1")
+			break
+		}
+		if(A_LoopReadLine="404: Not Found"){
+			TrayTip,,文件下载异常，更新失败！,5,2
+			return
+		}
+	}
+	if(versionStr){
+		Gosub,Plugins_Read
+		Gosub,PluginsDownVersion
+		runAnyUpdateStr:=pluginUpdateStr:=""
+		For pk, pv in pluginsDownList
+		{
+			if(PluginsVersionList[pk] < pv){
+				pluginUpdateStr.=pk A_Tab PluginsVersionList[pk] "`t版本更新后=>`t" pv "`n"
+			}
+		}
+		if(RunAny_update_version<versionStr || pluginUpdateStr!=""){
+			runAnyUpdateStr:=RunAny_update_version<versionStr ? "检测到RunAny有新版本`n`n" RunAny_update_version "`t版本更新后=>`t" versionStr "`n" : ""
+			pluginUpdateStr:=pluginUpdateStr!="" ? "`n检测到插件有新版本`n" pluginUpdateStr : ""
+			MsgBox,33,RunAny检查更新,%runAnyUpdateStr%%pluginUpdateStr%`n
+(
+是否更新到最新版本？
+将移动老版本文件到临时目录，如有修改过请注意备份！`n%A_Temp%\%RunAnyZz%`n
+)
+			IfMsgBox Ok
+			{
+				TrayTip,,RunAny开始下载最新版本并替换老版本...,3,17
+				SetTimer, HideTrayTip, -3000
+				;[下载插件脚本]
+				if(pluginUpdateStr!=""){
+					For pk, pv in pluginsDownList
+					{
+						if(PluginsVersionList[pk] < pv && FileExist(PluginsPathList[pk])){
+							FileMove,% PluginsPathList[pk],%A_Temp%\%RunAnyZz%\%PluginsDir%\%pk%,1
+							URLDownloadToFile(RunAnyDownDir "/" StrReplace(PluginsRelativePathList[pk],"\","/"), A_ScriptDir "\" PluginsRelativePathList[pk])
+							Sleep,1000
+							Plugins_Down_Check(pk, A_ScriptDir "\" PluginsRelativePathList[pk])
+						}
+					}
+					TrayTip,,插件脚本已经更新到最新版本。,3,1
+					SetTimer, HideTrayTip, -3000
+				}
+				;[下载新版本]
+				if(RunAny_update_version<versionStr){
+					URLDownloadToFile(RunAnyDownDir "/RunAny.exe",A_Temp "\temp_RunAny.exe")
+					Gosub,RunAny_Update
+					shell := ComObjCreate("WScript.Shell")
+					shell.run(A_Temp "\" RunAnyZz "\RunAny_Update.bat",0)
+					ExitApp
+				}
+			}
+		}else if(checkUpdateFlag){
+			FileDelete, %A_Temp%\temp_RunAny.ahk
+			TrayTip,,RunAny已经是最新版本。,5,1
+			checkUpdateFlag:=false
+		}
+	}
+return
+RunAny_Update:
+if(rule_check_network(RunAnyGiteePages)){
+	Run,%RunAnyGiteePages%/runany/#/change-log?id=runany已更新最新版本！感谢一直以来的支持！
+}else{
+	Run,%RunAnyGithubPages%/RunAny/#/change-log?id=runany已更新最新版本！感谢一直以来的支持！
+}
+TrayTip,,RunAny已经更新到最新版本。,5,1
+FileAppend,
+(
+@ECHO OFF & setlocal enabledelayedexpansion & TITLE RunAny更新版本
+set /a x=1
+:BEGIN
+set /a x+=1
+ping -n 2 127.1>nul
+if exist "%A_Temp%\temp_RunAny.ahk" `(
+  MOVE /y "%A_Temp%\temp_RunAny.ahk" "%A_ScriptDir%\RunAny.ahk"
+`)
+if exist "%A_Temp%\temp_RunAny.exe" `(
+  MOVE /y "%A_Temp%\temp_RunAny.exe" "%A_ScriptDir%\RunAny.exe"
+`)
+goto INDEX
+:INDEX
+if !x! GTR 10 `(
+  exit
+`)
+if exist "%A_Temp%\temp_RunAny.ahk" `(
+  goto BEGIN
+`)
+if exist "%A_Temp%\temp_RunAny.exe" `(
+  if !x! EQU 5 `(
+    taskkill /f /im %A_ScriptName%
+  `)
+  goto BEGIN
+`)
+start "" "%A_ScriptDir%\RunAny.exe"
+exit
+),%A_Temp%\%RunAnyZz%\RunAny_Update.bat
+return
+;══════════════════════════════════════════════════════════════════
+;~;【托盘菜单】
+Menu_Tray_Add:
+	Menu,Tray,NoStandard
+	Menu,Tray,add,显示菜单(&Z)`t%MenuHotKey%,Menu_Tray_Show
+	Menu,Tray,add,修改菜单(&E)`t%TreeHotKey1%,Menu_Edit1
+	Menu,Tray,add,修改文件(&F)`t%TreeIniHotKey1%,Menu_Ini
+	Menu,Tray,add
+	If(MENU2FLAG){
+		Menu,Tray,add,显示菜单2(&2)`t%MenuHotKey2%,Menu_Show2
+		Menu,Tray,add,修改菜单2(&W)`t%TreeHotKey2%,Menu_Edit2
+		Menu,Tray,add,修改文件2(&G)`t%TreeIniHotKey2%,Menu_Ini2
+		Menu,Tray,add
+	}
+	Menu,Tray,add,插件管理(&C)`t%PluginsManageHotKey%,Plugins_Gui
+	Menu,Tray,add,启动管理(&Q)`t%RunCtrlManageHotKey%,RunCtrl_Manage_Gui
+	Menu,Tray,add
+	Menu,Tray,add,所有菜单项(&T),RunA_MenuObj_Show
+	Menu,Tray,add,设置RunAny(&D)`t%RunASetHotKey%,Settings_Gui
+	Menu,Tray,add,关于RunAny(&A)...,Menu_About
+	Menu,Tray,add,检查更新(&U),Check_Update
+	Menu,Tray,add
+	Menu,Tray,add,重启(&R)`t%RunAReloadHotKey%,Menu_Reload
+	Menu,Tray,add,停用(&S)`t%RunASuspendHotKey%,Menu_Suspend
+	Menu,Tray,add,退出(&X)`t%RunAExitHotKey%,Menu_Exit
+	Menu,Tray,Default,显示菜单(&Z)`t%MenuHotKey%
+	Menu,Tray,Click,1
+	;[RunAny菜单图标初始化]
+	try {
+		Menu,Tray,Icon,% MenuIconS[1],% MenuIconS[2]
+		Menu,Tray,Icon,显示菜单(&Z)`t%MenuHotKey%,% ZzIconS[1],% ZzIconS[2],%MenuTrayIconSize%
+		Menu,Tray,Icon,修改菜单(&E)`t%TreeHotKey1%,% TreeIconS[1],% TreeIconS[2],%MenuTrayIconSize%
+		Menu,Tray,Icon,修改文件(&F)`t%TreeIniHotKey1%,% EditFileIconS[1],% EditFileIconS[2],%MenuTrayIconSize%
+		If(MENU2FLAG){
+			Menu,Tray,Icon,显示菜单2(&2)`t%MenuHotKey2%,% ZzIconS[1],% ZzIconS[2],%MenuTrayIconSize%
+			Menu,Tray,Icon,修改菜单2(&W)`t%TreeHotKey2%,% TreeIconS[1],% TreeIconS[2],%MenuTrayIconSize%
+			Menu,Tray,Icon,修改文件2(&G)`t%TreeIniHotKey2%,% EditFileIconS[1],% EditFileIconS[2],%MenuTrayIconSize%
+		}
+		Menu,Tray,Icon,所有菜单项(&T),imageres.dll,112,%MenuTrayIconSize%
+		Menu,Tray,Icon,插件管理(&C)`t%PluginsManageHotKey%,% PluginsManageIconS[1],% PluginsManageIconS[2],%MenuTrayIconSize%
+		Menu,Tray,Icon,启动管理(&Q)`t%RunCtrlManageHotKey%,% RunCtrlManageIconS[1],% RunCtrlManageIconS[2],%MenuTrayIconSize%
+		Menu,Tray,Icon,设置RunAny(&D)`t%RunASetHotKey%,% MenuIconS[1],% MenuIconS[2],%MenuTrayIconSize%
+		Menu,Tray,Icon,关于RunAny(&A)...,% AnyIconS[1],% AnyIconS[2],%MenuTrayIconSize%
+		Menu,Tray,Icon,检查更新(&U),% CheckUpdateIconS[1],% CheckUpdateIconS[2],%MenuTrayIconSize%
+	} catch e {
+		TrayTip,,% "托盘菜单图标错误：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,5,3
+	}
+return
+Menu_Tray:
+	Menu,Tray,Show
+return
+Menu_Ini:
+	Ini_Run(iniPath)
+return
+Menu_Ini2:
+	Ini_Run(iniPath2)
+return
+Menu_Config:
+	Ini_Run(RunAnyConfig)
+return
+Menu_Reload:
+	Critical
+	Run,%A_AhkPath% /force /restart "%A_ScriptFullPath%"
+	ExitApp
+return
+Menu_Suspend:
+	Menu,tray,ToggleCheck,停用(&S)`t%RunASuspendHotKey%
+	Suspend
+return
+Menu_Exit:
+	ExitApp
+return
+Ini_Run(ini){
+	try{
+		if(!FileExist(ini)){
+			MsgBox,16,%ini%,没有找到配置文件：%ini%
+		}
+		Run,"%ini%"
+	}catch{
+		Run,notepad.exe "%ini%"
+	}
+}
+;══════════════════════════════════════════════════════════════════
+;~;【🔎Everything搜索所有exe程序】
+;══════════════════════════════════════════════════════════════════
+EverythingIsRun(){
+	global EvPathRun
+	evExist:=true
+	evAdminRun:=A_IsAdmin ? "-admin" : ""
+	DetectHiddenWindows,On
+	;获取everything路径
+	if(WinExist("ahk_exe Everything.exe")){
+		WinGet, EvPathRun, ProcessPath, ahk_exe Everything.exe
+		ev := new everything
+		;RunAny管理员权限运行后发现Everything非管理员权限则重新以管理员权限运行
+		if(!ev.GetIsAdmin() && A_IsAdmin && EvPathRun){
+			SplitPath, EvPathRun, name, dir
+			SetWorkingDir,%dir%
+			Run,%EvPathRun% -exit
+			Run,%EvPathRun% -startup %evAdminRun%
+			Sleep,500
+			ShowTrayTip("","RunAny与Everything权限不一致自动调整后启动",10,17)
+			Gosub,Menu_Reload
+		}
+	}else{
+		EvPathRun:=Get_Transform_Val(EvPath)
+		if(EvPathRun && FileExist(EvPathRun) && !InStr(FileExist(EvPathRun), "D")){
+			SplitPath, EvPathRun, name, dir
+			SetWorkingDir,%dir%
+			Run,%EvPathRun% -startup %evAdminRun%
+			Sleep,500
+		}else if(FileExist(A_ScriptDir "\Everything\Everything.exe")){
+			SetWorkingDir,%A_ScriptDir%\Everything
+			Run,%A_ScriptDir%\Everything\Everything.exe -startup %evAdminRun%
+			EvPath=%A_ScriptDir%\Everything\Everything.exe
+			EvPathRun:=EvPath
+			Sleep,500
+		}else{
+			TrayTip,,RunAny需要Everything快速识别无路径应用`n
+			(
+* 运行Everything后再重启RunAny
+* 或在RunAny设置中配置Everything正确安装路径`n* 或www.voidtools.com下载安装
+			),10,2
+			evExist:=false
+		}
+		SetWorkingDir,%A_ScriptDir%
+	}
+	DetectHiddenWindows,Off
+	return evExist
+}
+;[校验Everything是否可正常返回搜索结果]
+EverythingCheck:
+DeleteFile(A_Temp "\" RunAnyZz "\RunAnyEv.ahk")
+FileAppend,
+(
+#NoTrayIcon
+global everyDLL:="%A_ScriptDir%\%everyDLL%"
+ev:=new everything
+ev.SetMatchWholeWord(true)
+ev.SetSearch("explorer.exe")
+ev.Query()
+while,`% !ev.GetTotResults()
+{
+	if(A_Index>1000){
+		MsgBox,16,RunAny无法与Everything通信,Everything启动缓慢或异常导致无法搜索到磁盘文件``n``n
+		`(
+【原因1：Everything正在创建索引】
+请手动打开Everything等待可以搜索到文件了请再重启RunAny``n
+【原因2：Everything数据库在不同磁盘导致读写缓慢】
+查看Everything.exe和文件Everything.db是否不在同一硬盘``n
+在Everything窗口最上面菜单的“工具”——“选项”——找到选中左边的“索引”——
+修改右边的数据库路径到Everything.exe同一硬盘，加快读写速度``n
+【原因3：Everything搜索异常】
+请打开Everything菜单-工具-选项设置 安装Everything服务(S)，再重启Everything待可以搜索文件再重启RunAny
+		`)
+		break
+	}
+	Sleep, 100
+	ev.Query()
+}
+val:=ev.GetTotResults(0)
+RegWrite,REG_SZ,HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults,`%val`%
+return
+class everything
+{
+	__New(){
+		this.hModule := DllCall("LoadLibrary",str,everyDLL)
+	}
+	SetSearch(aValue)
+	{
+		this.eSearch := aValue
+		dllcall(everyDLL "\Everything_SetSearch",str,aValue)
+		return
+	}
+	SetMatchWholeWord(aValue)
+	{
+		this.eMatchWholeWord := aValue
+		dllcall(everyDLL "\Everything_SetMatchWholeWord",int,aValue)
+		return
+	}
+	Query(aValue=1)
+	{
+		dllcall(everyDLL "\Everything_Query",int,aValue)
+		return
+	}
+	GetTotResults()
+	{
+		return dllcall(everyDLL "\Everything_GetTotResults")
+	}
+}
+),%A_Temp%\%RunAnyZz%\RunAnyEv.ahk
+Sleep, 200
+Run,%A_AhkPath%%A_Space%"%A_Temp%\%RunAnyZz%\RunAnyEv.ahk"
+return
+EverythingCheckResults:
+	RegRead,EvTotResults,HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults
+	if(EvTotResults>0){
+		SetTimer,EverythingCheckResults,Off
+		Gosub,RunAny_SearchBar
+		ShowTrayTip("","Everything索引更新完成",5,17)
+		Gosub,Menu_Reload
+	}
+return
+EverythingQuery(EvCommandStr){
+	ev := new everything
+	evSearchStr:=EvCommandStr ? EvCommand " " EvCommandStr : EvCommand
+	;查询字串设为everything
+	ev.SetSearch("file: " evSearchStr)
+	;执行搜索
+	ev.Query()
+	Loop,% ev.GetNumFileResults()
+	{
+		chooseNewFlag:=false
+		Z_Index:=A_Index-1
+		objFullPathName:=ev.GetResultFullPathName(Z_Index)
+		if(!FileExist(objFullPathName))
+			continue
+		objFileName:=ev.GetResultFileName(Z_Index)
+		objFileNameNoExeExt:=RegExReplace(objFileName,"iS)\.exe$","")
+		if(MenuObjEv[objFileNameNoExeExt]){
+			MenuObjSame[(MenuObjEv[objFileNameNoExeExt])]:=MenuObjEv[objFileNameNoExeExt]
+			MenuObjSame[objFullPathName]:=objFullPathName
+			if(EvExeMTimeNew){
+				;优先选择最新修改时间的同名文件全路径
+				FileGetTime,objFullPathNameUpdateTimeOld,% MenuObjEv[objFileNameNoExeExt], M
+				FileGetTime,objFullPathNameUpdateTimeNew,% objFullPathName, M
+				if(objFullPathNameUpdateTimeOld<objFullPathNameUpdateTimeNew){
+					chooseNewFlag:=true
+				}
+			}
+			if(EvExeVerNew && RegExMatch(objFileName,"iS).*?\.exe$")){
+				;优先选择最新版本的同名exe全路径
+				FileGetVersion,objFullPathNameVersionOld,% MenuObjEv[objFileNameNoExeExt]
+				FileGetVersion,objFullPathNameVersionNew,% objFullPathName
+				if(objFullPathNameVersionOld<objFullPathNameVersionNew){
+					MenuObjEv[objFileNameNoExeExt]:=objFullPathName
+					if(MenuObj.HasKey(objFileNameNoExeExt)){
+						MenuObj[objFileNameNoExeExt]:=objFullPathName
+						MenuObjSearch[objFileName]:=objFullPathName
+					}
+				}else if(chooseNewFlag && objFullPathNameVersionOld=objFullPathNameVersionNew){
+					MenuObjEv[objFileNameNoExeExt]:=objFullPathName
+					if(MenuObj.HasKey(objFileNameNoExeExt)){
+						MenuObj[objFileNameNoExeExt]:=objFullPathName
+						MenuObjSearch[objFileName]:=objFullPathName
+					}
+				}
+				continue
+			}
+			;版本相同则取最新修改时间，时间相同或小于则不改变
+			if(EvExeMTimeNew && !chooseNewFlag){
+				continue
+			}
+		}
+		MenuObjEv[objFileNameNoExeExt]:=objFullPathName
+		if(MenuObj.HasKey(objFileNameNoExeExt)){
+			MenuObj[objFileNameNoExeExt]:=objFullPathName
+			MenuObjSearch[objFileName]:=objFullPathName
+		}
+	}
+	return ev.GetNumFileResults()
+}
+EverythingNoPathSearchStr(){
+	Loop,%MenuCount%
+	{
+		Loop, parse, iniVar%A_Index%, `n, `r, %A_Space%%A_Tab%
+		{
+			if(A_LoopField="" || InStr(A_LoopField,";")=1 || InStr(A_LoopField,"-")=1){
+				continue
+			}
+			itemVars:=StrSplit(A_LoopField,"|",,2)
+			itemVar:=itemVars[2] ? itemVars[2] : itemVars[1]
+			itemMode:=Get_Menu_Item_Mode(itemVar)
+			outVar:=RegExReplace(itemVar,"iS)^([^|]+?\.[a-zA-Z0-9-_]+)($| .*)","$1")	;去掉参数
+			;[过滤掉所有不是无路径的菜单项]
+			if(InStr(EvCommandStr,"|^" outVar "$|")){
+				MenuObjEvPathEmptyReason[itemVar]:="重复的无路径应用"
+				continue
+			}else if(itemMode!=1 && itemMode!=8){
+				MenuObjEvPathEmptyReason[itemVar]:="启动模式不是程序"
+				continue
+			}else if(outVar="iexplore.exe" && FileExist(A_ProgramFiles "\Internet Explorer\iexplore.exe")){
+				MenuObj["iexplore"]:=A_ProgramFiles "\Internet Explorer\iexplore.exe"
+				continue
+			}else if(itemMode=1 && (InStr(outVar,"..\") || RegExMatch(outVar,"S)\\|\/|\:|\*|\?|\""|\<|\>|\|") || RegExMatch(outVar,"S)^%.*?%$") )){
+				MenuObjEvPathEmptyReason[outVar]:="启动软件名带有特殊字符"
+				continue
+			}else if(itemMode=1 && (FileExist(A_WinDir "\" outVar) || FileExist(A_WinDir "\system32\" outVar))){
+				MenuObjEvPathEmptyReason[outVar]:="属于Windows和System32系统路径软件"
+				continue
+			}else if(itemMode=8){
+				MenuObjEvPathEmptyReason[outVar]:="插件脚本函数格式"
+				if(RegExMatch(itemVar,"iS).+?\[.+?\]%?\(.*?%"".+?""%.*?\)")){
+					outVar:=RegExReplace(itemVar,"iS).+?\[.+?\]%?\(.*?%""(.+?)""%.*?\)","$1")
+					if(InStr(outVar,"..\")
+						|| RegExMatch(outVar,"S)\\|\/|\:|\*|\?|\""|\<|\>|\|") 
+						|| RegExMatch(outVar,"S)^%.*?%$") 
+						|| FileExist(A_WinDir "\" outVar) || FileExist(A_WinDir "\system32\" outVar)){
+						continue
+					}
+				}else{
+					continue
+				}
+			}
+			outVarStr:=outVar
+			;正则转义特殊字符
+			if(RegExMatch(outVarStr, RegexEscapeNoPointStr)){
+				outVarStr:=StrListEscapeReplace(outVarStr, RegexEscapeNoPointList, "\")
+			}
+			outVarStr:=StrReplace(outVarStr,".","\.")
+			EvCommandStr.="^" outVarStr "$|"
+			outVarNoExeExt:=RegExReplace(outVar,"iS)\.exe$","")
+			MenuObj[outVarNoExeExt]:=""
+			MenuObjSearch[outVar]:=""
+		}
+	}
+	if(EvCommandStr!=""){
+		EvCommandStr:=SubStr(EvCommandStr, 1, -StrLen("|"))
+		EvCommandStr:="regex:""" EvCommandStr """"
+	}
+	return EvCommandStr
+}
+;[使用everything搜索单个exe程序]
+exeQuery(exeName,noSystemExe:=" !C:\Windows*"){
+	ev := new everything
+	str := exeName . noSystemExe
+	;查询字串设为全字匹配
+	ev.SetMatchWholeWord(true)
+	ev.SetSearch(str)
+	;执行搜索
+	ev.Query()
+	return ev.GetResultFullPathName(0)
+}
+;[IPC方式和everything进行通讯，修改于AHK论坛]
+class everything
+{
+	__New(){
+		this.hModule := DllCall("LoadLibrary", str, everyDLL)
+	}
+	__Get(aName){
+	}
+	__Set(aName, aValue){
+	}
+	__Delete(){
+		DllCall("FreeLibrary", "UInt", this.hModule) 
+		return
+	}
+	SetSearch(aValue)
+	{
+		this.eSearch := aValue
+		dllcall(everyDLL "\Everything_SetSearch",str,aValue)
+		return
+	}
+	;设置全字匹配
+	SetMatchWholeWord(aValue)
+	{
+		this.eMatchWholeWord := aValue
+		dllcall(everyDLL "\Everything_SetMatchWholeWord",int,aValue)
+		return
+	}
+	;设置正则表达式搜索
+	SetRegex(aValue)
+	{
+		this.eMatchWholeWord := aValue
+		dllcall(everyDLL "\Everything_SetRegex",int,aValue)
+		return
+	}
+	;执行搜索动作
+	Query(aValue=1)
+	{
+		dllcall(everyDLL "\Everything_Query",int,aValue)
+		return
+	}
+	;返回管理员权限状态
+	GetIsAdmin()
+	{
+		return dllcall(everyDLL "\Everything_IsAdmin")
+	}
+	;返回匹配总数
+	GetTotResults()
+	{
+		return dllcall(everyDLL "\Everything_GetTotResults")
+	}
+	;返回可见文件结果的数量
+	GetNumFileResults()
+	{
+		return dllcall(everyDLL "\Everything_GetNumFileResults")
+	}
+	;返回文件名
+	GetResultFileName(aValue)
+	{
+		return strget(dllcall(everyDLL "\Everything_GetResultFileName",int,aValue))
+	}
+	;返回文件全路径
+	GetResultFullPathName(aValue,cValue=128)
+	{
+		VarSetCapacity(bValue,cValue*2)
+		dllcall(everyDLL "\Everything_GetResultFullPathName",int,aValue,str,bValue,int,cValue)
+		return bValue
+	}
+}
+;══════════════════════════════════════════════════════════════════
+;~;[导入桌面程序菜单]
+Desktop_Import:
+	MsgBox,33,导入桌面程序,确定导入桌面程序到菜单当中吗？
+	IfMsgBox Ok
+	{
+		Gosub,Desktop_Append
+		Gosub,Menu_Reload
+	}
+return
+Desktop_Append:
+	desktopItem:="`n-桌面(&Desktop)`n"
+	desktopDir:=""
+	Loop,%A_Desktop%\*.lnk,0,1
+	{
+		if(A_LoopFileDir!=A_Desktop && A_LoopFileDir!=desktopDir){
+			desktopDir:=A_LoopFileDir
+			StringReplace,dirItem,desktopDir,%A_Desktop%\
+			desktopItem.="`t--" dirItem "`n"
+		}
+		desktopItem.="`t" A_LoopFileName "`n"
+	}
+	desktopItem.="`n"
+	desktopDir:=""
+	Loop,%A_Desktop%\*.exe,0
+	{
+		desktopItem.="`t" A_LoopFileName "`n"
+	}
+	FileAppend,%desktopItem%,%iniFile%
+return
+;~;[初次运行]
+First_Run:
+FileAppend,
+(
+;以【;】开头代表注释
+;以【-】开头+名称表示1级分类
+-常用(&App)
+	Chrome浏览器|chrome.exe
+	;多个同名iexplore.exe用全路径指定运行32位IE
+	;在【|】前加上IE(&E)的简称显示
+	IE(&E)|`%ProgramFiles`%\Internet Explorer\iexplore.exe
+	;2级分隔符【--】
+	--
+	StrokesPlus鼠标手势|StrokesPlus.exe
+	Ditto剪贴板|Ditto.exe
+-办公(&Work)|doc docx xls xlsx ppt pptx wps et dps
+	word(&W)|winword.exe
+	Excel(&E)|excel.exe
+	PPT(&T)|powerpnt.exe
+	;以【--】开头名称表示2级分类
+	--WPS(&S)
+		WPS(&W)|WPS.exe
+		ET(&E)|et.exe
+		WPP(&P)|wpp.exe
+	--
+-网址(U&RL)
+	;在别名最末尾添加Tab制表符+热键(参考AHK写法:^代表Ctrl !代表Alt #代表Win +代表Shift)，如选中文字按Alt+z百度
+	百度(&B)	!z|https://www.baidu.com/s?wd=
+	谷歌(&G)	!g|https://www.google.com/search?q=`%s&gws_rd=ssl
+	翻译(&F)	#z|https://translate.google.cn/#auto/zh-CN/
+	异次元软件|http://www.iplaysoft.com/search/?s=548512288484505211&q=`%s
+	淘宝(&T)|https://s.taobao.com/search?q=`%s
+	京东(&D)|https://search.jd.com/Search?keyword=`%s&enc=utf-8
+	知乎(&Z)|https://www.zhihu.com/search?type=content&q=
+	B站|http://search.bilibili.com/all?keyword=`%s
+	--
+	RunAny地址|https://github.com/hui-Zz/RunAny
+-图片(im&G)|bmp gif jpeg jpg png
+	画图(&T)|mspaint.exe
+	ACDSee.exe
+	XnView.exe
+	IrfanView.exe
+-影音(&Video)|avi mkv mp4 rm rmvb flv wmv swf mp3
+	QQPlayer.exe
+	PotPlayer.exe
+	XMP.exe
+	--
+	云音乐(&C)|cloudmusic.exe
+	QQ音乐|QQMusic.exe
+-编辑(&Edit)|txt ini cmd bat md ahk html
+	;在别名后面添加_:数字形式来透明启动应用(默认不透明,1-100是全透明到不透明)
+	记事本(&N)_:88|notepad.exe
+-文件(&File)
+	WinRAR.exe
+	TC文件管理|Totalcmd.exe
+	Everything文件秒搜|Everything.exe
+-系统(&Sys)
+	cmd.exe
+	控制面板(&S)|Control.exe
+	;在程序名后空格+带参数启动
+	hosts文件|notepad.exe `%A_WinDir`%\System32\drivers\etc\hosts
+-输入(inpu&T)
+	;当前时间（变量语法参考AHK文档https://wyagd001.github.io/zh-cn/docs/Variables.htm）
+	当前时间|`%A_YYYY`%-`%A_MM`%-`%A_DD`% `%A_Hour`%:`%A_Min`%:`%A_Sec`%;
+	;热键映射,快捷方便,左边Shift+空格=回车键;左手Shift+大小写键=删除键
+	;左手回车	<+Space|{Enter}::
+	;左手删除	LShift & CapsLock|{Delete}::
+),%iniFile%
+Gosub,Desktop_Append
+FileAppend,
+(
+-
+;1级分隔符【-】并且使下面项目都回归1级分类
+QQ.exe
+;使用【&】指定快捷键为C,忽略下面C盘的快捷键C
+计算器(&C)|calc.exe
+我的电脑(&Z)|explorer.exe
+;以【\】结尾代表是文件夹路径
+C盘|C:\
+-
+),%iniFile%
+global iniFlag:=true
+return
+
+;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+
+;~;[图标集初始图标]
+Icon_Image_Set(ImageListID){
+	IL_Add(ImageListID, "shell32.dll", 1)
+	IL_Add(ImageListID, "shell32.dll", 2)
+	IL_Add(ImageListID, EXEIconS[1], EXEIconS[2])
+	IL_Add(ImageListID, FolderIconS[1], FolderIconS[2])
+	IL_Add(ImageListID, LNKIconS[1], LNKIconS[2])
+	IL_Add(ImageListID, TreeIconS[1], TreeIconS[2])
+	IL_Add(ImageListID, UrlIconS[1], UrlIconS[2])
+	IL_Add(ImageListID, "shell32.dll", 50)
+	IL_Add(ImageListID, "shell32.dll", 100)
+	IL_Add(ImageListID, "shell32.dll", 101)
+	IL_Add(ImageListID, FuncIconS[1], FuncIconS[2])
+}
+;#菜单加载完后，预读完成"修改菜单"的GUI图标
+Icon_Tree_Image_Set(ImageListID){
+	Loop,%MenuCount%
+	{
+		Loop, parse, iniVar%A_Index%, `n, `r, %A_Space%%A_Tab%
+		{
+			if(InStr(A_LoopField,";")=1 || A_LoopField="")
+				continue
+			Set_Icon(ImageListID,A_LoopField,false)
+		}
+	}
+}
+;~;[提取菜单中所有EXE程序图标，过程较慢]
+Menu_Exe_Icon_Create:
+	cfgFile=%ResourcesExtractDir%\ResourcesExtract.cfg
+	DestFold=%A_Temp%\%RunAnyZz%\RunAnyExeIconTemp
+	if(!ResourcesExtractExist){
+		MsgBox,64,,请将ResourcesExtract.exe放入%ResourcesExtractDir%
+		return
+	}
+	MsgBox,35,生成所有EXE图标，请稍等片刻, 
+(	
+使用生成的EXE图标可以加快开机第一次RunAny的加载速度`n`n是：覆盖老图标重新生成%RunAnyZz%菜单中的所有EXE图标`n否：只生成没有的EXE图标`n取消：取消生成
+)
+	IfMsgBox Yes
+	{
+		exeIconCreateFlag:=false
+		Gosub,Menu_Exe_Icon_Extract
+	}
+	IfMsgBox No
+	{
+		exeIconCreateFlag:=true
+		Gosub,Menu_Exe_Icon_Extract
+	}
+return
+Menu_Exe_Icon_Extract:
+	if(!FileExist(cfgFile)){
+		MsgBox,64,,请将ResourcesExtract.cfg放入%ResourcesExtractDir%
+		return
+	}else{
+		IniWrite,%DestFold%,%cfgFile%,General,DestFolder
+		IniWrite,1,%cfgFile%,General,ExtractIcons
+		IniWrite,0,%cfgFile%,General,ExtractCursors
+		IniWrite,0,%cfgFile%,General,ExtractBitmaps
+		IniWrite,0,%cfgFile%,General,ExtractHTML
+		IniWrite,0,%cfgFile%,General,ExtractAnimatedIcons
+		IniWrite,0,%cfgFile%,General,ExtractAnimatedCursors
+		IniWrite,0,%cfgFile%,General,ExtractAVI
+		IniWrite,0,%cfgFile%,General,OpenDestFolder
+		IniWrite,2,%cfgFile%,General,MultiFilesMode
+	}
+	ToolTip,RunAny开始用ResourcesExtract生成EXE图标，请稍等……
+	For k, v in MenuExeArray
+	{
+		exePath:=v["itemFile"]
+		if(FileExist(exePath)){
+			menuItem:=menuItemIconFileName(v["menuItem"])
+			if(!exeIconCreateFlag || !FileExist(ExeIconDir "\" menuItem ".ico")){
+				Run,%ResourcesExtractFile% /LoadConfig "%cfgFile%" /Source "%exePath%" /DestFold "%DestFold%"
+			}
+		}
+	}
+	Process,WaitClose,ResourcesExtract.exe,10
+	ToolTip
+	Menu_Exe_Icon_Set()
+	MsgBox,64,,成功生成%RunAnyZz%内所有EXE图标到 %ExeIconDir%
+	Gui,66:Submit, NoHide
+	if(vIconFolderPath){
+		if(!InStr(vIconFolderPath,"ExeIcon"))
+			GuiControl,, vIconFolderPath, %vIconFolderPath%`n`%A_ScriptDir`%\RunIcon\ExeIcon
+	}else{
+		GuiControl,, vIconFolderPath, `%A_ScriptDir`%\RunIcon\ExeIcon
+	}
+return
+;[循环提取菜单中EXE程序的正确图标]
+Menu_Exe_Icon_Set(){
+	For k, v in MenuExeArray
+	{
+		exePath:=v["itemFile"]
+		SplitPath, exePath, exeName, exeDir, ext, name_no_ext
+		iconNameFlag:=false
+		maxFileName=
+		maxFileSize=
+		maxFilePath=
+		IfExist,%A_Temp%\%RunAnyZz%\RunAnyExeIconTemp\%exeName%
+		{
+			loop,%A_Temp%\%RunAnyZz%\RunAnyExeIconTemp\%exeName%\*.ico
+			{
+				if(RegExMatch(A_LoopFileName,"iS).*_MAINICON.ico")){
+					maxFilePath:=A_LoopFileFullPath
+					break
+				}
+				if(!iconNameFlag && RegExMatch(A_LoopFileName,"iS).*_\d+\.ico")){
+					iconNum:=RegExReplace(A_LoopFileName,"iS).*_(\d+)\.ico","$1")
+					if(A_Index=1 || maxFileName>iconNum){
+						maxFileName:=iconNum
+						maxFilePath:=A_LoopFileFullPath
+					}
+					continue
+				}
+				if(maxFileSize<A_LoopFileSize){
+					iconNameFlag:=true
+					maxFileSize:=A_LoopFileSize
+					maxFilePath:=A_LoopFileFullPath
+				}
+			}
+			menuItem:=menuItemIconFileName(v["menuItem"])
+			FileCopy, %maxFilePath%, %ExeIconDir%\%menuItem%.ico, 1
+			maxFilePath=
+		}
+	}
+}
 ;══════════════════════════════════════════════════════════════════
 ;~;[添加编辑新添加的菜单项]
 Menu_Add_File_Item:
@@ -5111,43 +7052,6 @@ SavePluginsLib:
 	Gosub,Plugins_Gui
 return
 
-;[插件检查版本更新]
-PluginsDownVersion:
-	if(!rule_check_network(giteeUrl)){
-		RunAnyDownDir:=githubUrl . RunAnyGithubDir
-		if(!rule_check_network(githubUrl)){
-			TrayTip,网络异常,无法连接网络读取最新版本文件，请手动下载,5,2
-			pluginsDownList:=PluginsObjList
-			checkGithub:=false
-			return
-		}
-	}
-	CreateDir(A_Temp "\" RunAnyZz "\" PluginsDir)
-	ObjRegIniPath=%A_Temp%\%RunAnyZz%\%PluginsDir%\%RunAny_ObjReg%
-	URLDownloadToFile(RunAnyDownDir "/" PluginsDir "/" RunAny_ObjReg, ObjRegIniPath)
-	IfExist,%ObjRegIniPath%
-	{
-		FileGetSize, ObjRegIniSize, %ObjRegIniPath%
-		if(ObjRegIniSize>500){
-			IniRead,objRegIniVar,%ObjRegIniPath%,version
-			Loop, parse, objRegIniVar, `n, `r
-			{
-				varList:=StrSplit(A_LoopField,"=",,2)
-				pluginsDownList[(varList[1])]:=varList[2]
-			}
-			IniRead,objRegIniVar,%ObjRegIniPath%,name
-			Loop, parse, objRegIniVar, `n, `r
-			{
-				varList:=StrSplit(A_LoopField,"=",,2)
-				pluginsNameList[(varList[1])]:=varList[2]
-			}
-			checkGithub:=true
-			return
-		}
-	}
-	pluginsDownList:=PluginsObjList
-	checkGithub:=false
-return
 LVDown:
 	MsgBox,33,RunAny下载插件,是否下载插件？如有修改过插件代码请注意备份！`n
 	(
@@ -5242,12 +7146,6 @@ LVDown:
 		}
 	}
 return
-Plugins_Down_Check(name, path){
-	FileRead, content, %path%
-	if(!content || InStr(content,"404: Not Found") || InStr(content,"404 Not Found")){
-		MsgBox,48,,%name% 下载失败，请重新勾选下载！
-	}
-}
 ;[加载插件脚本图标]
 Plugins_LV_Icon_Set(PluginsImageListID){
 	IL_Add(PluginsImageListID, A_AhkPath, 1)
@@ -7696,193 +9594,6 @@ RunA_MenuObj_Show:
 	Gui,MenuObjShow:Show, , %RunAnyZz% 所有菜单运行项 %RunAny_update_version% %RunAny_update_time%%AdminMode%
 return
 ;--------------------------------------------------------------------------------------------
-listviewAdvancedConfig:
-	if A_GuiEvent = DoubleClick
-	{
-		SendInput,{F2}
-	}else if A_GuiEvent = e
-	{
-		AdvancedConfigFlag:=true
-	}
-return
-;[窗口控件控制函数]
-GuiControlShow(guiName,controls*){
-	For k,v in controls
-	{
-	GuiControl, %guiName%:Show, %v%
-	}
-}
-GuiControlHide(guiName,controls*){
-	For k,v in controls
-	{
-	GuiControl, %guiName%:Hide, %v%
-	}
-}
-GuiControlSet(guiName,controlName,controlVal:=""){
-	GuiControl, %guiName%:, %controlName%, %controlVal%
-}
-;~;【——🗔窗口事件Gui——】
-MenuEditGuiClose:
-	if(TVFlag){
-		MsgBox,51,菜单树退出,已修改过菜单信息，是否保存修改再退出？
-		IfMsgBox Yes
-		{
-			Gosub,Menu_Save
-			Gosub,Menu_Reload
-		}
-		IfMsgBox No
-			Gui, Destroy
-	}else{
-		Gui, Destroy
-	}
-return
-;[GuiEscape]
-MenuEditGuiEscape:
-MenuObjShowGuiEscape:
-SaveItemGuiEscape:
-PluginsManageGuiEscape:
-PluginsDownloadGuiEscape:
-PluginsLibGuiEscape:
-PluginsIconGuiEscape:
-RunCtrlManageGuiEscape:
-RunCtrlConfigGuiEscape:
-RunCtrlFuncGuiEscape:
-CtrlRunGuiEscape:
-RuleManageGuiEscape:
-RuleConfigGuiEscape:
-99GuiEscape:
-keyGuiEscape:
-OneKeyGuiEscape:
-OneKeyDownGuiEscape:
-SavePathGuiEscape:
-SaveExtGuiEscape:
-SaveVarGuiEscape:
-SetCancel:
-	Gui,Destroy
-return
-;[GuiSize]
-MenuEditGuiSize:
-MenuObjShowGuiSize:
-RuleManageGuiSize:
-RunCtrlConfigGuiSize:
-RunCtrlFuncGuiSize:
-PluginsManageGuiSize:
-PluginsDownloadGuiSize:
-OneKeyDownGuiSize:
-	if A_EventInfo = 1
-		return
-	GuiControl, Move, RunAnyTV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
-	GuiControl, Move, RunAnyPluginsLV1, % "H" . (A_GuiHeight * 0.50) . " W" . (A_GuiWidth - 20)
-	GuiControl, Move, RunAnyPluginsLV2, % "H" . (A_GuiHeight * 0.49) . " W" . (A_GuiWidth - 20) . " y" . (A_GuiHeight * 0.50 + 10)
-	GuiControl, Move, RuleLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
-	GuiControl, Move, RunAnyDownLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
-	GuiControl, Move, RunAnyOneKeyDownLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 40)
-	GuiControl, Move, RunAnyMenuObjShowLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 40)
-	GuiControl, Move, FuncGroup, % "H" . (A_GuiHeight-130) . " W" . (A_GuiWidth - 40)
-	GuiControl, Move, FuncLV, % "H" . (A_GuiHeight-270) . " W" . (A_GuiWidth - 60)
-	GuiControl, Move, vFuncValue, % "H" . (A_GuiHeight-230) . " W" . (A_GuiWidth - 40)
-	GuiControl, MoveDraw, vFuncSave, % " X" . (A_GuiWidth * 0.30) . " Y" . (A_GuiHeight - 50)
-	GuiControl, MoveDraw, vFuncCancel, % " X" . (A_GuiWidth * 0.30 + 100) . " Y" . (A_GuiHeight - 50)
-return
-66GuiSize:
-	if A_EventInfo = 1
-		return
-	GuiControl, Move, ConfigTab, % "H" . (A_GuiHeight * 0.88) . " W" . (A_GuiWidth - 20)
-	GuiControl, Move, vDisableAppGroup, % "H" . (A_GuiHeight * 0.88 - 395) . " W" . (A_GuiWidth - 40)
-	GuiControl, Move, vDisableApp, % "H" . (A_GuiHeight * 0.88 - 435) . " W" . (A_GuiWidth - 60)
-	GuiControl, Move, RunAnyHotkeyLV, % "H" . (A_GuiHeight * 0.88 - 214) . " W" . (A_GuiWidth - 60)
-	GuiControl, Move, RunAnyMenuVarLV, % "H" . (A_GuiHeight * 0.88 - 121) . " W" . (A_GuiWidth - 60)
-	GuiControl, Move, RunAnyMenuObjPathLV, % "H" . (A_GuiHeight * 0.88 - 121) . " W" . (A_GuiWidth - 60)
-	GuiControl, Move, vRunAEvFullPathIniDir, % " W" . (A_GuiWidth - 388)
-	GuiControl, Move, vEvSetupGroup, % " W" . (A_GuiWidth - 40)
-	GuiControl, Move, vEvPath, % " W" . (A_GuiWidth - 120)
-	GuiControl, Move, vEvCommandGroup, % "H" . (A_GuiHeight * 0.88 - 248) . " W" . (A_GuiWidth - 40)
-	GuiControl, Move, vEvCommand, % "H" . (A_GuiHeight * 0.88 - 408) . " W" . (A_GuiWidth - 60)
-	GuiControl, Move, RunAnyOneKeyLV, % " W" . (A_GuiWidth - 40)
-	GuiControl, Move, vOneKeyUrlGroup, % " W" . (A_GuiWidth - 40)
-	GuiControl, Move, vOneKeyUrl, % " W" . (A_GuiWidth - 60)
-	GuiControl, Move, vBrowserPath, % " W" . (A_GuiWidth - 120)
-	GuiControl, Move, RunAnyOpenExtLV, % "H" . (A_GuiHeight * 0.88 - 121 ) . " W" . (A_GuiWidth - 60)
-	GuiControl, Move, vHotStrGroup, % "H" . (A_GuiHeight * 0.80)
-	GuiControl, Move, AdvancedConfigLV, % "H" . (A_GuiHeight * 0.88 - 76) " W" . (A_GuiWidth - 60)
-	GuiControl, MoveDraw, vSetOK, % " X" . (A_GuiWidth * 0.30) . " Y" . (A_GuiHeight * 0.92)
-	GuiControl, MoveDraw, vSetCancel, % " X" . (A_GuiWidth * 0.30 + 90) . " Y" . (A_GuiHeight * 0.92)
-	GuiControl, MoveDraw, vSetReSet, % " X" . (A_GuiWidth * 0.30 + 180) . " Y" . (A_GuiHeight * 0.92)
-	GuiControl, MoveDraw, vMenu_Config, % " X" . (A_GuiWidth * 0.30 + 310) . " Y" . (A_GuiHeight * 0.925)
-return
-SaveItemGuiSize:
-	if A_EventInfo = 1
-		return
-	GuiControl,SaveItem:MoveDraw, vitemName, % "W" . (A_GuiWidth-360)
-	GuiControl,SaveItem:MoveDraw, vitemPath, % "H" . (A_GuiHeight-230) . " W" . (A_GuiWidth - 120)
-	GuiControl,SaveItem:MoveDraw, vPictureIconAdd,% "x" . (A_GuiWidth-130)
-	GuiControl,SaveItem:MoveDraw, vTextIconAdd,% "x" . (A_GuiWidth-150)
-	GuiControl,SaveItem:MoveDraw, vTextIconDown,% "x" . (A_GuiWidth-100)
-	GuiControl,SaveItem:MoveDraw, vSaveItemSaveBtn,% "x" . (A_GuiWidth / 2 - 100) . " y" . (A_GuiHeight-60)
-	GuiControl,SaveItem:MoveDraw, vSaveItemCancelBtn,% "x" . (A_GuiWidth / 2 + 10) . " y" . (A_GuiHeight-60)
-	GuiControl,SaveItem:MoveDraw, vStatusBar,% "x30" . " y" . (A_GuiHeight-30)
-return
-RunCtrlManageGuiSize:
-	if A_EventInfo = 1
-		return
-	GuiControl, Move, RunCtrlListBox, % "H" . (A_GuiHeight-15)
-	GuiControl, Move, RunCtrlLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 175)
-return
-;[GuiContextMenu]
-MenuEditGuiContextMenu:
-PluginsManageGuiContextMenu:
-	If (A_GuiControl = "RunAnyTV") {
-		TV_Modify(A_EventInfo, "Select Vis")
-		Menu, TVMenu, Show
-	}
-	If (A_GuiControl = "RunAnyPluginsLV1" || A_GuiControl = "RunAnyPluginsLV2") {
-		LV_Modify(A_EventInfo, "Select Vis")
-		Menu, LVMenu, Show
-	}
-return
-RunCtrlManageGuiContextMenu:
-	If (A_GuiControl = "RunCtrlListBox" || A_GuiControl = "RunCtrlLV") {
-		TV_Modify(A_EventInfo, "Select Vis")
-		Menu, RunCtrlLVMenu, Show
-	}
-return
-;[GuiDropFiles]  ; 对拖放提供支持.
-MenuEditGuiDropFiles:
-SaveItemGuiDropFiles:
-	Loop, Parse, A_GuiEvent, `n
-	{
-		SelectedFileName = %A_LoopField%  ; 仅获取首个文件 (如果有多个文件的时候).
-		break
-	}
-	;获取鼠标下面的控件
-	MouseGetPos, , , id, control
-	WinGetClass, class, ahk_id %id%
-	if(control="SysTreeView321"){
-		Loop, Parse, A_GuiEvent, `n
-		{
-			fileID:=TV_Add(Get_Item_Run_Path(A_LoopField),0,Set_Icon(TreeImageListID,A_LoopField))
-			TVFlag:=true
-		}
-	}
-	if(control="Edit1"){
-		GuiControl,SaveItem:, vitemName, % Get_Item_Run_Path(SelectedFileName)
-	}
-	if(control="Edit4"){
-		GuiControl,SaveItem:, vitemPath, % Get_Item_Run_Path(SelectedFileName)
-	}
-	Gosub,EditItemPathChange
-return
-PluginsManageGuiDropFiles:
-	MsgBox,33,RunAny新增插件,是否复制脚本文件到插件目录？`n%A_ScriptDir%\%PluginsDir%
-	IfMsgBox Ok
-	{
-		Loop, Parse, A_GuiEvent, `n
-		{
-			FileCopy, %A_LoopField%, %A_ScriptDir%\%PluginsDir%
-		}
-		Gosub,Plugins_Gui
-	}
-return
 ;TreeView自定义项目颜色
 ;https://www.autohotkey.com/boards/viewtopic.php?f=6&t=2632
 class treeview{
@@ -7978,1896 +9689,191 @@ WM_NOTIFY(Param*){
 		}
 	}
 }
-;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-;~;【——🔛配置初始化——】
-;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-Config_Set:
-	;#判断配置文件
-	if(!FileExist(RunAnyConfig)){
-		IniWrite,%IniConfig%,%RunAnyConfig%,Config,IniConfig
-	}
-	;[RunAny设置参数]
-	global Z_ScriptName:=FileExist(RunAnyZz ".exe") ? RunAnyZz ".exe" : A_ScriptName
-	RegRead, AutoRun, HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run, RunAny
-	AutoRun:=AutoRun=A_ScriptDir "\" Z_ScriptName ? 1 : 0
-	global AdminRun:=Var_Read("AdminRun",0)
-	;#判断管理员权限#
-	if(AdminRun && !A_IsAdmin){
-		adminahkpath:=""
-		if(!A_IsCompiled)
-			adminahkpath:=A_AhkPath A_Space
-		Run *RunAs %adminahkpath%"%A_ScriptFullPath%"
-		ExitApp
-	}
-	global getZz:=""
-	global OutsideMenuItem:=""
-	global MENU_NO:=1
-	global RegexEscapeStr:="\\|\.|\*|\?|\+|\[|\{|\||\(|\)|\^|\$"
-	global RegexEscapeNoPointStr:="\\|\*|\?|\+|\[|\{|\||\(|\)|\^|\$"
-	global RegexEscapeList:=StrSplit("\.*?+[{|()^$")
-	global RegexEscapeNoPointList:=StrSplit("\*?+[{|()^$")
-	global HideMenuTrayIcon:=Var_Read("HideMenuTrayIcon",0)
-	if(HideMenuTrayIcon)
-		Menu, Tray, NoIcon
-	global AdminMode:=A_IsAdmin ? "【管理员】" : ""
-	global MenuTrayTipText:=RunAnyZz . AdminMode "`n"
-	global AutoReloadMTime:=Var_Read("AutoReloadMTime",2500)
-	global ConfigDate:=Var_Read("ConfigDate")
-	global RunABackupDir:=Var_Read("RunABackupDir","`%A_ScriptDir`%\RunBackup")
-	global RunABackupRule:=Var_Read("RunABackupRule",1)
-	global RunABackupMax:=Var_Read("RunABackupMax",15)
-	global RunABackupFormat:=Var_Read("RunABackupFormat",".`%A_Now`%.bak")
-	global HideFail:=Var_Read("HideFail",1)
-	global HideWeb:=Var_Read("HideWeb",0)
-	global HideGetZz:=Var_Read("HideGetZz",0)
-	global HideSend:=Var_Read("HideSend",0)
-	global HideAddItem:=Var_Read("HideAddItem",0)
-	global HideMenuTray:=Var_Read("HideMenuTray",0)
-	global HideSelectZz:=Var_Read("HideSelectZz",0)
-	global RecentMax:=Var_Read("RecentMax",3)
-	DisableApp:=Var_Read("DisableApp","vmware-vmx.exe,TeamViewer.exe,SunloginClient.exe,War3.exe,dota2.exe,League of Legends.exe")
-	Loop,parse,DisableApp,`,
+;--------------------------------------------------------------------------------------------
+listviewAdvancedConfig:
+	if A_GuiEvent = DoubleClick
 	{
-		GroupAdd,DisableGUI,ahk_exe %A_LoopField%
-	}
-	;[热键配置]
-	global MenuDoubleCtrlKey:=Var_Read("MenuDoubleCtrlKey",0)
-	global MenuDoubleAltKey:=Var_Read("MenuDoubleAltKey",0)
-	global MenuDoubleLWinKey:=Var_Read("MenuDoubleLWinKey",0)
-	global MenuDoubleRWinKey:=Var_Read("MenuDoubleRWinKey",0)
-	global MenuMButtonKey:=Var_Read("MenuMButtonKey",0)
-	global MenuCtrlRightKey:=Var_Read("MenuCtrlRightKey",0)
-	global MenuShiftRightKey:=Var_Read("MenuShiftRightKey",0)
-	global MenuXButton1Key:=Var_Read("MenuXButton1Key",0)
-	global MenuXButton2Key:=Var_Read("MenuXButton2Key",0)
-	global MenuMButtonKey:=Var_Read("MenuMButtonKey",0)
-	;[一键直达]
-	global BrowserPath:=Var_Read("BrowserPath")
-	global OneKeyRun:={"一键公式计算":""
-		,"一键打开文件":"runany[Run_Any](%getZz%)"
-		,"一键打开目录":"runany[Open_Folder_Path](%getZz%)"
-		,"一键打开网址":"runany[Run_Search](%getZz%)"
-		,"一键磁力链接":"runany[Run_Any](%getZz%)"}
-	if(BrowserPath!=""){
-		OneKeyRun["一键打开网址"]:=BrowserPath " ""%getZz%"""
-	}
-	global OneKeyRegex:={"一键公式计算":"S)^[\(\)\.\s\d]*\d+\s*[+*/-]+[\(\)\.+*/-\d\s]+($|=$)"
-		,"一键打开文件":"S)^(\\\\|.:\\).*?\..+"
-		,"一键打开目录":"S)^(\\\\|.:\\)"
-		,"一键打开网址":"iS)^([\w-]+:\/\/?|www[.]).*"
-		,"一键磁力链接":"iS)^magnet:\?xt=urn:btih:.*"}
-	global OneKeyRegexList:={}
-	global OneKeyRegexMultilineList:={}
-	global OneKeyRunList:={}
-	global OneKeyDisableList:={}
-	global OneKeyDisableStr:=Var_Read("OneKeyDisableList")
-	Loop, parse, OneKeyDisableStr, |
+		SendInput,{F2}
+	}else if A_GuiEvent = e
 	{
-		OneKeyDisableList[A_LoopField]:=true
-	}
-	IniRead,OneKeyVar,%RunAnyConfig%,OneKey
-	if(!OneKeyVar){
-		OneKeyRunList:=OneKeyRun
-		OneKeyRegexList:=OneKeyRegex
-	}
-	Loop, parse, OneKeyVar, `n, `r
-	{
-		R_LoopField=%A_LoopField%
-		if(R_LoopField="")
-			continue
-		varList:=StrSplit(R_LoopField,"=",,2)
-		if(varList[1]="")
-			continue
-		if(RegExMatch(varList[1],".+_Run$")){
-			OneKeyRunList[RegExReplace(varList[1],"(.+)_Run$","$1")]:=varList[2]
-		}else if(RegExMatch(varList[1],".+_Regex$")){
-			name:=RegExReplace(varList[1],"(.+)_Regex$","$1")
-			OneKeyRegexList[name]:=varList[2]
-			if(RegExMatch(varList[2],"m)^[^(]*?m.*?\).*")){
-				OneKeyRegexMultilineList[name]:=varList[2]
-			}
-		}
-	}
-	global OneKeyMenu:=Var_Read("OneKeyMenu",0)
-	global OneKeyUrl:=Var_Read("OneKeyUrl","https://www.baidu.com/s?wd=%s")
-	OneKeyUrl:=StrReplace(OneKeyUrl, "|", "`n")
-	;[搜索Everything]
-	global EvPath:=Var_Read("EvPath")
-	global EvShowExt:=Var_Read("EvShowExt",1)
-	global EvShowFolder:=Var_Read("EvShowFolder",1)
-	global EvAutoClose:=Var_Read("EvAutoClose",0)
-	global EvExeVerNew:=Var_Read("EvExeVerNew",1)
-	global EvExeMTimeNew:=Var_Read("EvExeMTimeNew",1)
-	global EvDemandSearch:=Var_Read("EvDemandSearch",1)
-	EvCommandDefault:="!" A_WinDir "* !?:\$RECYCLE.BIN* !?:\Users\*\AppData\Local\Temp\* !?:\Users\*\AppData\Roaming\*.exe"
-	try EnvGet, scoopPath, scoop
-	if(scoopPath)
-		EvCommandDefault.=" !" RegExReplace(scoopPath,".(:\\.*)","?$1") "\shims\*"
-	global EvCommand:=Var_Read("EvCommand",EvDemandSearch ? EvCommandDefault : EvCommandDefault " file:*.exe|*.lnk|*.ahk|*.bat|*.cmd")
-	EvCommandVar:=RegExReplace(EvCommand,"i).*file:(\*\.[^\s]*).*","$1")
-	global EvCommandExtList:=StrSplit(EvCommandVar,"|")
-	;[热字符串]
-	global HideHotStr:=Var_Read("HideHotStr",0)
-	global HotStrHintLen:=Var_Read("HotStrHintLen",3)
-	global HotStrShowLen:=Var_Read("HotStrShowLen",30)
-	global HotStrShowTime:=Var_Read("HotStrShowTime",3000)
-	global HotStrShowTransparent:=Var_Read("HotStrShowTransparent",80)
-	global HotStrShowX:=Var_Read("HotStrShowX",0)
-	global HotStrShowY:=Var_Read("HotStrShowY",0)
-	global SendStrEcKey:=Var_Read("SendStrEcKey")
-	global SendStrDcKey:=Var_Read("SendStrDcKey")
-	;[高级配置]开始
-	global ShowGetZzLen:=Var_Read("ShowGetZzLen",30)
-	global DebugMode:=Var_Read("DebugMode",0)
-	global DebugModeShowTime:=Var_Read("DebugModeShowTime",8000)
-	global DebugModeShowTrans:=Var_Read("DebugModeShowTrans",70)
-	global DebugModeShowText:=""
-	global DebugModeShowTextLen:=0
-	global EvNo:=Var_Read("EvNo",0)
-	global JumpSearch:=Var_Read("JumpSearch",0)
-	global AutoGetZz:=Var_Read("AutoGetZz",1)
-	global GetZzCopyKey:=Var_Read("GetZzCopyKey","^{Insert}")
-	global GetZzCopyKeyApp:=Var_Read("GetZzCopyKeyApp","cmd.exe,powershell.exe")
-	Loop,parse,GetZzCopyKeyApp,`,
-	{
-		GroupAdd,GetZzCopyKeyAppGUI,ahk_exe %A_LoopField%
-	}
-	global DisableExeIcon:=Var_Read("DisableExeIcon",0)
-	global RunAEncoding:=Var_Read("RunAEncoding",A_Language!=0804 ? "UTF-8" : "")
-	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)
-	global ClipWaitApp:=Var_Read("ClipWaitApp")
-	global HoldKeyShowTime:=Var_Read("HoldKeyShowTime",1000)
-	global RUNANY_SELF_MENU_ITEM1:=Var_Read("RUNANY_SELF_MENU_ITEM1","&1批量搜索")
-	global RUNANY_SELF_MENU_ITEM2:=Var_Read("RUNANY_SELF_MENU_ITEM2","RunAny设置")
-	global RUNANY_SELF_MENU_ITEM3:=Var_Read("RUNANY_SELF_MENU_ITEM3","0【添加到此菜单】")
-	global RUNANY_SELF_MENU_ITEM4:=Var_Read("RUNANY_SELF_MENU_ITEM4","-【显示全部菜单】")
-	global RunAnyMenuTransparent:=Var_Read("RunAnyMenuTransparent",225)
-	global RunAnyMenuSpaceRun:=Var_Read("RunAnyMenuSpaceRun",2)
-	global RunAnyMenuRButtonRun:=Var_Read("RunAnyMenuRButtonRun",3)
-	global RunAnyMenuMButtonRun:=Var_Read("RunAnyMenuMButtonRun",0)
-	global RunAnyMenuXButton1Run:=Var_Read("RunAnyMenuXButton1Run",0)
-	global RunAnyMenuXButton2Run:=Var_Read("RunAnyMenuXButton2Run",0)
-	global HoldKeyList:={"HoldCtrlRun":2,"HoldCtrlShiftRun":3,"HoldCtrlWinRun":4,"HoldShiftRun":5,"HoldShiftWinRun":6,"HoldCtrlShiftWinRun":7}
-	global HoldKeyValList:={"HoldCtrlRun":2,"HoldCtrlShiftRun":3,"HoldCtrlWinRun":11,"HoldShiftRun":5,"HoldShiftWinRun":31,"HoldCtrlShiftWinRun":4}
-	for k, v in HoldKeyList
-	{
-		%k%:=Var_Read(k,HoldKeyValList[k])
-		j:=%k%
-		if(j){
-			HoldKeyRun%j%:=v
-		}
-	}
-	;[高级配置]结束
-	global MENU_RUN_NAME_STR:="编辑(&E),同名软件(&S),软件目录(&D),透明运行(&Q),置顶运行(&T),改变大小运行(&W),管理员权限运行(&A)" 
-		. ",最小化运行(&I),最大化运行(&P),隐藏运行(&H),结束软件进程(&X)"
-	global MENU_RUN_NAME_NOFILE_STR:="复制运行路径(&C),输出运行路径(&V),复制软件名(&N),输出软件名(&M),复制软件名+后缀(&F),输出软件名+后缀(&G)"
-	MENU_RUN_NAME_STR.="," MENU_RUN_NAME_NOFILE_STR
-	MENU_RUN_NAME_NOFILE_STR:="编辑(&E)," MENU_RUN_NAME_NOFILE_STR
-	Loop, 9
-	{
-		MENU_RUN_NAME_STR.=",透明运行:&" A_Index*10 "%"
-	}
-	;~[最近运行项]
-	if(RecentMax>0){
-		global MenuCommonList:={}
-		RegRead, MenuCommonListReg, HKEY_CURRENT_USER\Software\RunAny, MenuCommonList
-		if(MenuCommonListReg){
-			Loop, parse, MenuCommonListReg, |
-			{
-				R_ThisMenuItem:=RegExReplace(A_LoopField,"^&\d+ ","")
-				if R_ThisMenuItem not in %MENU_RUN_NAME_STR%
-				{
-					MenuCommonList.Push(A_LoopField)
-				}
-			}
-		}
-	}
-	OnExit("ExitFunc")
-	OnMessage(0x004A, "Receive_WM_COPYDATA")
-	OnMessage(0x11, "WM_QUERYENDSESSION")
-	;~[定期自动检查更新]
-	global giteeUrl:="https://gitee.com"
-	global githubUrl:="https://raw.githubusercontent.com"
-	global RunAnyGiteePages:="https://hui-zz.gitee.io"
-	global RunAnyGithubPages:="https://hui-zz.github.io"
-	global RunAnyGiteeDir:="/hui-Zz/RunAny/raw/master"
-	global RunAnyGithubDir:="/hui-Zz/RunAny/master"
-	global RunAnyDownDir:=giteeUrl . RunAnyGiteeDir ; 初始使用gitee地址
-	if(A_DD=01 || A_DD=15){
-		;当天已经检查过就不再更新
-		if(FileExist(A_Temp "\temp_RunAny.ahk")){
-			FileGetTime,tempMTime, %A_Temp%\temp_RunAny.ahk, M  ; 获取修改时间.
-			t1 := A_Now
-			t1 -= %tempMTime%, Days
-			FormatTime,tempTimeDD,%tempMTime%,dd
-			if(t1=0 && (tempTimeDD=01 || tempTimeDD=15))
-				return
-			Gosub,Old_Config_Clear
-		}
-		Gosub,Auto_Update
+		AdvancedConfigFlag:=true
 	}
 return
-Old_Config_Clear:
-	EvCommandDefaultOld1:="!" A_WinDir "* !?:\$RECYCLE.BIN* !?:\Users\*\AppData\Local\Temp\* !?:\Users\*\AppData\Roaming\*"
-	try EnvGet, scoopPath, scoop
-	if(scoopPath)
-		EvCommandDefaultOld1.=" !" RegExReplace(scoopPath,".(:\\.*)","?$1") "\shims\*"
-	EvCommand_Old1:=EvDemandSearch ? EvCommandDefaultOld1 : EvCommandDefaultOld1 " file:*.exe|*.lnk|*.ahk|*.bat|*.cmd"
-	IniRead,readVar,%RunAnyConfig%,Config,EvCommand,A_Space
-	if(readVar!=""){
-		if(readVar=EvCommand_Old1){
-			IniDelete,%RunAnyConfig%,Config,EvCommand
-		}
-	}
-return
-;~;【菜单自定义变量】
-Menu_Var_Set:
-	global MenuVarIniList:={}
-	global MenuVarTypeList:={}
-	IniRead,menuVarVar,%RunAnyConfig%,MenuVar
-	SplitPath, A_ScriptDir,,,,,A_ScriptDrive
-	if(!menuVarVar){
-		menuVarVar:="A_Desktop`nA_MyDocuments`nA_ScriptDir`nA_ScriptDrive`n"
-		menuVarVar.="AppData`nComputerName`nComSpec`nLocalAppData`nOneDrive`nProgramFiles`n"
-		if(A_Is64bitOS)
-			menuVarVar.="ProgramW6432`n"
-		menuVarVar.="UserName`nUserProfile`nWinDir"
-	}
-	Loop, parse, menuVarVar, `n, `r
+;[窗口控件控制函数]
+GuiControlShow(guiName,controls*){
+	For k,v in controls
 	{
-		if(A_LoopField="")
-			continue
-		itemList:=StrSplit(A_LoopField,"=",,2)
-		menuVarName:=itemList[1]
-		menuVarVal:=itemList[2]
-		if(%menuVarName%){
-			MenuVarIniList[itemList[1]]:=%menuVarName%
-			MenuVarTypeList[menuVarName]:=1
-		}else{
-			try EnvGet, %menuVarName%, %menuVarName%
-			if(%menuVarName%){
-				MenuVarIniList[itemList[1]]:=%menuVarName%
-				MenuVarTypeList[menuVarName]:=2
-			}else{
-				%menuVarName%:=menuVarVal
-				MenuVarTypeList[menuVarName]:=3
-				MenuVarIniList[itemList[1]]:=itemList[2]
-			}
-		}
+	GuiControl, %guiName%:Show, %v%
 	}
-return
-;~;【内部关联后缀打开方式】
-Open_Ext_Set:
-	;支持一键直达浏览器无路径识别
-	global BrowserPathRun:=Get_Obj_Path_Transform(BrowserPath)
-	global openExtIniList:={}
-	global openExtRunList:={}
-	ClipWaitAppStr:=""
-	IniRead,openExtVar,%RunAnyConfig%,OpenExt
-	Loop, parse, openExtVar, `n, `r
+}
+GuiControlHide(guiName,controls*){
+	For k,v in controls
 	{
-		itemList:=StrSplit(A_LoopField,"=",,2)
-		openExtIniList[itemList[1]]:=itemList[2]
-		Loop, parse,% itemList[2], %A_Space%
+	GuiControl, %guiName%:Hide, %v%
+	}
+}
+GuiControlSet(guiName,controlName,controlVal:=""){
+	GuiControl, %guiName%:, %controlName%, %controlVal%
+}
+;~;【——🗔窗口事件Gui——】
+MenuEditGuiClose:
+	if(TVFlag){
+		MsgBox,51,菜单树退出,已修改过菜单信息，是否保存修改再退出？
+		IfMsgBox Yes
 		{
-			extLoopField:=RegExReplace(A_LoopField,"^\.","")
-			openExtRunList[extLoopField]:=Get_Obj_Path_Transform(itemList[1])
-		}
-		if(InStr(itemList[1],"dopus.exe") || MenuObjEv["dopus"])
-			ClipWaitAppStr:=StrJoin(",",ClipWaitAppStr,"dopus.exe")
-		if(InStr(itemList[1],"xyplorer.exe") || MenuObjEv["xyplorer"])
-			ClipWaitAppStr:=StrJoin(",",ClipWaitAppStr,"xyplorer.exe")
-		if(InStr(itemList[1],"totalcmd.exe") || MenuObjEv["totalcmd"])
-			ClipWaitAppStr:=StrJoin(",",ClipWaitAppStr,"totalcmd.exe")
-		if(InStr(itemList[1],"TotalCMD64.exe") || MenuObjEv["TotalCMD64"])
-			ClipWaitAppStr:=StrJoin(",",ClipWaitAppStr,"totalcmd64.exe")
-	}
-	; 解决指定软件界面剪贴板等待时间过短获取不到选中内容
-	Sort, ClipWaitAppStr ,U D,
-	if(ClipWaitAppStr!=""){
-		ClipWaitTime:=Var_Read("ClipWaitTime", 1.2)
-		ClipWaitApp:=Var_Read("ClipWaitApp", ClipWaitAppStr)
-	}
-	Loop,parse,ClipWaitApp,`,
-	{
-		GroupAdd,ClipWaitGUI,ahk_exe %A_LoopField%
-	}
-	if(!openExtRunList["folder"]){
-		TcPath:=Var_Read("TcPath")
-		if(TcPath){
-			openExtName:="folder"
-			if(openExtIniList[TcPath]){ ; 如果已存在旧打开方式，则加在末尾
-				openExtName:=openExtIniList[TcPath] A_Space "folder"
-			}
-			IniWrite,%openExtName%,%RunAnyConfig%,OpenExt,%TcPath%
-			openExtRunList["folder"]:=Get_Obj_Path_Transform(TcPath)
-			openExtIniList[TcPath]:=openExtName
-			IniDelete,%RunAnyConfig%,Config,TcPath
-		}
-	}
-	global OpenFolderPathRun:=openExtRunList["folder"]
-return
-;~;【调用环境判断】
-Run_Exist:
-	;#判断菜单配置文件初始化#
-	global iniFile:=iniPath
-	global iniVar1:=""
-	global both:=1
-	global RunABackupDirPath:=Get_Transform_Val(RunABackupDir)
-	global RunAEvFullPathIniDir:=Var_Read("RunAEvFullPathIniDir","`%AppData`%\" RunAnyZz)
-	global RunAEvFullPathIniDirPath:=Get_Transform_Val(RunAEvFullPathIniDir)
-	global RunAnyEvFullPathIni:=RunAEvFullPathIniDirPath "\RunAnyEvFullPath.ini"
-	CreateDir(A_ScriptDir "\" PluginsDir "\" Lib)
-	CreateDir(A_AppData "\" RunAnyZz)
-	CreateDir(RunABackupDirPath "\" RunAnyConfig)
-	CreateDir(RunAEvFullPathIniDirPath)
-	CreateDir(A_Temp "\" RunAnyZz)
-	FileRead, evFullPathIniVar, %RunAnyEvFullPathIni%
-	evFullPathIniVar:=StrReplace(evFullPathIniVar, "[FullPath]`r`n", "")
-	if(RunAEncoding){
-		try{
-			FileEncoding,%RunAEncoding%
-		}catch e {
-			MsgBox,16,文件编码出错,% "请设置正确的编码读取RunAny.ini!`n参考：https://wyagd001.github.io/zh-cn/docs/commands/FileEncoding.htm"
-			. "`n`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
-		}
-	}
-	FileGetSize,iniFileSize,%iniFile%
-	If(!FileExist(iniFile) || iniFileSize=0){
-		TrayTip,,RunAny初始化中...,2,17
-		SetTimer, HideTrayTip, -2000
-		Gosub,First_Run
-	}
-	FileRead, iniVar1, %iniPath%
-	;#判断第2菜单ini#
-	global MENU2FLAG:=false
-	IfExist,%iniPath2%
-	{
-		global iniVar2:=""
-		MENU2FLAG:=true
-		FileRead, iniVar2, %iniPath2%
-		CreateDir(RunABackupDirPath "\" RunAnyZz "2.ini")
-	}
-	global iniFileVar:=iniVar1
-	global EvPathRun:=Get_Transform_Val(EvPath)
-	;#判断Everything拓展DLL文件#
-	if(!EvNo){
-		Gosub,Ev_Exist
-		;~Everything搜索检查准备
-		global RunAnyTickCount:=0
-		RegRead,RunAnyTickCount,HKEY_CURRENT_USER\SOFTWARE\RunAny,RunAnyTickCount
-		if(!RunAnyTickCount || A_TickCount<RunAnyTickCount){
-			RegWrite, REG_SZ, HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults,0
-		}
-	}
-return
-Ev_Exist:
-	global everyDLL:="Everything.dll"
-	if(FileExist(A_ScriptDir "\Everything.dll")){
-		everyDLL:=DllCall("LoadLibrary", str, "Everything.dll") ? "Everything.dll" : "Everything64.dll"
-	}else if(FileExist(A_ScriptDir "\Everything64.dll")){
-		everyDLL:=DllCall("LoadLibrary", str, "Everything64.dll") ? "Everything64.dll" : "Everything.dll"
-	}
-	if(!FileExist(A_ScriptDir "\" everyDLL)){
-		MsgBox,17,,没有找到%everyDLL%，将不能识别菜单中程序的路径`n需要将%everyDLL%放到【%A_ScriptDir%】目录下`n是否需要从网上下载%everyDLL%？
-		IfMsgBox Ok
-		{
-			URLDownloadToFile(RunAnyDownDir "/" everyDLL,A_ScriptDir "\" everyDLL)
-			Gosub,Menu_Reload
-		}else{
-			MsgBox,17,【慎改】,是否需要开启不使用Everything模式？所有无路径应用可以通过手动新增修改同步来识别运行路径。`n`n（也可在高级配置中修改）
-			IfMsgBox Ok
-			{
-				Var_Set(1,EvNo,"EvNo")
-				EvNo:=1
-			}
-		}
-	}
-return
-;~;【——⭕️图标初始化——】
-Icon_Set:
-	Menu,exeTestMenu,add,SetCancel	;只用于测试应用图标正常添加
-	global RunIconDir:=A_ScriptDir "\RunIcon"
-	global WebIconDir:=RunIconDir "\WebIcon"
-	global ExeIconDir:=RunIconDir "\ExeIcon"
-	global MenuIconDir:=RunIconDir "\MenuIcon"
-	IconDirs:="ExeIcon,WebIcon,MenuIcon"
-	Loop, Parse, IconDirs, `,
-	{
-		CreateDir(RunIconDir "\" A_LoopField)
-	}
-	global IconFileSuffix:="*.ico;*.bmp;*.png;*.gif;*.jpg;*.jpeg;*.jpe;*.jfif;*.dib;*.tif;*.tiff;*.heic"
-		. ";*.cur;*.ani;*.cpl;*.scr;"
-	global ResourcesExtractExist:=false
-	global ResourcesExtractDir:=A_ScriptDir "\ResourcesExtract"
-	global ResourcesExtractFile:=A_ScriptDir "\ResourcesExtract\ResourcesExtract.exe"
-	if(!FileExist(ResourcesExtractFile)){
-		ResourcesExtractFile:=RunIconDir "\ResourcesExtract\ResourcesExtract.exe"
-		if(FileExist(ResourcesExtractFile)){
-			ResourcesExtractExist:=true
-			ResourcesExtractDir:=RunIconDir "\ResourcesExtract"
-		}
-	}else{
-		ResourcesExtractExist:=true
-	}
-	iconAny:="shell32.dll,190"
-	iconMenu:="shell32.dll,195"
-	iconTree:="shell32.dll,53"
-	if(A_OSVersion="WIN_XP"){
-		MoveIcon:="shell32.dll,53"
-		UpIcon:="shell32.dll,53"
-		DownIcon:="shell32.dll,53"
-	}else{
-		MoveIcon:="shell32.dll,246"
-		UpIcon:="shell32.dll,247"
-		DownIcon:="shell32.dll,248"
-	}
-	if(A_IsCompiled=1){
-		iconAny:=A_ScriptName ",1"
-		iconMenu:=A_ScriptName ",2"
-	}
-	if(FileExist(A_ScriptDir "\ZzIcon.dll")){
-		iconAny:="ZzIcon.dll,1"
-		iconMenu:="ZzIcon.dll,2"
-		iconTree:="ZzIcon.dll,3"
-		MoveIcon:="ZzIcon.dll,4"
-		UpIcon:="ZzIcon.dll,5"
-		DownIcon:="ZzIcon.dll,6"
-		try{
-			Menu,exeTestMenu,Icon,SetCancel,ZzIcon.dll,7
-			ZzIconPath:="ZzIcon.dll,7"
-		} catch {
-			ZzIconPath:="ZzIcon.dll,1"
-		}
-	}else{
-		ZzIconPath:="shell32.dll,194"
-	}
-	MonitorHeight:=true
-	SysGet, MonitorCount, MonitorCount
-	Loop, %MonitorCount%
-	{
-		SysGet, Monitor, Monitor, %A_Index%
-		if(MonitorBottom<1080){
-			MonitorHeight:=false
-		}
-	}
-	;如果所有显示器分辨率都大于等于1080高度则菜单图标默认24像素大小
-	global MenuIconSize:=Var_Read("MenuIconSize",MonitorHeight ? 24 : "")
-	global MenuTrayIconSize:=Var_Read("MenuTrayIconSize")
-	global AnyIcon:=Var_Read("AnyIcon",iconAny)
-	global AnyIconS:=StrSplit(Get_Transform_Val(AnyIcon),",")
-	global MenuIcon:=Var_Read("MenuIcon",iconMenu)
-	global MenuIconS:=StrSplit(Get_Transform_Val(MenuIcon),",")
-	global TreeIcon:=Var_Read("TreeIcon",iconTree)
-	global TreeIconS:=StrSplit(Get_Transform_Val(TreeIcon),",")
-	global MoveIconS:=StrSplit(MoveIcon,",")
-	global UpIconS:=StrSplit(UpIcon,",")
-	global DownIconS:=StrSplit(DownIcon,",")
-	global EditFileIcon:=Var_Read("EditFileIcon","shell32.dll,134")
-	global EditFileIconS:=StrSplit(EditFileIcon,",")
-	global PluginsManageIcon:=Var_Read("PluginsManageIcon","shell32.dll,166")
-	global PluginsManageIconS:=StrSplit(PluginsManageIcon,",")
-	global RunCtrlManageIcon:=Var_Read("RunCtrlManageIcon","shell32.dll,25")
-	global RunCtrlManageIconS:=StrSplit(RunCtrlManageIcon,",")
-	global CheckUpdateIcon:=Var_Read("CheckUpdateIcon","shell32.dll,14")
-	global CheckUpdateIconS:=StrSplit(CheckUpdateIcon,",")
-	global ZzIconS:=StrSplit(ZzIconPath,",")
-return
-;~;[后缀图标初始化]
-Icon_FileExt_Set:
-	global FolderIcon:=Var_Read("FolderIcon","shell32.dll,4")
-	global FolderIconS:=StrSplit(Get_Transform_Val(FolderIcon),",")
-	global UrlIcon:=Var_Read("UrlIcon","shell32.dll,44")
-	global UrlIconS:=StrSplit(Get_Transform_Val(UrlIcon),",")
-	global EXEIcon:=Var_Read("EXEIcon","shell32.dll,3")
-	global EXEIconS:=StrSplit(Get_Transform_Val(EXEIcon),",")
-	global LNKIcon:="shell32.dll,264"
-	if(A_OSVersion="WIN_XP"){
-		LNKIcon:="shell32.dll,30"
-	}
-	global LNKIconS:=StrSplit(LNKIcon,",")
-	FuncIcon:=Var_Read("FuncIcon","shell32.dll,131")
-	global FuncIconS:=StrSplit(Get_Transform_Val(FuncIcon),",")
-	;~;[引入菜单项图标识别库]
-	global IconFolderPath:=Var_Read("IconFolderPath","%A_ScriptDir%\RunIcon\ExeIcon|%A_ScriptDir%\RunIcon\WebIcon|%A_ScriptDir%\RunIcon\MenuIcon")
-	global IconFolderList:={}
-	Loop, parse, IconFolderPath, |
-	{
-		IconFolder:=Get_Transform_Val(A_LoopField)
-		IfExist,%IconFolder%
-		{
-			Loop,%IconFolder%\*.*,0,1
-			{
-				SplitPath,% A_LoopFileFullPath, ,, ext, name_no_ext
-				IconFolderList[(name_no_ext)]:=A_LoopFileFullPath
-			}
-		}
-	}
-	IconFolderPath:=StrReplace(IconFolderPath, "|", "`n")
-return
-;~;[图标集初始图标]
-Icon_Image_Set(ImageListID){
-	IL_Add(ImageListID, "shell32.dll", 1)
-	IL_Add(ImageListID, "shell32.dll", 2)
-	IL_Add(ImageListID, EXEIconS[1], EXEIconS[2])
-	IL_Add(ImageListID, FolderIconS[1], FolderIconS[2])
-	IL_Add(ImageListID, LNKIconS[1], LNKIconS[2])
-	IL_Add(ImageListID, TreeIconS[1], TreeIconS[2])
-	IL_Add(ImageListID, UrlIconS[1], UrlIconS[2])
-	IL_Add(ImageListID, "shell32.dll", 50)
-	IL_Add(ImageListID, "shell32.dll", 100)
-	IL_Add(ImageListID, "shell32.dll", 101)
-	IL_Add(ImageListID, FuncIconS[1], FuncIconS[2])
-}
-;#菜单加载完后，预读完成"修改菜单"的GUI图标
-Icon_Tree_Image_Set(ImageListID){
-	Loop,%MenuCount%
-	{
-		Loop, parse, iniVar%A_Index%, `n, `r, %A_Space%%A_Tab%
-		{
-			if(InStr(A_LoopField,";")=1 || A_LoopField="")
-				continue
-			Set_Icon(ImageListID,A_LoopField,false)
-		}
-	}
-}
-;~;[提取菜单中所有EXE程序图标，过程较慢]
-Menu_Exe_Icon_Create:
-	cfgFile=%ResourcesExtractDir%\ResourcesExtract.cfg
-	DestFold=%A_Temp%\%RunAnyZz%\RunAnyExeIconTemp
-	if(!ResourcesExtractExist){
-		MsgBox,64,,请将ResourcesExtract.exe放入%ResourcesExtractDir%
-		return
-	}
-	MsgBox,35,生成所有EXE图标，请稍等片刻, 
-(	
-使用生成的EXE图标可以加快开机第一次RunAny的加载速度`n`n是：覆盖老图标重新生成%RunAnyZz%菜单中的所有EXE图标`n否：只生成没有的EXE图标`n取消：取消生成
-)
-	IfMsgBox Yes
-	{
-		exeIconCreateFlag:=false
-		Gosub,Menu_Exe_Icon_Extract
-	}
-	IfMsgBox No
-	{
-		exeIconCreateFlag:=true
-		Gosub,Menu_Exe_Icon_Extract
-	}
-return
-Menu_Exe_Icon_Extract:
-	if(!FileExist(cfgFile)){
-		MsgBox,64,,请将ResourcesExtract.cfg放入%ResourcesExtractDir%
-		return
-	}else{
-		IniWrite,%DestFold%,%cfgFile%,General,DestFolder
-		IniWrite,1,%cfgFile%,General,ExtractIcons
-		IniWrite,0,%cfgFile%,General,ExtractCursors
-		IniWrite,0,%cfgFile%,General,ExtractBitmaps
-		IniWrite,0,%cfgFile%,General,ExtractHTML
-		IniWrite,0,%cfgFile%,General,ExtractAnimatedIcons
-		IniWrite,0,%cfgFile%,General,ExtractAnimatedCursors
-		IniWrite,0,%cfgFile%,General,ExtractAVI
-		IniWrite,0,%cfgFile%,General,OpenDestFolder
-		IniWrite,2,%cfgFile%,General,MultiFilesMode
-	}
-	ToolTip,RunAny开始用ResourcesExtract生成EXE图标，请稍等……
-	For k, v in MenuExeArray
-	{
-		exePath:=v["itemFile"]
-		if(FileExist(exePath)){
-			menuItem:=menuItemIconFileName(v["menuItem"])
-			if(!exeIconCreateFlag || !FileExist(ExeIconDir "\" menuItem ".ico")){
-				Run,%ResourcesExtractFile% /LoadConfig "%cfgFile%" /Source "%exePath%" /DestFold "%DestFold%"
-			}
-		}
-	}
-	Process,WaitClose,ResourcesExtract.exe,10
-	ToolTip
-	Menu_Exe_Icon_Set()
-	MsgBox,64,,成功生成%RunAnyZz%内所有EXE图标到 %ExeIconDir%
-	Gui,66:Submit, NoHide
-	if(vIconFolderPath){
-		if(!InStr(vIconFolderPath,"ExeIcon"))
-			GuiControl,, vIconFolderPath, %vIconFolderPath%`n`%A_ScriptDir`%\RunIcon\ExeIcon
-	}else{
-		GuiControl,, vIconFolderPath, `%A_ScriptDir`%\RunIcon\ExeIcon
-	}
-return
-;[循环提取菜单中EXE程序的正确图标]
-Menu_Exe_Icon_Set(){
-	For k, v in MenuExeArray
-	{
-		exePath:=v["itemFile"]
-		SplitPath, exePath, exeName, exeDir, ext, name_no_ext
-		iconNameFlag:=false
-		maxFileName=
-		maxFileSize=
-		maxFilePath=
-		IfExist,%A_Temp%\%RunAnyZz%\RunAnyExeIconTemp\%exeName%
-		{
-			loop,%A_Temp%\%RunAnyZz%\RunAnyExeIconTemp\%exeName%\*.ico
-			{
-				if(RegExMatch(A_LoopFileName,"iS).*_MAINICON.ico")){
-					maxFilePath:=A_LoopFileFullPath
-					break
-				}
-				if(!iconNameFlag && RegExMatch(A_LoopFileName,"iS).*_\d+\.ico")){
-					iconNum:=RegExReplace(A_LoopFileName,"iS).*_(\d+)\.ico","$1")
-					if(A_Index=1 || maxFileName>iconNum){
-						maxFileName:=iconNum
-						maxFilePath:=A_LoopFileFullPath
-					}
-					continue
-				}
-				if(maxFileSize<A_LoopFileSize){
-					iconNameFlag:=true
-					maxFileSize:=A_LoopFileSize
-					maxFilePath:=A_LoopFileFullPath
-				}
-			}
-			menuItem:=menuItemIconFileName(v["menuItem"])
-			FileCopy, %maxFilePath%, %ExeIconDir%\%menuItem%.ico, 1
-			maxFilePath=
-		}
-	}
-}
-menuItemIconFileName(menuItem){
-	if(InStr(menuItem,"`t")){
-		menuKeyStr:=RegExReplace(menuItem, "S)\t+", A_Tab)
-		menuKeys:=StrSplit(menuKeyStr,"`t")
-		menuItem:=menuKeys[1]
-	}
-	if(RegExMatch(menuItem,"S).*_:\d{1,2}$"))
-		menuItem:=RegExReplace(menuItem,"S)(.*)_:\d{1,2}$","$1")
-	if(RegExMatch(menuItem,"S):[*?a-zA-Z0-9]+?:[^:]*")){
-		menuItemTemp:=RegExReplace(menuItem,"S)^([^:]*?):[*?a-zA-Z0-9]+?:[^:]*","$1")
-		if(menuItemTemp)
-			menuItem:=menuItemTemp
-	}
-	return menuItem
-}
-;══════════════════════════════════════════════════════════════════
-;~;【——🧩插件脚本——】
-;══════════════════════════════════════════════════════════════════
-;~;【AHK插件脚本Read】
-Plugins_Read:
-	global PluginsObjList:=Object(),PluginsPathList:=Object(),PluginsRelativePathList:=Object(),PluginsNameList:=Object(),pluginsDownList:=Object()
-	global PluginsVersionList:=Object(),PluginsIconList:=Object(),PluginsContentList:=Object()
-	global PluginsObjNum:=0
-	global PluginsDirList:=[]
-	global PluginsEditor:=Var_Read("PluginsEditor")
-	global PluginsDirPath:=Var_Read("PluginsDirPath")
-	global PluginsListViewSwap:=Var_Read("PluginsListViewSwap",0)
-	global PluginsDirPathList:="%A_ScriptDir%\%PluginsDir%|" PluginsDirPath
-	Loop, parse, PluginsDirPathList, |
-	{
-		PluginsFolder:=Get_Transform_Val(A_LoopField)
-		PluginsFolder:=RegExReplace(PluginsFolder,"(.*)\\$","$1")
-		if(!FileExist(PluginsFolder))
-			continue
-		PluginsDirList.Push(PluginsFolder)
-		Loop,%PluginsFolder%\*.ahk,0	;Plugins目录下AHK脚本
-		{
-			PluginsObjList[(A_LoopFileName)]:=0
-			PluginsPathList[(A_LoopFileName)]:=A_LoopFileFullPath
-			PluginsRelativePathList[(A_LoopFileName)]:=StrReplace(A_LoopFileFullPath,A_ScriptDir "\")
-			PluginsNameList[(A_LoopFileName)]:=Plugins_Read_Name(A_LoopFileFullPath)
-			PluginsVersionList[(A_LoopFileName)]:=Plugins_Read_Version(A_LoopFileFullPath)
-			PluginsIconList[(A_LoopFileName)]:=Plugins_Read_Icon(A_LoopFileFullPath)
-			if(A_LoopField="%A_ScriptDir%\%PluginsDir%"){
-				FileRead,pluginsContent,%A_LoopFileFullPath%
-				PluginsContentList[(A_LoopFileName)]:=pluginsContent
-			}
-		}
-		Loop,%PluginsFolder%\*.*,2	;Plugins目录下文件夹内同名AHK脚本
-		{
-			IfExist,%A_LoopFileFullPath%\%A_LoopFileName%.ahk
-			{
-				PluginsObjList[(A_LoopFileName . ".ahk")]:=0
-				PluginsPathList[(A_LoopFileName . ".ahk")]:=A_LoopFileFullPath "\" A_LoopFileName ".ahk"
-				PluginsRelativePathList[(A_LoopFileName . ".ahk")]:=StrReplace(A_LoopFileFullPath "\" A_LoopFileName ".ahk",A_ScriptDir "\")
-				PluginsNameList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Name(A_LoopFileFullPath "\" A_LoopFileName ".ahk")
-				PluginsVersionList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Version(A_LoopFileFullPath "\" A_LoopFileName ".ahk")
-				PluginsIconList[(A_LoopFileName . ".ahk")]:=Plugins_Read_Icon(A_LoopFileFullPath "\" A_LoopFileName ".ahk")
-				if(A_LoopField="%A_ScriptDir%\%PluginsDir%"){
-					FileRead,pluginsContent,% A_LoopFileFullPath "\" A_LoopFileName ".ahk"
-					PluginsContentList[(A_LoopFileName . ".ahk")]:=pluginsContent
-				}
-			}
-		}
-	}
-	IniRead,pluginsVar,%RunAnyConfig%,Plugins
-	Loop, parse, pluginsVar, `n, `r
-	{
-		varList:=StrSplit(A_LoopField,"=",,2)
-		SplitPath,% varList[1], name,, ext, name_no_ext
-		PluginsObjList[(varList[1])]:=varList[2]
-		if(varList[2])
-			PluginsObjNum++
-		Loop,% PluginsDirList.MaxIndex()
-		{
-			if(FileExist(PluginsDirList[A_Index] "\" varList[1]))
-				PluginsPathList[(varList[1])]:=PluginsDirList[A_Index] "\" varList[1]
-			if(FileExist(PluginsDirList[A_Index] "\" name_no_ext "\" varList[1]))
-				PluginsPathList[(varList[1])]:=PluginsDirList[A_Index] "\" name_no_ext "\" varList[1]
-		}
-	}
-return
-;~;【AHK脚本对象注册】
-Plugins_Object_Register:
-	global PluginsObjRegGUID:=Object()      ;~插件对象注册GUID列表
-	global PluginsObjRegActive:=Object()    ;~插件对象注册Active列表
-	global RunAny_ObjReg_Path
-	RunAny_ObjReg_Path=%A_ScriptDir%\%PluginsDir%\%RunAny_ObjReg%
-	IfExist,%RunAny_ObjReg_Path%
-	{
-		IniRead,objRegVar,%RunAny_ObjReg_Path%,objreg
-		Loop, parse, objRegVar, `n, `r
-		{
-			varList:=StrSplit(A_LoopField,"=",,2)
-			PluginsObjRegGUID[(varList[1])]:=varList[2]
-		}
-	}
-	if(PluginsObjRegGUID["huiZz_Text"] && PluginsObjList["huiZz_Text.ahk"]){
-		;#判断huiZz_Text插件是否可以文字加解密
-		if(InStr(PluginsContentList["huiZz_Text.ahk"],"runany_encrypt(text,key){")
-				&& InStr(PluginsContentList["huiZz_Text.ahk"],"runany_decrypt(text,key){")){
-			global encryptFlag:=true
-		}
-	}
-	;#判断RunAny_Menu插件是否启用
-	if(PluginsObjList["RunAny_Menu.ahk"]){
-		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"SetTimer,Transparent_Show"))
-			global RunAnyMenuTransparentFlag:=true
-		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~Space Up::"))
-			global RunAnyMenuSpaceFlag:=true
-		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~RButton Up::"))
-			global RunAnyMenuRButtonFlag:=true
-		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~MButton Up::"))
-			global RunAnyMenuMButtonFlag:=true
-		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~XButton1 Up::"))
-			global RunAnyMenuXButton1Flag:=true
-		if(InStr(PluginsContentList["RunAny_Menu.ahk"],"~XButton2 Up::"))
-			global RunAnyMenuXButton2Flag:=true
-	}
-return
-Plugins_Read_Name(filePath){
-	returnStr:=""
-	strRegOld:="iS).*?【(.*?)】.*"
-	strRegNew=iS)^\t*\s*global RunAny_Plugins_Name:="(.+?)"
-	Loop, read, %filePath%
-	{
-		if(RegExMatch(A_LoopReadLine,strRegNew)){
-			returnStr:=RegExReplace(A_LoopReadLine,strRegNew,"$1")
-			break
-		}else if(RegExMatch(A_LoopReadLine,strRegOld)){
-			returnStr:=RegExReplace(A_LoopReadLine,strRegOld,"$1")
-			break
-		}
-	}
-	return returnStr
-}
-Plugins_Read_Version(filePath){
-	returnStr:=""
-	strReg=iS)^\t*\s*global RunAny_Plugins_Version:="([\d\.]*)"
-	Loop, read, %filePath%
-	{
-		if(RegExMatch(A_LoopReadLine,strReg)){
-			returnStr:=RegExReplace(A_LoopReadLine,strReg,"$1")
-			break
-		}
-	}
-	return returnStr
-}
-;[获取插件图标的路径]
-Plugins_Read_Icon(filePath){
-	returnStr:=""
-	strReg=iS)^\t*\s*global RunAny_Plugins_Icon:="(.+?)"
-	Loop, read, %filePath%
-	{
-		if(RegExMatch(A_LoopReadLine,strReg)){
-			returnStr:=RegExReplace(A_LoopReadLine,strReg,"$1")
-			break
-		}
-	}
-	if(returnStr=""){
-		PluginsFile:=RegExReplace(filePath,"iS)\.ahk$")
-		Loop, Parse,% IconFileSuffix "*.exe;", `;
-		{
-			suffix:=StrReplace(A_LoopField, "*")
-			if(FileExist(PluginsFile suffix)){
-				return PluginsFile suffix ",1"
-			}
-		}
-	}
-	return returnStr
-}
-;~;【自动启动插件】
-AutoRun_Plugins:
-	if(!A_AhkPath)
-		return
-	try {
-		For runn, runv in PluginsPathList	;循环启动项
-		{
-			;需要自动启动的项
-			if(PluginsObjList[runn]){
-				runValue:=RegExReplace(runv,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
-				SplitPath, runValue, name, dir, ext  ; 获取扩展名
-				if(dir && FileExist(dir)){
-					SetWorkingDir,%dir%
-				}
-				if(ext="ahk"){
-					Run,%A_AhkPath%%A_Space%"%runv%"
-				}else{
-					Run,%runv%
-				}
-			}
-		}
-	} catch e {
-		MsgBox,16,自动启动插件出错,% "启动插件名：" runn "`n启动插件路径：" runv 
-			. "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
-	} finally {
-		SetWorkingDir,%A_ScriptDir%
-	}
-return
-;[随RunAny自动关闭插件]
-AutoClose_Plugins:
-	DetectHiddenWindows,On
-	For runn, runv in PluginsPathList
-	{
-		if(PluginsObjList[runn]){
-			runValue:=RegExReplace(runv,"iS)(.*?\.exe)($| .*)","$1")	;去掉参数
-			SplitPath, runValue, name,, ext  ; 获取扩展名
-			if(ext="ahk"){
-				PostMessage, 0x111, 65405,,, %runv% ahk_class AutoHotkey
-			}else if(name){
-				Process,Close,%name%
-			}
-		}
-	}
-	DetectHiddenWindows,Off
-return
-;══════════════════════════════════════════════════════════════════
-;~;【——🔗规则启动——】
-;══════════════════════════════════════════════════════════════════
-;~;[规则启动项Read]
-RunCtrl_Read:
-	;规则名-脚本路径；规则名-脚本插件名；规则名-函数名；规则名-状态；规则名-类型；规则名-是否传参
-	global rulefileList:=Object(),ruleitemList:=Object(),rulefuncList:=Object(),rulestatusList:=Object(),ruletypelist:=Object(),ruleparamList:=Object()
-	global RuleNameStr:=""
-	global RunCtrlLastTimeIni:=A_AppData "\" RunAnyZz "\RunCtrlLastTime.ini"
-	ruleitemVar:=rulefuncVar:=""
-	IniRead,ruleitemVar,%RunAnyConfig%,RunCtrlRule
-	Loop, parse, ruleitemVar, `n, `r
-	{
-		varList:=StrSplit(A_LoopField,"=",,2)
-		itemList:=StrSplit(varList[1],"|",,2)
-		if(varList[1]="" || varList[2]="" || itemList[1]="" || itemList[2]="")
-			continue
-		RuleNameStr.=itemList[1] "|"
-		rulefuncList[(rulefuncList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=itemList[2]
-		rulefileList[(rulefileList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=varList[2]
-		SplitPath,% varList[2],fileName,,,nameNotExt
-		ruleitemList[itemList[1]]:=nameNotExt
-		;判断规则状态
-		if(varList[2]=RunAnyZz ".ahk"){
-			rulestatusList[(rulestatusList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=IsFunc(itemList[2])
-		}else if(varList[2]="0"){
-			ruletypelist[(ruletypelist[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=true
-			if(Get_Transform_Val("%" itemList[2] "%")!=itemList[2]){
-				rulestatusList[(rulestatusList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=true
-			}
-		}else{
-			rulestatusList[(rulestatusList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=InStr(PluginsContentList[(varList[2])],itemList[2] "(") ? 1 : 0
-		}
-		;判断规则是否需要传参
-		if(varList[2]=RunAnyZz ".ahk"){
-			ruleparamList[(ruleparamList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=IsFunc(itemList[2]) > 1
-		}else if(varList[2]!="0" && !InStr(PluginsContentList[(varList[2])],itemList[2] "()")){
-			ruleparamList[(ruleparamList[itemList[1]]!="" ? itemList[1] "(重名)" : itemList[1])]:=true
-		}
-	}
-	RuleNameStr:=SubStr(RuleNameStr, 1, -StrLen("|"))
-	if(ruleparamList.HasKey("联网状态")){
-		ruleparamList["联网状态"]:=1
-	}
-	;---规则启动项---
-	global RunCtrlList:=Object(),RunCtrlListBoxList:=Object(),RunCtrlListContentList:=Object()
-	global RunCtrlLogicEnum:={"eq":"相等","ne":"不相等","ge":"大于等于","le":"小于等于","gt":"大于","lt":"小于","regex":"正则表达式"}
-	global RunCtrlRunWayList:=["启动","置顶启动","最小化启动","最大化启动","隐藏启动","结束软件进程_启动"]
-	global RunCtrlListBoxVar:=""
-	IniRead,runCtrlListVar,%RunAnyConfig%,RunCtrlList
-	Loop, parse, runCtrlListVar, `n, `r
-	{
-		R_LoopField=%A_LoopField%
-		if(R_LoopField="")
-			continue
-		varList:=StrSplit(R_LoopField,"=",,2)
-		if(varList[1]="")
-			continue
-		runCtrlName:=varList[1]
-		RunCtrlListBoxVar.=runCtrlName "|"
-		RunCtrlListBoxList.Push(runCtrlName)
-		RunCtrlListContentList[runCtrlName]:=varList[2]
-		itemList:=StrSplit(varList[2],"|",,5)
-		RunCtrlObj:=new RunCtrl(runCtrlName,itemList[1],itemList[2],itemList[3],itemList[4],itemList[5])
-		RunCtrlList[runCtrlName]:=RunCtrlObj
-		try{
-			if(itemList[1] && itemList[5]!=""){
-				funcEffect:=Func("RunCtrl_RunRules").Bind(RunCtrlObj,true)
-				Hotkey,% itemList[5],% funcEffect,On
-			}
-		} catch {
-			MsgBox,16,规则组%runCtrlName%：热键配置不正确,% "热键错误：`n" itemList[5] "`n请设置正确热键后重启RunAny"
-		}
-	}
-	RunCtrlListBoxVar:=SubStr(RunCtrlListBoxVar, 1, -StrLen("|"))
-return
-
-class RunCtrl
-{
-	name:=""                ;运行组名
-	enable:=false           ;运行组启用状态
-	noPath:=true            ;无全路径应用
-	noMenu:=true            ;无菜单项应用
-	key:=""                 ;规则组全局热键
-	ruleLogic:=true         ;规则组逻辑：与、或
-	ruleMostRun:=0          ;规则循环最大次数
-	ruleIntervalTime:=0     ;循环间隔时间(秒)
-	runNums:=""             ;运行次数
-	runList:=Object()       ;应用运行队列
-	ruleFile:=Object()      ;规则文件
-	ruleList:=Object()      ;规则队列
-	__New(name,enable,ruleLogic,ruleMostRun,ruleIntervalTime,key){
-		this.name:=name
-		this.enable:=enable
-		this.ruleLogic:=ruleLogic
-		this.ruleMostRun:=ruleMostRun
-		this.ruleIntervalTime:=ruleIntervalTime
-		this.key:=key
-		IniRead,ctrlAppsVar,%RunAnyConfig%,%name%_Run
-		Loop, parse, ctrlAppsVar, `n, `r
-		{
-			varList:=StrSplit(A_LoopField,"=",,2)
-			if(varList[1]="")
-				continue
-			runObj:=new RunCtrlRun
-			runObj.path:=varList[2]
-
-			itemList:=StrSplit(varList[1],"|",,4)
-			noPathStr:=itemList[1]
-			runObj.repeatRun:=itemList[2]!="" ? itemList[2] : 0
-			runObj.adminRun:=itemList[3]!="" ? itemList[3] : 0
-			runObj.runWay:=itemList[4]!="" ? itemList[4] : 1
-			if(noPathStr="path"){
-				this.noPath:=false
-				runObj.noPath:=false
-			}else if(noPathStr="menu"){
-				this.noMenu:=false
-			}
-			IniRead, lastRunTime, %RunCtrlLastTimeIni%, last_run_time,% runObj.path, %A_Space%
-			runObj.lastRunTime:=lastRunTime
-			this.runList.push(runObj)
-		}
-		IniRead,ruleAppsVar,%RunAnyConfig%,%name%_Rule
-		Loop, parse, ruleAppsVar, `n, `r
-		{
-			varList:=StrSplit(A_LoopField,"=",,2)
-			itemList:=StrSplit(varList[1],"|",,3)
-			if(varList[1]="" || itemList[1]="")
-				continue
-			runRuleObj:=new RunCtrlRunRule
-			runRuleObj.value:=varList[2]
-			runRuleObj.name:=itemList[1]
-			runRuleObj.logic:=itemList[2]
-			runRuleObj.ruleBreak:=itemList[3]
-			runRuleObj.file:=ruleitemList[itemList[1]]
-			this.ruleList.push(runRuleObj)
-			if(rulestatusList[runRuleObj.name]){
-				this.ruleFile[ruleitemList[runRuleObj.name]]:=true
-			}
-		}
-	}
-}
-class RunCtrlRun
-{
-	num:=0
-	path:=""
-	noPath:=true        ;无路径标记
-	repeatRun:=false    ;重复运行
-	adminRun:=false     ;管理员运行
-	runWay:=1           ;运行方式
-	lastRunTime:=""     ;最后运行时间
-}
-class RunCtrlRunRule
-{
-	file:="",name:="",value:="",ruleBreak:=""
-	logic:=1
-}
-
-;~;[规则生效]
-Rule_Effect:
-	global runIndex:=Object(), RuleRunFailList:=Object(), RuleRunNoPathList:=Object()
-	try{
-		for n,obj in RunCtrlList
-		{
-			runCtrlObj:=RunCtrlList[n]
-			if(!runCtrlObj.enable){
-				continue
-			}
-			rcName:=runCtrlObj.name
-			;规则循环
-			if(runCtrlObj.ruleMostRun!="" && runCtrlObj.ruleMostRun>0){
-				runIndex[rcName]:=0	;规则定时器初始计数为0
-				funcEffect%rcName%:=Func("RunCtrl_RunRules").Bind(runCtrlObj)	;规则定时器
-				ruleTime:=runCtrlObj.ruleIntervalTime>0 ? runCtrlObj.ruleIntervalTime * 1000 : 1000		;规则定时器间隔时间(秒)
-				SetTimer,% funcEffect%rcName%, %ruleTime%
-			}else{
-				RunCtrl_RunRules(runCtrlObj)
-			}
-		}
-		if(RuleRunFailList.Count() > 0){
-			RuleRunFailStr:=StrListJoin("`n",RuleRunFailList)
-			TrayTip,规则插件脚本没有启动：,%RuleRunFailStr%,5,2
-		}
-		RunCtrlRunFlag:=false
-	} catch e {
-		MsgBox,16,规则判断出错,% "规则名：" rcName 
-			. "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
-	}
-return
-;~;[规则启动]
-RunCtrl_RunRules(runCtrlObj,show:=0){
-	try {
-		rcName:=runCtrlObj.name
-		effectResult:=RunCtrl_RuleEffect(runCtrlObj)
-		if(effectResult){
-			for i,runv in runCtrlObj.runList
-			{
-				if(!runCtrlObj.noPath || !runCtrlObj.noMenu){
-					RunCtrl_RunApps(runv.path, runv.noPath, runv.repeatRun, runv.adminRun, runv.runWay)
-				}
-			}
-		}else if(show){
-			ToolTip, ❎ 规则验证失败
-			SetTimer,RemoveToolTip,3000
-			if(RuleRunFailList.Count() > 0){
-				RuleRunFailStr:=StrListJoin("`n",RuleRunFailList)
-				TrayTip,规则插件脚本没有启动：,%RuleRunFailStr%,5,2
-			}
-		}
-		return effectResult
-	} catch e {
-		MsgBox,16,启动规则出错,% "启动规则名：" rcName "`n启动规则脚本：" StrListJoin(",",runCtrlObj.ruleFile)
-			. "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
-	} finally {
-		runIndex[rcName]++	;规则定时器运行计数+1
-		;规则运行计数达到最大循环次数 || 启动项已达到最多运行次数 => 结束定时器
-		if((runIndex[rcName] && runIndex[rcName] >= runCtrlObj.ruleMostRun)){
-			try SetTimer,% funcEffect%rcName%, Off
-		}
-	}
-}
-;~;[规则应用启动]
-RunCtrl_RunApps(path,noPath,repeatRun:=0,adminRun:=0,runWay:=1){
-	try {
-		global RunCtrlRunFlag:=true
-		global RunCtrlAdminRunVal:=adminRun
-		global RunCtrlRunWayVal:=runWay
-		if(noPath){
-			tfPath:=Get_Obj_Transform_Name(Trim(path," `t`r`n"))
-			if(!repeatRun && runWay!=6 && rule_check_is_run(MenuObj[tfPath])){
-				return
-			}
-			if(NoPathFlag || EvNo){
-				OutsideMenuItem:=tfPath
-				global NoRecentFlag:=true
-				Gosub, Menu_Run
-				RunCtrl_LastRunTime(path)
-			}else{
-				RuleRunNoPathList[tfPath]:=true
-				RuleRunAdminRunList[tfPath]:=adminRun
-				RuleRunRunWayList[tfPath]:=runWay
-				;定时等待无路径程序可运行后再运行
-				SetTimer,RunCtrl_RunMenu,100
-			}
-		}else{
-			global any:=Get_Transform_Val(path)
-			SplitPath,% any, name, dir
-			if(!repeatRun && runWay!=6 && rule_check_is_run(any)){
-				return
-			}else if(runWay=6){
-				Run,% ComSpec " /C taskkill /f /im """ name """", , Hide
-				return
-			}
-			if(dir && FileExist(dir))
-				SetWorkingDir,%dir%
-			global anyRun:=""
-			global way:=""
-			Gosub, MenuRunWay
-			Gosub, MenuRunAny
-			RunCtrlRunFlag:=false
-			RunCtrl_LastRunTime(path)
-		}
-	} catch e {
-		MsgBox,16,规则启动应用出错,% "启动应用：" path
-			. "`n出错脚本：" e.File "`n出错命令：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message
-	} finally {
-		SetWorkingDir,%A_ScriptDir%
-	}
-}
-RunCtrl_RunMenu:
-	if(NoPathFlag || EvNo){
-		SetTimer,RunCtrl_RunMenu,Off
-		For path, isRun in RuleRunNoPathList
-		{
-			if(isRun){
-				RuleRunNoPathList[path]:=false
-				global RunCtrlRunFlag:=true
-				global RunCtrlAdminRunVal:=RuleRunAdminRunList[path]
-				global RunCtrlRunWayVal:=RuleRunRunWayList[path]
-				global NoRecentFlag:=true
-				OutsideMenuItem:=path
-				Gosub,Menu_Run
-				RunCtrl_LastRunTime(path)
-			}
-		}
-	}
-return
-RunCtrl_LastRunTime(path){
-	IniWrite, %A_Now%, %RunCtrlLastTimeIni%, last_run_time, %path%
-}
-;~;[规则判断是否成立]
-RunCtrl_RuleEffect(runCtrlObj){
-	effectFlag:=false
-	ruleRunCount:=0
-	rcName:=runCtrlObj.name
-	for ruleFile,ruleStatus in runCtrlObj.ruleFile
-	{
-		if(ruleStatus && ruleFile!="0" && ruleFile!="RunAny"){
-			if(rule_check_is_run(PluginsPathList[ruleFile ".ahk"])){
-				PluginsObjRegActive[ruleFile]:=ComObjActive(PluginsObjRegGUID[ruleFile])
-			}else{
-				RuleRunFailList[ruleFile]:=""
-			}
-		}
-	}
-	for i,rulev in runCtrlObj.ruleList
-	{
-		ruleRunCount++
-		if(!rulefuncList[rulev.name])
-			continue
-		;获取变量规则、插件规则函数的执行结果
-		effectResult:=RunCtrl_RuleResult(rulev.name, rulev.file, rulev.value)
-		;根据运算符计算规则最终是否成立
-		if(ruleparamList[rulev.name]){
-			;如果规则设定条件为（假、不相等），而脚本执行结果是真，则判定为假；执行结果是假，则判定为真
-			if(rulev.logic=0 || rulev.logic="ne"){
-				effectFlag:=!effectResult
-			}else{
-				effectFlag:=effectResult
-			}
-		}else{
-			;根据不同的运算符判断结果为真或假
-			if(rulev.value=""){
-				if(rulev.logic=0 || rulev.logic="ne"){
-					effectFlag:=!effectResult
-				}else{
-					effectFlag:=effectResult
-				}
-			}else if(rulev.logic=1 || rulev.logic="eq"){
-				effectFlag:=effectResult = rulev.value
-			}else if(rulev.logic=0 || rulev.logic="ne"){
-				effectFlag:=effectResult != rulev.value
-			}else if(rulev.logic="gt"){
-				effectFlag:=effectResult > rulev.value
-			}else if(rulev.logic="ge"){
-				effectFlag:=effectResult >= rulev.value
-			}else if(rulev.logic="lt"){
-				effectFlag:=effectResult < rulev.value
-			}else if(rulev.logic="le"){
-				effectFlag:=effectResult <= rulev.value
-			}else if(rulev.logic="regex"){
-				effectFlag:=RegExMatch(effectResult, rulev.value)
-			}else{
-				effectFlag:=effectResult
-			}
-		}
-		;有中断标记的规则不满足时，则直接中断后续判断并停止规则循环
-		if(rulev.ruleBreak){
-			if(!effectFlag){
-				try SetTimer,% funcEffect%rcName%, Off
-				break
-			}else{
-				continue
-			}
-		}
-		;该启动项所有规则必须全部为真时，如有一假就退出循环
-		;该启动项只需要有一项规则为真时，如有一真就退出循环
-		if(runCtrlObj.ruleLogic){
-			if(!effectFlag)
-				break
-		}else if(effectFlag){
-			break
-		}
-	}
-	return ruleRunCount>0 ? effectFlag : true
-}
-;~;[规则结果返回]
-RunCtrl_RuleResult(ruleName,ruleFile,ruleValue:=""){
-	effectResult=
-	if(ruleparamList[ruleName]){
-		;传参模式仅判断真假，不做运算符计算
-		if(ruleFile=RunAnyZz && IsFunc(rulefuncList[ruleName])){
-			effectResult:=Func(rulefuncList[ruleName]).Call(ruleValue)
-		}else{
-			appParms:=StrSplit(ruleValue,"``n")
-			effectResult:=PluginsObjRegRun(ruleFile, rulefuncList[ruleName], appParms)
-		}
-	}else{
-		if(ruletypelist[ruleName]){
-			effectResult:=Get_Transform_Val("%" rulefuncList[ruleName] "%")
-		}else if(ruleFile=RunAnyZz && IsFunc(rulefuncList[ruleName])){
-			effectResult:=Func(rulefuncList[ruleName]).Call()
-		}else{
-			effectResult:=PluginsObjRegActive[(ruleitemList[ruleName])][(rulefuncList[ruleName])]()
-		}
-	}
-	return effectResult
-}
-;══════════════════════════════════════════════════════════════════
-;~;【——🌏检查更新——】
-;══════════════════════════════════════════════════════════════════
-Check_Update:
-	checkUpdateFlag:=true
-	TrayTip,,RunAny检查更新中……,2,17
-	SetTimer, HideTrayTip, -2000
-	Gosub,Auto_Update
-return
-Auto_Update:
-	DeleteFile(A_Temp "\" RunAnyZz "\RunAny_Update.bat")
-	;[下载最新的更新脚本]
-	if(!rule_check_network(giteeUrl)){
-		RunAnyDownDir:=githubUrl . RunAnyGithubDir
-		if(!rule_check_network(githubUrl)){
-			TrayTip,网络异常,无法连接网络读取最新版本文件,5,2
-			return
-		}
-	}
-	URLDownloadToFile(RunAnyDownDir "/RunAny.ahk",A_Temp "\temp_RunAny.ahk")
-	versionReg=iS)^\t*\s*global RunAny_update_version:="([\d\.]*)".*
-	Loop, read, %A_Temp%\temp_RunAny.ahk
-	{
-		if(RegExMatch(A_LoopReadLine,versionReg)){
-			versionStr:=RegExReplace(A_LoopReadLine,versionReg,"$1")
-			break
-		}
-		if(A_LoopReadLine="404: Not Found"){
-			TrayTip,,文件下载异常，更新失败！,5,2
-			return
-		}
-	}
-	if(versionStr){
-		Gosub,Plugins_Read
-		Gosub,PluginsDownVersion
-		runAnyUpdateStr:=pluginUpdateStr:=""
-		For pk, pv in pluginsDownList
-		{
-			if(PluginsVersionList[pk] < pv){
-				pluginUpdateStr.=pk A_Tab PluginsVersionList[pk] "`t版本更新后=>`t" pv "`n"
-			}
-		}
-		if(RunAny_update_version<versionStr || pluginUpdateStr!=""){
-			runAnyUpdateStr:=RunAny_update_version<versionStr ? "检测到RunAny有新版本`n`n" RunAny_update_version "`t版本更新后=>`t" versionStr "`n" : ""
-			pluginUpdateStr:=pluginUpdateStr!="" ? "`n检测到插件有新版本`n" pluginUpdateStr : ""
-			MsgBox,33,RunAny检查更新,%runAnyUpdateStr%%pluginUpdateStr%`n
-(
-是否更新到最新版本？
-将移动老版本文件到临时目录，如有修改过请注意备份！`n%A_Temp%\%RunAnyZz%`n
-)
-			IfMsgBox Ok
-			{
-				TrayTip,,RunAny开始下载最新版本并替换老版本...,3,17
-				SetTimer, HideTrayTip, -3000
-				;[下载插件脚本]
-				if(pluginUpdateStr!=""){
-					For pk, pv in pluginsDownList
-					{
-						if(PluginsVersionList[pk] < pv && FileExist(PluginsPathList[pk])){
-							FileMove,% PluginsPathList[pk],%A_Temp%\%RunAnyZz%\%PluginsDir%\%pk%,1
-							URLDownloadToFile(RunAnyDownDir "/" StrReplace(PluginsRelativePathList[pk],"\","/"), A_ScriptDir "\" PluginsRelativePathList[pk])
-							Sleep,1000
-							Plugins_Down_Check(pk, A_ScriptDir "\" PluginsRelativePathList[pk])
-						}
-					}
-					TrayTip,,插件脚本已经更新到最新版本。,3,1
-					SetTimer, HideTrayTip, -3000
-				}
-				;[下载新版本]
-				if(RunAny_update_version<versionStr){
-					URLDownloadToFile(RunAnyDownDir "/RunAny.exe",A_Temp "\temp_RunAny.exe")
-					Gosub,RunAny_Update
-					shell := ComObjCreate("WScript.Shell")
-					shell.run(A_Temp "\" RunAnyZz "\RunAny_Update.bat",0)
-					ExitApp
-				}
-			}
-		}else if(checkUpdateFlag){
-			FileDelete, %A_Temp%\temp_RunAny.ahk
-			TrayTip,,RunAny已经是最新版本。,5,1
-			checkUpdateFlag:=false
-		}
-	}
-return
-RunAny_Update:
-if(rule_check_network(RunAnyGiteePages)){
-	Run,%RunAnyGiteePages%/runany/#/change-log?id=runany已更新最新版本！感谢一直以来的支持！
-}else{
-	Run,%RunAnyGithubPages%/RunAny/#/change-log?id=runany已更新最新版本！感谢一直以来的支持！
-}
-TrayTip,,RunAny已经更新到最新版本。,5,1
-FileAppend,
-(
-@ECHO OFF & setlocal enabledelayedexpansion & TITLE RunAny更新版本
-set /a x=1
-:BEGIN
-set /a x+=1
-ping -n 2 127.1>nul
-if exist "%A_Temp%\temp_RunAny.ahk" `(
-  MOVE /y "%A_Temp%\temp_RunAny.ahk" "%A_ScriptDir%\RunAny.ahk"
-`)
-if exist "%A_Temp%\temp_RunAny.exe" `(
-  MOVE /y "%A_Temp%\temp_RunAny.exe" "%A_ScriptDir%\RunAny.exe"
-`)
-goto INDEX
-:INDEX
-if !x! GTR 10 `(
-  exit
-`)
-if exist "%A_Temp%\temp_RunAny.ahk" `(
-  goto BEGIN
-`)
-if exist "%A_Temp%\temp_RunAny.exe" `(
-  if !x! EQU 5 `(
-    taskkill /f /im %A_ScriptName%
-  `)
-  goto BEGIN
-`)
-start "" "%A_ScriptDir%\RunAny.exe"
-exit
-),%A_Temp%\%RunAnyZz%\RunAny_Update.bat
-return
-;══════════════════════════════════════════════════════════════════
-;~;【托盘菜单】
-Menu_Tray_Add:
-	Menu,Tray,NoStandard
-	Menu,Tray,add,显示菜单(&Z)`t%MenuHotKey%,Menu_Tray_Show
-	Menu,Tray,add,修改菜单(&E)`t%TreeHotKey1%,Menu_Edit1
-	Menu,Tray,add,修改文件(&F)`t%TreeIniHotKey1%,Menu_Ini
-	Menu,Tray,add
-	If(MENU2FLAG){
-		Menu,Tray,add,显示菜单2(&2)`t%MenuHotKey2%,Menu_Show2
-		Menu,Tray,add,修改菜单2(&W)`t%TreeHotKey2%,Menu_Edit2
-		Menu,Tray,add,修改文件2(&G)`t%TreeIniHotKey2%,Menu_Ini2
-		Menu,Tray,add
-	}
-	Menu,Tray,add,插件管理(&C)`t%PluginsManageHotKey%,Plugins_Gui
-	Menu,Tray,add,启动管理(&Q)`t%RunCtrlManageHotKey%,RunCtrl_Manage_Gui
-	Menu,Tray,add
-	Menu,Tray,add,所有菜单项(&T),RunA_MenuObj_Show
-	Menu,Tray,add,设置RunAny(&D)`t%RunASetHotKey%,Settings_Gui
-	Menu,Tray,add,关于RunAny(&A)...,Menu_About
-	Menu,Tray,add,检查更新(&U),Check_Update
-	Menu,Tray,add
-	Menu,Tray,add,重启(&R)`t%RunAReloadHotKey%,Menu_Reload
-	Menu,Tray,add,停用(&S)`t%RunASuspendHotKey%,Menu_Suspend
-	Menu,Tray,add,退出(&X)`t%RunAExitHotKey%,Menu_Exit
-	Menu,Tray,Default,显示菜单(&Z)`t%MenuHotKey%
-	Menu,Tray,Click,1
-	;[RunAny菜单图标初始化]
-	try {
-		Menu,Tray,Icon,% MenuIconS[1],% MenuIconS[2]
-		Menu,Tray,Icon,显示菜单(&Z)`t%MenuHotKey%,% ZzIconS[1],% ZzIconS[2],%MenuTrayIconSize%
-		Menu,Tray,Icon,修改菜单(&E)`t%TreeHotKey1%,% TreeIconS[1],% TreeIconS[2],%MenuTrayIconSize%
-		Menu,Tray,Icon,修改文件(&F)`t%TreeIniHotKey1%,% EditFileIconS[1],% EditFileIconS[2],%MenuTrayIconSize%
-		If(MENU2FLAG){
-			Menu,Tray,Icon,显示菜单2(&2)`t%MenuHotKey2%,% ZzIconS[1],% ZzIconS[2],%MenuTrayIconSize%
-			Menu,Tray,Icon,修改菜单2(&W)`t%TreeHotKey2%,% TreeIconS[1],% TreeIconS[2],%MenuTrayIconSize%
-			Menu,Tray,Icon,修改文件2(&G)`t%TreeIniHotKey2%,% EditFileIconS[1],% EditFileIconS[2],%MenuTrayIconSize%
-		}
-		Menu,Tray,Icon,所有菜单项(&T),imageres.dll,112,%MenuTrayIconSize%
-		Menu,Tray,Icon,插件管理(&C)`t%PluginsManageHotKey%,% PluginsManageIconS[1],% PluginsManageIconS[2],%MenuTrayIconSize%
-		Menu,Tray,Icon,启动管理(&Q)`t%RunCtrlManageHotKey%,% RunCtrlManageIconS[1],% RunCtrlManageIconS[2],%MenuTrayIconSize%
-		Menu,Tray,Icon,设置RunAny(&D)`t%RunASetHotKey%,% MenuIconS[1],% MenuIconS[2],%MenuTrayIconSize%
-		Menu,Tray,Icon,关于RunAny(&A)...,% AnyIconS[1],% AnyIconS[2],%MenuTrayIconSize%
-		Menu,Tray,Icon,检查更新(&U),% CheckUpdateIconS[1],% CheckUpdateIconS[2],%MenuTrayIconSize%
-	} catch e {
-		TrayTip,,% "托盘菜单图标错误：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,5,3
-	}
-return
-Menu_Tray:
-	Menu,Tray,Show
-return
-Menu_Ini:
-	Ini_Run(iniPath)
-return
-Menu_Ini2:
-	Ini_Run(iniPath2)
-return
-Menu_Config:
-	Ini_Run(RunAnyConfig)
-return
-Menu_Reload:
-	Critical
-	Run,%A_AhkPath% /force /restart "%A_ScriptFullPath%"
-	ExitApp
-return
-Menu_Suspend:
-	Menu,tray,ToggleCheck,停用(&S)`t%RunASuspendHotKey%
-	Suspend
-return
-Menu_Exit:
-	ExitApp
-return
-Ini_Run(ini){
-	try{
-		if(!FileExist(ini)){
-			MsgBox,16,%ini%,没有找到配置文件：%ini%
-		}
-		Run,"%ini%"
-	}catch{
-		Run,notepad.exe "%ini%"
-	}
-}
-;══════════════════════════════════════════════════════════════════
-;~;【🔎Everything搜索所有exe程序】
-;══════════════════════════════════════════════════════════════════
-EverythingIsRun(){
-	global EvPathRun
-	evExist:=true
-	evAdminRun:=A_IsAdmin ? "-admin" : ""
-	DetectHiddenWindows,On
-	;获取everything路径
-	if(WinExist("ahk_exe Everything.exe")){
-		WinGet, EvPathRun, ProcessPath, ahk_exe Everything.exe
-		ev := new everything
-		;RunAny管理员权限运行后发现Everything非管理员权限则重新以管理员权限运行
-		if(!ev.GetIsAdmin() && A_IsAdmin && EvPathRun){
-			SplitPath, EvPathRun, name, dir
-			SetWorkingDir,%dir%
-			Run,%EvPathRun% -exit
-			Run,%EvPathRun% -startup %evAdminRun%
-			Sleep,500
-			ShowTrayTip("","RunAny与Everything权限不一致自动调整后启动",10,17)
+			Gosub,Menu_Save
 			Gosub,Menu_Reload
 		}
+		IfMsgBox No
+			Gui, Destroy
 	}else{
-		EvPathRun:=Get_Transform_Val(EvPath)
-		if(EvPathRun && FileExist(EvPathRun) && !InStr(FileExist(EvPathRun), "D")){
-			SplitPath, EvPathRun, name, dir
-			SetWorkingDir,%dir%
-			Run,%EvPathRun% -startup %evAdminRun%
-			Sleep,500
-		}else if(FileExist(A_ScriptDir "\Everything\Everything.exe")){
-			SetWorkingDir,%A_ScriptDir%\Everything
-			Run,%A_ScriptDir%\Everything\Everything.exe -startup %evAdminRun%
-			EvPath=%A_ScriptDir%\Everything\Everything.exe
-			EvPathRun:=EvPath
-			Sleep,500
-		}else{
-			TrayTip,,RunAny需要Everything快速识别无路径应用`n
-			(
-* 运行Everything后再重启RunAny
-* 或在RunAny设置中配置Everything正确安装路径`n* 或www.voidtools.com下载安装
-			),10,2
-			evExist:=false
-		}
-		SetWorkingDir,%A_ScriptDir%
+		Gui, Destroy
 	}
-	DetectHiddenWindows,Off
-	return evExist
-}
-;[校验Everything是否可正常返回搜索结果]
-EverythingCheck:
-DeleteFile(A_Temp "\" RunAnyZz "\RunAnyEv.ahk")
-FileAppend,
-(
-#NoTrayIcon
-global everyDLL:="%A_ScriptDir%\%everyDLL%"
-ev:=new everything
-ev.SetMatchWholeWord(true)
-ev.SetSearch("explorer.exe")
-ev.Query()
-while,`% !ev.GetTotResults()
-{
-	if(A_Index>1000){
-		MsgBox,16,RunAny无法与Everything通信,Everything启动缓慢或异常导致无法搜索到磁盘文件``n``n
-		`(
-【原因1：Everything正在创建索引】
-请手动打开Everything等待可以搜索到文件了请再重启RunAny``n
-【原因2：Everything数据库在不同磁盘导致读写缓慢】
-查看Everything.exe和文件Everything.db是否不在同一硬盘``n
-在Everything窗口最上面菜单的“工具”——“选项”——找到选中左边的“索引”——
-修改右边的数据库路径到Everything.exe同一硬盘，加快读写速度``n
-【原因3：Everything搜索异常】
-请打开Everything菜单-工具-选项设置 安装Everything服务(S)，再重启Everything待可以搜索文件再重启RunAny
-		`)
+return
+;[GuiDropFiles]  ; 对拖放提供支持.
+MenuEditGuiDropFiles:
+SaveItemGuiDropFiles:
+	Loop, Parse, A_GuiEvent, `n
+	{
+		SelectedFileName = %A_LoopField%  ; 仅获取首个文件 (如果有多个文件的时候).
 		break
 	}
-	Sleep, 100
-	ev.Query()
-}
-val:=ev.GetTotResults(0)
-RegWrite,REG_SZ,HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults,`%val`%
-return
-class everything
-{
-	__New(){
-		this.hModule := DllCall("LoadLibrary",str,everyDLL)
-	}
-	SetSearch(aValue)
-	{
-		this.eSearch := aValue
-		dllcall(everyDLL "\Everything_SetSearch",str,aValue)
-		return
-	}
-	SetMatchWholeWord(aValue)
-	{
-		this.eMatchWholeWord := aValue
-		dllcall(everyDLL "\Everything_SetMatchWholeWord",int,aValue)
-		return
-	}
-	Query(aValue=1)
-	{
-		dllcall(everyDLL "\Everything_Query",int,aValue)
-		return
-	}
-	GetTotResults()
-	{
-		return dllcall(everyDLL "\Everything_GetTotResults")
-	}
-}
-),%A_Temp%\%RunAnyZz%\RunAnyEv.ahk
-Sleep, 200
-Run,%A_AhkPath%%A_Space%"%A_Temp%\%RunAnyZz%\RunAnyEv.ahk"
-return
-EverythingCheckResults:
-	RegRead,EvTotResults,HKEY_CURRENT_USER\SOFTWARE\RunAny,EvTotResults
-	if(EvTotResults>0){
-		SetTimer,EverythingCheckResults,Off
-		Gosub,RunAny_SearchBar
-		ShowTrayTip("","Everything索引更新完成",5,17)
-		Gosub,Menu_Reload
-	}
-return
-EverythingQuery(EvCommandStr){
-	ev := new everything
-	evSearchStr:=EvCommandStr ? EvCommand " " EvCommandStr : EvCommand
-	;查询字串设为everything
-	ev.SetSearch("file: " evSearchStr)
-	;执行搜索
-	ev.Query()
-	Loop,% ev.GetNumFileResults()
-	{
-		chooseNewFlag:=false
-		Z_Index:=A_Index-1
-		objFullPathName:=ev.GetResultFullPathName(Z_Index)
-		if(!FileExist(objFullPathName))
-			continue
-		objFileName:=ev.GetResultFileName(Z_Index)
-		objFileNameNoExeExt:=RegExReplace(objFileName,"iS)\.exe$","")
-		if(MenuObjEv[objFileNameNoExeExt]){
-			MenuObjSame[(MenuObjEv[objFileNameNoExeExt])]:=MenuObjEv[objFileNameNoExeExt]
-			MenuObjSame[objFullPathName]:=objFullPathName
-			if(EvExeMTimeNew){
-				;优先选择最新修改时间的同名文件全路径
-				FileGetTime,objFullPathNameUpdateTimeOld,% MenuObjEv[objFileNameNoExeExt], M
-				FileGetTime,objFullPathNameUpdateTimeNew,% objFullPathName, M
-				if(objFullPathNameUpdateTimeOld<objFullPathNameUpdateTimeNew){
-					chooseNewFlag:=true
-				}
-			}
-			if(EvExeVerNew && RegExMatch(objFileName,"iS).*?\.exe$")){
-				;优先选择最新版本的同名exe全路径
-				FileGetVersion,objFullPathNameVersionOld,% MenuObjEv[objFileNameNoExeExt]
-				FileGetVersion,objFullPathNameVersionNew,% objFullPathName
-				if(objFullPathNameVersionOld<objFullPathNameVersionNew){
-					MenuObjEv[objFileNameNoExeExt]:=objFullPathName
-					if(MenuObj.HasKey(objFileNameNoExeExt)){
-						MenuObj[objFileNameNoExeExt]:=objFullPathName
-						MenuObjSearch[objFileName]:=objFullPathName
-					}
-				}else if(chooseNewFlag && objFullPathNameVersionOld=objFullPathNameVersionNew){
-					MenuObjEv[objFileNameNoExeExt]:=objFullPathName
-					if(MenuObj.HasKey(objFileNameNoExeExt)){
-						MenuObj[objFileNameNoExeExt]:=objFullPathName
-						MenuObjSearch[objFileName]:=objFullPathName
-					}
-				}
-				continue
-			}
-			;版本相同则取最新修改时间，时间相同或小于则不改变
-			if(EvExeMTimeNew && !chooseNewFlag){
-				continue
-			}
-		}
-		MenuObjEv[objFileNameNoExeExt]:=objFullPathName
-		if(MenuObj.HasKey(objFileNameNoExeExt)){
-			MenuObj[objFileNameNoExeExt]:=objFullPathName
-			MenuObjSearch[objFileName]:=objFullPathName
-		}
-	}
-	return ev.GetNumFileResults()
-}
-EverythingNoPathSearchStr(){
-	Loop,%MenuCount%
-	{
-		Loop, parse, iniVar%A_Index%, `n, `r, %A_Space%%A_Tab%
+	;获取鼠标下面的控件
+	MouseGetPos, , , id, control
+	WinGetClass, class, ahk_id %id%
+	if(control="SysTreeView321"){
+		Loop, Parse, A_GuiEvent, `n
 		{
-			if(A_LoopField="" || InStr(A_LoopField,";")=1 || InStr(A_LoopField,"-")=1){
-				continue
-			}
-			itemVars:=StrSplit(A_LoopField,"|",,2)
-			itemVar:=itemVars[2] ? itemVars[2] : itemVars[1]
-			itemMode:=Get_Menu_Item_Mode(itemVar)
-			outVar:=RegExReplace(itemVar,"iS)^([^|]+?\.[a-zA-Z0-9-_]+)($| .*)","$1")	;去掉参数
-			;[过滤掉所有不是无路径的菜单项]
-			if(InStr(EvCommandStr,"|^" outVar "$|")){
-				MenuObjEvPathEmptyReason[itemVar]:="重复的无路径应用"
-				continue
-			}else if(itemMode!=1 && itemMode!=8){
-				MenuObjEvPathEmptyReason[itemVar]:="启动模式不是程序"
-				continue
-			}else if(outVar="iexplore.exe" && FileExist(A_ProgramFiles "\Internet Explorer\iexplore.exe")){
-				MenuObj["iexplore"]:=A_ProgramFiles "\Internet Explorer\iexplore.exe"
-				continue
-			}else if(itemMode=1 && (InStr(outVar,"..\") || RegExMatch(outVar,"S)\\|\/|\:|\*|\?|\""|\<|\>|\|") || RegExMatch(outVar,"S)^%.*?%$") )){
-				MenuObjEvPathEmptyReason[outVar]:="启动软件名带有特殊字符"
-				continue
-			}else if(itemMode=1 && (FileExist(A_WinDir "\" outVar) || FileExist(A_WinDir "\system32\" outVar))){
-				MenuObjEvPathEmptyReason[outVar]:="属于Windows和System32系统路径软件"
-				continue
-			}else if(itemMode=8){
-				MenuObjEvPathEmptyReason[outVar]:="插件脚本函数格式"
-				if(RegExMatch(itemVar,"iS).+?\[.+?\]%?\(.*?%"".+?""%.*?\)")){
-					outVar:=RegExReplace(itemVar,"iS).+?\[.+?\]%?\(.*?%""(.+?)""%.*?\)","$1")
-					if(InStr(outVar,"..\")
-						|| RegExMatch(outVar,"S)\\|\/|\:|\*|\?|\""|\<|\>|\|") 
-						|| RegExMatch(outVar,"S)^%.*?%$") 
-						|| FileExist(A_WinDir "\" outVar) || FileExist(A_WinDir "\system32\" outVar)){
-						continue
-					}
-				}else{
-					continue
-				}
-			}
-			outVarStr:=outVar
-			;正则转义特殊字符
-			if(RegExMatch(outVarStr, RegexEscapeNoPointStr)){
-				outVarStr:=StrListEscapeReplace(outVarStr, RegexEscapeNoPointList, "\")
-			}
-			outVarStr:=StrReplace(outVarStr,".","\.")
-			EvCommandStr.="^" outVarStr "$|"
-			outVarNoExeExt:=RegExReplace(outVar,"iS)\.exe$","")
-			MenuObj[outVarNoExeExt]:=""
-			MenuObjSearch[outVar]:=""
+			fileID:=TV_Add(Get_Item_Run_Path(A_LoopField),0,Set_Icon(TreeImageListID,A_LoopField))
+			TVFlag:=true
 		}
 	}
-	if(EvCommandStr!=""){
-		EvCommandStr:=SubStr(EvCommandStr, 1, -StrLen("|"))
-		EvCommandStr:="regex:""" EvCommandStr """"
+	if(control="Edit1"){
+		GuiControl,SaveItem:, vitemName, % Get_Item_Run_Path(SelectedFileName)
 	}
-	return EvCommandStr
-}
-;[使用everything搜索单个exe程序]
-exeQuery(exeName,noSystemExe:=" !C:\Windows*"){
-	ev := new everything
-	str := exeName . noSystemExe
-	;查询字串设为全字匹配
-	ev.SetMatchWholeWord(true)
-	ev.SetSearch(str)
-	;执行搜索
-	ev.Query()
-	return ev.GetResultFullPathName(0)
-}
-;[IPC方式和everything进行通讯，修改于AHK论坛]
-class everything
-{
-	__New(){
-		this.hModule := DllCall("LoadLibrary", str, everyDLL)
+	if(control="Edit4"){
+		GuiControl,SaveItem:, vitemPath, % Get_Item_Run_Path(SelectedFileName)
 	}
-	__Get(aName){
-	}
-	__Set(aName, aValue){
-	}
-	__Delete(){
-		DllCall("FreeLibrary", "UInt", this.hModule) 
-		return
-	}
-	SetSearch(aValue)
-	{
-		this.eSearch := aValue
-		dllcall(everyDLL "\Everything_SetSearch",str,aValue)
-		return
-	}
-	;设置全字匹配
-	SetMatchWholeWord(aValue)
-	{
-		this.eMatchWholeWord := aValue
-		dllcall(everyDLL "\Everything_SetMatchWholeWord",int,aValue)
-		return
-	}
-	;设置正则表达式搜索
-	SetRegex(aValue)
-	{
-		this.eMatchWholeWord := aValue
-		dllcall(everyDLL "\Everything_SetRegex",int,aValue)
-		return
-	}
-	;执行搜索动作
-	Query(aValue=1)
-	{
-		dllcall(everyDLL "\Everything_Query",int,aValue)
-		return
-	}
-	;返回管理员权限状态
-	GetIsAdmin()
-	{
-		return dllcall(everyDLL "\Everything_IsAdmin")
-	}
-	;返回匹配总数
-	GetTotResults()
-	{
-		return dllcall(everyDLL "\Everything_GetTotResults")
-	}
-	;返回可见文件结果的数量
-	GetNumFileResults()
-	{
-		return dllcall(everyDLL "\Everything_GetNumFileResults")
-	}
-	;返回文件名
-	GetResultFileName(aValue)
-	{
-		return strget(dllcall(everyDLL "\Everything_GetResultFileName",int,aValue))
-	}
-	;返回文件全路径
-	GetResultFullPathName(aValue,cValue=128)
-	{
-		VarSetCapacity(bValue,cValue*2)
-		dllcall(everyDLL "\Everything_GetResultFullPathName",int,aValue,str,bValue,int,cValue)
-		return bValue
-	}
-}
-;══════════════════════════════════════════════════════════════════
-;~;[导入桌面程序菜单]
-Desktop_Import:
-	MsgBox,33,导入桌面程序,确定导入桌面程序到菜单当中吗？
+	Gosub,EditItemPathChange
+return
+PluginsManageGuiDropFiles:
+	MsgBox,33,RunAny新增插件,是否复制脚本文件到插件目录？`n%A_ScriptDir%\%PluginsDir%
 	IfMsgBox Ok
 	{
-		Gosub,Desktop_Append
-		Gosub,Menu_Reload
-	}
-return
-Desktop_Append:
-	desktopItem:="`n-桌面(&Desktop)`n"
-	desktopDir:=""
-	Loop,%A_Desktop%\*.lnk,0,1
-	{
-		if(A_LoopFileDir!=A_Desktop && A_LoopFileDir!=desktopDir){
-			desktopDir:=A_LoopFileDir
-			StringReplace,dirItem,desktopDir,%A_Desktop%\
-			desktopItem.="`t--" dirItem "`n"
+		Loop, Parse, A_GuiEvent, `n
+		{
+			FileCopy, %A_LoopField%, %A_ScriptDir%\%PluginsDir%
 		}
-		desktopItem.="`t" A_LoopFileName "`n"
+		Gosub,Plugins_Gui
 	}
-	desktopItem.="`n"
-	desktopDir:=""
-	Loop,%A_Desktop%\*.exe,0
-	{
-		desktopItem.="`t" A_LoopFileName "`n"
-	}
-	FileAppend,%desktopItem%,%iniFile%
 return
-;~;[初次运行]
-First_Run:
-FileAppend,
-(
-;以【;】开头代表注释
-;以【-】开头+名称表示1级分类
--常用(&App)
-	Chrome浏览器|chrome.exe
-	;多个同名iexplore.exe用全路径指定运行32位IE
-	;在【|】前加上IE(&E)的简称显示
-	IE(&E)|`%ProgramFiles`%\Internet Explorer\iexplore.exe
-	;2级分隔符【--】
-	--
-	StrokesPlus鼠标手势|StrokesPlus.exe
-	Ditto剪贴板|Ditto.exe
--办公(&Work)|doc docx xls xlsx ppt pptx wps et dps
-	word(&W)|winword.exe
-	Excel(&E)|excel.exe
-	PPT(&T)|powerpnt.exe
-	;以【--】开头名称表示2级分类
-	--WPS(&S)
-		WPS(&W)|WPS.exe
-		ET(&E)|et.exe
-		WPP(&P)|wpp.exe
-	--
--网址(U&RL)
-	;在别名最末尾添加Tab制表符+热键(参考AHK写法:^代表Ctrl !代表Alt #代表Win +代表Shift)，如选中文字按Alt+z百度
-	百度(&B)	!z|https://www.baidu.com/s?wd=
-	谷歌(&G)	!g|https://www.google.com/search?q=`%s&gws_rd=ssl
-	翻译(&F)	#z|https://translate.google.cn/#auto/zh-CN/
-	异次元软件|http://www.iplaysoft.com/search/?s=548512288484505211&q=`%s
-	淘宝(&T)|https://s.taobao.com/search?q=`%s
-	京东(&D)|https://search.jd.com/Search?keyword=`%s&enc=utf-8
-	知乎(&Z)|https://www.zhihu.com/search?type=content&q=
-	B站|http://search.bilibili.com/all?keyword=`%s
-	--
-	RunAny地址|https://github.com/hui-Zz/RunAny
--图片(im&G)|bmp gif jpeg jpg png
-	画图(&T)|mspaint.exe
-	ACDSee.exe
-	XnView.exe
-	IrfanView.exe
--影音(&Video)|avi mkv mp4 rm rmvb flv wmv swf mp3
-	QQPlayer.exe
-	PotPlayer.exe
-	XMP.exe
-	--
-	云音乐(&C)|cloudmusic.exe
-	QQ音乐|QQMusic.exe
--编辑(&Edit)|txt ini cmd bat md ahk html
-	;在别名后面添加_:数字形式来透明启动应用(默认不透明,1-100是全透明到不透明)
-	记事本(&N)_:88|notepad.exe
--文件(&File)
-	WinRAR.exe
-	TC文件管理|Totalcmd.exe
-	Everything文件秒搜|Everything.exe
--系统(&Sys)
-	cmd.exe
-	控制面板(&S)|Control.exe
-	;在程序名后空格+带参数启动
-	hosts文件|notepad.exe `%A_WinDir`%\System32\drivers\etc\hosts
--输入(inpu&T)
-	;当前时间（变量语法参考AHK文档https://wyagd001.github.io/zh-cn/docs/Variables.htm）
-	当前时间|`%A_YYYY`%-`%A_MM`%-`%A_DD`% `%A_Hour`%:`%A_Min`%:`%A_Sec`%;
-	;热键映射,快捷方便,左边Shift+空格=回车键;左手Shift+大小写键=删除键
-	;左手回车	<+Space|{Enter}::
-	;左手删除	LShift & CapsLock|{Delete}::
-),%iniFile%
-Gosub,Desktop_Append
-FileAppend,
-(
--
-;1级分隔符【-】并且使下面项目都回归1级分类
-QQ.exe
-;使用【&】指定快捷键为C,忽略下面C盘的快捷键C
-计算器(&C)|calc.exe
-我的电脑(&Z)|explorer.exe
-;以【\】结尾代表是文件夹路径
-C盘|C:\
--
-),%iniFile%
-global iniFlag:=true
+;[GuiContextMenu]
+MenuEditGuiContextMenu:
+PluginsManageGuiContextMenu:
+	If (A_GuiControl = "RunAnyTV") {
+		TV_Modify(A_EventInfo, "Select Vis")
+		Menu, TVMenu, Show
+	}
+	If (A_GuiControl = "RunAnyPluginsLV1" || A_GuiControl = "RunAnyPluginsLV2") {
+		LV_Modify(A_EventInfo, "Select Vis")
+		Menu, LVMenu, Show
+	}
+return
+RunCtrlManageGuiContextMenu:
+	If (A_GuiControl = "RunCtrlListBox" || A_GuiControl = "RunCtrlLV") {
+		TV_Modify(A_EventInfo, "Select Vis")
+		Menu, RunCtrlLVMenu, Show
+	}
+return
+;[GuiSize]
+MenuEditGuiSize:
+MenuObjShowGuiSize:
+RuleManageGuiSize:
+RunCtrlConfigGuiSize:
+RunCtrlFuncGuiSize:
+PluginsManageGuiSize:
+PluginsDownloadGuiSize:
+OneKeyDownGuiSize:
+	if A_EventInfo = 1
+		return
+	GuiControl, Move, RunAnyTV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
+	GuiControl, Move, RunAnyPluginsLV1, % "H" . (A_GuiHeight * 0.50) . " W" . (A_GuiWidth - 20)
+	GuiControl, Move, RunAnyPluginsLV2, % "H" . (A_GuiHeight * 0.49) . " W" . (A_GuiWidth - 20) . " y" . (A_GuiHeight * 0.50 + 10)
+	GuiControl, Move, RuleLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
+	GuiControl, Move, RunAnyDownLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
+	GuiControl, Move, RunAnyOneKeyDownLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 40)
+	GuiControl, Move, RunAnyMenuObjShowLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 40)
+	GuiControl, Move, FuncGroup, % "H" . (A_GuiHeight-130) . " W" . (A_GuiWidth - 40)
+	GuiControl, Move, FuncLV, % "H" . (A_GuiHeight-270) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, vFuncValue, % "H" . (A_GuiHeight-230) . " W" . (A_GuiWidth - 40)
+	GuiControl, MoveDraw, vFuncSave, % " X" . (A_GuiWidth * 0.30) . " Y" . (A_GuiHeight - 50)
+	GuiControl, MoveDraw, vFuncCancel, % " X" . (A_GuiWidth * 0.30 + 100) . " Y" . (A_GuiHeight - 50)
+return
+66GuiSize:
+	if A_EventInfo = 1
+		return
+	GuiControl, Move, ConfigTab, % "H" . (A_GuiHeight * 0.88) . " W" . (A_GuiWidth - 20)
+	GuiControl, Move, vDisableAppGroup, % "H" . (A_GuiHeight * 0.88 - 395) . " W" . (A_GuiWidth - 40)
+	GuiControl, Move, vDisableApp, % "H" . (A_GuiHeight * 0.88 - 435) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, RunAnyHotkeyLV, % "H" . (A_GuiHeight * 0.88 - 214) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, RunAnyMenuVarLV, % "H" . (A_GuiHeight * 0.88 - 121) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, RunAnyMenuObjPathLV, % "H" . (A_GuiHeight * 0.88 - 121) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, vRunAEvFullPathIniDir, % " W" . (A_GuiWidth - 388)
+	GuiControl, Move, vEvSetupGroup, % " W" . (A_GuiWidth - 40)
+	GuiControl, Move, vEvPath, % " W" . (A_GuiWidth - 120)
+	GuiControl, Move, vEvCommandGroup, % "H" . (A_GuiHeight * 0.88 - 248) . " W" . (A_GuiWidth - 40)
+	GuiControl, Move, vEvCommand, % "H" . (A_GuiHeight * 0.88 - 408) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, RunAnyOneKeyLV, % " W" . (A_GuiWidth - 40)
+	GuiControl, Move, vOneKeyUrlGroup, % " W" . (A_GuiWidth - 40)
+	GuiControl, Move, vOneKeyUrl, % " W" . (A_GuiWidth - 60)
+	GuiControl, Move, vBrowserPath, % " W" . (A_GuiWidth - 120)
+	GuiControl, Move, RunAnyOpenExtLV, % "H" . (A_GuiHeight * 0.88 - 121 ) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, vHotStrGroup, % "H" . (A_GuiHeight * 0.80)
+	GuiControl, Move, AdvancedConfigLV, % "H" . (A_GuiHeight * 0.88 - 76) " W" . (A_GuiWidth - 60)
+	GuiControl, MoveDraw, vSetOK, % " X" . (A_GuiWidth * 0.30) . " Y" . (A_GuiHeight * 0.92)
+	GuiControl, MoveDraw, vSetCancel, % " X" . (A_GuiWidth * 0.30 + 90) . " Y" . (A_GuiHeight * 0.92)
+	GuiControl, MoveDraw, vSetReSet, % " X" . (A_GuiWidth * 0.30 + 180) . " Y" . (A_GuiHeight * 0.92)
+	GuiControl, MoveDraw, vMenu_Config, % " X" . (A_GuiWidth * 0.30 + 310) . " Y" . (A_GuiHeight * 0.925)
+return
+SaveItemGuiSize:
+	if A_EventInfo = 1
+		return
+	GuiControl,SaveItem:MoveDraw, vitemName, % "W" . (A_GuiWidth-360)
+	GuiControl,SaveItem:MoveDraw, vitemPath, % "H" . (A_GuiHeight-230) . " W" . (A_GuiWidth - 120)
+	GuiControl,SaveItem:MoveDraw, vPictureIconAdd,% "x" . (A_GuiWidth-130)
+	GuiControl,SaveItem:MoveDraw, vTextIconAdd,% "x" . (A_GuiWidth-150)
+	GuiControl,SaveItem:MoveDraw, vTextIconDown,% "x" . (A_GuiWidth-100)
+	GuiControl,SaveItem:MoveDraw, vSaveItemSaveBtn,% "x" . (A_GuiWidth / 2 - 100) . " y" . (A_GuiHeight-60)
+	GuiControl,SaveItem:MoveDraw, vSaveItemCancelBtn,% "x" . (A_GuiWidth / 2 + 10) . " y" . (A_GuiHeight-60)
+	GuiControl,SaveItem:MoveDraw, vStatusBar,% "x30" . " y" . (A_GuiHeight-30)
+return
+RunCtrlManageGuiSize:
+	if A_EventInfo = 1
+		return
+	GuiControl, Move, RunCtrlListBox, % "H" . (A_GuiHeight-15)
+	GuiControl, Move, RunCtrlLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 175)
+return
+;[GuiEscape]
+MenuEditGuiEscape:
+MenuObjShowGuiEscape:
+SaveItemGuiEscape:
+PluginsManageGuiEscape:
+PluginsDownloadGuiEscape:
+PluginsLibGuiEscape:
+PluginsIconGuiEscape:
+RunCtrlManageGuiEscape:
+RunCtrlConfigGuiEscape:
+RunCtrlFuncGuiEscape:
+CtrlRunGuiEscape:
+RuleManageGuiEscape:
+RuleConfigGuiEscape:
+99GuiEscape:
+keyGuiEscape:
+OneKeyGuiEscape:
+OneKeyDownGuiEscape:
+SavePathGuiEscape:
+SaveExtGuiEscape:
+SaveVarGuiEscape:
+SetCancel:
+	Gui,Destroy
 return
