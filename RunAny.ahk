@@ -71,7 +71,8 @@ For ki, kv in HotKeyList
 		}
 		%kv%:=%winkeyV% ? "#" . %keyV% : %keyV%
 		try{
-			Hotkey,% %kv%,% RunList[ki],On
+			if(IsLabel(RunList[ki]))
+				Hotkey,% %kv%,% RunList[ki],On
 		}catch{
 			errorKeyStr.=kv "`n"
 		}
@@ -1302,7 +1303,8 @@ Menu_Show:
 			}
 			return
 		}
-		getZz:=Get_Transform_Val(getZz)
+		if(GetZzTransformVal)
+			getZz:=Get_Transform_Val(getZz)
 		if(MENU_NO=1){
 			openFlag:=false
 			;~;[多行内容一键直达正则匹配]
@@ -1710,7 +1712,7 @@ Menu_Run:
 			;如果选中变量中有空格，自动包上双引号
 			any:=StrReplace(any,"%getZz%","""%getZz%""")
 		}
-		any:=Get_Transform_Val(any)
+		any:=Get_Transform_Val_GetZz(any)
 		any:=RTrim(any," `t`r`n")
 		anyRun:=""
 		if(getZz="" && !Candy_isFile){
@@ -1942,7 +1944,7 @@ Menu_Key_Run_Run:
 			;如果选中变量中有空格，自动包上双引号
 			any:=StrReplace(any,"%getZz%","""%getZz%""")
 		}
-		any:=Get_Transform_Val(any)
+		any:=Get_Transform_Val_GetZz(any)
 		any:=RTrim(any," `t`r`n")
 		;[打开文件夹]
 		if(itemMode=7 && InStr(FileExist(any), "D")){
@@ -2425,7 +2427,7 @@ Send_Str_Zz(strZz,tf=false){
 	;切换Win10输入法为英文
 	try DllCall("SendMessage",UInt,DllCall("imm32\ImmGetDefaultIMEWnd",Uint,WinExist("A")),UInt,0x0283,Int,0x002,Int,0x00)
 	if(tf){
-		strZz:=Get_Transform_Val(strZz)
+		strZz:=Get_Transform_Val_GetZz(strZz)
 	}
 	Clipboard:=strZz
 	SendInput,^v
@@ -2435,7 +2437,7 @@ Send_Str_Zz(strZz,tf=false){
 ;[键盘输出短语]
 Send_Str_Input_Zz(strZz,tf=false){
 	if(tf){
-		strZz:=Get_Transform_Val(strZz)
+		strZz:=Get_Transform_Val_GetZz(strZz)
 	}
 	SendInput,{Text}%strZz%
 }
@@ -2535,13 +2537,6 @@ GetKeyByVal(obj, val){
 ;[获取变量展开转换后的值]
 Get_Transform_Val(string){
 	try{
-		if(InStr(string,"%getZz%")){
-			string:=StrReplace(string, "%getZz%", getZz)
-		}
-		if(InStr(string,"%Clipboard%") || InStr(string,"%ClipboardAll%")){
-			string:=StrReplace(string, "%Clipboard%", Clipboard)
-			string:=StrReplace(string, "%ClipboardAll%", ClipboardAll)
-		}
 		For mVarName, mVarVal in MenuVarIniList
 		{
 			if(InStr(string,"%" mVarName "%"))
@@ -2572,6 +2567,16 @@ Get_Transform_Val(string){
 	}catch{
 		return string
 	}
+}
+Get_Transform_Val_GetZz(string){
+	if(InStr(string,"%getZz%")){
+		string:=StrReplace(string, "%getZz%", getZz)
+	}
+	if(InStr(string,"%Clipboard%") || InStr(string,"%ClipboardAll%")){
+		string:=StrReplace(string, "%Clipboard%", Clipboard)
+		string:=StrReplace(string, "%ClipboardAll%", ClipboardAll)
+	}
+	return Get_Transform_Val(string)
 }
 ;变量布尔值反转
 Variable_Boolean_Reverse(vars*){
@@ -2912,6 +2917,8 @@ URLDownloadToFile(URL, FilePath, Options:="", RequestHeaders:="")
 	this.ResponseHeaders:=this.解析信息到对象(WebRequest.GetAllResponseHeaders())
 	return, 1
 }
+donothing:
+return
 ;══════════════════════════════════════════════════════════════════
 ;~;【══🔩内部函数方法══】
 ;══════════════════════════════════════════════════════════════════
@@ -3449,6 +3456,7 @@ Config_Set:
 	{
 		GroupAdd,GetZzCopyKeyAppGUI,ahk_exe %A_LoopField%
 	}
+	global GetZzTransformVal:=Var_Read("GetZzTransformVal",0)
 	global DisableExeIcon:=Var_Read("DisableExeIcon",0)
 	global RunAEncoding:=Var_Read("RunAEncoding",A_Language!=0804 ? "UTF-8" : "")
 	global ClipWaitTime:=Var_Read("ClipWaitTime",0.1)
@@ -3703,7 +3711,7 @@ Ev_Exist:
 return
 ;~;【——⭕️图标初始化——】
 Icon_Set:
-	Menu,exeTestMenu,add,SetCancel	;只用于测试应用图标正常添加
+	Menu,exeTestMenu,add,donothing	;只用于测试应用图标正常添加
 	global RunIconDir:=A_ScriptDir "\RunIcon"
 	global WebIconDir:=RunIconDir "\WebIcon"
 	global ExeIconDir:=RunIconDir "\ExeIcon"
@@ -3751,7 +3759,7 @@ Icon_Set:
 		UpIcon:="ZzIcon.dll,5"
 		DownIcon:="ZzIcon.dll,6"
 		try{
-			Menu,exeTestMenu,Icon,SetCancel,ZzIcon.dll,7
+			Menu,exeTestMenu,Icon,donothing,ZzIcon.dll,7
 			ZzIconPath:="ZzIcon.dll,7"
 		} catch {
 			ZzIconPath:="ZzIcon.dll,1"
@@ -4964,7 +4972,7 @@ Desktop_Append:
 	}
 	FileAppend,%desktopItem%,%iniFile%
 return
-;~;[初次运行]
+;~;【——初次运行——】
 First_Run:
 FileAppend,
 (
@@ -6430,7 +6438,7 @@ Set_Icon(ImageListID,itemVar,editVar=true,fullItemFlag=true,itemName=""){
 	itemIconFile:=IconFolderList[menuItemIconFileName(itemIcon)]
 	if(itemIconFile && FileExist(itemIconFile)){
 		try{
-			Menu,exeTestMenu,Icon,SetCancel,%itemIconFile%,0
+			Menu,exeTestMenu,Icon,donothing,%itemIconFile%,0
 			addNum:=IL_Add(ImageListID, itemIconFile, 0)
 			return itemStyle . "Icon" . addNum
 		}catch{}
@@ -6464,7 +6472,7 @@ Set_Icon(ImageListID,itemVar,editVar=true,fullItemFlag=true,itemName=""){
 			website:=RegExReplace(objText,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
 			webIcon:=A_ScriptDir "\RunIcon\" website ".ico"
 			if(FileExist(webIcon)){
-				Menu,exeTestMenu,Icon,SetCancel,%webIcon%,0
+				Menu,exeTestMenu,Icon,donothing,%webIcon%,0
 				addNum:=IL_Add(ImageListID, webIcon, 0)
 				return "Icon" . addNum
 			}else{
@@ -8610,6 +8618,7 @@ Settings_Gui:
 	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitTime,"秒", "[选中] 指定软件获取选中目标到剪贴板等待时间，全局其他软件默认0.1秒","","ClipWaitTime")
 	LV_Add(GetZzCopyKey ? "Icon1" : "Icon2", GetZzCopyKey,"热键", "[选中] 自定义在一些软件界面获取选中内容的热键","","GetZzCopyKey")
 	LV_Add(GetZzCopyKey ? "Icon1" : "Icon2", GetZzCopyKeyApp,"逗号分隔", "[选中] 自定义在哪些软件界面改变获取选中内容热键","","GetZzCopyKeyApp")
+	LV_Add(GetZzTransformVal ? "Icon1" : "Icon2", GetZzTransformVal,"", "[选中] 对选中的双百分号内容%%自动转换成变量值","","GetZzTransformVal")
 	LV_Add(HoldCtrlRun ? "Icon1" : "Icon2", HoldCtrlRun,"", "[按住Ctrl键] 回车或点击菜单项（选项数字可互用） 2:打开该软件所在目录","","HoldCtrlRun")
 	LV_Add(HoldShiftRun ? "Icon1" : "Icon2", HoldShiftRun,"", "[按住Shift键] 回车或点击菜单项（选项数字可互用） 5:打开多功能菜单运行方式","","HoldShiftRun")
 	LV_Add(HoldCtrlShiftRun ? "Icon1" : "Icon2", HoldCtrlShiftRun,"", "[按住Ctrl+Shift键] 回车或点击菜单项（选项数字可互用） 3:编辑该菜单项","","HoldCtrlShiftRun")
@@ -9696,7 +9705,10 @@ listviewAdvancedConfig:
 		SendInput,{F2}
 	}else if A_GuiEvent = e
 	{
+		Gui, ListView, AdvancedConfigLV
 		AdvancedConfigFlag:=true
+		LV_GetText(vn, A_EventInfo, 1)
+		LV_Modify(A_EventInfo, vn ? "Icon1" : "Icon2")
 	}
 return
 ;[窗口控件控制函数]
