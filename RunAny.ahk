@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.1 @2022.05.03
+║【RunAny】一劳永逸的快速启动工具 v5.8.2 @2022.05.10
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -24,8 +24,8 @@ global RunAnyZz:="RunAny"                    ;~;名称
 global PluginsDir:="RunPlugins"              ;~;插件目录
 global RunAnyConfig:="RunAnyConfig.ini"      ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini"    ;~;插件注册配置文件
-global RunAny_update_version:="5.8.1"        ;~;版本号
-global RunAny_update_time:="2022.05.03"      ;~;更新日期
+global RunAny_update_version:="5.8.2"        ;~;版本号
+global RunAny_update_time:="2022.05.10"      ;~;更新日期
 global iniPath:=A_ScriptDir "\RunAny.ini"    ;~;菜单1
 global iniPath2:=A_ScriptDir "\RunAny2.ini"  ;~;菜单2
 Gosub,Config_Set        ;~;01.配置初始化
@@ -3014,7 +3014,7 @@ Get_Menu_Item_Mode(item,fullItemFlag:=false){
 			return 12
 		if(RegExMatch(item,"S)^-+[^-]+.*"))
 			return 10
-		if(RegExMatch(item,"S)^-+"))
+		if(RegExMatch(item,"S)^-+$") || RegExMatch(item,"S)^\|+$"))
 			return 11
 		menuItems:=StrSplit(item,"|",,2)
 		item:=(menuItems[2]) ? menuItems[2] : menuItems[1]
@@ -5584,23 +5584,23 @@ Menu_Item_Edit:
 	Gui,SaveItem:+Resize
 	Gui,SaveItem:Font,,Microsoft YaHei
 	Gui,SaveItem:Add, Text, xm+10 y+20 y20 w60, %itemNameText%：
-	Gui,SaveItem:Add, Edit, x+5 yp-3 w350 vvitemName GEditItemPathChange, %itemName%
+	Gui,SaveItem:Add, Edit, x+5 yp-3 w350 vvitemName gEditItemPathChange, %itemName%
 	Gui,SaveItem:Add, Picture, x+50 yp+3 w64 h-1 vvPictureIconAdd gSetItemIconPath, %itemIconFile%
 	Gui,SaveItem:Add, Text,yp+8 w72 cGreen vvTextIconAdd gSetItemIconPath BackgroundTrans, 点击添加图标
 	Gui,SaveItem:Add, Text,yp w72 cGreen vvTextIconDown gSetItemIconDown BackgroundTrans, 下载网站图标
 	if(InStr(itemName,"-")!=1){
 		Gui,SaveItem:Add, Text, xm+10 y+4 w60 vvTextHotStr, 热字符串：
 		Gui,SaveItem:Font,,Consolas
-		Gui,SaveItem:Add, Edit, x+5 yp-1 w60 vvhotStrOption, % hotStrShow="" ? ":*X:" : hotStrOption
-		Gui,SaveItem:Add, Edit, x+5 yp w90 vvhotStrShow GHotStrShowChange, %hotStrShow%
+		Gui,SaveItem:Add, Edit, x+5 yp-1 w60 vvhotStrOption gEditItemPathChange, % hotStrShow="" ? ":*X:" : hotStrOption
+		Gui,SaveItem:Add, Edit, x+5 yp w90 vvhotStrShow gHotStrShowChange, %hotStrShow%
 		Gui,SaveItem:Font,,Microsoft YaHei
 		Gui,SaveItem:Add, Text, x+5 yp+3 w55 vvTextTransparent,透明度(`%)
-		Gui,SaveItem:Add, Slider, x+5 yp ToolTip w135 r1 vvitemTrNum,%itemTrNum%
+		Gui,SaveItem:Add, Slider, x+5 yp ToolTip w135 r1 vvitemTrNum gEditItemPathChange,%itemTrNum%
 	}
 	Gui,SaveItem:Add,Text, xm+10 y+%treeYNum%+10 w100, 制 表 符 ：  Tab
 	Gui,SaveItem:Add,Text, xm+10 y+%treeYNum% w60, 全局热键：
-	Gui,SaveItem:Add,Hotkey,x+5 yp-3 w150 vvitemGlobalKey,%itemGlobalKey%
-	Gui,SaveItem:Add,Checkbox,Checked%itemGlobalWinKey% x+5 yp+3 vvitemGlobalWinKey,Win
+	Gui,SaveItem:Add,Hotkey,x+5 yp-3 w150 vvitemGlobalKey gEditItemPathChange,%itemGlobalKey%
+	Gui,SaveItem:Add,Checkbox,Checked%itemGlobalWinKey% x+5 yp+3 vvitemGlobalWinKey gEditItemPathChange,Win
 	Gui,SaveItem:Add,Text, x+5 yp cBlue w200 BackgroundTrans, %itemGlobalHotKey%
 	Gui,SaveItem:Add,Text, xm+10 y+15 w100, 分 隔 符 ：  |
 	Gui,SaveItem:Add,Text, xm+90 yp w355 cRed vvExtPrompt GSetSaveItemFullPath, 注意：RunAny不支持当前后缀无路径运行，%PromptStr%使用全路径
@@ -5610,7 +5610,7 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add,Text, xm+10 yp w60 vvSetFileSuffix,后缀菜单：
 	Gui,SaveItem:Add,Button, xm+6 y+%treeYNum% w60 vvSetItemPath GSetItemPath,启动路径
 	Gui,SaveItem:Font,,Consolas
-	Gui,SaveItem:Add,Edit, x+10 yp WantTab w510 r5 vvitemPath GEditItemPathChange, %itemPath%
+	Gui,SaveItem:Add,Edit, x+10 yp WantTab w510 r5 vvitemPath gEditItemPathChange, %itemPath%
 	Gui,SaveItem:Font,,Microsoft YaHei
 	Gui,SaveItem:Add,Button, xm+6 yp w60 vvSetMenuPublic GSetMenuPublic,公共菜单
 	Gui,SaveItem:Add,Button, xm+6 yp w60 vvSetMenuText GSetMenuText,文本菜单
@@ -5624,8 +5624,10 @@ Menu_Item_Edit:
 
 	Gui,SaveItem:Add,Button,Default xm+220 y+15 w75 vvSaveItemSaveBtn G%SaveLabel%,保存
 	Gui,SaveItem:Add,Button,x+20 w75 vvSaveItemCancelBtn GSetCancel,取消
-	Gui,SaveItem:Add,Text, xm+10 w590 cBlue vvStatusBar, %thisMenuStr% %thisMenuItemStr%
-	Gui,SaveItem:Show,H365,新增修改菜单项 - %RunAnyZz% - 支持拖放应用 %RunAny_update_version% %RunAny_update_time%%AdminMode%
+	Gui,SaveItem:Add,Text, xm+10 w590 cBlue vvExplain, %thisMenuStr% %thisMenuItemStr%
+	Gui,SaveItem:Add,StatusBar, xm+10 w590 vvStatusBar,
+
+	Gui,SaveItem:Show,H385,新增修改菜单项 - %RunAnyZz% - 支持拖放应用 %RunAny_update_version% %RunAny_update_time%%AdminMode%
 	GuiControl,SaveItem:Hide, vExtPrompt
 	if(fExt!="lnk")
 		GuiControl,SaveItem:Hide, vSetShortcut
@@ -5771,6 +5773,22 @@ EditItemPathChange:
 	}else{
 		GuiControlHide("SaveItem","vSetSendStrEncrypt")
 	}
+	; 状态栏直观实时显示菜单项编辑结果
+	itemGlobalKeyStr:=""
+	if(vitemGlobalKey){
+		itemGlobalKeySave:=vitemGlobalWinKey ? "#" . vitemGlobalKey : vitemGlobalKey
+		itemGlobalKeyStr:="　　" . itemGlobalKeySave
+	}
+	if(vhotStrShow && (vhotStrShow!=hotStrShow || vhotStrOption!=hotStrOption)){
+		vitemName.=vhotStrOption ? vhotStrOption . vhotStrShow : ":*X:" vhotStrShow
+	}
+	if(vitemTrNum && vitemTrNum<100){
+		vitemName.="_:" vitemTrNum
+	}
+	splitStr:=vitemName && vitemPath ? "|" : ""
+	vitemPath:=StrReplace(vitemPath,"`t","``t")
+	vitemPath:=StrReplace(vitemPath,"`n","``n")
+	SB_SetText("　　" vitemName . itemGlobalKeyStr . splitStr . vitemPath, 1, 1)
 return
 HotStrShowChange:
 	Gui,SaveItem:Submit, NoHide
@@ -5778,6 +5796,7 @@ HotStrShowChange:
 		GuiControl,SaveItem:Show, vhotStrOption
 		GuiControl,SaveItem:Move, vhotStrShow, x160 y47
 	}
+	Gosub,EditItemPathChange
 return
 ;[启动模式变换]
 ChooseItemMode:
@@ -5798,28 +5817,28 @@ ChooseItemMode:
 		return
 	if(vItemMode=2 && getItemMode!=2){
 		vitemPath.=";"
-		GuiControl, SaveItem:,vStatusBar,此模式可把保存的短语 输出到任意位置
+		GuiControl, SaveItem:,vExplain,此模式可把保存的短语 输出到任意位置
 	}else if(vItemMode=3 && getItemMode!=3){
 		vitemPath.=";;"
-		GuiControl, SaveItem:,vStatusBar,此模式除输出短语外 ``n和``r转换为Enter键击  ``t转换为Tab键击  ``b转换为Backspace键击
+		GuiControl, SaveItem:,vExplain,此模式除输出短语外 ``n和``r转换为Enter键击  ``t转换为Tab键击  ``b转换为Backspace键击
 	}else if(vItemMode=4 && getItemMode!=4){
 		vitemPath.="::"
-		GuiControl, SaveItem:,vStatusBar,此模式可以模拟人手发送键击 把全局热键映射成其他热键 ^代表Ctrl键 !代表Alt键 #代表Win键 +代表Shift键
+		GuiControl, SaveItem:,vExplain,此模式可以模拟人手发送键击 把全局热键映射成其他热键 ^代表Ctrl键 !代表Alt键 #代表Win键 +代表Shift键
 	}else if(vItemMode=5 && getItemMode!=5){
 		vitemPath.=":::"
-		GuiControl, SaveItem:,vStatusBar,此模式可以映射发送任意已运行AHK脚本中的热键键击
+		GuiControl, SaveItem:,vExplain,此模式可以映射发送任意已运行AHK脚本中的热键键击
 	}
 	GuiControl, SaveItem:, vitemPath, %vitemPath%
 	Gosub,EditItemPathChange
 return
 SetMenuPublic:
 	Gui,SaveItem:Submit, NoHide
-	GuiControl, SaveItem:, vStatusBar,有public的菜单分类在任意不同情况菜单中都会显示
+	GuiControl, SaveItem:, vExplain,有public的菜单分类在任意不同情况菜单中都会显示
 	GuiControl, SaveItem:, vitemPath, %vitemPath% public
 return
 SetMenuFile:
 	Gui,SaveItem:Submit, NoHide
-	GuiControl, SaveItem:, vStatusBar,有file的菜单分类会在选中文件内容的时候显示
+	GuiControl, SaveItem:, vExplain,有file的菜单分类会在选中文件内容的时候显示
 	GuiControl, SaveItem:, vitemPath, %vitemPath% file
 return
 SetMenuWindow:
@@ -5828,7 +5847,7 @@ SetMenuWindow:
 return
 SetMenuText:
 	Gui,SaveItem:Submit, NoHide
-	GuiControl, SaveItem:, vStatusBar,有text的菜单分类会在选中文本内容的时候显示
+	GuiControl, SaveItem:, vExplain,有text的菜单分类会在选中文本内容的时候显示
 	GuiControl, SaveItem:, vitemPath, %vitemPath% text
 return
 SetItemPath:
@@ -5839,12 +5858,12 @@ SetItemPath:
 	}
 return
 SetItemPathGetZz:
-	GuiControl, SaveItem:, vStatusBar,`%getZz`%在运行时会转换为你鼠标选中的文本内容
+	GuiControl, SaveItem:, vExplain,`%getZz`%在运行时会转换为你鼠标选中的文本内容
 	GuiControl, SaveItem:Focus, vitemPath
 	Send_Str_Zz("%getZz%")
 return
 SetItemPathClipboard:
-	GuiControl, SaveItem:, vStatusBar,`%Clipboard`%在运行时会转换为剪贴板里的文本内容
+	GuiControl, SaveItem:, vExplain,`%Clipboard`%在运行时会转换为剪贴板里的文本内容
 	GuiControl, SaveItem:Focus, vitemPath
 	Send_Str_Zz("%Clipboard%")
 return
@@ -5880,11 +5899,11 @@ SetFileRelativePath:
 		funcResult:=funcPath2RelativeZz(vitemPath,A_ScriptFullPath)
 	}
 	if(funcResult=-1){
-		GuiControl, SaveItem:,vStatusBar,路径有误
+		GuiControl, SaveItem:,vExplain,路径有误
 		return
 	}
 	if(funcResult=-2){
-		GuiControl, SaveItem:,vStatusBar,与RunAny不在同一磁盘，不能转换为相对路径
+		GuiControl, SaveItem:,vExplain,与RunAny不在同一磁盘，不能转换为相对路径
 		return
 	}
 	if(funcResult){
@@ -9596,7 +9615,6 @@ RunA_MenuObj_Show:
 		LV_Add(Set_Icon(RunAnyMenuObjShowImageListID,v,false,false,v), kname, MenuObjKeyList[k], v)
 	}
 	GuiControl,MenuObjShow: +Redraw, RunAnyMenuObjShowLV
-	; Gui,MenuObjShow:Add, StatusBar,,% "RunAny菜单项数量总共：" MenuObj.Count()
 	LV_ModifyCol()
 	LV_ModifyCol(1, 200)
 	LV_ModifyCol(1, "Sort")  ; 排序
@@ -9851,13 +9869,13 @@ SaveItemGuiSize:
 	if A_EventInfo = 1
 		return
 	GuiControl,SaveItem:MoveDraw, vitemName, % "W" . (A_GuiWidth-360)
-	GuiControl,SaveItem:MoveDraw, vitemPath, % "H" . (A_GuiHeight-230) . " W" . (A_GuiWidth - 120)
+	GuiControl,SaveItem:MoveDraw, vitemPath, % "H" . (A_GuiHeight-250) . " W" . (A_GuiWidth - 120)
 	GuiControl,SaveItem:MoveDraw, vPictureIconAdd,% "x" . (A_GuiWidth-130)
 	GuiControl,SaveItem:MoveDraw, vTextIconAdd,% "x" . (A_GuiWidth-150)
 	GuiControl,SaveItem:MoveDraw, vTextIconDown,% "x" . (A_GuiWidth-100)
-	GuiControl,SaveItem:MoveDraw, vSaveItemSaveBtn,% "x" . (A_GuiWidth / 2 - 100) . " y" . (A_GuiHeight-60)
-	GuiControl,SaveItem:MoveDraw, vSaveItemCancelBtn,% "x" . (A_GuiWidth / 2 + 10) . " y" . (A_GuiHeight-60)
-	GuiControl,SaveItem:MoveDraw, vStatusBar,% "x30" . " y" . (A_GuiHeight-30)
+	GuiControl,SaveItem:MoveDraw, vSaveItemSaveBtn,% "x" . (A_GuiWidth / 2 - 100) . " y" . (A_GuiHeight-85)
+	GuiControl,SaveItem:MoveDraw, vSaveItemCancelBtn,% "x" . (A_GuiWidth / 2 + 10) . " y" . (A_GuiHeight-85)
+	GuiControl,SaveItem:MoveDraw, vExplain,% "x30" . " y" . (A_GuiHeight-45)
 return
 RunCtrlManageGuiSize:
 	if A_EventInfo = 1
