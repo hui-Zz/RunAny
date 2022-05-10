@@ -1794,7 +1794,8 @@ MenuRunWay:
 	menuKeys:=StrSplit(Z_ThisMenuItem,"`t")
 	thisMenuName:=menuKeys[1]
 	;[管理员身份运行]
-	if((!RunCtrlRunFlag && (menuholdkey=HoldKeyRun11 || M_ThisMenuItem="管理员权限运行(&A)")) || RunCtrlAdminRunVal){
+	if((!RunCtrlRunFlag && (menuholdkey=HoldKeyRun11 || M_ThisMenuItem="管理员权限运行(&A)"))
+			|| RunCtrlAdminRunVal || RegExMatch(thisMenuName,"S)^.*?\[#\](:[*?a-zA-Z0-9]+?:[^:]*)?(_:\d{1,2})?$")){
 		anyRun.="*RunAs "
 	}
 	;[最小化、最大化、隐藏运行方式]
@@ -1956,6 +1957,10 @@ Menu_Key_Run_Run:
 				Open_Folder_Path(any)
 			}
 			return
+		}
+		;[管理员身份运行]
+		if(RegExMatch(thisMenuName,"S)^.*?\[#\](:[*?a-zA-Z0-9]+?:[^:]*)?(_:\d{1,2})?$")){
+			any:="*RunAs " any
 		}
 		;[透明运行模式]
 		menuTransNum:=100
@@ -5197,7 +5202,7 @@ Menu_Add_File_Item:
 		TREE_NO:=2
 	}
 	;初始化要添加的内容
-	itemGlobalWinKey:=0
+	itemGlobalWinKey:=itemAdminRun:=0
 	hotStrOption:=hotStrShow:=itemGlobalHotKey:=itemGlobalKey:=X_ThisMenuItem:=ItemText:=""
 	itemPath:=Get_Item_Run_Path(getZz)
 	SplitPath, itemPath, fName,, fExt, itemName
@@ -5246,6 +5251,7 @@ SetSaveItem:
 			}
 		}
 	}
+	vitemName.=vitemAdminRun ? "[#]" : ""
 	;保存热字符串
 	if(vhotStrShow){
 		if(vhotStrShow!=hotStrShow || vhotStrOption!=hotStrOption){
@@ -5256,6 +5262,9 @@ SetSaveItem:
 			}
 		}
 		vitemName.=vhotStrSave
+	}
+	if(vitemTrNum && vitemTrNum<100){
+		vitemName.="_:" vitemTrNum
 	}
 	Gui,SaveItem:Destroy
 	;[读取菜单内容插入新菜单项到RunAny.ini]
@@ -5482,7 +5491,7 @@ return
 TVAdd:
 	Gui, MenuEdit:Default
 	selID:=TV_Add("",TV_GetParent(TV_GetSelection()),TV_GetSelection())
-	itemGlobalWinKey:=0
+	itemGlobalWinKey:=itemAdminRun:=0
 	itemName:=itemPath:=hotStrOption:=hotStrShow:=itemGlobalHotKey:=itemGlobalKey:=getZz:=""
 	menuGuiFlag:=true
 	menuGuiEditFlag:=false
@@ -5522,7 +5531,7 @@ TVEdit:
 	}
 return
 TVEdit_GuiVal:
-	itemGlobalWinKey:=itemTrNum:=setItemMode:=0
+	itemGlobalWinKey:=itemTrNum:=setItemMode:=itemAdminRun:=0
 	itemName:=itemPath:=hotStrOption:=hotStrShow:=itemGlobalHotKey:=itemGlobalKey:=getZz:=""
 	if(ItemText="|" || ItemText=";|" || ItemText="||" || ItemText=";||"){
 		itemPath:=ItemText
@@ -5553,6 +5562,11 @@ TVEdit_GuiVal:
 			hotStrOption:=RegExReplace(hotstr,"S)^(:[*?a-zA-Z0-9]+?:)[^:]*","$1")
 			hotStrShow:=RegExReplace(hotstr,"S)^:[^:]*?X[^:]*?:")
 			itemName:=RegExReplace(itemName,"S)^([^:]*?):[*?a-zA-Z0-9]+?:[^:]*","$1")
+		}
+		;[设置管理员权限启动]
+		if(RegExMatch(itemName,"S)\[#\]$")){
+			itemAdminRun:=1
+			itemName:=RegExReplace(itemName,"S)^(.*?)\[#\]$","$1")
 		}
 	}else{
 		itemPath:=ItemText
@@ -5585,11 +5599,12 @@ Menu_Item_Edit:
 	Gui,SaveItem:Font,,Microsoft YaHei
 	Gui,SaveItem:Add, Text, xm+10 y+20 y20 w60, %itemNameText%：
 	Gui,SaveItem:Add, Edit, x+5 yp-3 w350 vvitemName gEditItemPathChange, %itemName%
+	Gui,SaveItem:Add, Checkbox,Checked%itemAdminRun% x+15 yp+3 vvitemAdminRun gEditItemPathChange,管理员运行
 	Gui,SaveItem:Add, Picture, x+50 yp+3 w64 h-1 vvPictureIconAdd gSetItemIconPath, %itemIconFile%
 	Gui,SaveItem:Add, Text,yp+8 w72 cGreen vvTextIconAdd gSetItemIconPath BackgroundTrans, 点击添加图标
 	Gui,SaveItem:Add, Text,yp w72 cGreen vvTextIconDown gSetItemIconDown BackgroundTrans, 下载网站图标
 	if(InStr(itemName,"-")!=1){
-		Gui,SaveItem:Add, Text, xm+10 y+8 w60 vvTextHotStr, 热字符串：
+		Gui,SaveItem:Add, Text, xm+10 y+5 w60 vvTextHotStr, 热字符串：
 		Gui,SaveItem:Font,,Consolas
 		Gui,SaveItem:Add, Edit, x+5 yp-1 w60 vvhotStrOption gEditItemPathChange, % hotStrShow="" ? ":*X:" : hotStrOption
 		Gui,SaveItem:Add, Edit, x+5 yp w90 vvhotStrShow gHotStrShowChange, %hotStrShow%
@@ -5667,14 +5682,13 @@ SetSaveItemGui:
 			}
 		}
 	}
+	vitemName.=vitemAdminRun ? "[#]" : ""
 	;保存热字符串
-	if(vhotStrShow){
-		if(vhotStrShow!=hotStrShow || vhotStrOption!=hotStrOption){
-			vhotStrSave:=vhotStrOption ? vhotStrOption . vhotStrShow : ":*X:" vhotStrShow
-			if(InStr(iniVar1,vhotStrSave "|") || InStr(iniVar2,vhotStrSave "|")){
-				MsgBox, 48, ,该热字符串已经被其他菜单应用使用
-				return
-			}
+	if(vhotStrShow && vhotStrOption){
+		vhotStrSave:=vhotStrOption ? vhotStrOption . vhotStrShow : ":*X:" vhotStrShow
+		if(InStr(iniVar1,vhotStrSave "|") || InStr(iniVar2,vhotStrSave "|")){
+			MsgBox, 48, ,该热字符串已经被其他菜单应用使用
+			return
 		}
 		vitemName.=vhotStrSave
 	}
@@ -5717,14 +5731,16 @@ return
 					MsgBox, 48,,% itemGlobalHotKey "`n无法设置到全局热键的编辑框里，变为保存在菜单项名中`n"
 					. "建议有特殊热键的菜单项，后续修改直接打开RunAny.ini来编辑生效"
 					GuiControlSet("SaveItem","vitemName",menuDiy[1])
+					GuiControlSet("SaveItem","vitemAdminRun")
 					GuiControlSet("SaveItem","vhotStrOption")
 					GuiControlSet("SaveItem","vhotStrShow")
 					GuiControlSet("SaveItem","vitemTrNum")
 					GuiControlSet("SaveItem","vitemGlobalWinKey")
 					Sleep,200
-					GuiControlHide("SaveItem","vhotStrOption","vhotStrShow","vitemTrNum","vitemGlobalKey","vitemGlobalWinKey")
+					GuiControlHide("SaveItem","vitemAdminRun","vhotStrOption","vhotStrShow","vitemTrNum","vitemGlobalKey","vitemGlobalWinKey")
 				}else{
 					GuiControlSet("SaveItem","vitemName",itemName)
+					GuiControlSet("SaveItem","vitemAdminRun",itemAdminRun)
 					GuiControlSet("SaveItem","vhotStrOption",hotStrOption)
 					GuiControlSet("SaveItem","vhotStrShow",hotStrShow)
 					GuiControlSet("SaveItem","vitemTrNum",itemTrNum)
@@ -5737,7 +5753,7 @@ return
 EditItemPathChange:
 	Gui,SaveItem:Submit, NoHide
 	if(InStr(vitemName,"-")=1){
-		GuiControlHide("SaveItem","vItemMode","vSetItemPath","vSetFileRelativePath","vSetItemPathGetZz","vSetItemPathClipboard","vSetShortcut")
+		GuiControlHide("SaveItem","vItemMode","vSetItemPath","vSetFileRelativePath","vSetItemPathGetZz","vSetItemPathClipboard","vSetShortcut","vitemAdminRun")
 		GuiControlShow("SaveItem","vSetFileSuffix","vSetMenuPublic","vSetMenuText","vSetMenuFile","vSetMenuWindow")
 		GuiControl,SaveItem:Move, vSetFileSuffix, y+160
 		GuiControl,SaveItem:Move, vSetMenuPublic, y+180
@@ -5760,11 +5776,11 @@ EditItemPathChange:
 			fileValue:=RegExReplace(filePath,"iS)(.*?\.[a-zA-Z0-9-_]+)($| .*)","$1")	;去掉参数
 			SplitPath, fileValue, fName,, fExt  ; 获取扩展名
 			if(fExt="exe" || fExt="lnk"){
-				GuiControlShow("SaveItem","vTextTransparent","vitemTrNum")
+				GuiControlShow("SaveItem","vitemAdminRun","vTextTransparent","vitemTrNum")
 				if(fExt="lnk")
 					GuiControlShow("SaveItem","vSetShortcut")
 			}else{
-				GuiControlHide("SaveItem","vTextTransparent","vitemTrNum")
+				GuiControlHide("SaveItem","vitemAdminRun","vTextTransparent","vitemTrNum")
 			}
 		}
 		GuiControl, SaveItem:Choose, vItemMode,% getItemMode=60 ? 1 : getItemMode
@@ -5780,7 +5796,8 @@ EditItemPathChange:
 		itemGlobalKeySave:=vitemGlobalWinKey ? "#" . vitemGlobalKey : vitemGlobalKey
 		itemGlobalKeyStr:="　　" . itemGlobalKeySave
 	}
-	if(vhotStrShow && (vhotStrShow!=hotStrShow || vhotStrOption!=hotStrOption)){
+	vitemName.=vitemAdminRun ? "[#]" : ""
+	if(vhotStrShow && vhotStrOption){
 		vitemName.=vhotStrOption ? vhotStrOption . vhotStrShow : ":*X:" vhotStrShow
 	}
 	if(vitemTrNum && vitemTrNum<100){
@@ -5789,7 +5806,7 @@ EditItemPathChange:
 	splitStr:=vitemName && vitemPath ? "|" : ""
 	vitemPath:=StrReplace(vitemPath,"`t","``t")
 	vitemPath:=StrReplace(vitemPath,"`n","``n")
-	SB_SetText("　　" vitemName . itemGlobalKeyStr . splitStr . vitemPath)
+	SB_SetText("　　" vitemName . itemAdminRunStr . itemGlobalKeyStr . splitStr . vitemPath)
 return
 HotStrShowChange:
 	Gui,SaveItem:Submit, NoHide
@@ -9872,7 +9889,8 @@ return
 SaveItemGuiSize:
 	if A_EventInfo = 1
 		return
-	GuiControl,SaveItem:MoveDraw, vitemName, % "W" . (A_GuiWidth-360)
+	GuiControl,SaveItem:MoveDraw, vitemName, % "W" . (A_GuiWidth-450)
+	GuiControl,SaveItem:MoveDraw, vitemAdminRun, % "x" . (A_GuiWidth-330)
 	GuiControl,SaveItem:MoveDraw, vitemPath, % "H" . (A_GuiHeight-260) . " W" . (A_GuiWidth - 120)
 	GuiControl,SaveItem:MoveDraw, vPictureIconAdd,% "x" . (A_GuiWidth-130)
 	GuiControl,SaveItem:MoveDraw, vTextIconAdd,% "x" . (A_GuiWidth-150)
