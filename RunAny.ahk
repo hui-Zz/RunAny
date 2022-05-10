@@ -5773,9 +5773,11 @@ EditItemPathChange:
 			}else{
 				GuiControl, SaveItem:Show, vExtPrompt
 			}
+			filePath:=Get_Obj_Path_Transform(filePath)
 			fileValue:=RegExReplace(filePath,"iS)(.*?\.[a-zA-Z0-9-_]+)($| .*)","$1")	;去掉参数
 			SplitPath, fileValue, fName,, fExt  ; 获取扩展名
-			if(fExt="exe" || fExt="lnk"){
+			if fExt in exe,lnk,bat,cmd,vbs,ps1,ahk
+			{
 				GuiControlShow("SaveItem","vitemAdminRun","vTextTransparent","vitemTrNum")
 				if(fExt="lnk")
 					GuiControlShow("SaveItem","vSetShortcut")
