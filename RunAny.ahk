@@ -5589,7 +5589,7 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add, Text,yp+8 w72 cGreen vvTextIconAdd gSetItemIconPath BackgroundTrans, 点击添加图标
 	Gui,SaveItem:Add, Text,yp w72 cGreen vvTextIconDown gSetItemIconDown BackgroundTrans, 下载网站图标
 	if(InStr(itemName,"-")!=1){
-		Gui,SaveItem:Add, Text, xm+10 y+4 w60 vvTextHotStr, 热字符串：
+		Gui,SaveItem:Add, Text, xm+10 y+8 w60 vvTextHotStr, 热字符串：
 		Gui,SaveItem:Font,,Consolas
 		Gui,SaveItem:Add, Edit, x+5 yp-1 w60 vvhotStrOption gEditItemPathChange, % hotStrShow="" ? ":*X:" : hotStrOption
 		Gui,SaveItem:Add, Edit, x+5 yp w90 vvhotStrShow gHotStrShowChange, %hotStrShow%
@@ -5625,6 +5625,7 @@ Menu_Item_Edit:
 	Gui,SaveItem:Add,Button,Default xm+220 y+15 w75 vvSaveItemSaveBtn G%SaveLabel%,保存
 	Gui,SaveItem:Add,Button,x+20 w75 vvSaveItemCancelBtn GSetCancel,取消
 	Gui,SaveItem:Add,Text, xm+10 w590 cBlue vvExplain, %thisMenuStr% %thisMenuItemStr%
+	Gui,SaveItem:Font,,Consolas
 	Gui,SaveItem:Add,StatusBar, xm+10 w590 vvStatusBar,
 
 	Gui,SaveItem:Show,H385,新增修改菜单项 - %RunAnyZz% - 支持拖放应用 %RunAny_update_version% %RunAny_update_time%%AdminMode%
@@ -5639,7 +5640,7 @@ Menu_Item_Edit:
 	}
 	if(hotStrShow=""){
 		GuiControl,SaveItem:Hide, vhotStrOption
-		GuiControl,SaveItem:Move, vhotStrShow, x95 y47
+		GuiControl,SaveItem:Move, vhotStrShow, x95 y52
 	}
 	itemNameText:=thisMenuStr:=thisMenuItemStr:=""
 	Gosub,EditItemPathChange
@@ -5788,13 +5789,13 @@ EditItemPathChange:
 	splitStr:=vitemName && vitemPath ? "|" : ""
 	vitemPath:=StrReplace(vitemPath,"`t","``t")
 	vitemPath:=StrReplace(vitemPath,"`n","``n")
-	SB_SetText("　　" vitemName . itemGlobalKeyStr . splitStr . vitemPath, 1, 1)
+	SB_SetText("　　" vitemName . itemGlobalKeyStr . splitStr . vitemPath)
 return
 HotStrShowChange:
 	Gui,SaveItem:Submit, NoHide
 	if(vhotStrShow){
 		GuiControl,SaveItem:Show, vhotStrOption
-		GuiControl,SaveItem:Move, vhotStrShow, x160 y47
+		GuiControl,SaveItem:Move, vhotStrShow, x160 y52
 	}
 	Gosub,EditItemPathChange
 return
@@ -5835,11 +5836,13 @@ SetMenuPublic:
 	Gui,SaveItem:Submit, NoHide
 	GuiControl, SaveItem:, vExplain,有public的菜单分类在任意不同情况菜单中都会显示
 	GuiControl, SaveItem:, vitemPath, %vitemPath% public
+	Gosub,EditItemPathChange
 return
 SetMenuFile:
 	Gui,SaveItem:Submit, NoHide
 	GuiControl, SaveItem:, vExplain,有file的菜单分类会在选中文件内容的时候显示
 	GuiControl, SaveItem:, vitemPath, %vitemPath% file
+	Gosub,EditItemPathChange
 return
 SetMenuWindow:
 	webUrl:=rule_check_network(RunAnyGiteePages) ? RunAnyGiteePages : RunAnyGithubPages
@@ -5849,6 +5852,7 @@ SetMenuText:
 	Gui,SaveItem:Submit, NoHide
 	GuiControl, SaveItem:, vExplain,有text的菜单分类会在选中文本内容的时候显示
 	GuiControl, SaveItem:, vitemPath, %vitemPath% text
+	Gosub,EditItemPathChange
 return
 SetItemPath:
 	FileSelectFile, fileSelPath, , , 启动文件路径
@@ -9869,7 +9873,7 @@ SaveItemGuiSize:
 	if A_EventInfo = 1
 		return
 	GuiControl,SaveItem:MoveDraw, vitemName, % "W" . (A_GuiWidth-360)
-	GuiControl,SaveItem:MoveDraw, vitemPath, % "H" . (A_GuiHeight-250) . " W" . (A_GuiWidth - 120)
+	GuiControl,SaveItem:MoveDraw, vitemPath, % "H" . (A_GuiHeight-260) . " W" . (A_GuiWidth - 120)
 	GuiControl,SaveItem:MoveDraw, vPictureIconAdd,% "x" . (A_GuiWidth-130)
 	GuiControl,SaveItem:MoveDraw, vTextIconAdd,% "x" . (A_GuiWidth-150)
 	GuiControl,SaveItem:MoveDraw, vTextIconDown,% "x" . (A_GuiWidth-100)
