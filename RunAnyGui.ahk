@@ -1,4 +1,131 @@
-﻿;══════════════════════════════════════════════════════════════════
+﻿;~;[图标集初始图标]
+Icon_Image_Set(ImageListID){
+	IL_Add(ImageListID, "shell32.dll", 1)
+	IL_Add(ImageListID, "shell32.dll", 2)
+	IL_Add(ImageListID, EXEIconS[1], EXEIconS[2])
+	IL_Add(ImageListID, FolderIconS[1], FolderIconS[2])
+	IL_Add(ImageListID, LNKIconS[1], LNKIconS[2])
+	IL_Add(ImageListID, TreeIconS[1], TreeIconS[2])
+	IL_Add(ImageListID, UrlIconS[1], UrlIconS[2])
+	IL_Add(ImageListID, "shell32.dll", 50)
+	IL_Add(ImageListID, "shell32.dll", 100)
+	IL_Add(ImageListID, "shell32.dll", 101)
+	IL_Add(ImageListID, FuncIconS[1], FuncIconS[2])
+}
+;#菜单加载完后，预读完成"修改菜单"的GUI图标
+Icon_Tree_Image_Set(ImageListID){
+	Loop,%MenuCount%
+	{
+		Loop, parse, iniVar%A_Index%, `n, `r, %A_Space%%A_Tab%
+		{
+			if(InStr(A_LoopField,";")=1 || A_LoopField="")
+				continue
+			Set_Icon(ImageListID,A_LoopField,false)
+		}
+	}
+}
+;~;[提取菜单中所有EXE程序图标，过程较慢]
+Menu_Exe_Icon_Create:
+	cfgFile=%ResourcesExtractDir%\ResourcesExtract.cfg
+	DestFold=%A_Temp%\%RunAnyZz%\RunAnyExeIconTemp
+	if(!ResourcesExtractExist){
+		MsgBox,64,,请将ResourcesExtract.exe放入%ResourcesExtractDir%
+		return
+	}
+	MsgBox,35,生成所有EXE图标，请稍等片刻, 
+(	
+使用生成的EXE图标可以加快开机第一次RunAny的加载速度`n`n是：覆盖老图标重新生成%RunAnyZz%菜单中的所有EXE图标`n否：只生成没有的EXE图标`n取消：取消生成
+)
+	IfMsgBox Yes
+	{
+		exeIconCreateFlag:=false
+		Gosub,Menu_Exe_Icon_Extract
+	}
+	IfMsgBox No
+	{
+		exeIconCreateFlag:=true
+		Gosub,Menu_Exe_Icon_Extract
+	}
+return
+Menu_Exe_Icon_Extract:
+	if(!FileExist(cfgFile)){
+		MsgBox,64,,请将ResourcesExtract.cfg放入%ResourcesExtractDir%
+		return
+	}else{
+		IniWrite,%DestFold%,%cfgFile%,General,DestFolder
+		IniWrite,1,%cfgFile%,General,ExtractIcons
+		IniWrite,0,%cfgFile%,General,ExtractCursors
+		IniWrite,0,%cfgFile%,General,ExtractBitmaps
+		IniWrite,0,%cfgFile%,General,ExtractHTML
+		IniWrite,0,%cfgFile%,General,ExtractAnimatedIcons
+		IniWrite,0,%cfgFile%,General,ExtractAnimatedCursors
+		IniWrite,0,%cfgFile%,General,ExtractAVI
+		IniWrite,0,%cfgFile%,General,OpenDestFolder
+		IniWrite,2,%cfgFile%,General,MultiFilesMode
+	}
+	ToolTip,RunAny开始用ResourcesExtract生成EXE图标，请稍等……
+	For k, v in MenuExeArray
+	{
+		exePath:=v["itemFile"]
+		if(FileExist(exePath)){
+			menuItem:=menuItemIconFileName(v["menuItem"])
+			if(!exeIconCreateFlag || !FileExist(ExeIconDir "\" menuItem ".ico")){
+				Run,%ResourcesExtractFile% /LoadConfig "%cfgFile%" /Source "%exePath%" /DestFold "%DestFold%"
+			}
+		}
+	}
+	Process,WaitClose,ResourcesExtract.exe,10
+	ToolTip
+	Menu_Exe_Icon_Set()
+	MsgBox,64,,成功生成%RunAnyZz%内所有EXE图标到 %ExeIconDir%
+	Gui,66:Submit, NoHide
+	if(vIconFolderPath){
+		if(!InStr(vIconFolderPath,"ExeIcon"))
+			GuiControl,, vIconFolderPath, %vIconFolderPath%`n`%A_ScriptDir`%\RunIcon\ExeIcon
+	}else{
+		GuiControl,, vIconFolderPath, `%A_ScriptDir`%\RunIcon\ExeIcon
+	}
+return
+;[循环提取菜单中EXE程序的正确图标]
+Menu_Exe_Icon_Set(){
+	For k, v in MenuExeArray
+	{
+		exePath:=v["itemFile"]
+		SplitPath, exePath, exeName, exeDir, ext, name_no_ext
+		iconNameFlag:=false
+		maxFileName=
+		maxFileSize=
+		maxFilePath=
+		IfExist,%A_Temp%\%RunAnyZz%\RunAnyExeIconTemp\%exeName%
+		{
+			loop,%A_Temp%\%RunAnyZz%\RunAnyExeIconTemp\%exeName%\*.ico
+			{
+				if(RegExMatch(A_LoopFileName,"iS).*_MAINICON.ico")){
+					maxFilePath:=A_LoopFileFullPath
+					break
+				}
+				if(!iconNameFlag && RegExMatch(A_LoopFileName,"iS).*_\d+\.ico")){
+					iconNum:=RegExReplace(A_LoopFileName,"iS).*_(\d+)\.ico","$1")
+					if(A_Index=1 || maxFileName>iconNum){
+						maxFileName:=iconNum
+						maxFilePath:=A_LoopFileFullPath
+					}
+					continue
+				}
+				if(maxFileSize<A_LoopFileSize){
+					iconNameFlag:=true
+					maxFileSize:=A_LoopFileSize
+					maxFilePath:=A_LoopFileFullPath
+				}
+			}
+			menuItem:=menuItemIconFileName(v["menuItem"])
+			FileCopy, %maxFilePath%, %ExeIconDir%\%menuItem%.ico, 1
+			maxFilePath=
+		}
+	}
+}
+
+;══════════════════════════════════════════════════════════════════
 ;~;[添加编辑新添加的菜单项]
 Menu_Add_File_Item:
 	if(iniFileShow=iniPath){
@@ -1223,6 +1350,204 @@ Move_Menu:
 		Gosub,TV_MoveMenuClean
 	}
 return
+;~;[菜单树项目根据后缀或模式设置图标和样式]
+Set_Icon(ImageListID,itemVar,editVar=true,fullItemFlag=true,itemName=""){
+	;变量转换实际值
+	itemVar:=Get_Transform_Val(itemVar)
+	;菜单项启动模式
+	setItemMode:=Get_Menu_Item_Mode(itemVar,fullItemFlag)
+	itemStyle:=setItemMode=10 ? "Bold " : ""
+	SplitPath,itemVar,,,FileExt,name_no_ext  ; 获取文件扩展名.
+	;[获取全路径]
+	if(setItemMode=1 || setItemMode=60){
+		FileName:=Get_Obj_Path(itemVar,fullItemFlag)
+		if(!FileExist(FileName))
+			FailFlag:=true
+	}
+	diyText:=StrSplit(itemVar,"|",,2)
+	objText:=(diyText[2]) ? diyText[2] : diyText[1]
+	;[优先加载自定义图标]
+	if(itemName!=""){
+		itemIcon:=itemName
+	}else if(InStr(itemVar,"|")){
+		itemIcon:=diyText[1]
+	}else{
+		itemIcon:=name_no_ext
+	}
+	itemIconFile:=IconFolderList[menuItemIconFileName(itemIcon)]
+	if(itemIconFile && FileExist(itemIconFile)){
+		try{
+			Menu,exeTestMenu,Icon,donothing,%itemIconFile%,0
+			addNum:=IL_Add(ImageListID, itemIconFile, 0)
+			return itemStyle . "Icon" . addNum
+		}catch{}
+	}
+	if(setItemMode=2 || setItemMode=3)
+		return "Icon2"
+	if(setItemMode=10)
+		return itemStyle . "Icon6"
+	if(setItemMode=11)
+		return "Icon8"
+	if(setItemMode=7 || setItemMode=71)
+		return "Icon4"
+	if(setItemMode=4)	; {发送热键}
+		return "Icon9"
+	if(setItemMode=5)
+		return "Icon10"
+	if(setItemMode=8){  ; {脚本插件函数}
+		appPlugins:=RegExReplace(objText,"iS)(.+?)\[.+?\]%?\(.*?\)$","$1")	;取插件名
+		if(PluginsIconList[appPlugins ".ahk"]){
+			PluginsIconS:=StrSplit(Get_Transform_Val(PluginsIconList[appPlugins ".ahk"]),",")
+			addNum:=IL_Add(ImageListID, PluginsIconS[1], PluginsIconS[2])
+			return "Icon" addNum
+		}
+		return "Icon11"
+	}
+	if(!editVar && FileName="" && FileExt="exe")
+		return "Icon3"
+	;[获取网址图标]
+	if(setItemMode=6){
+		try{
+			website:=RegExReplace(objText,"iS)[\w-]+://?((\w+\.)+\w+).*","$1")
+			webIcon:=A_ScriptDir "\RunIcon\" website ".ico"
+			if(FileExist(webIcon)){
+				Menu,exeTestMenu,Icon,donothing,%webIcon%,0
+				addNum:=IL_Add(ImageListID, webIcon, 0)
+				return "Icon" . addNum
+			}else{
+				return "Icon7"
+			}
+		} catch e {
+			return "Icon7"
+		}
+	}
+	;[编辑后图标重新加载]
+	if(editVar && FailFlag){
+		;[编辑后通过everything重新添加应用图标]
+		if(FileExt="exe"){
+			if(!EvNo)
+				exeQueryPath:=exeQuery(FileName="" ? objText : FileName)
+			if(exeQueryPath){
+				FileName:=exeQueryPath
+			}else{
+				return "Icon3"
+			}
+		}else{
+			FileName:=objText!="" ? objText : FileName
+		}
+	}
+	; 计算 SHFILEINFO 结构需要的缓存大小.
+	sfi_size := A_PtrSize + 8 + (A_IsUnicode ? 680 : 340)
+	VarSetCapacity(sfi, sfi_size)
+	;【下面开始处理未知的项目图标】
+    if FileExt in EXE,ICO,ANI,CUR
+    {
+        ExtID := FileExt  ; 特殊 ID 作为占位符.
+        IconNumber := 0  ; 进行标记这样每种类型就含有唯一的图标.
+    }
+    else  ; 其他的扩展名/文件类型, 计算它们的唯一 ID.
+    {
+        ExtID := 0  ; 进行初始化来处理比其他更短的扩展名.
+        Loop 7     ; 限制扩展名为 7 个字符, 这样之后计算的结果才能存放到 64 位值.
+        {
+            ExtChar := SubStr(FileExt, A_Index, 1)
+            if not ExtChar  ; 没有更多字符了.
+                break
+            ; 把每个字符与不同的位置进行运算来得到唯一 ID:
+            ExtID := ExtID | (Asc(ExtChar) << (8 * (A_Index - 1)))
+        }
+        ; 检查此文件扩展名的图标是否已经在图像列表中. 如果是,
+        ; 可以避免多次调用并极大提高性能,
+        ; 尤其对于包含数以百计文件的文件夹而言:
+		if(ExtID>0)
+			IconNumber := IconArray%ExtID%
+        noEXE:=true
+    }
+    if not IconNumber  ; 此扩展名还没有相应的图标, 所以进行加载.
+    {
+		; 获取与此文件扩展名关联的高质量小图标:
+		if not DllCall("Shell32\SHGetFileInfo" . (A_IsUnicode ? "W":"A"), "str", FileName
+            , "uint", 0, "ptr", &sfi, "uint", sfi_size, "uint", 0x101)  ; 0x101 为 SHGFI_ICON+SHGFI_SMALLICON
+		{
+			IconNumber = 3  ; 显示默认应用图标.
+			if(noEXE)
+				IconNumber = 1
+		}
+		else ; 成功加载图标.
+		{
+			; 从结构中提取 hIcon 成员:
+			hIcon := NumGet(sfi, 0)
+			; 直接添加 HICON 到小图标和大图标列表.
+			; 下面加上 1 来把返回的索引从基于零转换到基于一:
+			IconNumber := DllCall("ImageList_ReplaceIcon", "ptr", ImageListID, "int", -1, "ptr", hIcon) + 1
+			; 现在已经把它复制到图像列表, 所以应销毁原来的:
+			DllCall("DestroyIcon", "ptr", hIcon)
+			; 缓存图标来节省内存并提升加载性能:
+			if(ExtID>0)
+				IconArray%ExtID% := IconNumber
+		}
+	}
+	return "Icon" . IconNumber
+}
+;修改于ahk论坛全选全不选
+TV_CheckUncheckWalk(_GuiEvent, _EventInfo, _GuiControl)
+{
+    static  TV_SuspendEvents := False                                           ;最初接受事件并保持跟踪
+    If ( TV_SuspendEvents || !_GuiEvent || !_EventInfo || !_GuiControl )        ;无所事事：跳出
+        Return
+    If _GuiEvent = Normal                                                       ;这是一个左键：继续
+    {
+        Critical                                                                ;不能被中断。
+        TV_SuspendEvents := True                                                ;在工作时停止对功能的进一步调用
+        Gui, TreeView, %_GuiControl%                                            ;激活正确的TV
+        TV_Modify(_EventInfo, "Select")                                         ;选择项目反正...这一行可能在这里取消和分散进一步
+        If TV_Get( _EventInfo, "Checked" )                                      ;项目的复选标记
+        {
+            If TV_GetChild( _EventInfo )                                        ;项目的节点
+                ToggleAllTheWay( _EventInfo, False )                            ;复选标记所有的子节点一路下来
+        }
+        Else                                                                    ;它未被选中
+        {
+            If TV_GetChild( _EventInfo )                                        ;它是一个节点
+                ToggleAllTheWay( _EventInfo, True )                             ;取消选中所有的子节点一直向下
+            If TV_Get( TV_GetParent( _EventInfo ), "Checked")                   ;父节点选中怎么样？
+            {
+                locItemId := TV_GetParent( _EventInfo )                         ;父节点检查标记：获取父ID
+                While locItemId                                                 ;循环一路向上
+                {
+                    TV_Modify( locItemId , "-Check" )                           ;取消选中
+                    locItemId := TV_GetParent( locItemId )                      ;获取下一个父ID
+                }
+            }
+        }
+    }
+    TV_SuspendEvents := False                                                   ;激活事件
+    Return
+}
+; ToggleAllTheWay：内部使用
+ToggleAllTheWay(_ItemID=0, _ChkUchk=True ) {
+	If !_ItemID		;停止递归
+		Return			
+	_ItemID := TV_GetChild( _ItemID ) 	;得到下一个孩子
+	Loop
+	{
+		If  !_ItemID 					;工作结束：出去
+			Break
+		If _ChkUchk        ;区分条件检索
+		{
+			If TV_Get( _ItemID , "Checked" )
+				TV_Modify( _ItemID , "-Check" )
+		}
+		Else
+		{
+			If !TV_Get( _ItemID , "Checked" )
+				TV_Modify( _ItemID , "Check" )
+		}
+		ToggleAllTheWay( _ItemID, _ChkUchk )			;使用递归
+		_ItemID := TV_GetNext( _ItemID )
+	}
+	Return
+}
 ;══════════════════════════════════════════════════════════════════
 ;~;【——🧩插件Gui——】
 ;══════════════════════════════════════════════════════════════════
@@ -3231,6 +3556,7 @@ Settings_Gui:
 	LV_Add(ClipWaitApp ? "Icon1" : "Icon2", ClipWaitTime,"秒", "[选中] 指定软件获取选中目标到剪贴板等待时间，全局其他软件默认0.1秒","","ClipWaitTime")
 	LV_Add(GetZzCopyKey ? "Icon1" : "Icon2", GetZzCopyKey,"热键", "[选中] 自定义在一些软件界面获取选中内容的热键","","GetZzCopyKey")
 	LV_Add(GetZzCopyKey ? "Icon1" : "Icon2", GetZzCopyKeyApp,"逗号分隔", "[选中] 自定义在哪些软件界面改变获取选中内容热键","","GetZzCopyKeyApp")
+	LV_Add(GetZzTransformVal ? "Icon1" : "Icon2", GetZzTransformVal,"", "[选中] 对选中的双百分号内容%%自动转换成变量值","","GetZzTransformVal")
 	LV_Add(HoldCtrlRun ? "Icon1" : "Icon2", HoldCtrlRun,"", "[按住Ctrl键] 回车或点击菜单项（选项数字可互用） 2:打开该软件所在目录","","HoldCtrlRun")
 	LV_Add(HoldShiftRun ? "Icon1" : "Icon2", HoldShiftRun,"", "[按住Shift键] 回车或点击菜单项（选项数字可互用） 5:打开多功能菜单运行方式","","HoldShiftRun")
 	LV_Add(HoldCtrlShiftRun ? "Icon1" : "Icon2", HoldCtrlShiftRun,"", "[按住Ctrl+Shift键] 回车或点击菜单项（选项数字可互用） 3:编辑该菜单项","","HoldCtrlShiftRun")
@@ -4215,193 +4541,6 @@ RunA_MenuObj_Show:
 	Gui,MenuObjShow:Show, , %RunAnyZz% 所有菜单运行项 %RunAny_update_version% %RunAny_update_time%%AdminMode%
 return
 ;--------------------------------------------------------------------------------------------
-listviewAdvancedConfig:
-	if A_GuiEvent = DoubleClick
-	{
-		SendInput,{F2}
-	}else if A_GuiEvent = e
-	{
-		AdvancedConfigFlag:=true
-	}
-return
-;[窗口控件控制函数]
-GuiControlShow(guiName,controls*){
-	For k,v in controls
-	{
-	GuiControl, %guiName%:Show, %v%
-	}
-}
-GuiControlHide(guiName,controls*){
-	For k,v in controls
-	{
-	GuiControl, %guiName%:Hide, %v%
-	}
-}
-GuiControlSet(guiName,controlName,controlVal:=""){
-	GuiControl, %guiName%:, %controlName%, %controlVal%
-}
-;~;【——🗔窗口事件Gui——】
-MenuEditGuiClose:
-	if(TVFlag){
-		MsgBox,51,菜单树退出,已修改过菜单信息，是否保存修改再退出？
-		IfMsgBox Yes
-		{
-			Gosub,Menu_Save
-			Gosub,Menu_Reload
-		}
-		IfMsgBox No
-			Gui, Destroy
-	}else{
-		Gui, Destroy
-	}
-return
-;[GuiEscape]
-MenuEditGuiEscape:
-MenuObjShowGuiEscape:
-SaveItemGuiEscape:
-PluginsManageGuiEscape:
-PluginsDownloadGuiEscape:
-PluginsLibGuiEscape:
-PluginsIconGuiEscape:
-RunCtrlManageGuiEscape:
-RunCtrlConfigGuiEscape:
-RunCtrlFuncGuiEscape:
-CtrlRunGuiEscape:
-RuleManageGuiEscape:
-RuleConfigGuiEscape:
-99GuiEscape:
-keyGuiEscape:
-OneKeyGuiEscape:
-OneKeyDownGuiEscape:
-SavePathGuiEscape:
-SaveExtGuiEscape:
-SaveVarGuiEscape:
-SetCancel:
-	Gui,Destroy
-return
-;[GuiSize]
-MenuEditGuiSize:
-MenuObjShowGuiSize:
-RuleManageGuiSize:
-RunCtrlConfigGuiSize:
-RunCtrlFuncGuiSize:
-PluginsManageGuiSize:
-PluginsDownloadGuiSize:
-OneKeyDownGuiSize:
-	if A_EventInfo = 1
-		return
-	GuiControl, Move, RunAnyTV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
-	GuiControl, Move, RunAnyPluginsLV1, % "H" . (A_GuiHeight * 0.50) . " W" . (A_GuiWidth - 20)
-	GuiControl, Move, RunAnyPluginsLV2, % "H" . (A_GuiHeight * 0.49) . " W" . (A_GuiWidth - 20) . " y" . (A_GuiHeight * 0.50 + 10)
-	GuiControl, Move, RuleLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
-	GuiControl, Move, RunAnyDownLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
-	GuiControl, Move, RunAnyOneKeyDownLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 40)
-	GuiControl, Move, RunAnyMenuObjShowLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 40)
-	GuiControl, Move, FuncGroup, % "H" . (A_GuiHeight-130) . " W" . (A_GuiWidth - 40)
-	GuiControl, Move, FuncLV, % "H" . (A_GuiHeight-270) . " W" . (A_GuiWidth - 60)
-	GuiControl, Move, vFuncValue, % "H" . (A_GuiHeight-230) . " W" . (A_GuiWidth - 40)
-	GuiControl, MoveDraw, vFuncSave, % " X" . (A_GuiWidth * 0.30) . " Y" . (A_GuiHeight - 50)
-	GuiControl, MoveDraw, vFuncCancel, % " X" . (A_GuiWidth * 0.30 + 100) . " Y" . (A_GuiHeight - 50)
-return
-66GuiSize:
-	if A_EventInfo = 1
-		return
-	GuiControl, Move, ConfigTab, % "H" . (A_GuiHeight * 0.88) . " W" . (A_GuiWidth - 20)
-	GuiControl, Move, vDisableAppGroup, % "H" . (A_GuiHeight * 0.88 - 395) . " W" . (A_GuiWidth - 40)
-	GuiControl, Move, vDisableApp, % "H" . (A_GuiHeight * 0.88 - 435) . " W" . (A_GuiWidth - 60)
-	GuiControl, Move, RunAnyHotkeyLV, % "H" . (A_GuiHeight * 0.88 - 214) . " W" . (A_GuiWidth - 60)
-	GuiControl, Move, RunAnyMenuVarLV, % "H" . (A_GuiHeight * 0.88 - 121) . " W" . (A_GuiWidth - 60)
-	GuiControl, Move, RunAnyMenuObjPathLV, % "H" . (A_GuiHeight * 0.88 - 121) . " W" . (A_GuiWidth - 60)
-	GuiControl, Move, vRunAEvFullPathIniDir, % " W" . (A_GuiWidth - 388)
-	GuiControl, Move, vEvSetupGroup, % " W" . (A_GuiWidth - 40)
-	GuiControl, Move, vEvPath, % " W" . (A_GuiWidth - 120)
-	GuiControl, Move, vEvCommandGroup, % "H" . (A_GuiHeight * 0.88 - 248) . " W" . (A_GuiWidth - 40)
-	GuiControl, Move, vEvCommand, % "H" . (A_GuiHeight * 0.88 - 408) . " W" . (A_GuiWidth - 60)
-	GuiControl, Move, RunAnyOneKeyLV, % " W" . (A_GuiWidth - 40)
-	GuiControl, Move, vOneKeyUrlGroup, % " W" . (A_GuiWidth - 40)
-	GuiControl, Move, vOneKeyUrl, % " W" . (A_GuiWidth - 60)
-	GuiControl, Move, vBrowserPath, % " W" . (A_GuiWidth - 120)
-	GuiControl, Move, RunAnyOpenExtLV, % "H" . (A_GuiHeight * 0.88 - 121 ) . " W" . (A_GuiWidth - 60)
-	GuiControl, Move, vHotStrGroup, % "H" . (A_GuiHeight * 0.80)
-	GuiControl, Move, AdvancedConfigLV, % "H" . (A_GuiHeight * 0.88 - 76) " W" . (A_GuiWidth - 60)
-	GuiControl, MoveDraw, vSetOK, % " X" . (A_GuiWidth * 0.30) . " Y" . (A_GuiHeight * 0.92)
-	GuiControl, MoveDraw, vSetCancel, % " X" . (A_GuiWidth * 0.30 + 90) . " Y" . (A_GuiHeight * 0.92)
-	GuiControl, MoveDraw, vSetReSet, % " X" . (A_GuiWidth * 0.30 + 180) . " Y" . (A_GuiHeight * 0.92)
-	GuiControl, MoveDraw, vMenu_Config, % " X" . (A_GuiWidth * 0.30 + 310) . " Y" . (A_GuiHeight * 0.925)
-return
-SaveItemGuiSize:
-	if A_EventInfo = 1
-		return
-	GuiControl,SaveItem:MoveDraw, vitemName, % "W" . (A_GuiWidth-360)
-	GuiControl,SaveItem:MoveDraw, vitemPath, % "H" . (A_GuiHeight-230) . " W" . (A_GuiWidth - 120)
-	GuiControl,SaveItem:MoveDraw, vPictureIconAdd,% "x" . (A_GuiWidth-130)
-	GuiControl,SaveItem:MoveDraw, vTextIconAdd,% "x" . (A_GuiWidth-150)
-	GuiControl,SaveItem:MoveDraw, vTextIconDown,% "x" . (A_GuiWidth-100)
-	GuiControl,SaveItem:MoveDraw, vSaveItemSaveBtn,% "x" . (A_GuiWidth / 2 - 100) . " y" . (A_GuiHeight-60)
-	GuiControl,SaveItem:MoveDraw, vSaveItemCancelBtn,% "x" . (A_GuiWidth / 2 + 10) . " y" . (A_GuiHeight-60)
-	GuiControl,SaveItem:MoveDraw, vStatusBar,% "x30" . " y" . (A_GuiHeight-30)
-return
-RunCtrlManageGuiSize:
-	if A_EventInfo = 1
-		return
-	GuiControl, Move, RunCtrlListBox, % "H" . (A_GuiHeight-15)
-	GuiControl, Move, RunCtrlLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 175)
-return
-;[GuiContextMenu]
-MenuEditGuiContextMenu:
-PluginsManageGuiContextMenu:
-	If (A_GuiControl = "RunAnyTV") {
-		TV_Modify(A_EventInfo, "Select Vis")
-		Menu, TVMenu, Show
-	}
-	If (A_GuiControl = "RunAnyPluginsLV1" || A_GuiControl = "RunAnyPluginsLV2") {
-		LV_Modify(A_EventInfo, "Select Vis")
-		Menu, LVMenu, Show
-	}
-return
-RunCtrlManageGuiContextMenu:
-	If (A_GuiControl = "RunCtrlListBox" || A_GuiControl = "RunCtrlLV") {
-		TV_Modify(A_EventInfo, "Select Vis")
-		Menu, RunCtrlLVMenu, Show
-	}
-return
-;[GuiDropFiles]  ; 对拖放提供支持.
-MenuEditGuiDropFiles:
-SaveItemGuiDropFiles:
-	Loop, Parse, A_GuiEvent, `n
-	{
-		SelectedFileName = %A_LoopField%  ; 仅获取首个文件 (如果有多个文件的时候).
-		break
-	}
-	;获取鼠标下面的控件
-	MouseGetPos, , , id, control
-	WinGetClass, class, ahk_id %id%
-	if(control="SysTreeView321"){
-		Loop, Parse, A_GuiEvent, `n
-		{
-			fileID:=TV_Add(Get_Item_Run_Path(A_LoopField),0,Set_Icon(TreeImageListID,A_LoopField))
-			TVFlag:=true
-		}
-	}
-	if(control="Edit1"){
-		GuiControl,SaveItem:, vitemName, % Get_Item_Run_Path(SelectedFileName)
-	}
-	if(control="Edit4"){
-		GuiControl,SaveItem:, vitemPath, % Get_Item_Run_Path(SelectedFileName)
-	}
-	Gosub,EditItemPathChange
-return
-PluginsManageGuiDropFiles:
-	MsgBox,33,RunAny新增插件,是否复制脚本文件到插件目录？`n%A_ScriptDir%\%PluginsDir%
-	IfMsgBox Ok
-	{
-		Loop, Parse, A_GuiEvent, `n
-		{
-			FileCopy, %A_LoopField%, %A_ScriptDir%\%PluginsDir%
-		}
-		Gosub,Plugins_Gui
-	}
-return
 ;TreeView自定义项目颜色
 ;https://www.autohotkey.com/boards/viewtopic.php?f=6&t=2632
 class treeview{
@@ -4497,3 +4636,194 @@ WM_NOTIFY(Param*){
 		}
 	}
 }
+;--------------------------------------------------------------------------------------------
+listviewAdvancedConfig:
+	if A_GuiEvent = DoubleClick
+	{
+		SendInput,{F2}
+	}else if A_GuiEvent = e
+	{
+		Gui, ListView, AdvancedConfigLV
+		AdvancedConfigFlag:=true
+		LV_GetText(vn, A_EventInfo, 1)
+		LV_Modify(A_EventInfo, vn ? "Icon1" : "Icon2")
+	}
+return
+;[窗口控件控制函数]
+GuiControlShow(guiName,controls*){
+	For k,v in controls
+	{
+	GuiControl, %guiName%:Show, %v%
+	}
+}
+GuiControlHide(guiName,controls*){
+	For k,v in controls
+	{
+	GuiControl, %guiName%:Hide, %v%
+	}
+}
+GuiControlSet(guiName,controlName,controlVal:=""){
+	GuiControl, %guiName%:, %controlName%, %controlVal%
+}
+;~;【——🗔窗口事件Gui——】
+MenuEditGuiClose:
+	if(TVFlag){
+		MsgBox,51,菜单树退出,已修改过菜单信息，是否保存修改再退出？
+		IfMsgBox Yes
+		{
+			Gosub,Menu_Save
+			Gosub,Menu_Reload
+		}
+		IfMsgBox No
+			Gui, Destroy
+	}else{
+		Gui, Destroy
+	}
+return
+;[GuiDropFiles]  ; 对拖放提供支持.
+MenuEditGuiDropFiles:
+SaveItemGuiDropFiles:
+	Loop, Parse, A_GuiEvent, `n
+	{
+		SelectedFileName = %A_LoopField%  ; 仅获取首个文件 (如果有多个文件的时候).
+		break
+	}
+	;获取鼠标下面的控件
+	MouseGetPos, , , id, control
+	WinGetClass, class, ahk_id %id%
+	if(control="SysTreeView321"){
+		Loop, Parse, A_GuiEvent, `n
+		{
+			fileID:=TV_Add(Get_Item_Run_Path(A_LoopField),0,Set_Icon(TreeImageListID,A_LoopField))
+			TVFlag:=true
+		}
+	}
+	if(control="Edit1"){
+		GuiControl,SaveItem:, vitemName, % Get_Item_Run_Path(SelectedFileName)
+	}
+	if(control="Edit4"){
+		GuiControl,SaveItem:, vitemPath, % Get_Item_Run_Path(SelectedFileName)
+	}
+	Gosub,EditItemPathChange
+return
+PluginsManageGuiDropFiles:
+	MsgBox,33,RunAny新增插件,是否复制脚本文件到插件目录？`n%A_ScriptDir%\%PluginsDir%
+	IfMsgBox Ok
+	{
+		Loop, Parse, A_GuiEvent, `n
+		{
+			FileCopy, %A_LoopField%, %A_ScriptDir%\%PluginsDir%
+		}
+		Gosub,Plugins_Gui
+	}
+return
+;[GuiContextMenu]
+MenuEditGuiContextMenu:
+PluginsManageGuiContextMenu:
+	If (A_GuiControl = "RunAnyTV") {
+		TV_Modify(A_EventInfo, "Select Vis")
+		Menu, TVMenu, Show
+	}
+	If (A_GuiControl = "RunAnyPluginsLV1" || A_GuiControl = "RunAnyPluginsLV2") {
+		LV_Modify(A_EventInfo, "Select Vis")
+		Menu, LVMenu, Show
+	}
+return
+RunCtrlManageGuiContextMenu:
+	If (A_GuiControl = "RunCtrlListBox" || A_GuiControl = "RunCtrlLV") {
+		TV_Modify(A_EventInfo, "Select Vis")
+		Menu, RunCtrlLVMenu, Show
+	}
+return
+;[GuiSize]
+MenuEditGuiSize:
+MenuObjShowGuiSize:
+RuleManageGuiSize:
+RunCtrlConfigGuiSize:
+RunCtrlFuncGuiSize:
+PluginsManageGuiSize:
+PluginsDownloadGuiSize:
+OneKeyDownGuiSize:
+	if A_EventInfo = 1
+		return
+	GuiControl, Move, RunAnyTV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
+	GuiControl, Move, RunAnyPluginsLV1, % "H" . (A_GuiHeight * 0.50) . " W" . (A_GuiWidth - 20)
+	GuiControl, Move, RunAnyPluginsLV2, % "H" . (A_GuiHeight * 0.49) . " W" . (A_GuiWidth - 20) . " y" . (A_GuiHeight * 0.50 + 10)
+	GuiControl, Move, RuleLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
+	GuiControl, Move, RunAnyDownLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
+	GuiControl, Move, RunAnyOneKeyDownLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 40)
+	GuiControl, Move, RunAnyMenuObjShowLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 40)
+	GuiControl, Move, FuncGroup, % "H" . (A_GuiHeight-130) . " W" . (A_GuiWidth - 40)
+	GuiControl, Move, FuncLV, % "H" . (A_GuiHeight-270) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, vFuncValue, % "H" . (A_GuiHeight-230) . " W" . (A_GuiWidth - 40)
+	GuiControl, MoveDraw, vFuncSave, % " X" . (A_GuiWidth * 0.30) . " Y" . (A_GuiHeight - 50)
+	GuiControl, MoveDraw, vFuncCancel, % " X" . (A_GuiWidth * 0.30 + 100) . " Y" . (A_GuiHeight - 50)
+return
+66GuiSize:
+	if A_EventInfo = 1
+		return
+	GuiControl, Move, ConfigTab, % "H" . (A_GuiHeight * 0.88) . " W" . (A_GuiWidth - 20)
+	GuiControl, Move, vDisableAppGroup, % "H" . (A_GuiHeight * 0.88 - 395) . " W" . (A_GuiWidth - 40)
+	GuiControl, Move, vDisableApp, % "H" . (A_GuiHeight * 0.88 - 435) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, RunAnyHotkeyLV, % "H" . (A_GuiHeight * 0.88 - 214) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, RunAnyMenuVarLV, % "H" . (A_GuiHeight * 0.88 - 121) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, RunAnyMenuObjPathLV, % "H" . (A_GuiHeight * 0.88 - 121) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, vRunAEvFullPathIniDir, % " W" . (A_GuiWidth - 388)
+	GuiControl, Move, vEvSetupGroup, % " W" . (A_GuiWidth - 40)
+	GuiControl, Move, vEvPath, % " W" . (A_GuiWidth - 120)
+	GuiControl, Move, vEvCommandGroup, % "H" . (A_GuiHeight * 0.88 - 248) . " W" . (A_GuiWidth - 40)
+	GuiControl, Move, vEvCommand, % "H" . (A_GuiHeight * 0.88 - 408) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, RunAnyOneKeyLV, % " W" . (A_GuiWidth - 40)
+	GuiControl, Move, vOneKeyUrlGroup, % " W" . (A_GuiWidth - 40)
+	GuiControl, Move, vOneKeyUrl, % " W" . (A_GuiWidth - 60)
+	GuiControl, Move, vBrowserPath, % " W" . (A_GuiWidth - 120)
+	GuiControl, Move, RunAnyOpenExtLV, % "H" . (A_GuiHeight * 0.88 - 121 ) . " W" . (A_GuiWidth - 60)
+	GuiControl, Move, vHotStrGroup, % "H" . (A_GuiHeight * 0.80)
+	GuiControl, Move, AdvancedConfigLV, % "H" . (A_GuiHeight * 0.88 - 76) " W" . (A_GuiWidth - 60)
+	GuiControl, MoveDraw, vSetOK, % " X" . (A_GuiWidth * 0.30) . " Y" . (A_GuiHeight * 0.92)
+	GuiControl, MoveDraw, vSetCancel, % " X" . (A_GuiWidth * 0.30 + 90) . " Y" . (A_GuiHeight * 0.92)
+	GuiControl, MoveDraw, vSetReSet, % " X" . (A_GuiWidth * 0.30 + 180) . " Y" . (A_GuiHeight * 0.92)
+	GuiControl, MoveDraw, vMenu_Config, % " X" . (A_GuiWidth * 0.30 + 310) . " Y" . (A_GuiHeight * 0.925)
+return
+SaveItemGuiSize:
+	if A_EventInfo = 1
+		return
+	GuiControl,SaveItem:MoveDraw, vitemName, % "W" . (A_GuiWidth-360)
+	GuiControl,SaveItem:MoveDraw, vitemPath, % "H" . (A_GuiHeight-230) . " W" . (A_GuiWidth - 120)
+	GuiControl,SaveItem:MoveDraw, vPictureIconAdd,% "x" . (A_GuiWidth-130)
+	GuiControl,SaveItem:MoveDraw, vTextIconAdd,% "x" . (A_GuiWidth-150)
+	GuiControl,SaveItem:MoveDraw, vTextIconDown,% "x" . (A_GuiWidth-100)
+	GuiControl,SaveItem:MoveDraw, vSaveItemSaveBtn,% "x" . (A_GuiWidth / 2 - 100) . " y" . (A_GuiHeight-60)
+	GuiControl,SaveItem:MoveDraw, vSaveItemCancelBtn,% "x" . (A_GuiWidth / 2 + 10) . " y" . (A_GuiHeight-60)
+	GuiControl,SaveItem:MoveDraw, vStatusBar,% "x30" . " y" . (A_GuiHeight-30)
+return
+RunCtrlManageGuiSize:
+	if A_EventInfo = 1
+		return
+	GuiControl, Move, RunCtrlListBox, % "H" . (A_GuiHeight-15)
+	GuiControl, Move, RunCtrlLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 175)
+return
+;[GuiEscape]
+MenuEditGuiEscape:
+MenuObjShowGuiEscape:
+SaveItemGuiEscape:
+PluginsManageGuiEscape:
+PluginsDownloadGuiEscape:
+PluginsLibGuiEscape:
+PluginsIconGuiEscape:
+RunCtrlManageGuiEscape:
+RunCtrlConfigGuiEscape:
+RunCtrlFuncGuiEscape:
+CtrlRunGuiEscape:
+RuleManageGuiEscape:
+RuleConfigGuiEscape:
+99GuiEscape:
+keyGuiEscape:
+OneKeyGuiEscape:
+OneKeyDownGuiEscape:
+SavePathGuiEscape:
+SaveExtGuiEscape:
+SaveVarGuiEscape:
+SetCancel:
+	Gui,Destroy
+return
