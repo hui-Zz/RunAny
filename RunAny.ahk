@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.2 @2022.05.10
+║【RunAny】一劳永逸的快速启动工具 v5.8.2 @2022.05.21
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -25,7 +25,7 @@ global PluginsDir:="RunPlugins"              ;~;插件目录
 global RunAnyConfig:="RunAnyConfig.ini"      ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini"    ;~;插件注册配置文件
 global RunAny_update_version:="5.8.2"        ;~;版本号
-global RunAny_update_time:="2022.05.10"      ;~;更新日期
+global RunAny_update_time:="2022.05.21"      ;~;更新日期
 global iniPath:=A_ScriptDir "\RunAny.ini"    ;~;菜单1
 global iniPath2:=A_ScriptDir "\RunAny2.ini"  ;~;菜单2
 Gosub,Config_Set        ;~;01.配置初始化
@@ -4562,8 +4562,8 @@ Menu_Tray_Add:
 	}
 	Menu,Tray,add,插件管理(&C)`t%PluginsManageHotKey%,Plugins_Gui
 	Menu,Tray,add,启动管理(&Q)`t%RunCtrlManageHotKey%,RunCtrl_Manage_Gui
+	Menu,Tray,add,菜单列表(&T),RunA_MenuObj_Show
 	Menu,Tray,add
-	Menu,Tray,add,所有菜单项(&T),RunA_MenuObj_Show
 	Menu,Tray,add,设置RunAny(&D)`t%RunASetHotKey%,Settings_Gui
 	Menu,Tray,add,关于RunAny(&A)...,Menu_About
 	Menu,Tray,add,检查更新(&U),Check_Update
@@ -4584,7 +4584,7 @@ Menu_Tray_Add:
 			Menu,Tray,Icon,修改菜单2(&W)`t%TreeHotKey2%,% TreeIconS[1],% TreeIconS[2],%MenuTrayIconSize%
 			Menu,Tray,Icon,修改文件2(&G)`t%TreeIniHotKey2%,% EditFileIconS[1],% EditFileIconS[2],%MenuTrayIconSize%
 		}
-		Menu,Tray,Icon,所有菜单项(&T),imageres.dll,112,%MenuTrayIconSize%
+		Menu,Tray,Icon,菜单列表(&T),imageres.dll,112,%MenuTrayIconSize%
 		Menu,Tray,Icon,插件管理(&C)`t%PluginsManageHotKey%,% PluginsManageIconS[1],% PluginsManageIconS[2],%MenuTrayIconSize%
 		Menu,Tray,Icon,启动管理(&Q)`t%RunCtrlManageHotKey%,% RunCtrlManageIconS[1],% RunCtrlManageIconS[2],%MenuTrayIconSize%
 		Menu,Tray,Icon,设置RunAny(&D)`t%RunASetHotKey%,% MenuIconS[1],% MenuIconS[2],%MenuTrayIconSize%
@@ -9621,7 +9621,7 @@ RunA_MenuObj_Show:
 	Gui,MenuObjShow:Default
 	Gui,MenuObjShow:+Resize
 	Gui,MenuObjShow:Font, s10, Microsoft YaHei
-	Gui,MenuObjShow:Add, Listview, xm w1000 r30 grid AltSubmit vRunAnyMenuObjShowLV, 菜单项名|全局热键|菜单运行路径
+	Gui,MenuObjShow:Add, Listview, xm w1000 r30 grid AltSubmit vRunAnyMenuObjShowLV, 菜单项名|全局热键|热字符串|管理员|透明度|菜单运行路径
 	RunAnyMenuObjShowImageListID := IL_Create(11)
 	Icon_Image_Set(RunAnyMenuObjShowImageListID)
 	GuiControl,MenuObjShow: -Redraw, RunAnyMenuObjShowLV
@@ -9630,12 +9630,28 @@ RunA_MenuObj_Show:
 	{
 		if(v="")
 			continue
+		hotstr:=hotStrShow:=itemAdminRun:=menuTransNum:=""
 		kname:=k
 		if(MenuObjKeyList[k]){
 			klist:=StrSplit(k,"`t",,2)
 			kname:=klist[1]
 		}
-		LV_Add(Set_Icon(RunAnyMenuObjShowImageListID,v,false,false,v), kname, MenuObjKeyList[k], v)
+		if(RegExMatch(kname,"S).*_:\d{1,2}$")){
+			menuTransNum:=RegExReplace(kname,"S).*?_:(\d{1,2})$","$1")
+			kname:=RegExReplace(kname,"S)(.*)_:\d{1,2}$","$1")
+		}
+		if(RegExMatch(kname,"S):[*?a-zA-Z0-9]+?:[^:]*")){
+			hotstr:=RegExReplace(kname,"S)^[^:]*?(:[*?a-zA-Z0-9]+?:[^:]*)","$1")
+			hotStrShow:=RegExReplace(hotstr,"S)^:[^:]*?X[^:]*?:")
+			menuItemTemp:=RegExReplace(kname,"S)^([^:]*?):[*?a-zA-Z0-9]+?:[^:]*","$1")
+			if(menuItemTemp)
+				kname:=menuItemTemp
+		}
+		if(RegExMatch(kname,"S)\[#\]$")){
+			itemAdminRun:="是"
+			kname:=RegExReplace(kname,"S)^(.*?)\[#\]$","$1")
+		}
+		LV_Add(Set_Icon(RunAnyMenuObjShowImageListID,v,false,false,v), kname, MenuObjKeyList[k], hotStrShow, itemAdminRun, menuTransNum, v)
 	}
 	GuiControl,MenuObjShow: +Redraw, RunAnyMenuObjShowLV
 	LV_ModifyCol()
@@ -9855,7 +9871,7 @@ OneKeyDownGuiSize:
 	GuiControl, Move, RuleLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 	GuiControl, Move, RunAnyDownLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 	GuiControl, Move, RunAnyOneKeyDownLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 40)
-	GuiControl, Move, RunAnyMenuObjShowLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 40)
+	GuiControl, Move, RunAnyMenuObjShowLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 20)
 	GuiControl, Move, FuncGroup, % "H" . (A_GuiHeight-130) . " W" . (A_GuiWidth - 40)
 	GuiControl, Move, FuncLV, % "H" . (A_GuiHeight-270) . " W" . (A_GuiWidth - 60)
 	GuiControl, Move, vFuncValue, % "H" . (A_GuiHeight-230) . " W" . (A_GuiWidth - 40)
