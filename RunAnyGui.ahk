@@ -4554,7 +4554,7 @@ RunA_MenuObj_Show:
 	Gui,MenuObjShow:Default
 	Gui,MenuObjShow:+Resize
 	Gui,MenuObjShow:Font, s10, Microsoft YaHei
-	Gui,MenuObjShow:Add, Listview, xm w1000 r30 grid AltSubmit vRunAnyMenuObjShowLV, 菜单项名|全局热键|菜单运行路径
+	Gui,MenuObjShow:Add, Listview, xm w1000 r30 grid AltSubmit vRunAnyMenuObjShowLV, 菜单项名|全局热键|热字符串|管理员|透明度|菜单运行路径
 	RunAnyMenuObjShowImageListID := IL_Create(11)
 	Icon_Image_Set(RunAnyMenuObjShowImageListID)
 	GuiControl,MenuObjShow: -Redraw, RunAnyMenuObjShowLV
@@ -4563,15 +4563,30 @@ RunA_MenuObj_Show:
 	{
 		if(v="")
 			continue
+		hotstr:=hotStrShow:=itemAdminRun:=menuTransNum:=""
 		kname:=k
 		if(MenuObjKeyList[k]){
 			klist:=StrSplit(k,"`t",,2)
 			kname:=klist[1]
 		}
-		LV_Add(Set_Icon(RunAnyMenuObjShowImageListID,v,false,false,v), kname, MenuObjKeyList[k], v)
+		if(RegExMatch(kname,"S).*_:\d{1,2}$")){
+			menuTransNum:=RegExReplace(kname,"S).*?_:(\d{1,2})$","$1")
+			kname:=RegExReplace(kname,"S)(.*)_:\d{1,2}$","$1")
+		}
+		if(RegExMatch(kname,"S):[*?a-zA-Z0-9]+?:[^:]*")){
+			hotstr:=RegExReplace(kname,"S)^[^:]*?(:[*?a-zA-Z0-9]+?:[^:]*)","$1")
+			hotStrShow:=RegExReplace(hotstr,"S)^:[^:]*?X[^:]*?:")
+			menuItemTemp:=RegExReplace(kname,"S)^([^:]*?):[*?a-zA-Z0-9]+?:[^:]*","$1")
+			if(menuItemTemp)
+				kname:=menuItemTemp
+		}
+		if(RegExMatch(kname,"S)\[#\]$")){
+			itemAdminRun:="是"
+			kname:=RegExReplace(kname,"S)^(.*?)\[#\]$","$1")
+		}
+		LV_Add(Set_Icon(RunAnyMenuObjShowImageListID,v,false,false,v), kname, MenuObjKeyList[k], hotStrShow, itemAdminRun, menuTransNum, v)
 	}
 	GuiControl,MenuObjShow: +Redraw, RunAnyMenuObjShowLV
-	; Gui,MenuObjShow:Add, StatusBar,,% "RunAny菜单项数量总共：" MenuObj.Count()
 	LV_ModifyCol()
 	LV_ModifyCol(1, 200)
 	LV_ModifyCol(1, "Sort")  ; 排序
@@ -4789,7 +4804,7 @@ OneKeyDownGuiSize:
 	GuiControl, Move, RuleLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 	GuiControl, Move, RunAnyDownLV, % "H" . (A_GuiHeight-10) . " W" . (A_GuiWidth - 20)
 	GuiControl, Move, RunAnyOneKeyDownLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 40)
-	GuiControl, Move, RunAnyMenuObjShowLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 40)
+	GuiControl, Move, RunAnyMenuObjShowLV, % "H" . (A_GuiHeight-20) . " W" . (A_GuiWidth - 20)
 	GuiControl, Move, FuncGroup, % "H" . (A_GuiHeight-130) . " W" . (A_GuiWidth - 40)
 	GuiControl, Move, FuncLV, % "H" . (A_GuiHeight-270) . " W" . (A_GuiWidth - 60)
 	GuiControl, Move, vFuncValue, % "H" . (A_GuiHeight-230) . " W" . (A_GuiWidth - 40)

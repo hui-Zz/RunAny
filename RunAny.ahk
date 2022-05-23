@@ -4538,8 +4538,8 @@ Menu_Tray_Add:
 	}
 	Menu,Tray,add,插件管理(&C)`t%PluginsManageHotKey%,Plugins_Gui
 	Menu,Tray,add,启动管理(&Q)`t%RunCtrlManageHotKey%,RunCtrl_Manage_Gui
+	Menu,Tray,add,菜单列表(&T),RunA_MenuObj_Show
 	Menu,Tray,add
-	Menu,Tray,add,所有菜单项(&T),RunA_MenuObj_Show
 	Menu,Tray,add,设置RunAny(&D)`t%RunASetHotKey%,Settings_Gui
 	Menu,Tray,add,关于RunAny(&A)...,Menu_About
 	Menu,Tray,add,检查更新(&U),Check_Update
@@ -4560,7 +4560,7 @@ Menu_Tray_Add:
 			Menu,Tray,Icon,修改菜单2(&W)`t%TreeHotKey2%,% TreeIconS[1],% TreeIconS[2],%MenuTrayIconSize%
 			Menu,Tray,Icon,修改文件2(&G)`t%TreeIniHotKey2%,% EditFileIconS[1],% EditFileIconS[2],%MenuTrayIconSize%
 		}
-		Menu,Tray,Icon,所有菜单项(&T),imageres.dll,112,%MenuTrayIconSize%
+		Menu,Tray,Icon,菜单列表(&T),imageres.dll,112,%MenuTrayIconSize%
 		Menu,Tray,Icon,插件管理(&C)`t%PluginsManageHotKey%,% PluginsManageIconS[1],% PluginsManageIconS[2],%MenuTrayIconSize%
 		Menu,Tray,Icon,启动管理(&Q)`t%RunCtrlManageHotKey%,% RunCtrlManageIconS[1],% RunCtrlManageIconS[2],%MenuTrayIconSize%
 		Menu,Tray,Icon,设置RunAny(&D)`t%RunASetHotKey%,% MenuIconS[1],% MenuIconS[2],%MenuTrayIconSize%
