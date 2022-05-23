@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.2 @2022.05.10
+║【RunAny】一劳永逸的快速启动工具 v5.8.2 @2022.05.21
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -25,7 +25,7 @@ global PluginsDir:="RunPlugins"              ;~;插件目录
 global RunAnyConfig:="RunAnyConfig.ini"      ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini"    ;~;插件注册配置文件
 global RunAny_update_version:="5.8.2"        ;~;版本号
-global RunAny_update_time:="2022.05.10"      ;~;更新日期
+global RunAny_update_time:="2022.05.21"      ;~;更新日期
 global iniPath:=A_ScriptDir "\RunAny.ini"    ;~;菜单1
 global iniPath2:=A_ScriptDir "\RunAny2.ini"  ;~;菜单2
 Gosub,Config_Set        ;~;01.配置初始化
@@ -1772,7 +1772,8 @@ MenuRunWay:
 	menuKeys:=StrSplit(Z_ThisMenuItem,"`t")
 	thisMenuName:=menuKeys[1]
 	;[管理员身份运行]
-	if((!RunCtrlRunFlag && (menuholdkey=HoldKeyRun11 || M_ThisMenuItem="管理员权限运行(&A)")) || RunCtrlAdminRunVal){
+	if((!RunCtrlRunFlag && (menuholdkey=HoldKeyRun11 || M_ThisMenuItem="管理员权限运行(&A)"))
+			|| RunCtrlAdminRunVal || RegExMatch(thisMenuName,"S)^.*?\[#\](:[*?a-zA-Z0-9]+?:[^:]*)?(_:\d{1,2})?$")){
 		anyRun.="*RunAs "
 	}
 	;[最小化、最大化、隐藏运行方式]
@@ -1934,6 +1935,10 @@ Menu_Key_Run_Run:
 				Open_Folder_Path(any)
 			}
 			return
+		}
+		;[管理员身份运行]
+		if(RegExMatch(thisMenuName,"S)^.*?\[#\](:[*?a-zA-Z0-9]+?:[^:]*)?(_:\d{1,2})?$")){
+			any:="*RunAs " any
 		}
 		;[透明运行模式]
 		menuTransNum:=100
@@ -5032,4 +5037,4 @@ C盘|C:\
 global iniFlag:=true
 return
 
-#Include RunAnyGui.ahk
+#Include %A_ScriptDir%\RunAnyGui.ahk
