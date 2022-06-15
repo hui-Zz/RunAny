@@ -9,6 +9,6 @@
   * [如何实现软件环境一劳永逸](/article/如何实现软件环境一劳永逸.md)
   * [快捷启动UWP应用的三种方式](/article/快捷启动UWP应用的三种方式.md)
 * 链接
-  * [Scoop软件列表](https://github.com/rasa/scoop-directory/blob/master/by-score.md)
+  * [Scoop软件列表](https://rasa.github.io/scoop-directory/by-score)
   * [PortableApps软件目录](https://portableapps.com/apps)
   * [AutoHotkey中文帮助文档](https://wyagd001.github.io/zh-cn/docs/AutoHotkey.htm)
