@@ -2374,7 +2374,7 @@ Ev_Show:
 				SplitPath,S_LoopField,fileName,,,name_no_ext
 				S_LoopField:=EvShowExt ? fileName : name_no_ext
 			}
-			if(InStr(S_LoopField,A_Space) && getZzLength>1){
+			if(InStr(S_LoopField,A_Space) && (getZzLength>1 || InStr(FileExist(S_LoopField), "D"))){
 				S_LoopField="""%S_LoopField%"""
 			}
 			evSearch.=S_LoopField "|"
