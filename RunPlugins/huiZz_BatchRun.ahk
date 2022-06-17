@@ -1,7 +1,7 @@
 ﻿;***************************
 ;* 【ObjReg批量自定义运行】 
 ;***************************
-global RunAny_Plugins_Version:="1.1.1"
+global RunAny_Plugins_Version:="1.1.2"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
 #SingleInstance,Force   ;~运行替换旧实例
@@ -17,10 +17,17 @@ class RunAnyObj {
 		Run,https://www.baidu.com/s?wd=%getZz%
 		Run,https://www.google.com/search?q=%getZz%&gws_rd=ssl
 	}
-	;[多软件打开选中多文件]
-	;保存到RunAny.ini为：多软件打开|huiZz_BatchRun[multi_open](%getZz%,"notepad.exe","wordpad.exe")
-	;多软件无路径打开|huiZz_BatchRun[multi_open](%getZz%,%"notepad2.exe"%,%"sublime_text.exe"%)
+	;[多软件多次打开选中多文件]
+	;保存到RunAny.ini为：多软件多次打开选中|huiZz_BatchRun[multi_open](%getZz%,"notepad.exe","wordpad.exe")
+	;多软件无路径多次打开选中|huiZz_BatchRun[multi_open](%getZz%,%"notepad2.exe"%,%"sublime_text.exe"%)
 	multi_open(getZz,programs*){
+		if(Trim(getZz," `t`r`n")=""){
+			for i,p in programs
+			{
+				Run,%p%
+			}
+			return
+		}
 		Loop, parse, getZz, `n, `r
 		{
 			S_LoopField=%A_LoopField%
@@ -31,6 +38,23 @@ class RunAnyObj {
 			{
 				Run,%p% "%S_LoopField%"
 			}
+		}
+	}
+	;[多软件一次打开选中多文件]
+	;保存到RunAny.ini为：多软件一次打开选中|huiZz_BatchRun[multi_open](%getZz%,"notepad.exe","wordpad.exe")
+	;多软件无路径一次打开选中|huiZz_BatchRun[multi_open](%getZz%,%"notepad2.exe"%,%"sublime_text.exe"%)
+	multi_open_once(getZz,programs*){
+		if(Trim(getZz," `t`r`n")=""){
+			for i,p in programs
+			{
+				Run,%p%
+			}
+			return
+		}
+		getZz:=StrReplace(getZz, "`r`n", """ """)
+		for i,p in programs
+		{
+			Run,%p% "%getZz%"
 		}
 	}
 
