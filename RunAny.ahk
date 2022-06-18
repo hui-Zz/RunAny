@@ -963,33 +963,40 @@ Menu_HotStr_Hint_Read(hotstr,hotStrName,itemParam){
 }
 Menu_HotStr_Hint_Run:
 	runHotStrHint:=RegExReplace(A_ThisHotkey,"^:[^:]*?Xb0:")
-	HintTip:=""
+	HintTip:=["","","",""]
 	for k , v in MenuHotStrList
 	{
 		if(v["hotStrHint"]=runHotStrHint){
-			hotStrName:=v["hotStrName"]!=""?"`t" v["hotStrName"]:""
+			hotStrName:=v["hotStrName"]!=""?v["hotStrName"]:""
 			;将获取到的热字符串中的变量进行转化，比如显示实时时间
 			hotStrFixed:=RegExReplace(v["hotStrAny"],"S);+$")
 			hotStrFlexible:=Get_Transform_Val(hotStrFixed)
 			if(HotStrShowLen<=0){
 				hotStrAny:=""
 			}else if(StrLen(v["hotStrAny"])>HotStrShowLen){
-				hotStrAny:="`t" SubStr(hotStrFlexible, 1, HotStrShowLen) . "..."
+				hotStrAny:=SubStr(hotStrFlexible, 1, HotStrShowLen) . "..."
 			}else{
-				hotStrAny:="`t" hotStrFlexible
+				hotStrAny:=hotStrFlexible
 			}
-			HintTip.=v["hotStrShow"] hotStrName hotStrAny "`n"
+			HintTip[1] .= runHotStrHint "`n",HintTip[2] .= v["hotStrShow"] "  `n",HintTip[3] .= hotStrName "  `n",HintTip[4] .= hotStrAny "  `n"
 		}
 	}
-	HintTip:=RTrim(HintTip,"`n")
-	MouseGetPos, MouseX, MouseY
-	if(HotStrShowX=0 && HotStrShowY=0)
-		ToolTip,%HintTip%
-	else
-		ToolTip,%HintTip%,% MouseX+HotStrShowX,% MouseY+HotStrShowY
-	WinWait,ahk_class tooltips_class32,,0
-	WinSet, Transparent, % HotStrShowTransparent/100*255, ahk_class tooltips_class32
-	SetTimer,RemoveToolTip,%HotStrShowTime%
+	HintTip[2]:=RTrim(HintTip[2],"`n"),HintTip[3]:=RTrim(HintTip[3],"`n"),HintTip[4]:=RTrim(HintTip[4],"`n")
+	CreateHotStrGui(HintTip,HotStrGuiW,HotStrGuiH)
+	GetCaret(CaretX, CaretY, CaretW, CaretH, Flag)
+	If(Flag=0)
+		CaretX := CaretX+HotStrShowX, CaretY := CaretY+HotStrShowY-HotStrGuiH
+	Else
+		CaretX := CaretX+HotStrShowX+CaretW, CaretY := CaretY+HotStrShowY-HotStrGuiH
+	CaretX := CaretX+HotStrGuiW>A_ScreenWidth?A_ScreenWidth-5-HotStrGuiW:CaretX,CaretY := CaretY<5?5:CaretY
+	try Gui, HotStrGui:Show, x%CaretX% y%CaretY% NoActivate
+	SetTimer, Hide_HotStrGui, %HotStrShowTime%
+	Return
+
+	Hide_HotStrGui:  ;隐藏GUI
+		SetTimer, Hide_HotStrGui, Off
+		Gui, HotStrGui:Hide
+	Return
 return
 ;══════════════════════════════════════════════════════════════════
 ;~;【生成菜单项(判断后缀创建图标)】
@@ -1924,6 +1931,7 @@ Menu_Key_NoGet_Run:
 	Gosub,Menu_Key_Run_Run
 return
 Menu_Key_Run_Run:
+	Gosub,Hide_HotStrGui
 	any:=menuObjkey[(A_ThisHotkey)]
 	thisMenuName:=MenuObjKeyName[(A_ThisHotkey)]
 	SplitPath, any, , dir, ext
@@ -9947,3 +9955,79 @@ SaveVarGuiEscape:
 SetCancel:
 	Gui,Destroy
 return
+
+CreateHotStrGui(msg:="",Byref HotStrGuiW="", Byref HotStrGuiH=""){ ;生成热字符串Gui
+	;配置文件配置项
+	HotStrGuiBackColor := "333434"		;背景颜色
+	HotStrGuiFontColor_cover := "red"	;覆盖文字颜色
+	HotStrGuiFontColor := "02ecfb"		;文字颜色
+	HotStrGuiFontSize := 15 			;文字大小
+
+	static msgold:="",HotStrGui_Edit_Hwnd1
+	global HotStrGui_id
+	DetectHiddenWindows on
+	Gui, HotStrGui:+AlwaysOnTop
+	If (msgold=msg[2]){
+		Gui, HotStrGui_Ref:-SysMenu +ToolWindow +AlwaysOnTop -Caption +E0x20
+		Gui, HotStrGui_Ref:Font, c%HotStrGuiFontColor% s%HotStrGuiFontSize%, Segoe UI
+		Gui, HotStrGui_Ref:Add,Text, HwndHotStrGui_Ref_Edit_Hwnd1, % msg[1]
+		ControlGetPos, , , Text_W, Text_H, , ahk_id %HotStrGui_Ref_Edit_Hwnd1%
+		Gui, HotStrGui_Ref:Destroy
+		GuiControl, , %HotStrGui_Edit_Hwnd1% , % msg[1]
+		GuiControl, Hide, %HotStrGui_Edit_Hwnd1%
+		GuiControl, Move, %HotStrGui_Edit_Hwnd1%, w%Text_W%
+		GuiControl, Show, %HotStrGui_Edit_Hwnd1%
+		DetectHiddenWindows off
+		Return
+	}Else
+		msgold := msg[2]
+	Gui, HotStrGui:Destroy
+	Gui, HotStrGui:-SysMenu +ToolWindow +AlwaysOnTop -Caption +HwndHotStrGui_id +E0x20
+	Gui, HotStrGui:Color, %HotStrGuiBackColor%
+	Gui, HotStrGui:Font, c%HotStrGuiFontColor% s%HotStrGuiFontSize%, Segoe UI
+	Gui, HotStrGui:Add,Text, x25 y3 HwndHotStrGui_Edit_Hwnd2, % msg[2]
+	ControlGetPos, , , Text_W, Text_H, , ahk_id %HotStrGui_Edit_Hwnd2%
+	HotStrGuiW := Text_W+25+35
+	HotStrGuiH := Text_H+10
+	Gui, HotStrGui:Add,Text, c%HotStrGuiFontColor_cover% x25 y3 HwndHotStrGui_Edit_Hwnd1, % msg[1]
+	Gui, HotStrGui:Add,Text, x%HotStrGuiW% y3 HwndHotStrGui_Edit_Hwnd3, % msg[3]
+	ControlGetPos, , , Text_W, Text_H, , ahk_id %HotStrGui_Edit_Hwnd3%
+	HotStrGuiW += Text_W+35
+	Gui, HotStrGui:Add,Text, x%HotStrGuiW% y3 HwndHotStrGui_Edit_Hwnd4, % msg[4]
+	ControlGetPos, , , Text_W, Text_H, , ahk_id %HotStrGui_Edit_Hwnd4%
+	HotStrGuiW += Text_W
+	WinSet, Transparent, % HotStrShowTransparent/100*255, ahk_id %HotStrGui_id%
+	WinSet, Region, 10-0 W%HotStrGuiW% H%HotStrGuiH% R5-5, ahk_id %HotStrGui_id%
+	DetectHiddenWindows off
+	return {w:HotStrGuiW, h:HotStrGuiH}
+}
+
+;获取输入光标位置，源代码来源：https://www.autoahk.com/archives/16443
+GetCaret(Byref CaretX="", Byref CaretY="",Byref CaretW=0, Byref CaretH=0, Byref Flag=1) {
+	static init
+	CoordMode, Caret, Screen
+	CaretX:=A_CaretX, CaretY:=A_CaretY,CaretW:=0,CaretH:=0, Flag:=1
+	if (!CaretX or !CaretY){
+		Try {
+			if (!init)
+				init:=DllCall("GetProcAddress", "Ptr", DllCall("LoadLibrary", "Str", "oleacc", "Ptr"), "AStr", "AccessibleObjectFromWindow", "Ptr")
+			VarSetCapacity(IID,16), idObject:=OBJID_CARET:=0xFFFFFFF8
+			, NumPut(idObject==0xFFFFFFF0?0x0000000000020400:0x11CF3C3D618736E0, IID, "Int64")
+			, NumPut(idObject==0xFFFFFFF0?0x46000000000000C0:0x719B3800AA000C81, IID, 8, "Int64")
+			if DllCall(init, "Ptr",WinExist("A"), "UInt",idObject, "Ptr",&IID, "Ptr*",pacc)=0 {
+				Acc:=ComObject(9,pacc,1), ObjAddRef(pacc)
+				, Acc.accLocation(ComObj(0x4003,&x:=0), ComObj(0x4003,&y:=0)
+				, ComObj(0x4003,&w:=0), ComObj(0x4003,&h:=0), ChildId:=0)
+				, CaretX:=NumGet(x,0,"int"), CaretY:=NumGet(y,0,"int")
+				, CaretW:=NumGet(w,0,"int"), CaretH:=NumGet(h,0,"int")
+				ObjRelease(pacc)
+			}
+		}
+	}
+	If (CaretX=0 && CaretY=0){
+		CoordMode, Mouse, Screen
+		MouseGetPos, CaretX, CaretY
+		Flag:=0
+	}
+	return {x:CaretX, y:CaretY,w:CaretW, h:CaretW, f:Flag}
+}
