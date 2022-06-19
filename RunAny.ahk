@@ -1639,9 +1639,9 @@ Menu_Run:
 		if(any=""){
 			TrayTip,%OutsideMenuItem% 没有找到,请检查是否存在(在Everything能搜索到)，并重启RunAny重试,5,2
 		}
-		if(RunCtrlRunFlag)
+		if(RunCtrlRunFlag || RemoteMenuRunFlag)
 			Z_ThisMenuItem:=OutsideMenuItem
-		RunCtrlRunFlag:=OutsideMenuItem:=""
+		RunCtrlRunFlag:=RemoteMenuRunFlag:=OutsideMenuItem:=""
 	}
 	MenuRunDebugModeShow()
 	if(any="")
@@ -3207,6 +3207,7 @@ Remote_Dyna_Run(remoteRun, remoteGetZz, remoteFlag:=false){
 }
 ;[外部调用运行菜单项]
 Remote_Menu_Run(remoteRun, remoteGetZz:=""){
+	global RemoteMenuRunFlag:=true
 	getZz:=remoteGetZz
 	OutsideMenuItem:=remoteRun
 	Gosub, Menu_Run
