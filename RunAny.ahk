@@ -4694,7 +4694,7 @@ FileAppend,
 global everyDLL:="%A_ScriptDir%\%everyDLL%"
 ev:=new everything
 ev.SetMatchWholeWord(true)
-ev.SetSearch("explorer.exe")
+ev.SetSearch("RunAny")
 ev.Query()
 while,`% !ev.GetTotResults()
 {
