@@ -1,10 +1,10 @@
 ﻿/*
 ╔═══════════════════════════════════════════════════════════════
-║【Scoop使用IDM下载更新】 https://github.com/hui-Zz @2021.09.07
+║【Scoop使用IDM下载更新】 https://github.com/hui-Zz @2022.06.27
 ║ by hui-Zz 建议：hui0.0713@gmail.com 讨论QQ群：246308937
 ╚═══════════════════════════════════════════════════════════════
 */
-global RunAny_Plugins_Version:="1.1.0"
+global RunAny_Plugins_Version:="1.2.0"
 #Persistent             ;~让脚本持久运行
 #SingleInstance,Force   ;~运行替换旧实例
 DetectHiddenWindows,On
@@ -12,18 +12,6 @@ Menu,Tray,Icon,imageres.dll,196
 global scoopUpdateAppList:={}
 global scoopAppDownOutList:={}
 global scoopAppDownUrlList:=[]
-; scoopStatusResult:=cmdReturn("scoop status")
-;[读取scoop更新信息]
-if(InStr(scoopStatusResult,"Updates are available for")){
-	Loop, parse, scoopStatusResult, `n, `r
-	{
-		Z_LoopField=%A_LoopField%
-		if(InStr(Z_LoopField,"->")){
-			appName:=RegExReplace(Z_LoopField,"S)(.*): .*","$1")
-			scoopUpdateAppList[appName]:=false
-		}
-	}
-}
 try EnvGet, scoopPath, scoop
 global DownDir:=scoopPath "\cache"
 global IDMPath:="",DownUrl:="",DownName:=""
@@ -32,8 +20,8 @@ IDMPath:=IDMPath ? IDMPath : FileExist("C:\Program Files (x86)\Internet Download
 	? "C:\Program Files (x86)\Internet Download Manager\IDMan.exe"
 	: "D:\Program Files (x86)\Internet Download Manager\IDMan.exe"
 DownCmd:="%IDMPath% /n /d %DownUrl% /f %DownName% /p %DownDir%"
-proxyResult:=Trim(cmdReturn("scoop config proxy")," `t`r`n")
-aria2Result:=Trim(cmdReturn("scoop config aria2-enabled")," `t`r`n")
+proxyResult:=Trim(cmdClipReturn("scoop config proxy")," `t`r`n")
+aria2Result:=Trim(cmdClipReturn("scoop config aria2-enabled")," `t`r`n")
 global aria2:=aria2Result="False" ? false : true
 aria2Enable:=aria2
 aria2False:=aria2Enable ? 0 : 1
@@ -55,11 +43,29 @@ Gui,Add,Radio,x+10 yp Checked%aria2Enable% varia2Enable GSetAria2Config, aria2�
 Gui,Font,Bold,Microsoft YaHei
 Gui,Add,Button,xm-3 yp+35 w28 h120 GDownStart,开始批量下载
 Gui,Add,Button,xm-3 yp+130 w28 h120 GUpdateApp,独立批量更新
-Gui,Add,Edit,xm+35 yp-130 w400 r30 -Wrap HScroll vUrlPath,%scoopStatusResult%
+Gui,Add,Edit,xm+35 yp-130 w400 r30 -Wrap HScroll vscoopStatusResult,正在查询scoop更新列表......
 Gui,Add,Progress,xm+35 w400 cGreen vMyProgress
 Gui,Add,StatusBar, xm+10 w390 vvStatusBar,
 GuiControl, Hide, MyProgress
-Gui, Show, , 【Scoop使用IDM下载更新 v1.1.0】https://github.com/hui-Zz
+Gui, Show, , 【Scoop使用IDM下载更新 v%RunAny_Plugins_Version%】https://github.com/hui-Zz
+
+scoopStatusResult:=cmdSilenceReturn("scoop status")
+;[读取scoop更新信息]
+if(InStr(scoopStatusResult,"Updates are available for")){
+	Loop, parse, scoopStatusResult, `n, `r
+	{
+		Z_LoopField=%A_LoopField%
+		if(InStr(Z_LoopField,"->")){
+			appName:=RegExReplace(Z_LoopField,"S)(.*): .*","$1")
+			scoopUpdateAppList[appName]:=false
+		}
+	}
+	scoopStatusResult:=StrReplace(scoopStatusResult, "Updates are available for", "以下是待更新的应用")
+	scoopStatusResult:=StrReplace(scoopStatusResult, "These apps are outdated and on hold", "这些应用已暂停更新")
+	scoopStatusResult:=StrReplace(scoopStatusResult, "These app manifests have been removed", "这些应用的buckets地址已失效，无法获取到更新信息")
+}
+GuiControl,, scoopStatusResult, %scoopStatusResult%
+
 return
 GuiSize:
 	if A_EventInfo = 1
@@ -70,8 +76,8 @@ GuiSize:
 	GuiControl, Move, ProxyUrl, % " W" . (A_GuiWidth * 0.55)
 	GuiControl, Move, aria2False, % " X" . (A_GuiWidth * 0.65)
 	GuiControl, Move, aria2Enable, % " X" . (A_GuiWidth * 0.85)
-	GuiControl, Move, MyProgress, % "H" . (A_GuiHeight-40) . " W" . (A_GuiWidth - 50)
-	GuiControl, Move, UrlPath, % "H" . (A_GuiHeight-197) . " W" . (A_GuiWidth - 50)
+	GuiControl, Move, MyProgress, % "H" . (A_GuiHeight-90) . " W" . (A_GuiWidth - 50)
+	GuiControl, Move, scoopStatusResult, % "H" . (A_GuiHeight-220) . " W" . (A_GuiWidth - 50)
 return
 SetDownDir:
 	FileSelectFolder, saveFolder, , 3
@@ -169,15 +175,31 @@ getScoopAppDownUrl(num, appName){
     }
 }
 /*
-【返回cmd命令的结果值 @hui-Zz】
+【隐藏运行cmd命令并将结果存入剪贴板后取回 @hui-Zz】
 */
-cmdReturn(command){
-    ; WshShell 对象: http://msdn.microsoft.com/en-us/library/aew9yb99
-    shell := ComObjCreate("WScript.Shell")
-    ; 通过 cmd.exe 执行单条命令
-    exec := shell.Exec(ComSpec " /C " command)
-    ; 读取并返回命令的输出
-    return exec.StdOut.ReadAll()
+cmdClipReturn(command,save=0){
+	cmdInfo:=""
+	try{
+		if(save)
+			Clip_Saved:=ClipboardAll
+		Clipboard=
+		Run,% ComSpec " /C " command " | CLIP", , Hide
+		ClipWait,2
+		cmdInfo:=Clipboard
+		if(save)
+			Clipboard:=Clip_Saved
+	}catch{}
+	return cmdInfo
+}
+cmdSilenceReturn(command){
+	CMDReturn:=""
+	cmdFN:="ScoopStatusCMD"
+	try{
+		RunWait,% ComSpec " /C " command " > ""%Temp%\" cmdFN ".log""",, Hide
+		FileRead, CMDReturn, %A_Temp%\%cmdFN%.log
+		FileDelete,%A_Temp%\%cmdFN%.log
+	}catch{}
+	return CMDReturn
 }
 ;[获取变量展开转换后的值]
 Get_Transform_Val(string){
