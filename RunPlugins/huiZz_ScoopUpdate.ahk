@@ -1,97 +1,147 @@
 ﻿/*
 ╔═══════════════════════════════════════════════════════════════
-║【Scoop使用IDM下载更新】 https://github.com/hui-Zz @2022.06.27
+║【Scoop使用IDM下载更新】 https://github.com/hui-Zz @2022.11.22
 ║ by hui-Zz 建议：hui0.0713@gmail.com 讨论QQ群：246308937
 ╚═══════════════════════════════════════════════════════════════
 */
-global RunAny_Plugins_Version:="1.2.0"
+global RunAny_Plugins_Version:="1.3.0"
 #Persistent             ;~让脚本持久运行
 #SingleInstance,Force   ;~运行替换旧实例
 DetectHiddenWindows,On
-Menu,Tray,Icon,imageres.dll,196
+Menu,Tray,Icon,SHELL32.dll,123
 global scoopUpdateAppList:={}
 global scoopAppDownOutList:={}
 global scoopAppDownUrlList:=[]
 try EnvGet, scoopPath, scoop
-global DownDir:=scoopPath "\cache"
-global IDMPath:="",DownUrl:="",DownName:=""
-WinGet, IDMPath, ProcessPath, ahk_exe IDMan.exe
-IDMPath:=IDMPath ? IDMPath : FileExist("C:\Program Files (x86)\Internet Download Manager\IDMan.exe") 
-	? "C:\Program Files (x86)\Internet Download Manager\IDMan.exe"
-	: "D:\Program Files (x86)\Internet Download Manager\IDMan.exe"
-DownCmd:="%IDMPath% /n /d %DownUrl% /f %DownName% /p %DownDir%"
-proxyResult:=Trim(cmdClipReturn("scoop config proxy")," `t`r`n")
+global DownDir:="",IDMPath:="",DownUrl:="",DownCmd:="",DownName:="",ProxyUrl:=""
+IniRead,DownDir,%A_Temp%\RunAny\ScoopUpdate.ini,config,DownDir,%A_Space%
+IniRead,IDMPathIni,%A_Temp%\RunAny\ScoopUpdate.ini,config,IDMPathIni,%A_Space%
+IniRead,DownCmd,%A_Temp%\RunAny\ScoopUpdate.ini,config,DownCmd,%A_Space%
+IniRead,ProxyUrl,%A_Temp%\RunAny\ScoopUpdate.ini,config,ProxyUrl,%A_Space%
+IniRead,AutoRun,%A_Temp%\RunAny\ScoopUpdate.ini,config,AutoRun,%A_Space%
+IniRead,AutoMin,%A_Temp%\RunAny\ScoopUpdate.ini,config,AutoMin,%A_Space%
+
+DownDir:=DownDir ? DownDir : scoopPath "\cache"
+WinGet, IDMPathRun, ProcessPath, ahk_exe IDMan.exe
+IDMPath:=IDMPathRun ? IDMPathRun : Get_Transform_Val(IDMPathIni)
+if(!FileExist(IDMPath)){
+	IDMPath:="C:\Program Files (x86)\Internet Download Manager\IDMan.exe"
+	IDMPath:=FileExist(IDMPath) ? IDMPath : "D:\Program Files (x86)\Internet Download Manager\IDMan.exe"
+}
+if(!FileExist(IDMPath)){
+	IDMPath:=IDMPathIni
+}
+DownCmd:=DownCmd ? DownCmd : "%IDMPath% /n /d %DownUrl% /f %DownName% /p %DownDir%"
 aria2Result:=Trim(cmdClipReturn("scoop config aria2-enabled")," `t`r`n")
+proxyResult:=Trim(cmdClipReturn("scoop config proxy")," `t`r`n")
+if(ProxyUrl && (!proxyResult || proxyResult="'proxy' is not set")){
+	Run, %ComSpec% /c "scoop config proxy %ProxyUrl%", , Min
+}else{
+	ProxyUrl:=proxyResult
+}
+checkProxy:=Trim(cmdClipReturn("netstat -ano | findstr " ProxyUrl)," `t`r`n")
 global aria2:=aria2Result="False" ? false : true
 aria2Enable:=aria2
 aria2False:=aria2Enable ? 0 : 1
-
+checkAutoRun:=AutoRun ? 1 : 0
+checkAutoMin:=AutoMin ? 1 : 0
+optionAutoMin:=AutoMin ? "Minimize" : ""
 Gui,Destroy
 Gui,+Resize
 Gui,Font,,Microsoft YaHei
 Gui,Margin,10,10
 Gui,Add,Button,xm-5 yp+5 w35 h40 GSetDownDir,下载目录
-Gui,Add,Edit,xm+35 yp+10 w400 r1 vDownDir,%DownDir%
+Gui,Add,Edit,xm+35 yp+10 w500 r1 vDownDir GSetDownDir2,%DownDir%
 Gui,Add,Button,xm-5 yp+30 w35 h40 GSetIDMPath,IDM路径
-Gui,Add,Edit,xm+35 yp+10 w400 r1 vIDMPath,%IDMPath%
+Gui,Add,Edit,xm+35 yp+10 w500 r1 vIDMPath GSetIDMPath2,%IDMPath%
 Gui,Add,Button,xm-5 yp+30 w35 h40,下载命令
-Gui,Add,Edit,xm+35 yp+10 w400 r1 vDownCmd,%DownCmd%
+Gui,Add,Edit,xm+35 yp+10 w500 r1 vDownCmd GSetDownCmd,%DownCmd%
 Gui,Add,Button,xm-5 yp+30 w35 h40,代理地址
-Gui,Add,Edit,xm+35 yp+10 w400 r1 vProxyUrl GSetProxyUrl,%proxyResult%
+Gui,Add,Edit,xm+35 yp+10 w500 r1 vProxyUrl GSetProxyUrl,%ProxyUrl%
+Gui,Add,Text,x+5 yp+5 vProxyStatus gProxyStatusTips,代理状态：
+Gui,Add,Checkbox,Checked%checkAutoRun% xm+35 yp+30 vAutoRun gSetAutoRun,启动后自动开始更新Scoop
+Gui,Add,Checkbox,Checked%checkAutoMin% x+10 yp vAutoMin gSetAutoMin,最小化启动
 Gui,Add,Radio,x+10 yp Checked%aria2False% varia2False GSetAria2Config, scoop默认下载更新
 Gui,Add,Radio,x+10 yp Checked%aria2Enable% varia2Enable GSetAria2Config, aria2下载更新
-Gui,Font,Bold,Microsoft YaHei
-Gui,Add,Button,xm-3 yp+35 w28 h120 GDownStart,开始批量下载
+Gui,Font,Bold,Cascadia Mono
+Gui,Add,Button,xm-3 yp+30 w28 h120 GDownStart,开始批量更新
 Gui,Add,Button,xm-3 yp+130 w28 h120 GUpdateApp,独立批量更新
-Gui,Add,Edit,xm+35 yp-130 w400 r30 -Wrap HScroll vscoopStatusResult,正在查询scoop更新列表......
-Gui,Add,Progress,xm+35 w400 cGreen vMyProgress
-Gui,Add,StatusBar, xm+10 w390 vvStatusBar,
+Gui,Add,Edit,xm+35 yp-130 w500 r30 -Wrap HScroll vscoopStatusResult,正在查询scoop更新列表......
+Gui,Add,Progress,xm+35 w500 cGreen vMyProgress
+Gui,Add,StatusBar, xm+10 w490 vvStatusBar,
 GuiControl, Hide, MyProgress
-Gui, Show, , 【Scoop使用IDM下载更新 v%RunAny_Plugins_Version%】https://github.com/hui-Zz
-
+Gui, Show, AutoSize Center %optionAutoMin%, 【Scoop使用IDM下载更新 v%RunAny_Plugins_Version%】https://github.com/hui-Zz
+tcping:=Trim(cmdClipReturn("tcping -v | findstr tcping.exe")," `t`r`n")
+if(tcping){
+	checkProxyTCP:=Trim(cmdSilenceReturn("tcping.exe " StrReplace(ProxyUrl,":"," "))," `t`r`n")
+	checkProxy:=InStr(checkProxyTCP,"Port is open") ? true : false
+}
+checkProxyStr:=checkProxy ? "已连接" : "未连接"
+checkProxyColor:=checkProxy ? "green" : "red"
+Gui, Font, c%checkProxyColor%, Microsoft YaHei
+GuiControl, Font, ProxyStatus
+GuiControl, ,ProxyStatus, 代理状态：%checkProxyStr%
+;代理可用先更新scoop
+if(checkProxy){
+	cmdSilenceReturn("scoop update")
+}
+;获取更新程序列表
 scoopStatusResult:=cmdSilenceReturn("scoop status")
 ;[读取scoop更新信息]
-if(InStr(scoopStatusResult,"Updates are available for")){
+if(InStr(scoopStatusResult,"Version")){
 	Loop, parse, scoopStatusResult, `n, `r
 	{
 		Z_LoopField=%A_LoopField%
-		if(InStr(Z_LoopField,"->")){
-			appName:=RegExReplace(Z_LoopField,"S)(.*): .*","$1")
+ 		if(!InStr(Z_LoopField,"Held package") && RegExMatch(Z_LoopField,"^[^\s]+\s+[\d\.]+\s+[\d\.]+\s*")){
+			appName:=RegExReplace(Z_LoopField,"S)^([^\s]+)\s+[\d\.]+\s+[\d\.]+\s*","$1")
 			scoopUpdateAppList[appName]:=false
 		}
 	}
-	scoopStatusResult:=StrReplace(scoopStatusResult, "Updates are available for", "以下是待更新的应用")
-	scoopStatusResult:=StrReplace(scoopStatusResult, "These apps are outdated and on hold", "这些应用已暂停更新")
-	scoopStatusResult:=StrReplace(scoopStatusResult, "These app manifests have been removed", "这些应用的buckets地址已失效，无法获取到更新信息")
 }
 GuiControl,, scoopStatusResult, %scoopStatusResult%
+if(AutoRun){
+	Gosub, DownStart
+}
+return
 
-return
-GuiSize:
-	if A_EventInfo = 1
-		return
-	GuiControl, Move, DownDir, % " W" . (A_GuiWidth - 50)
-	GuiControl, Move, IDMPath, % " W" . (A_GuiWidth - 50)
-	GuiControl, Move, DownCmd, % " W" . (A_GuiWidth - 50)
-	GuiControl, Move, ProxyUrl, % " W" . (A_GuiWidth * 0.55)
-	GuiControl, Move, aria2False, % " X" . (A_GuiWidth * 0.65)
-	GuiControl, Move, aria2Enable, % " X" . (A_GuiWidth * 0.85)
-	GuiControl, Move, MyProgress, % "H" . (A_GuiHeight-90) . " W" . (A_GuiWidth - 50)
-	GuiControl, Move, scoopStatusResult, % "H" . (A_GuiHeight-220) . " W" . (A_GuiWidth - 50)
-return
+;[配置界面]
 SetDownDir:
 	FileSelectFolder, saveFolder, , 3
-	if(saveFolder!="")
+	if(saveFolder!=""){
 		GuiControl,, DownDir, %saveFolder%
+		Gosub, SetDownDir2
+	}
+return
+SetDownDir2:
+	Gui,Submit,NoHide
+	IniWrite,%DownDir%,%A_Temp%\RunAny\ScoopUpdate.ini,config,DownDir
 return
 SetIDMPath:
 	FileSelectFile, fileSelPath, , , IDMan.exe路径, (*.exe)
-	if(fileSelPath!="")
+	if(fileSelPath!=""){
 		GuiControl,, IDMPath, %fileSelPath%
+		Gosub, SetIDMPath2
+	}
+return
+SetIDMPath2:
+	Gui,Submit,NoHide
+	IniWrite,%IDMPath%,%A_Temp%\RunAny\ScoopUpdate.ini,config,IDMPath
+return
+SetDownCmd:
+	Gui,Submit,NoHide
+	IniWrite,%DownCmd%,%A_Temp%\RunAny\ScoopUpdate.ini,config,DownCmd
+return
+SetAutoRun:
+	Gui,Submit,NoHide
+	IniWrite,%AutoRun%,%A_Temp%\RunAny\ScoopUpdate.ini,config,AutoRun
+return
+SetAutoMin:
+	Gui,Submit,NoHide
+	IniWrite,%AutoMin%,%A_Temp%\RunAny\ScoopUpdate.ini,config,AutoMin
 return
 SetProxyUrl:
-	Sleep, 500
 	Gui,Submit, NoHide
+	IniWrite,%ProxyUrl%,%A_Temp%\RunAny\ScoopUpdate.ini,config,ProxyUrl
 	if(RegExMatch(ProxyUrl,"^(?:https?:\/\/)?[\w-]+(?:\.[\w-]+)+:\d{1,5}\/?$")){
 		Run, %ComSpec% /c "scoop config proxy %ProxyUrl%", , Min
 	} else if(ProxyUrl=""){
@@ -106,9 +156,18 @@ SetAria2Config:
 		Run, %ComSpec% /c "scoop config aria2-enabled false", , Min
 	}
 return
+ProxyStatusTips:
+	ToolTip,检测远程代理是否通畅需要安装tcping
+	SetTimer,RemoveToolTip,8000
+return
+
+;[开始批量下载更新]
 DownStart:
 	Gui,Submit,NoHide
-	SB_SetText("总更新APP：" scoopUpdateAppList.Count())
+	SB_SetText("总更新应用：" scoopUpdateAppList.Count())
+	if(RegExMatch(ProxyUrl,"^(?:https?:\/\/)?[\w-]+(?:\.[\w-]+)+:\d{1,5}\/?$") && !checkProxy){
+		Run, %ComSpec% /c "scoop config rm proxy", , Min
+	}
 	for name,v in scoopUpdateAppList
 	{
 		Run, %ComSpec% /c "scoop update %name%", , Min
@@ -126,7 +185,7 @@ DownStart:
 		{
 			if(!v)
 				success:=v
-			if(!scoopUpdateAppList[name] && FileExist(DownDir "\" scoopAppDownOutList[name])){
+			if(!scoopUpdateAppList[name] && scoopAppDownOutList[name] && FileExist(DownDir "\" scoopAppDownOutList[name])){
 				Run, %ComSpec% /c "scoop update %name%", , Min
 				scoopUpdateAppList[name]:=true
 				GuiControl,, MyProgress, +%progressNum%
@@ -135,14 +194,34 @@ DownStart:
 			}
 			Sleep,200
 		}
-	} Until % success
+	} Until % success || A_Index > 1000
+	if(RegExMatch(ProxyUrl,"^(?:https?:\/\/)?[\w-]+(?:\.[\w-]+)+:\d{1,5}\/?$")){
+		Run, %ComSpec% /c "scoop config proxy %ProxyUrl%", , Min
+	}
 	TrayTip,,scoop批量更新完成~,3,17
 return
 UpdateApp:
-for name,v in scoopUpdateAppList
-{
-	Run,%ComSpec% /c "scoop update %name%", , ;Min
-}
+	if(RegExMatch(ProxyUrl,"^(?:https?:\/\/)?[\w-]+(?:\.[\w-]+)+:\d{1,5}\/?$") && !checkProxy){
+		Run, %ComSpec% /c "scoop config rm proxy", , Min
+	}
+	for name,v in scoopUpdateAppList
+	{
+		Run,%ComSpec% /c "scoop update %name%", , ;Min
+	}
+	if(RegExMatch(ProxyUrl,"^(?:https?:\/\/)?[\w-]+(?:\.[\w-]+)+:\d{1,5}\/?$")){
+		Run, %ComSpec% /c "scoop config proxy %ProxyUrl%", , Min
+	}
+return
+GuiSize:
+	if A_EventInfo = 1
+		return
+	GuiControl, Move, DownDir, % " W" . (A_GuiWidth - 50)
+	GuiControl, Move, IDMPath, % " W" . (A_GuiWidth - 50)
+	GuiControl, Move, DownCmd, % " W" . (A_GuiWidth - 50)
+	GuiControl, Move, ProxyUrl, % " W" . (A_GuiWidth * 0.58)
+	GuiControl, Move, ProxyStatus, % " W" . (A_GuiWidth * 0.40) . " X" . (A_GuiWidth * 0.70)
+	GuiControl, Move, MyProgress, % "H" . (A_GuiHeight-90) . " W" . (A_GuiWidth - 50)
+	GuiControl, Move, scoopStatusResult, % "H" . (A_GuiHeight-220) . " W" . (A_GuiWidth - 50)
 return
 GuiClose:
 GuiEscape:
@@ -230,3 +309,9 @@ Get_Transform_Val(string){
 		return string
 	}
 }
+RemoveToolTip:
+	if(A_TimeIdle<2500){
+		SetTimer,RemoveToolTip,Off
+		ToolTip
+	}
+return

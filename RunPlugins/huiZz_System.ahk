@@ -67,6 +67,7 @@ class RunAnyObj {
 			ToolTip
 		}
 	}
+	
 	;[ping选中地址]
 	system_ping_zz(getZz:=""){
 		Run,% ComSpec " /C ping " getZz " -t"
