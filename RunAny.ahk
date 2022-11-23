@@ -1,6 +1,6 @@
 ﻿/*
 ╔══════════════════════════════════════════════════
-║【RunAny】一劳永逸的快速启动工具 v5.8.2 @2022.05.21
+║【RunAny】一劳永逸的快速启动工具 v5.8.2 @2022.10.22
 ║ 国内Gitee文档：https://hui-zz.gitee.io/RunAny
 ║ Github文档：https://hui-zz.github.io/RunAny
 ║ Github地址：https://github.com/hui-Zz/RunAny
@@ -25,7 +25,7 @@ global PluginsDir:="RunPlugins"              ;~;插件目录
 global RunAnyConfig:="RunAnyConfig.ini"      ;~;配置文件
 global RunAny_ObjReg:="RunAny_ObjReg.ini"    ;~;插件注册配置文件
 global RunAny_update_version:="5.8.2"        ;~;版本号
-global RunAny_update_time:="2022.05.21"      ;~;更新日期
+global RunAny_update_time:="2022.10.22"      ;~;更新日期
 global iniPath:=A_ScriptDir "\RunAny.ini"    ;~;菜单1
 global iniPath2:=A_ScriptDir "\RunAny2.ini"  ;~;菜单2
 Gosub,Config_Set        ;~;01.配置初始化
@@ -4130,7 +4130,7 @@ class RunCtrl
 	noMenu:=true            ;无菜单项应用
 	key:=""                 ;规则组全局热键
 	ruleLogic:=true         ;规则组逻辑：与、或
-	ruleMostRun:=0          ;规则循环最大次数
+	ruleMostRun:=""         ;规则循环最大次数
 	ruleIntervalTime:=0     ;循环间隔时间(秒)
 	runNums:=""             ;运行次数
 	runList:=Object()       ;应用运行队列
@@ -4220,7 +4220,7 @@ Rule_Effect:
 				funcEffect%rcName%:=Func("RunCtrl_RunRules").Bind(runCtrlObj)	;规则定时器
 				ruleTime:=runCtrlObj.ruleIntervalTime>0 ? runCtrlObj.ruleIntervalTime * 1000 : 1000		;规则定时器间隔时间(秒)
 				SetTimer,% funcEffect%rcName%, %ruleTime%
-			}else{
+			}else if(runCtrlObj.ruleMostRun=""){
 				RunCtrl_RunRules(runCtrlObj)
 			}
 		}
@@ -5015,7 +5015,7 @@ FileAppend,
 	;在别名最末尾添加Tab制表符+热键(参考AHK写法:^代表Ctrl !代表Alt #代表Win +代表Shift)，如选中文字按Alt+z百度
 	百度(&B)	!z|https://www.baidu.com/s?wd=
 	谷歌(&G)	!g|https://www.google.com/search?q=`%s&gws_rd=ssl
-	翻译(&F)	#z|https://translate.google.cn/#auto/zh-CN/
+	翻译(&F)|https://translate.google.cn/#auto/zh-CN/
 	异次元软件|http://www.iplaysoft.com/search/?s=548512288484505211&q=`%s
 	淘宝(&T)|https://s.taobao.com/search?q=`%s
 	京东(&D)|https://search.jd.com/Search?keyword=`%s&enc=utf-8
@@ -7553,7 +7553,7 @@ RunCtrlLVEdit:
 		RuleGroupLogic1:=RunCtrlList[RunCtrlListBox].ruleLogic
 		RuleGroupLogic2:=RuleGroupLogic1 ? 0 : 1
 		RuleMostRun:=RunCtrlList[RunCtrlListBox].ruleMostRun
-		RuleMostRun:=RuleMostRun=0 ? "" : RuleMostRun
+		RuleMostRun:=RuleMostRun<0 ? "" : RuleMostRun
 		RuleIntervalTime:=RunCtrlList[RunCtrlListBox].ruleIntervalTime
 		RuleIntervalTime:=RuleIntervalTime=0 ? "" : RuleIntervalTime
 		RuleGroupKey:=RunCtrlList[RunCtrlListBox].key
