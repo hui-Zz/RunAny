@@ -4,7 +4,7 @@
 ║ by hui-Zz 建议：hui0.0713@gmail.com 讨论QQ群：246308937
 ╚═══════════════════════════════════════════════════════════════
 */
-global RunAny_Plugins_Version:="1.3.2"
+global RunAny_Plugins_Version:="1.3.3"
 #Persistent             ;~让脚本持久运行
 #SingleInstance,Force   ;~运行替换旧实例
 DetectHiddenWindows,On
@@ -51,13 +51,13 @@ Gui,+Resize
 Gui,Font,,Microsoft YaHei
 Gui,Margin,10,10
 Gui,Add,Button,xm-5 yp+5 w35 h40 GSetDownDir,下载目录
-Gui,Add,Edit,xm+35 yp+10 w500 r1 vDownDir GSetDownDir2,%DownDir%
+Gui,Add,Edit,xm+35 yp+10 w650 r1 vDownDir GSetDownDir2,%DownDir%
 Gui,Add,Button,xm-5 yp+30 w35 h40 GSetIDMPath,IDM路径
-Gui,Add,Edit,xm+35 yp+10 w500 r1 vIDMPath GSetIDMPath2,%IDMPath%
+Gui,Add,Edit,xm+35 yp+10 w650 r1 vIDMPath GSetIDMPath2,%IDMPath%
 Gui,Add,Button,xm-5 yp+30 w35 h40,下载命令
-Gui,Add,Edit,xm+35 yp+10 w500 r1 vDownCmd GSetDownCmd,%DownCmd%
+Gui,Add,Edit,xm+35 yp+10 w650 r1 vDownCmd GSetDownCmd,%DownCmd%
 Gui,Add,Button,xm-5 yp+30 w35 h40,代理地址
-Gui,Add,Edit,xm+35 yp+10 w500 r1 vProxyUrl GSetProxyUrl,%ProxyUrl%
+Gui,Add,Edit,xm+35 yp+10 w650 r1 vProxyUrl GSetProxyUrl,%ProxyUrl%
 Gui,Add,Text,x+5 yp+5 vProxyStatus gProxyStatusTips,代理状态：
 Gui,Add,Checkbox,Checked%checkAutoRun% xm+35 yp+30 vAutoRun gSetAutoRun,启动后自动开始更新Scoop
 Gui,Add,Checkbox,Checked%checkAutoMin% x+10 yp vAutoMin gSetAutoMin,最小化启动
@@ -66,10 +66,9 @@ Gui,Add,Radio,x+10 yp Checked%aria2Enable% varia2Enable GSetAria2Config, aria2�
 Gui,Font,Bold,Cascadia Mono
 Gui,Add,Button,xm-3 yp+30 w28 h120 GDownStart,开始批量更新
 Gui,Add,Button,xm-3 yp+130 w28 h120 GUpdateApp,独立批量更新
-Gui,Add,Edit,xm+35 yp-130 w500 r30 -Wrap HScroll vscoopStatusResult,正在查询scoop更新列表......
-Gui,Add,Progress,xm+35 w500 cGreen vMyProgress
-Gui,Add,StatusBar, xm+10 w490 vvStatusBar,
-GuiControl, Hide, MyProgress
+Gui,Add,Edit,xm+35 yp-130 w650 r30 -Wrap HScroll vscoopStatusResult,正在查询scoop更新列表......
+Gui,Add,Progress,xm+35 w650 cGreen Hidden vMyProgress
+Gui,Add,StatusBar, xm+10 w640 vvStatusBar,
 Gui, Show, AutoSize Center %optionAutoMin%, 【Scoop使用IDM下载更新 v%RunAny_Plugins_Version%】https://github.com/hui-Zz
 tcping:=Trim(cmdClipReturn("tcping -v | findstr tcping.exe")," `t`r`n")
 if(tcping){
@@ -220,8 +219,8 @@ GuiSize:
 	GuiControl, Move, DownCmd, % " W" . (A_GuiWidth - 50)
 	GuiControl, Move, ProxyUrl, % " W" . (A_GuiWidth * 0.58)
 	GuiControl, Move, ProxyStatus, % " W" . (A_GuiWidth * 0.40) . " X" . (A_GuiWidth * 0.70)
-	GuiControl, Move, MyProgress, % "H" . (A_GuiHeight-90) . " W" . (A_GuiWidth - 50)
-	GuiControl, Move, scoopStatusResult, % "H" . (A_GuiHeight-220) . " W" . (A_GuiWidth - 50)
+	GuiControl, Move, MyProgress, % " W" . (A_GuiWidth - 50) . "Y" . (A_GuiHeight-40)
+	GuiControl, Move, scoopStatusResult, % "H" . (A_GuiHeight-240) . " W" . (A_GuiWidth - 50)
 return
 GuiClose:
 GuiEscape:
@@ -249,7 +248,9 @@ getScoopAppDownUrl(num, appName){
 					DownName:=varList[2]
 				}
             }
-			Run,% Get_Transform_Val(DownCmd)
+			if(!FileExist(DownDir "\" DownName)){
+				Run,% Get_Transform_Val(DownCmd)
+			}
         }
     }
 }
