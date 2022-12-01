@@ -4,7 +4,7 @@
 ║ by hui-Zz 建议：hui0.0713@gmail.com 讨论QQ群：246308937
 ╚═══════════════════════════════════════════════════════════════
 */
-global RunAny_Plugins_Version:="1.3.1"
+global RunAny_Plugins_Version:="1.3.2"
 #Persistent             ;~让脚本持久运行
 #SingleInstance,Force   ;~运行替换旧实例
 DetectHiddenWindows,On
@@ -92,8 +92,8 @@ if(InStr(scoopStatusResult,"Version")){
 	Loop, parse, scoopStatusResult, `n, `r
 	{
 		Z_LoopField=%A_LoopField%
- 		if(!InStr(Z_LoopField,"Held package") && RegExMatch(Z_LoopField,"^[^\s]+\s+[\d\.]+\s+[\d\.]+\s*")){
-			appName:=RegExReplace(Z_LoopField,"S)^([^\s]+)\s+[\d\.]+\s+[\d\.]+\s*","$1")
+ 		if(!InStr(Z_LoopField,"Held package") && RegExMatch(Z_LoopField,"^[^\s]+\s+\d+[\w\.-]+\s+\d+[\w\.-]+\s*")){
+			appName:=RegExReplace(Z_LoopField,"S)^([^\s]+)\s+\d+[\w\.-]+\s+\d+[\w\.-]+\s*","$1")
 			scoopUpdateAppList[appName]:=false
 		}
 	}
