@@ -1,10 +1,10 @@
 ﻿/*
 ╔═══════════════════════════════════════════════════════════════
-║【Scoop使用IDM下载更新】 https://github.com/hui-Zz @2022.11.22
+║【Scoop使用IDM下载更新】 https://github.com/hui-Zz @2022.12.01
 ║ by hui-Zz 建议：hui0.0713@gmail.com 讨论QQ群：246308937
 ╚═══════════════════════════════════════════════════════════════
 */
-global RunAny_Plugins_Version:="1.3.0"
+global RunAny_Plugins_Version:="1.3.1"
 #Persistent             ;~让脚本持久运行
 #SingleInstance,Force   ;~运行替换旧实例
 DetectHiddenWindows,On
@@ -170,7 +170,7 @@ DownStart:
 	}
 	for name,v in scoopUpdateAppList
 	{
-		Run, %ComSpec% /c "scoop update %name%", , Min
+		Run, %ComSpec% /c "scoop update %name% -s", , Min
 		getScoopAppDownUrl%A_Index%:=Func("getScoopAppDownUrl").Bind(A_Index, name)	;规则定时器
 		SetTimer,% getScoopAppDownUrl%A_Index%, 200
 	}
@@ -186,7 +186,7 @@ DownStart:
 			if(!v)
 				success:=v
 			if(!scoopUpdateAppList[name] && scoopAppDownOutList[name] && FileExist(DownDir "\" scoopAppDownOutList[name])){
-				Run, %ComSpec% /c "scoop update %name%", , Min
+				Run, %ComSpec% /c "scoop update %name% -s", , Min
 				scoopUpdateAppList[name]:=true
 				GuiControl,, MyProgress, +%progressNum%
 				WaitAppCount--
@@ -206,7 +206,7 @@ UpdateApp:
 	}
 	for name,v in scoopUpdateAppList
 	{
-		Run,%ComSpec% /c "scoop update %name%", , ;Min
+		Run,%ComSpec% /c "scoop update %name% -s", , ;Min
 	}
 	if(RegExMatch(ProxyUrl,"^(?:https?:\/\/)?[\w-]+(?:\.[\w-]+)+:\d{1,5}\/?$")){
 		Run, %ComSpec% /c "scoop config proxy %ProxyUrl%", , Min
