@@ -1539,13 +1539,12 @@ CtrlGQuickSwitch:
 	WinGet, doIcon, ProcessPath,ahk_exe dopus.exe
 	if(doIcon){
 		try{
-			ControlGetText,folder, Edit1,ahk_class dopus.lister
-			If (folder && !ctrlgMenuItem[folder]) {
-				ctrlgMenuItemAdd(ctrlgMenuName, ctrlgMenuItem, ctrlgMenuItemNum, folder, doIcon)
-			}
-			try ControlGetText,folder, Edit2,ahk_class dopus.lister
-			If (folder && !ctrlgMenuItem[folder]) {
-				ctrlgMenuItemAdd(ctrlgMenuName, ctrlgMenuItem, ctrlgMenuItemNum, folder, doIcon)
+			Loop, 20
+			{
+				try ControlGetText,folder, Edit%A_Index%,ahk_class dopus.lister
+				If (folder && !ctrlgMenuItem[folder]) {
+					ctrlgMenuItemAdd(ctrlgMenuName, ctrlgMenuItem, ctrlgMenuItemNum, folder, doIcon)
+				}
 			}
 		}catch e{
 			TrayTip,,% "无法获取DO当前目录，不建议最小化到托盘：" e.What "`n错误代码行：" e.Line "`n错误信息：" e.extra "`n" e.message,10,3
