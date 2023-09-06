@@ -63,9 +63,10 @@ Gui,Add,Checkbox,Checked%checkAutoRun% xm+35 yp+30 vAutoRun gSetAutoRun,启动�
 Gui,Add,Checkbox,Checked%checkAutoMin% x+10 yp vAutoMin gSetAutoMin,最小化启动
 Gui,Add,Radio,x+10 yp Checked%aria2False% varia2False GSetAria2Config, scoop默认下载更新
 Gui,Add,Radio,x+10 yp Checked%aria2Enable% varia2Enable GSetAria2Config, aria2下载更新
-Gui,Font,Bold,Cascadia Mono
+Gui,Font,Bold
 Gui,Add,Button,xm-3 yp+30 w28 h120 GDownStart,开始批量更新
 Gui,Add,Button,xm-3 yp+130 w28 h120 GUpdateApp,独立批量更新
+Gui,Font,,Consolas
 Gui,Add,Edit,xm+35 yp-130 w650 r30 -Wrap HScroll vscoopStatusResult,正在查询scoop更新列表......
 Gui,Add,Progress,xm+35 w650 cGreen Hidden vMyProgress
 Gui,Add,StatusBar, xm+10 w640 vvStatusBar,
@@ -86,18 +87,22 @@ if(checkProxy){
 }
 ;获取更新程序列表
 scoopStatusResult:=cmdSilenceReturn("scoop status")
+scoopStatusResultNew:=""
 ;[读取scoop更新信息]
 if(InStr(scoopStatusResult,"Version")){
 	Loop, parse, scoopStatusResult, `n, `r
 	{
 		Z_LoopField=%A_LoopField%
+		if(A_Index<=4)
+			scoopStatusResultNew.=A_LoopField . "`n"
  		if(!InStr(Z_LoopField,"Held package") && RegExMatch(Z_LoopField,"^[^\s]+\s+\d+[\w\.-]+\s+\d+[\w\.-]+\s*")){
 			appName:=RegExReplace(Z_LoopField,"S)^([^\s]+)\s+\d+[\w\.-]+\s+\d+[\w\.-]+\s*","$1")
 			scoopUpdateAppList[appName]:=false
+			scoopStatusResultNew.=A_LoopField . "`n"
 		}
 	}
 }
-GuiControl,, scoopStatusResult, %scoopStatusResult%
+GuiControl,, scoopStatusResult, %scoopStatusResultNew%
 if(AutoRun){
 	Gosub, DownStart
 }
@@ -171,7 +176,7 @@ DownStart:
 	{
 		Run, %ComSpec% /c "scoop update %name% -s", , Min
 		getScoopAppDownUrl%A_Index%:=Func("getScoopAppDownUrl").Bind(A_Index, name)	;规则定时器
-		SetTimer,% getScoopAppDownUrl%A_Index%, 200
+		SetTimer,% getScoopAppDownUrl%A_Index%, 500
 	}
 	WaitAppCount:=scoopUpdateAppList.Count()
 	;~ 每次增加进度 := 向上取整(100%进度条/文件数)
@@ -185,13 +190,14 @@ DownStart:
 			if(!v)
 				success:=v
 			if(!scoopUpdateAppList[name] && scoopAppDownOutList[name] && FileExist(DownDir "\" scoopAppDownOutList[name])){
-				Run, %ComSpec% /c "scoop update %name% -s", , Min
 				scoopUpdateAppList[name]:=true
+				Run, %ComSpec% /c "scoop update %name% -s", , Min
 				GuiControl,, MyProgress, +%progressNum%
 				WaitAppCount--
 				SB_SetText("总下载更新应用数：" scoopUpdateAppList.Count() " | 剩余未下载安装数：" WaitAppCount "  (正在运行的应用和外网应用会下载更新失败)")
+				Sleep,2000
 			}
-			Sleep,200
+			Sleep,2000
 		}
 	} Until % success || A_Index > 1000
 	if(RegExMatch(ProxyUrl,"^(?:https?:\/\/)?[\w-]+(?:\.[\w-]+)+:\d{1,5}\/?$")){
@@ -230,15 +236,15 @@ return
 getScoopAppDownUrl(num, appName){
 	global
 	if(FileExist(DownDir "\" appName ".txt")){
-        FileRead, var, %DownDir%\%appName%.txt
-        if(var!=""){
-            SetTimer,% getScoopAppDownUrl%num%, Off
-            Loop, parse, var, `n, `r
-            {
-                if(A_LoopField="")
-                    continue
-                Z_LoopField=%A_LoopField%
-                if(A_Index=1){
+		FileRead, var, %DownDir%\%appName%.txt
+		if(var!=""){
+			SetTimer,% getScoopAppDownUrl%num%, Off
+			Loop, parse, var, `n, `r
+			{
+				if(A_LoopField="")
+					continue
+				Z_LoopField=%A_LoopField%
+				if(A_Index=1){
 					scoopAppDownUrlList.Push(varList[2])
 					DownUrl:=Z_LoopField
 				}
@@ -247,12 +253,12 @@ getScoopAppDownUrl(num, appName){
 					scoopAppDownOutList[appName]:=varList[2]
 					DownName:=varList[2]
 				}
-            }
+			}
 			if(!FileExist(DownDir "\" DownName)){
 				Run,% Get_Transform_Val(DownCmd)
 			}
-        }
-    }
+		}
+	}
 }
 /*
 【隐藏运行cmd命令并将结果存入剪贴板后取回 @hui-Zz】
