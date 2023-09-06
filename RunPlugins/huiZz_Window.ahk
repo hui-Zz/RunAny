@@ -3,7 +3,7 @@
 ;*             by hui-Zz 
 ;************************
 global RunAny_Plugins_Name:="ObjReg窗口操作脚本"
-global RunAny_Plugins_Version:="1.1.2"
+global RunAny_Plugins_Version:="1.1.3"
 global RunAny_Plugins_Icon:="SHELL32.dll,241"
 #NoEnv                  ;~不检查空变量为环境变量
 #NoTrayIcon             ;~不显示托盘图标
@@ -19,6 +19,9 @@ SetTitleMatchMode,2     ;~窗口标题模糊匹配
 CoordMode,Menu,Window   ;~坐标相对活动窗口
 ;WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
 #Include %A_ScriptDir%\RunAny_ObjReg.ahk
+
+global winTopList:=[]
+global winBottomList:=[]
 
 class RunAnyObj {
 	;[窗口居中]
@@ -43,14 +46,31 @@ class RunAnyObj {
 		WinMove,A,,%var_x%,%var_y%,%var_width%,%var_height%
 	}
 	;[窗口置顶]
-	win_top_zz(t=1){
-		if(t=1){
+	win_top_zz(t=""){
+		global winTopList
+		winId:=WinExist("A")
+		if(t=1 || !winTopList[winId]){
 			if(WinActive("ahk_class CabinetWClass")){
 				WinSet,AlwaysOnTop,On,ahk_class CabinetWClass
 			}
-			WinSet,AlwaysOnTop,On,A
-		}else{
-			WinSet,AlwaysOnTop,Off,A
+			WinSet,AlwaysOnTop,On,ahk_id %winId%
+			winTopList[winId]:=True
+		}else if(t=0 || winTopList[winId]){
+			WinSet,AlwaysOnTop,Off,ahk_id %winId%
+			winTopList[winId]:=False
+		}
+	}
+	;[窗口置底]
+	win_bottom_zz(t="",w="ahk_class Progman"){
+		global winBottomList
+		Child_ID:=WinExist("A")
+		if(t=1 || !winBottomList[Child_ID]){
+			WinGet, Desktop_ID, ID, %w%
+			DllCall("SetParent", "uint", Child_ID, "uint", Desktop_ID)
+			winBottomList[Child_ID]:=True
+		}else if(t=0 || winBottomList[Child_ID]){
+			DllCall("User32\SetParent", "Ptr",Child_ID, "Ptr",0)
+			winBottomList[Child_ID]:=False
 		}
 	}
 	;[窗口改变大小移至边角置顶观影] v1.0.9
