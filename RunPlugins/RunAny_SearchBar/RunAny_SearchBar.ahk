@@ -1666,7 +1666,10 @@ EditFile(filePath,openExe:="edit") { ; 编辑指定文件
 	try
 		Run,%openExe% "%filePath%"
 	catch
-		Run,edit "%filePath%"
+		try
+			Run,edit "%filePath%"
+		Catch
+			Run,notepad.exe "%filePath%"
 }
 
 OpenFilePath(OpenFile,Folder_Open_Exe:="explorer.exe /select,",OpenLnk:=0) { ; 打开文件路径,OpenLnk=1,仅打开lnk目标文件夹OpenLnk=2，全打开

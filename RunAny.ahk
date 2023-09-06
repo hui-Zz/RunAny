@@ -3211,6 +3211,10 @@ Remote_Menu_Run(remoteRun, remoteGetZz:=""){
 	OutsideMenuItem:=remoteRun
 	Gosub, Menu_Run
 }
+;[外部调用显示菜单]
+Remote_Menu_Show(menuName){
+	Menu_Show_Show(menuName, "")
+}
 ;[外部调用显示后缀菜单]
 Remote_Menu_Ext_Show(fileExt){
 	extMenuName:=MenuObjExt[FileExt]
