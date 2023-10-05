@@ -4,7 +4,7 @@
 
 
 
-global RunAny_Plugins_Version:="1.3.0"
+global RunAny_Plugins_Version:="1.3.5"
 #NoTrayIcon             ;~不显示托盘图标
 #Persistent             ;~让脚本持久运行
 #SingleInstance,Force   ;~运行替换旧实例
@@ -106,10 +106,14 @@ switch func
 		RunWait %ComSpec% /c "rd "%xiaoyaoStr%"", , Hide
    		 }
 		ttip("解散成功",1000)
-	case 8:
-	;待写
+	case 8:	;起始(删除一整行);
+		Send {Home}
+		Send +{End}  
+		Send {delete}    
 	case 9:
-	;待写
+		send {home}
+		send +{end}
+		send ^c   ;输出ctrl+c,复制一整行
 	case 10:	;保存到RunAny.ini为：当前目录打开CMD|XiaoYao_plus[RA_plus](,,10)	
 			Run %ComSpec% /k pushd "%filebatch5%"
 	case 11:	;保存到RunAny.ini为：ev搜当前目录|XiaoYao_plus[RA_plus](,%"Everything.exe"%,11)
@@ -132,8 +136,15 @@ switch func
 		RunWait %ComSpec% /c "move /Y "%xiaoyaoStr%" "%redir%\%reext%"", , Hide
 		}
 		ttip("分类成功",1500)
-
-
+	case 15:	;颜色神偷
+		MouseGetPos, mouseX, mouseY
+		; 获得鼠标所在坐标，把鼠标的 X 坐标赋值给变量 mouseX ，同理 mouseY
+		PixelGetColor, color, %mouseX%, %mouseY%, RGB
+		; 调用 PixelGetColor 函数，获得鼠标所在坐标的 RGB 值，并赋值给 color
+		StringRight color,color,6
+		; 截取 color（第二个 color）右边的6个字符，因为获得的值是这样的：#RRGGBB，一般我们只需要 RRGGBB 部分。把截取到的值再赋给 color（第一个 color）。
+		clipboard = %color%
+		; 把 color 的值发送到剪贴板
 
 
 ;Bandizip功能-----------------------------------
@@ -233,9 +244,6 @@ switch func
 ;删除[#]|XiaoYao_plus[RA_plus](%getZz%,%"IObitUnlocker.exe"%,5002)
 ;复制到D下载[#]|XiaoYao_plus[RA_plus](%getZz%,%"IObitUnlocker.exe"%,5003)
 ;移动到D下载[#]|XiaoYao_plus[RA_plus](%getZz%,%"IObitUnlocker.exe"%,5004)
-
-
-
 
 
 	}
@@ -614,6 +622,9 @@ Runwait %ComSpec% /c pushd "%filedir%" && md "临时存放_xiaoyao", , Hide
 ffmpeg(getZz,plusxy_Path,formatExt,func){
     filebatch := getfiles(getZz)								;完整路径，(多选文件时，自动加上双引号""并空格隔开，  	示例："Path1" "Path2" "Path3")
 	filedir :=""					; %filedir%				目录
+	fileExt :=""					; %fileExt%				后缀
+	fileNameNoExt :=""				; %fileNameNoExt%		无后缀名称
+	filebatch7 := getfiles7(getZz)
 Loop, parse, getZz, `n, `r, %A_Space%%A_Tab%
 	{
 		if(!A_LoopField)
@@ -622,6 +633,8 @@ Loop, parse, getZz, `n, `r, %A_Space%%A_Tab%
 		if(ext="lnk")
 			FileGetShortcut, %A_LoopField%, lnkTarget, lnkDir, lnkArgs, lnkDesc, lnkIcon, lnkIconNum, lnkRunState
 		filedir:=dir
+		fileExt:=ext
+		fileNameNoExt:=nameNoExt
 	}
 switch func
 	{
@@ -715,6 +728,8 @@ switch func
 		RunWait %plusxy_Path% -i "%xiaoyaoStr%" -c:v copy -an "%redir%\无声_%reNameNoExt%.%renameExt%"
 		}
 		ttip("转换成功",1000)
+	case 8:	
+		RunWait %plusxy_Path% %filebatch7% -c:v copy -c:a copy "%filedir%\合并视频.mp4"
 
 }
 	}
@@ -724,8 +739,8 @@ Storetext(getZz,plusxy_Path,formatExt){
 		clip:= getZz
 		StringReplace, First, clip, `r`n, , All	;将剪贴板中的换行符 rn 替换为空，以便生成文件名
 		StringLeft,First,First,5	;将前 5 个字符赋给 First 变量作为文件名的一部分
-		FileAppend, %clip%, %formatExt%/%First%_%A_YYYY%%A_MM%%A_DD%_%A_Hour%%A_Min%%A_Sec%.txt		;将剪贴板的内容追加到指定路径的文本文件中，文件名由 First 和 .txt 组成
-		RunWait %plusxy_Path% "%formatExt%/%First%_%A_YYYY%%A_MM%%A_DD%_%A_Hour%%A_Min%%A_Sec%.txt"
+		FileAppend, %clip%, %formatExt%\%First%_%A_YYYY%%A_MM%%A_DD%_%A_Hour%%A_Min%%A_Sec%.txt		;将剪贴板的内容追加到指定路径的文本文件中，文件名由 First 和 .txt 组成
+		RunWait %plusxy_Path% "%formatExt%\%First%_%A_YYYY%%A_MM%%A_DD%_%A_Hour%%A_Min%%A_Sec%.txt"
 }	
 	
 
@@ -848,14 +863,9 @@ switch func
 		Run %plusxy_Path% /preset "%rnp_Path%" %filebatch%
 	case 4:
 		Run %plusxy_Path% /preset "%rnp_Path%" %filebatch%		
-;保存到RunAny.ini为：
-;添加到已打开[多]|XiaoYao_plus[RA_plus](%getZz%,%"ReNamer.exe"%,3001)
-;每30个文件建文件夹[多]|XiaoYao_plus[RA_plus](%getZz%,%"ReNamer.exe"%,3002)
-;缩短文件名长度[多]|XiaoYao_plus[RA_plus](%getZz%,%"ReNamer.exe"%,3003)
-;添加已阅标签[多]|XiaoYao_plus[RA_plus](%getZz%,%"ReNamer.exe"%,3004)
 }
 }
-;══════════════════════════════════下一个功能══════════════════════════════════
+;══════════════════════════════════创建新文件夹══════════════════════════════════
 Batch_file1()
 {
 MsgBox, 4, 请选择要创建的类型, `n文件夹（选择是）`n`n 文件（选择否）
@@ -903,10 +913,72 @@ else
     Gui, Destroy
 return
 }
-;══════════════════════════════════下一个功能══════════════════════════════════
+;══════════════════════════════════文字反转══════════════════════════════════
+ReverseString1(getZz)
+{
+	 reversedText := ReverseString(getZz)
+	 ClipSaved := ClipboardAll  ; 保存剪贴板内容
+	 Clipboard := reversedText
+	 ; 发送快捷键 Ctrl + V，将竖排后的文字粘贴到选中的区域，并替换掉原有的选中文字
+SendInput ^v
+ClipWait  ; 等待剪贴板数据被粘贴
+
+Clipboard := ClipSaved  ; 还原剪贴板内容
+ClipSaved := ""  ; 清空剪贴板保存的内容
+}
+;══════════════════════════════════文档定位══════════════════════════════════
+locationpath(plusxy_Path)
+{
+WinGetActiveTitle, str
+str := StrReplace(str, "[只读]", "")
+str := StrReplace(str, "[兼容模式]", "")
+;MsgBox % str
+
+IfWinActive ahk_exe Notepad2.exe
+{
+    result := RegExMatch(str, ".*(?=\s\[.*\])", match)
+;MsgBox % match
+
+run %plusxy_Path% -s "%match% !.lnk !.url"
+}
+else if WinActive("ahk_exe Notepad3.exe")
+{
+    result := RegExMatch(str, ".*(?=\s\[.*\])", match)
+;MsgBox % match
+run %plusxy_Path% -s "%match% !.lnk !.url"
+}
+else
+{
+regex := "(.*)\s-\s.*"
+result := RegExReplace(str, regex, "$1")
+;MsgBox % result
+run %plusxy_Path% -s "%result% !.lnk !.url"
+}
+}
+;══════════════════════════════════BCompare比较选中文字和剪贴板文字══════════════════════════════════
+bcompare(getZz,plusxy_Path,func){
+		filebatch := getfiles(getZz)
+
+switch func
+	{
+	case 1:	
+		Runwait %ComSpec% /c pushd "%A_MyDocuments%" && md "临时存放_xiaoyao", , Hide	;在 我的文档 目录下建立一个临时文件夹
+		clip:= getZz
+		FileAppend, %clip%, %A_MyDocuments%\临时存放_xiaoyao\文本1.txt		;将选中文字的内容追加到指定路径的文本文件中
+		clip2:= clipboard
+		FileAppend, %clip2%, %A_MyDocuments%\临时存放_xiaoyao\文本2.txt		;将选中文字的内容追加到指定路径的文本文件中
+		run %plusxy_Path% "%A_MyDocuments%\临时存放_xiaoyao\文本1.txt" "%A_MyDocuments%\临时存放_xiaoyao\文本2.txt" ;执行比较命令
+		Sleep, 2000  ; 等待 2000 毫秒，即 2 秒
+		FileRemoveDir, %A_MyDocuments%`\临时存放_xiaoyao, 1	;删除临时文件夹
+	case 2:
+		run %plusxy_Path% %filebatch%
+}	
+}
+;══════════════════════════════════cpdf功能══════════════════════════════════	
+
 ;══════════════════════════════════下一个功能══════════════════════════════════
 
-
+;══════════════════════════════════下一个功能══════════════════════════════════
 }
 
 
@@ -977,6 +1049,19 @@ getfiles3(getZz){
 		Loop, parse, line , `n, `r
 		{
 				files := files ", " A_LoopField
+		}
+		if(StrLen(files) < 1) {
+			Return
+		}
+   Return files
+}
+;══════════════════════════多选时，逗号,加空格隔开  	示例：-i Path1, Path2, Path3══════════════════════════════════
+getfiles7(getZz){
+		files := ""
+		line := getZz
+		Loop, parse, line , `n, `r
+		{
+				files := files "-i """ A_LoopField """" " "
 		}
 		if(StrLen(files) < 1) {
 			Return
@@ -1180,7 +1265,17 @@ RunCommond(path, name, dir, ext, nameNoExt, param, commond) {
 		commond := StrReplace(commond, key, facValue)
 	}
 	; MsgBox, % commond
-	RunWait, % commond, , Hide
+	RunWait, % commond
 	; SetTimer, RemoveToolTip, -5000
 	; return
+}
+;══════════════════════════════════选中文字反转══════════════════════════════════	
+; 定义一个函数，用于反转字符串
+ReverseString(str) {
+    reversed := ""
+    Loop, Parse, str
+    {
+        reversed := A_LoopField . reversed
+    }
+    return reversed
 }
