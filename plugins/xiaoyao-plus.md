@@ -11,7 +11,7 @@
 !> **【注意：以下部分功能需要调用第三方软件，请确保你电脑存在所使用功能的第三方软件】**
 
 <details>
-<summary>实用功能</summary>
+<summary>实用功能【点此展开】</summary>
 
 ```ini
 -实用功能
@@ -57,7 +57,7 @@
 </details>
 <br>
 <details>
-<summary>ffmpeg功能</summary>
+<summary>ffmpeg功能【点此展开】</summary>
 
 ```ini
 -ffmpeg功能
@@ -98,7 +98,7 @@
 </details>
 <br>
 <details>
-<summary>ImageMagick功能</summary>
+<summary>ImageMagick功能【点此展开】</summary>
 
 ```ini
 -ImageMagick功能
@@ -173,7 +173,7 @@
 </details>
 <br>
 <details>
-<summary>其他功能</summary>
+<summary>其他功能【点此展开】</summary>
 
 ```ini
 -Bandizip功能
@@ -246,7 +246,8 @@ RA_plus2     直接在runany.ini中使用更多的变量
 - 第二个,：magick.exe表示软件名
 - 第三个,：命令$开头的表示变量
 - 第四个,：是要替换的变量 用$1 $2 之间用|隔开
-#path# 表示选中的图片路径 E:\test\3.png 
-#dir# 图片目录 E:\test 
-#nameNoExt# 文件名不带后缀 
-#ext# 文件后缀
+
+#path# 表示选中的图片路径 E:\test\3.png  
+#dir# 图片目录 E:\test  
+#nameNoExt# 文件名不带后缀  
+#ext# 文件后缀  
