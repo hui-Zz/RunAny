@@ -3,8 +3,8 @@
 **【功能说明：文件分类、解散文件夹、批量新建文件夹、解压缩功能、ImageMagick功能，ffmpeg功能等，以及可以直接在runany.ini中使用更多的变量】**
 
 **【使用说明：】**
-1. 右键RunAny图标“插件管理”，下载插件测试.ahk和RunAny_ObjReg.ahk
-2. 下载后在插件管理点击“自启”按钮设置huizz_Window.ahk为自动启动
+1. 右键RunAny图标“插件管理”，下载插件XiaoYao_plus.ahk和RunAny_ObjReg.ahk
+2. 下载后在插件管理点击“自启”按钮设置XiaoYao_plus.ahk为自动启动
 3. 复制以下执行项写入RunAny.ini文件保存，然后重启RunAny后打开菜单即可使用
 4. ↓ 点击下面展开，复制需要的功能写入RunAny.ini文件
 
@@ -17,16 +17,23 @@
 -实用功能
 	;【将当前选中的文件夹下及其子文件夹下所有文件移动到其对应的父目录，并删除原目录（当这个文件夹为空了才会删除）】
 	解散文件夹|XiaoYao_plus[RA_plus](%getZz%,,7)
-	--
 	文件/文件夹批量新建|XiaoYao_plus[Batch_file1]()
-	隐藏/显示桌面图标|XiaoYao_plus[HideOrShowDesktop]()
-	隐藏/显示任务栏|XiaoYao_plus[ToggleTaskbar]()
 	;文件分类功能说明：取文件扩展名创建文件夹，并将文件移入对应文件夹内。
-	文件分类|XiaoYao_plus[RA_plus](%getZz%,,14)	
+	文件分类|XiaoYao_plus[RA_plus](%getZz%,,14)
+	--
+	隐藏/显示桌面图标|XiaoYao_plus[HideOrShowDesktop]()
+	隐藏/显示任务栏|XiaoYao_plus[ToggleTaskbar]()	
 	;生成随机密码功能说明：kind:类型 W大写 w小写 d数字 可以组合 length:长度
 	生成随机密码|XiaoYao_plus[RandomPass2]("Wwd",8)
+	--
 	文字竖排|XiaoYao_plus[Texttest1](%getZz%)
-	框中文字全选后搜索	+s|XiaoYao_plus[RA_plus](,,1)
+	文字反转|XiaoYao_plus[ReverseString1](%getZz%)
+	删除一整行|XiaoYao_plus[RA_plus](%getZz%,,8)
+	复制一整行|XiaoYao_plus[RA_plus](%getZz%,,9)
+	--
+	;当前打开的文档/文件，利用ev快速定位其所在路径
+	定位文档路径|XiaoYao_plus[locationpath](%"Everything.exe"%)
+	框中文字全选后搜索|XiaoYao_plus[RA_plus](,,1)
 	--
 	;【托盘悬浮到鼠标位置】
 	托盘悬浮|XiaoYao_plus[TaskbarTray2]()
@@ -52,6 +59,7 @@
 	复制文件夹骨架到D盘下载|XiaoYao_plus[copyfile2](%getZz%,D:\下载)
 	复制文件夹骨架到桌面|XiaoYao_plus[copyfile2](%getZz%,%A_Desktop%)
 	复制文件夹骨架到文档|XiaoYao_plus[copyfile2](%getZz%,%A_MyDocuments%)
+
 ```
 
 </details>
@@ -60,6 +68,7 @@
 <summary>ffmpeg功能【点此展开】</summary>
 
 ```ini
+
 -ffmpeg功能
 	;【官网下载：https://www.gyan.dev/ffmpeg/builds/，或者去群文件下载单文件ffmpeg.exe】
 	;注意：如果发现以下功能不可用，请用everything检查你本地电脑是否存在多个ffmpeg.exe，出现定位错误的问题，或者你可以直接填绝对路径
@@ -93,6 +102,10 @@
 	--
 	转gif|XiaoYao_plus[ffmpeg](%getZz%,%"ffmpeg.exe"%,gif,3)
 	视频压缩|XiaoYao_plus[ffmpeg](%getZz%,%"ffmpeg.exe"%,,6)
+	视频音频合并|XiaoYao_plus[ffmpeg](%getZz%,%"ffmpeg.exe"%,,8)
+	;视频格式转换[重编码]|XiaoYao_plus[RA_plus2](%getZz%,%"ffmpeg.exe"%,-i $1 $2,$1=#path#|$2=#dir#\#nameNoExt#_转换.填转换后的视频格式)
+	转mp4[重编码]|XiaoYao_plus[RA_plus2](%getZz%,%"ffmpeg.exe"%,-i $1 $2,$1=#path#|$2=#dir#\#nameNoExt#_转换.mp4)
+
 ```
 
 </details>
@@ -101,6 +114,7 @@
 <summary>ImageMagick功能【点此展开】</summary>
 
 ```ini
+
 -ImageMagick功能
 	;【官网：https://imagemagick.org/script/download.php#windows】
 	;功能1示例：图片转格式|XiaoYao_plus[ImageMagick](%getZz%,%"magick.exe"%,填转换后的图片格式,1)
@@ -160,6 +174,8 @@
 	裁剪空白部分|XiaoYao_plus[RA_plus2](%getZz%,%"magick.exe"%,convert $1 -trim $2,$1=#path#|$2=#dir#\#nameNoExt#_-trim.#ext#)
 	删除exif信息|XiaoYao_plus[RA_plus2](%getZz%,%"magick.exe"%,convert $1 -strip $2,$1=#path#|$2=#dir#\#nameNoExt#_-strip.#ext#) 
 	变黑白|XiaoYao_plus[RA_plus2](%getZz%,%"magick.exe"%,convert -monochrome $1 $2,$1=#path#|$2=#dir#\#nameNoExt#_black.#ext#) 
+	黑白图像|XiaoYao_plus[RA_plus2](%getZz%,%"magick.exe"%,convert $1 -type grayscale $2,$1=#path#|$2=#dir#\#nameNoExt#_black.#ext#)
+	50%二值化处理|XiaoYao_plus[RA_plus2](%getZz%,%"magick.exe"%,convert $1 -threshold 50% $2,$1=#path#|$2=#dir#\#nameNoExt#_threshold.#ext#)
 	--
 	;加边框示例：convert -mattecolor "#000000" -frame 30x30 yourname.jpg rememberyou.png
 	;其中，"#000000"是边框的颜色，边框的大小为30x30
@@ -168,20 +184,68 @@
 	生成固定尺寸图|XiaoYao_plus[RA_plus2](%getZz%,%"magick.exe"%,convert $1 -resize 340x313 -background white -gravity center -extent 340x313 $2,$1=#path#|$2=#dir#\#nameNoExt#_固定尺寸.#ext#)
 	;在图片的下方(south)插入一个高度为 27 像素的空白区域（splice），最后在这个空白区域内以黑色文本显示指定的文本内容; 图片下方是(north)
 	加文件名称水印|XiaoYao_plus[RA_plus2](%getZz%,%"magick.exe"%,convert $1 -background white -fill black -pointsize 20 -gravity south -splice 0x27 -annotate +0+5 "$3" $2,$1=#path#|$2=#dir#\#nameNoExt#_-文字水印.#ext#|$3=#nameNoExt#)
+	剪贴板图片替换选中文件|XiaoYao_plus[RA_plus2](%getZz%,%"magick.exe"%,clipboard: $1,$1=#path#)
+
 ```
 
+</details>
+<br>
+<details>
+<summary>cpdf功能【点此展开】</summary>
+
+```ini
+
+-cpdf功能
+	;【官网：https://www.coherentpdf.com/】
+	合并所选PDF|XiaoYao_plus[RA_plus2](%getZz%,%"cpdf.exe"%,-merge -remove-duplicate-fonts $1 -o $2,$1=#path#|$2=#dir#\合并_%A_YYYY%%A_MM%%A_DD%_%A_Hour%%A_Min%%A_Sec%.pdf,1)
+	以文件名为书签合并所选PDF|XiaoYao_plus[RA_plus2](%getZz%,%"cpdf.exe"%,-merge $1 -remove-duplicate-fonts -merge-add-bookmarks -o $2,$1=#path#|$2=#dir#\文件名标签_%A_YYYY%%A_MM%%A_DD%_%A_Hour%%A_Min%%A_Sec%.pdf,1)
+	以元标题为书签合并所选PDF|XiaoYao_plus[RA_plus2](%getZz%,%"cpdf.exe"%,-merge $1 -remove-duplicate-fonts -merge-add-bookmarks -merge-add-bookmarks-use-titles -o $2,$1=#path#|$2=#dir#\元标题标签_%A_YYYY%%A_MM%%A_DD%_%A_Hour%%A_Min%%A_Sec%.pdf,1)
+	--
+	PDF页面缩放到纵向A4|XiaoYao_plus[RA_plus2](%getZz%,%"cpdf.exe"%,-scale-to-fit a4portrait $1 -scale-to-fit-scale 1 -o $2,$1=#path#|$2=#dir#\#nameNoExt#_纵向A4.pdf)
+	PDF页面缩放到横向A4|XiaoYao_plus[RA_plus2](%getZz%,%"cpdf.exe"%,-scale-to-fit a4landscape $1 -scale-to-fit-scale 1 -o $2,$1=#path#|$2=#dir#\#nameNoExt#_横向A4.pdf)
+	PDF旋转90度|XiaoYao_plus[RA_plus2](%getZz%,%"cpdf.exe"%,-rotate-contents 90 $1 -o $2,$1=#path#|$2=#dir#\#nameNoExt#_旋转90.pdf)
+	--
+	按页拆分PDF|XiaoYao_plus[RA_plus2](%getZz%,%"cpdf.exe"%,$1 -split -o $2,$1=#path#|$2=#dir#\#nameNoExt#_页拆分%%%.pdf)
+	;按书签拆分PDF，将拆分后的每个文件，文件名为书签标签
+	按书签拆分PDF|XiaoYao_plus[RA_plus2](%getZz%,%"cpdf.exe"%,-split-bookmarks 0 $1 -utf8 -o $2,$1=#path#|$2=#dir#\@B.pdf)
+	;拆分偶数页，并设置每隔多少页生成一个文件
+	只拆分偶数页|XiaoYao_plus[RA_plus2Box](%getZz%,%"cpdf.exe"%,$1 even AND -split -chunk $3 -o $2,$1=#path#|$2=#dir#\#nameNoExt#_偶数页%%%.pdf,请设置每隔多少页生成一个文件,$3)
+	只拆分奇数页|XiaoYao_plus[RA_plus2Box](%getZz%,%"cpdf.exe"%,$1 odd AND -split -chunk $3 -o $2,$1=#path#|$2=#dir#\#nameNoExt#_奇数页%%%.pdf,请设置每隔多少页生成一个文件,$3)
+	每隔多少页拆分|XiaoYao_plus[RA_plus2Box](%getZz%,%"cpdf.exe"%,-split $1 -o $2 -chunk $3,$1=#path#|$2=#dir#\#nameNoExt#_%%%.pdf,请设置每隔多少页生成一个文件,$3)
+	;示例：提取第5页，弹框里填 5
+	;提取第2到第5页，弹框里填 2-5；
+	;提取第1页、第5页、第7页，就用“,”隔开，弹框里填 1,5,7 
+	只提取第几页|XiaoYao_plus[RA_plus2Box](%getZz%,%"cpdf.exe"%,$1 $3 -o $2,$1=#path#|$2=#dir#\#nameNoExt#_特定拆分.pdf,请设置要提取第几页内容,$3)
+	--
+	PDF添加页码|XiaoYao_plus[RA_plus2](%getZz%,%"cpdf.exe"%,-add-text " %Page /%EndPage" -top 100pt -font "Times-Roman" -font-size 20 $1 -o $2,$1=#path#|$2=#dir#\#nameNoExt#_添加页码.pdf)
+	压缩PDF|XiaoYao_plus[RA_plus2](%getZz%,%"cpdf.exe"%,-squeeze $1 -o $2,$1=#path#|$2=#dir#\#nameNoExt#_压缩.pdf)
+	删除书签|XiaoYao_plus[RA_plus2](%getZz%,%"cpdf.exe"%,-merge -remove-duplicate-fonts $1 -o $2,$1=#path#|$2=#dir#\合并_%A_YYYY%%A_MM%%A_DD%_%A_Hour%%A_Min%%A_Sec%.pdf)
+	添加水印|XiaoYao_plus[RA_plus2Box](%getZz%,%"cpdf.exe"%,-stamp-on "$3" $1 -o $2,$1=#path#|$2=#dir#\#nameNoExt#_水印.pdf,请设置需要添加的水印文件路径,$3)
+	移除内嵌字体|XiaoYao_plus[RA_plus2](%getZz%,%"cpdf.exe"%,-remove-fonts $1 -o $2,$1=#path#|$2=#dir#\#nameNoExt#_内嵌字体移除.pdf)
+	--
+	;使用128bit对PDF加密，设置所有者密码和用户密码
+	加密PDF|XiaoYao_plus[RA_plus2Box](%getZz%,%"cpdf.exe"%,-encrypt 128bit $3 xiaoyao $1 -o $2,$1=#path#|$2=#dir#\#nameNoExt#_加密.pdf,请设置加密密码,$3)
+	解密PDF|XiaoYao_plus[RA_plus2Box](%getZz%,%"cpdf.exe"%,-decrypt $1 owner=$3 -o $2,$1=#path#|$2=#dir#\#nameNoExt#_解密.pdf,请设置加密密码,$3)	
+
+```
 </details>
 <br>
 <details>
 <summary>其他功能【点此展开】</summary>
 
 ```ini
+-docto格式转换功能
+	;【官网：https://github.com/tobya/DocTo】
+	文档转txt|XiaoYao_plus[RA_plus2](%getZz%,%"docto.exe"%,-f $1 -O $2 -T wdFormatText,$1=#path#|$2=#dir#\#nameNoExt#_text.txt)
+	文档转pdf|XiaoYao_plus[RA_plus2](%getZz%,%"docto.exe"%,-f $1 -O $2 -T wdFormatPDF,$1=#path#|$2=#dir#\#nameNoExt#_PDF.pdf)
+	文档转doc|XiaoYao_plus[RA_plus2](%getZz%,%"docto.exe"%,-f $1 -O $2 -T wdFormatDocumentDefault,$1=#path#|$2=#dir#\#nameNoExt#_Document.doc)
 -Bandizip功能
 	;【官网：https://cn.bandisoft.com/bandizip/】
 		Bz智能解压|XiaoYao_plus[RA_plus](%getZz%,%"Bandizip.exe"%,1001)
 		Bz解压(非智能)|XiaoYao_plus[RA_plus](%getZz%,%"Bandizip.exe"%,1002)
 		Bz压缩|XiaoYao_plus[RA_plus](%getZz%,%"Bandizip.exe"%,1003)
 		Bz分别压缩|XiaoYao_plus[RA_plus](%getZz%,%"Bandizip.exe"%,1004)
+
 -7zip功能
 		;【官网：https://www.7-zip.org/】
 		7z解压|XiaoYao_plus[RA_plus](%getZz%,%"7z.exe"%,4003)
@@ -211,13 +275,25 @@
 		纯文本贴图|XiaoYao_plus[RA_plus]("%getZz%",%"Snipaste.exe"%,2006)
 		白板|XiaoYao_plus[RA_plus]("%getZz%",%"Snipaste.exe"%,2007)
 
+-BCompare文件比较功能
+	;【下载地址：https://www.ghxi.com/beyondcompare.html】
+	比较[选中文字与剪切板文字]|XiaoYao_plus[bcompare](%getZz%,%"BCompare.exe"%,1)
+	比较[选中的两个文件/文件夹]|XiaoYao_plus[bcompare](%getZz%,%"BCompare.exe"%,2)	
+
 -IObitUnlocker解除占用功能
 	;【下载地址：https://www.ghxi.com/iobitunlocker.html/comment-page-1】
 		解锁[#]|XiaoYao_plus[RA_plus](%getZz%,%"IObitUnlocker.exe"%,5001)
 		删除[#]|XiaoYao_plus[RA_plus](%getZz%,%"IObitUnlocker.exe"%,5002)
 		复制到D下载[#]|XiaoYao_plus[RA_plus](%getZz%,%"IObitUnlocker.exe"%,5003)
 		移动到D下载[#]|XiaoYao_plus[RA_plus](%getZz%,%"IObitUnlocker.exe"%,5004)
-		
+
+```
+</details>
+<br>
+<details>
+<summary>功能测试【点此展开】</summary>
+
+```ini
 -功能测试
 	百度搜索选中文件|XiaoYao_plus[RA_plus](%getZz%,,2)	
 	;【添加选中的exe程序到开机启动项】	
@@ -239,15 +315,17 @@ RA_plus2     直接在runany.ini中使用更多的变量
 
 将上述命令填到runany.ini，可以这样写：
 
-`缩小50%|XiaoYao_plus[RA_plus2](%getZz%,%"magick.exe"%,convert $1 -resize (50%) $2,$1=#path#|$2=#dir#\#nameNoExt#_s50.#ext#) `
+`缩小50%|XiaoYao_plus[RA_plus2](%getZz%,%"magick.exe"%,convert $1 -resize (50%) $2,$1=#path#|$2=#dir#\#nameNoExt#_s50.#ext#,0) `
 
 参数注释：
 - 第一个,：getZz 表示选中的内容（选中多个文件则依次执行）
 - 第二个,：magick.exe表示软件名
 - 第三个,：命令$开头的表示变量
 - 第四个,：是要替换的变量 用$1 $2 之间用|隔开
-
-#path# 表示选中的图片路径 E:\test\3.png  
-#dir# 图片目录 E:\test  
-#nameNoExt# 文件名不带后缀  
-#ext# 文件后缀  
+  - #path# 表示选中的图片路径 E:\test\3.png 
+  - #dir# 图片目录 E:\test 
+  - #nameNoExt# 文件名不带后缀 
+  - #ext# 文件后缀
+- 第五个,：参数为是否处理批量文件
+  - 批处理为0时, 根据传入的文件路径个数, 执行多次运行命令, 上面示例则是执行多次 magick convert
+  - 批处理为1时, 只执行一次运行命令, 传入多个文件文件路径会被合并成变量#path#
